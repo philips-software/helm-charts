@@ -214,29 +214,9 @@ podLabels: {}
 
 priorityClassName: ""
 
-env:
-  - name: HSDP_PRODUCT_KEY
-    valueFrom:
-      secretKeyRef:
-        name: hsdp-logging
-        key: product_key
-  - name: HSDP_INGESTOR_HOST
-    valueFrom:
-      secretKeyRef:
-        name: hsdp-logging
-        key: ingestor_host
+hsdpLoggingSecretName: "hsdp-logging"
 
-  - name: HSDP_SHARED_KEY
-    valueFrom:
-      secretKeyRef:
-        name: hsdp-logging
-        key: shared_key
-
-  - name: HSDP_SECRET_KEY
-    valueFrom:
-      secretKeyRef:
-        name: hsdp-logging
-        key: secret_key
+env: []
 
 # The envWithTpl array below has the same usage as "env", but is using the tpl function to support templatable string.
 # This can be useful when you want to pass dynamic values to the Chart using the helm argument "--set <variable>=<value>"
