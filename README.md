@@ -7,7 +7,7 @@ This repository hosts philips-software [Helm](https://helm.sh) charts.
 ## Add Helm repository
 
 ```bash
-helm repo add philips-labs https://philips-software.github.io/helm-charts/
+helm repo add philips-software https://philips-software.github.io/helm-charts/
 helm repo update
 ```
 
