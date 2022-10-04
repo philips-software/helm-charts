@@ -20,3 +20,9 @@ sources:
 maintainers:
   - name: loafoe
     email: andy.loafoe@gmail.com
+
+annotations:
+  artifacthub.io/license: MIT
+  artifacthub.io/images: |
+    - name: philipssoftware/fluent-bit-out-hsdp
+      url: docker.io/philipssoftware/fluent-bit-out-hsdp:1.1.9.5
