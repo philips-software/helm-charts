@@ -4,7 +4,7 @@ description: Fast and lightweight log processor and forwarder or Linux, OSX and 
 
 type: application
 
-version: 0.0.13
+version: 0.0.14
 appVersion: 1.9.9-5
 
 keywords:
