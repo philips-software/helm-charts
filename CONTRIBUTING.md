@@ -1,120 +1,44 @@
-# Contributing Helm charts
+# CONTRIBUTING
 
-We'd love for you to contribute to our source code!
- Here are the guidelines we'd like you to follow:
+:tada: Thanks for your interest in contributing to this project. In this document we outline a few guidelines to ease the way your contributions flow into this project.
 
- - [Question or Problem?](#question)
- - [Issues and Bugs](#issue)
- - [Feature Requests](#feature)
- - [Submission Guidelines](#submit)
- - [Further Info](#info)
+## Commit style
 
-## <a name="issue"></a> Found an Issue?
+Ensure you have clear and concise commits, written in the present tense. See [Kubernetes commit message guidelines](https://www.kubernetes.dev/docs/guide/pull-requests/#commit-message-guidelines) for a more detailed explanation of our approach.
 
-If you find a bug in the source code or a mistake in the documentation, you can help us by submitting an issue to our [Github Repository][github]. Even better you can submit a Pull Request with a fix.
-
-**Please see the [Submission Guidelines](#submit) below.**
-
-## <a name="feature"></a> Want a Feature?
-
-You can request a new feature by submitting an issue to our [Github Repository][github]. If you would like to implement a new feature then consider what kind of change it is:
-
-## <a name="docs"></a> Want a Doc Fix?
-
-If you want to help improve the docs, it's a good idea to let others know what you're working on to minimize duplication of effort. Create a new issue (or comment on a related existing one) to let others know what you're working on.
-
-For large fixes, please build and test the documentation before submitting the MR to be sure you haven't accidentally introduced any layout or formatting issues. You should also make sure that your commit message starts with "docs" and follows the **[Commit Message Guidelines](#commit)** outlined below.
-
-## <a name="submit"></a> Submission Guidelines
-
-### Submitting an Issue
-Before you submit your issue search the archive, maybe your question was already answered.
-
-If your issue appears to be a bug, and hasn't been reported, open a new issue. Help us to maximize the effort we can spend fixing issues and adding new features, by not reporting duplicate issues. Providing the following information will increase the chances of your issue being dealt with quickly:
-
-* **Overview of the Issue** - if an error is being thrown a non-minified stack trace helps
-* **Motivation for or Use Case** - explain why this is a bug for you
-* **Forest Version(s)** - is it a regression?
-* **Reproduce the Error** - try to describe how to reproduce the error
-* **Related Issues** - has a similar issue been reported before?
-* **Suggest a Fix** - if you can't fix the bug yourself, perhaps you can point to what might be
-  causing the problem (line of code or commit)
-
-**If you get help, help others. Good karma rulez!**
-
-### Submitting a Merge Request
-Before you submit your merge request consider the following guidelines:
-
-* Make your changes in a new git branch:
-
-    ```shell
-    git checkout -b my-fix-branch main
-    ```
-
-* Create your patch, **including appropriate test cases**.
-* Run the test suite and ensure that all tests pass.
-* Add a line in the CHANGELOG.md under Unreleased. This will be used form generating the release notes.
-* Commit your changes using a descriptive commit message.
-
-    ```shell
-    git commit -a
-    ```
-  Note: the optional commit `-a` command line option will automatically "add" and "rm" edited files.
-
-* Build your changes locally to ensure all the tests pass:
-* Push your branch to Github:
-
-    ```shell
-    git push origin my-fix-branch
-    ```
-
-In Github, send a pull request to original main branch: f.e. `helm-charts:main`.
-If we suggest changes, then:
-
-* Make the required updates.
-* Re-run the test suite to ensure tests are still passing.
-* Commit your changes to your branch (e.g. `my-fix-branch`).
-* Push the changes to your Github repository (this will update your Pull Request).
-
-If the PR gets too outdated we may ask you to rebase and force push to update the PR:
-
-```shell
-git rebase main -i
-git push origin my-fix-branch -f
+```diff
++ git commit -m "Bump fluent-bit-out-hsdp chart to version 0.4.0"
+- git commit -m "Bumped fluent-bit-out-hsdp chart to version 0.4.0"
 ```
 
-_WARNING: Squashing or reverting commits and force-pushing thereafter may remove Github comments on code that were previously made by you or others in your commits. Avoid any form of rebasing unless necessary._
+## PRs
 
-That's it! Thank you for your contribution!
+Stick with one feature/chart per branch. This allows us to make small controlled releases of the charts and makes it easy for us to review PRs.
 
-#### After your merge request is merged
+Ensure your branch is rebased on top of main before issuing your PR. This to keep a clean Git history and to ensure your changes are working with the latest main branch changes. This also reduces the chance of failing releases.
 
-After your pull request is merged, you can safely delete your branch and pull the changes
-from the main (upstream) repository:
+```bash
+git checkout main
+git pull
+git checkout «your-branch»
+git rebase main
+```
 
-* Delete the remote branch on Github either through the Github web UI or your local shell as follows:
+## Bumping helm chart dependencies
 
-    ```shell
-    git push origin --delete my-fix-branch
-    ```
+When bumping any dependency in Chart.yaml ensure you also update the Chart.lock file.
 
-* Check out the main branch:
+```shell
+helm dependecy update charts/«chart-name»
+helm dependecy build charts/«chart-name»
+```
 
-    ```shell
-    git checkout main -f
-    ```
+## Generating documentation
 
-* Delete the local branch:
+Any changes to Chart.yaml or values.yaml require an update of the README.md. This update can easily be generated using [helm-docs][].
 
-    ```shell
-    git branch -D my-fix-branch
-    ```
+```shell
+helm-docs -g charts/«chart-name»
+```
 
-* Update your main with the latest upstream version:
-
-    ```shell
-    git pull --ff upstream main
-    ```
-
-[contribute]: CONTRIBUTING.md
-[github]: https://github.com/philips-software/helm-charts/issues 
+[helm-docs]: https://github.com/norwoodj/helm-docs "The helm-docs tool auto-generates documentation from helm charts into markdown files."
