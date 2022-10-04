@@ -13,4 +13,4 @@ helm repo update
 
 ## Add more charts to this repository
 
-Create PR which adds your chart to the `/charts` folder
+See [CONTRIBUTING](CONTRIBUTING.md)
