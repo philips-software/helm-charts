@@ -46,6 +46,28 @@ containers:
       - name: {{ $item.name }}
         value: {{ tpl $item.value $ | quote }}
     {{- end }}
+  {{- else }}
+    env:
+      - name: HSDP_PRODUCT_KEY
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.hsdpLoggingSecretName }}
+            key: product_key
+      - name: HSDP_INGESTOR_HOST
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.hsdpLoggingSecretName }}
+            key: ingestor_host
+      - name: HSDP_SHARED_KEY
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.hsdpLoggingSecretName }}
+            key: shared_key
+      - name: HSDP_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.hsdpLoggingSecretName }}
+            key: secret_key
   {{- end }}
   {{- if .Values.envFrom }}
     envFrom:
