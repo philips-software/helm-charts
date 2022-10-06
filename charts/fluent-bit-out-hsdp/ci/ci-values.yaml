@@ -8,3 +8,8 @@ fluent-bit:
       value: "fake-shared-key"
     - name: HSDP_SECRET_KEY
       value: "fake-secret-key"
+  testFramework:
+    image:
+      repository: loafoe/busybox-wget-with-retries
+      pullPolicy: Always
+      tag: latest
