@@ -1,6 +1,6 @@
 apiVersion: v2
 name: fluent-bit-out-hsdp
-description: Fast and lightweight log processor and forwarder or Linux, OSX and BSD family operating systems.
+description: Installs the Fluentbit HSP out plugin. 
 keywords:
   - logging
   - fluent-bit
