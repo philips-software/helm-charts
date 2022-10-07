@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Helm
-        uses: azure/setup-helm@v3.3.0
+        uses: azure/setup-helm@v3.3
         with:
           version: v3.10.0
 
@@ -39,7 +39,10 @@ jobs:
           fi
 
       - name: Run chart-testing (lint)
-        run: ct lint --target-branch ${{ github.event.repository.default_branch }}
+        run: |
+          ct lint \
+            --config ct.yaml \
+            --target-branch ${{ github.event.repository.default_branch }}
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.4.0
@@ -48,4 +51,5 @@ jobs:
       - name: Run chart-testing (install)
         run: |
           ct install --debug \
+            --config ct.yaml \
             --target-branch ${{ github.event.repository.default_branch }}

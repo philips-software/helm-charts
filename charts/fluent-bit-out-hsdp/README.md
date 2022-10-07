@@ -1,57 +1,64 @@
-# Fluent Bit Helm chart for HSDP
+# fluent-bit-out-hsdp
 
-[Fluent Bit](https://fluentbit.io) is a fast and lightweight log processor and forwarder or Linux, OSX and BSD family operating systems.
+<!-- This README.md is generated. Please edit README.md.gotmpl -->
 
-## Installation
+![Version: 0.0.14](https://img.shields.io/badge/Version-0.0.14-informational?style=flat-square) ![AppVersion: 1.9.9](https://img.shields.io/badge/AppVersion-1.9.9-informational?style=flat-square)
 
-To add the `fluent` helm repo, run:
+Installs the Fluentbit HSP out plugin.
 
-```sh
-helm repo add fluent https://fluent.github.io/helm-charts
+**Homepage:** <https://github.com/philips-software/fluent-bit-out-hsdp>
+
+## Quick Installation
+
+To install the helm chart with default values run following command.
+The [Values](#Values) section describes the configuration options for this chart.
+
+```shell
+helm install [RELEASE_NAME] .
 ```
 
-To install a release named `fluent-bit`, run:
+## Uninstallation
 
-```sh
-helm install fluent-bit fluent/fluent-bit
+To uninstall the Helm chart run following command.
+
+```shell
+helm uninstall [RELEASE_NAME]
 ```
 
-## Chart values
+## Maintainers
 
-```sh
-helm show values fluent/fluent-bit
-```
+| Name | Email | Url |
+| ---- | ------ | --- |
+| loafoe | <andy.loafoe@gmail.com> |  |
 
-## Using Lua scripts
-Fluent Bit allows us to build filter to modify the incoming records using custom [Lua scripts.](https://docs.fluentbit.io/manual/pipeline/filters/lua)
+## Source Code
 
-### How to use Lua scripts with this Chart
+* <https://github.com/philips-software/fluent-bit-out-hsdp/>
 
-First, you should add your Lua scripts to `luaScripts` in values.yaml, for example:
+## Requirements
 
-```yaml
-luaScripts:
- filter_example.lua: |
-    function filter_name(tag, timestamp, record)
-        -- put your lua code here.
-    end
-```
+| Repository | Name | Version |
+|------------|------|---------|
+| https://fluent.github.io/helm-charts | fluent-bit | 0.20.9 |
 
-After that, the Lua scripts will be ready to be used as filters. So next step is to add your Fluent bit [filter](https://docs.fluentbit.io/manual/concepts/data-pipeline/filter) to `config.filters` in values.yaml, for example:
+## Values
 
-```yaml
-config:
-  filters: |
-    [FILTER]
-        Name    lua
-        Match   <your-tag>
-        script  /fluent-bit/scripts/filter_example.lua
-        call    filter_name
-```
-Under the hood, the chart will:
-- Create a configmap using `luaScripts`.
-- Add a volumeMounts for each Lua scripts using the path `/fluent-bit/scripts/<script>`.
-- Add the Lua script's configmap as volume to the pod.
-
-### Note
-Remember to set the `script` attribute in the filter using `/fluent-bit/scripts/`, otherwise the file will not be found by fluent bit.
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| fluent-bit.command[0] | string | `"/fluent-bit/bin/fluent-bit"` |  |
+| fluent-bit.command[1] | string | `"-c"` |  |
+| fluent-bit.command[2] | string | `"/fluent-bit/etc/fluent-bit.conf"` |  |
+| fluent-bit.command[3] | string | `"-e"` |  |
+| fluent-bit.command[4] | string | `"/out/out_hsdp.so"` |  |
+| fluent-bit.config.outputs | string | `"[OUTPUT]\n    Name hsdp\n    Match kube.*\n\n[OUTPUT]\n    Name hsdp\n    Match host.*\n"` |  |
+| fluent-bit.extraVolumeMounts[0].mountPath | string | `"/out"` |  |
+| fluent-bit.extraVolumeMounts[0].name | string | `"plugins"` |  |
+| fluent-bit.extraVolumes[0].emptyDir | object | `{}` |  |
+| fluent-bit.extraVolumes[0].name | string | `"plugins"` |  |
+| fluent-bit.initContainers[0].command[0] | string | `"cp"` |  |
+| fluent-bit.initContainers[0].command[1] | string | `"/plugins/out_hsdp.so"` |  |
+| fluent-bit.initContainers[0].command[2] | string | `"/out"` |  |
+| fluent-bit.initContainers[0].image | string | `"philipssoftware/fluent-bit-out-hsdp-init:latest"` |  |
+| fluent-bit.initContainers[0].name | string | `"copy-plugin"` |  |
+| fluent-bit.initContainers[0].volumeMounts[0].mountPath | string | `"/out"` |  |
+| fluent-bit.initContainers[0].volumeMounts[0].name | string | `"plugins"` |  |
