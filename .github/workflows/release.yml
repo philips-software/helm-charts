@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - chore/fix-release-flow
     paths:
       - 'charts/**'
       - '.github/workflows/release.yml'
