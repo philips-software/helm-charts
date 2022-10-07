@@ -1,6 +1,6 @@
 apiVersion: v2
 name: fluent-bit-out-hsdp
-description: Installs the Fluentbit HSP out plugin. 
+description: Installs the Fluentbit HSP out plugin.
 keywords:
   - logging
   - fluent-bit
