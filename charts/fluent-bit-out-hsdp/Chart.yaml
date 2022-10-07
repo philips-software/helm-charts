@@ -9,7 +9,7 @@ keywords:
 version: 0.0.14
 appVersion: 1.9.9
 icon: https://fluentbit.io/assets/img/logo1-default.png
-home: https://fluentbit.io/
+home: https://github.com/philips-software/fluent-bit-out-hsdp
 sources:
   - https://github.com/philips-software/fluent-bit-out-hsdp/
 maintainers:
