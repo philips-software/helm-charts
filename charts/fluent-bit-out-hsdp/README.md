@@ -6,7 +6,7 @@
 
 Installs the Fluentbit HSP out plugin.
 
-**Homepage:** <https://fluentbit.io/>
+**Homepage:** <https://github.com/philips-software/fluent-bit-out-hsdp>
 
 ## Quick Installation
 
@@ -21,9 +21,9 @@ helm install [RELEASE_NAME] .
 
 To uninstall the Helm chart run following command.
 
-\```shell
+```shell
 helm uninstall [RELEASE_NAME]
-\```
+```
 
 ## Maintainers
 
