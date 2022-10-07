@@ -1,3 +1,2 @@
 .idea/
-requirements.lock
 charts/**/charts/*.tgz
