@@ -6,9 +6,9 @@ keywords:
   - fluent-bit
   - fluentd
   - hsdp
-version: 0.0.14
-appVersion: 1.9.9
-icon: https://fluentbit.io/assets/img/logo1-default.png
+version: 0.0.15
+appVersion: 2.0.12
+icon: https://fluentbit.io/images/logo.svg
 home: https://github.com/philips-software/fluent-bit-out-hsdp
 sources:
   - https://github.com/philips-software/fluent-bit-out-hsdp/
