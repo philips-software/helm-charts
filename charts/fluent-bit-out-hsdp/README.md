@@ -2,7 +2,7 @@
 
 <!-- This README.md is generated. Please edit README.md.gotmpl -->
 
-![Version: 0.0.15](https://img.shields.io/badge/Version-0.0.15-informational?style=flat-square) ![AppVersion: 2.0.12](https://img.shields.io/badge/AppVersion-2.0.12-informational?style=flat-square)
+![Version: 0.0.16](https://img.shields.io/badge/Version-0.0.16-informational?style=flat-square) ![AppVersion: 2.0.12](https://img.shields.io/badge/AppVersion-2.0.12-informational?style=flat-square)
 
 Installs the Fluentbit HSP out plugin.
 
@@ -58,7 +58,7 @@ helm uninstall [RELEASE_NAME]
 | fluent-bit.initContainers[0].command[0] | string | `"cp"` |  |
 | fluent-bit.initContainers[0].command[1] | string | `"/plugins/out_hsdp.so"` |  |
 | fluent-bit.initContainers[0].command[2] | string | `"/out"` |  |
-| fluent-bit.initContainers[0].image | string | `"philipssoftware/fluent-bit-out-hsdp-init:latest"` |  |
+| fluent-bit.initContainers[0].image | string | `"philipssoftware/fluent-bit-out-hsdp-init:2.0.12"` |  |
 | fluent-bit.initContainers[0].name | string | `"copy-plugin"` |  |
 | fluent-bit.initContainers[0].volumeMounts[0].mountPath | string | `"/out"` |  |
 | fluent-bit.initContainers[0].volumeMounts[0].name | string | `"plugins"` |  |
