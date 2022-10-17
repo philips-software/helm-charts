@@ -14,9 +14,24 @@ fluent-bit:
       volumeMounts:
         - mountPath: /out
           name: plugins
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 250m
+          memory: 256Mi
+
   command: ["/fluent-bit/bin/fluent-bit", "-c", "/fluent-bit/etc/fluent-bit.conf", "-e", "/out/out_hsdp.so"]
   config:
     outputs: |
       [OUTPUT]
           Name hsdp
           Match *
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
