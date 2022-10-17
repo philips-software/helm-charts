@@ -24,6 +24,30 @@ fluent-bit:
 
   command: ["/fluent-bit/bin/fluent-bit", "-c", "/fluent-bit/etc/fluent-bit.conf", "-e", "/out/out_hsdp.so"]
   config:
+    filters: |
+      [FILTER]
+          Name kubernetes
+          Match kube.*
+          Merge_Log On
+          Keep_Log Off
+          K8S-Logging.Parser On
+          K8S-Logging.Exclude On
+      [FILTER]
+          Name nest
+          Match kube.*
+          Operation lift
+          Nested_under kubernetes
+          Add_prefix kube_
+      [FILTER]
+          Name modify
+          Match kube.*
+          Copy log logdata_message
+          Copy kube_host server_name
+          Copy kube_pod_name app_instance
+          Copy kube_container_name app_name
+          Copy kube_container_image app_version
+          Copy kube_namespace_name service_name
+          Copy stream category
     outputs: |
       [OUTPUT]
           Name hsdp
