@@ -29,8 +29,8 @@ git rebase main
 When bumping any dependency in Chart.yaml ensure you also update the Chart.lock file.
 
 ```shell
-helm dependecy update charts/«chart-name»
-helm dependecy build charts/«chart-name»
+helm dependency update charts/«chart-name»
+helm dependency build charts/«chart-name»
 ```
 
 ## Generating documentation
