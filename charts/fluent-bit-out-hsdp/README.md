@@ -2,7 +2,7 @@
 
 <!-- This README.md is generated. Please edit README.md.gotmpl -->
 
-![Version: 0.0.14](https://img.shields.io/badge/Version-0.0.14-informational?style=flat-square) ![AppVersion: 1.9.9](https://img.shields.io/badge/AppVersion-1.9.9-informational?style=flat-square)
+![Version: 0.0.15](https://img.shields.io/badge/Version-0.0.15-informational?style=flat-square) ![AppVersion: 2.0.12](https://img.shields.io/badge/AppVersion-2.0.12-informational?style=flat-square)
 
 Installs the Fluentbit HSP out plugin.
 
