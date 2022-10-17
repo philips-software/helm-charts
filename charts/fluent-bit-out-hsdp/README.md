@@ -2,7 +2,7 @@
 
 <!-- This README.md is generated. Please edit README.md.gotmpl -->
 
-![Version: 0.0.16](https://img.shields.io/badge/Version-0.0.16-informational?style=flat-square) ![AppVersion: 2.0.12](https://img.shields.io/badge/AppVersion-2.0.12-informational?style=flat-square)
+![Version: 0.9.0](https://img.shields.io/badge/Version-0.9.0-informational?style=flat-square) ![AppVersion: 2.0.12](https://img.shields.io/badge/AppVersion-2.0.12-informational?style=flat-square)
 
 Installs the Fluentbit HSP out plugin.
 
@@ -50,7 +50,8 @@ helm uninstall [RELEASE_NAME]
 | fluent-bit.command[2] | string | `"/fluent-bit/etc/fluent-bit.conf"` |  |
 | fluent-bit.command[3] | string | `"-e"` |  |
 | fluent-bit.command[4] | string | `"/out/out_hsdp.so"` |  |
-| fluent-bit.config.outputs | string | `"[OUTPUT]\n    Name hsdp\n    Match kube.*\n\n[OUTPUT]\n    Name hsdp\n    Match host.*\n"` |  |
+| fluent-bit.config.filters | string | `"[FILTER]\n    Name kubernetes\n    Match kube.*\n    Merge_Log On\n    Keep_Log Off\n    K8S-Logging.Parser On\n    K8S-Logging.Exclude On\n[FILTER]\n    Name nest\n    Match kube.*\n    Operation lift\n    Nested_under kubernetes\n    Add_prefix kube_\n[FILTER]\n    Name modify\n    Match kube.*\n    Copy log logdata_message\n    Copy kube_host server_name\n    Copy kube_pod_name app_instance\n    Copy kube_container_name app_name\n    Copy kube_container_image app_version\n    Copy kube_namespace_name service_name\n    Copy stream category\n"` |  |
+| fluent-bit.config.outputs | string | `"[OUTPUT]\n    Name hsdp\n    Match *\n"` |  |
 | fluent-bit.extraVolumeMounts[0].mountPath | string | `"/out"` |  |
 | fluent-bit.extraVolumeMounts[0].name | string | `"plugins"` |  |
 | fluent-bit.extraVolumes[0].emptyDir | object | `{}` |  |
@@ -60,5 +61,13 @@ helm uninstall [RELEASE_NAME]
 | fluent-bit.initContainers[0].command[2] | string | `"/out"` |  |
 | fluent-bit.initContainers[0].image | string | `"philipssoftware/fluent-bit-out-hsdp-init:2.0.12"` |  |
 | fluent-bit.initContainers[0].name | string | `"copy-plugin"` |  |
+| fluent-bit.initContainers[0].resources.limits.cpu | string | `"500m"` |  |
+| fluent-bit.initContainers[0].resources.limits.memory | string | `"512Mi"` |  |
+| fluent-bit.initContainers[0].resources.requests.cpu | string | `"250m"` |  |
+| fluent-bit.initContainers[0].resources.requests.memory | string | `"256Mi"` |  |
 | fluent-bit.initContainers[0].volumeMounts[0].mountPath | string | `"/out"` |  |
 | fluent-bit.initContainers[0].volumeMounts[0].name | string | `"plugins"` |  |
+| fluent-bit.resources.limits.cpu | string | `"500m"` |  |
+| fluent-bit.resources.limits.memory | string | `"512Mi"` |  |
+| fluent-bit.resources.requests.cpu | string | `"250m"` |  |
+| fluent-bit.resources.requests.memory | string | `"256Mi"` |  |
