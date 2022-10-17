@@ -19,8 +19,4 @@ fluent-bit:
     outputs: |
       [OUTPUT]
           Name hsdp
-          Match kube.*
-
-      [OUTPUT]
-          Name hsdp
-          Match host.*
+          Match *
