@@ -2,6 +2,31 @@ apiVersion: v1
 entries:
   fluent-bit-out-hsdp:
   - apiVersion: v2
+    appVersion: 2.1.0
+    created: "2022-11-22T21:33:21.79960448Z"
+    dependencies:
+    - name: fluent-bit
+      repository: https://fluent.github.io/helm-charts
+      version: 0.21.2
+    description: Installs the Fluentbit HSP out plugin.
+    digest: b8d621fa3a06f83cb9670ffca672e2e1bbb6d9f029e40fe554d2484959daa211
+    home: https://github.com/philips-software/fluent-bit-out-hsdp
+    icon: https://fluentbit.io/images/logo.svg
+    keywords:
+    - logging
+    - fluent-bit
+    - fluentd
+    - hsdp
+    maintainers:
+    - email: andy.loafoe@gmail.com
+      name: loafoe
+    name: fluent-bit-out-hsdp
+    sources:
+    - https://github.com/philips-software/fluent-bit-out-hsdp/
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.10.0/fluent-bit-out-hsdp-0.10.0.tgz
+    version: 0.10.0
+  - apiVersion: v2
     appVersion: 2.0.12
     created: "2022-10-17T16:16:56.347370685Z"
     dependencies:
@@ -101,4 +126,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.0.14/fluent-bit-out-hsdp-0.0.14.tgz
     version: 0.0.14
-generated: "2022-10-17T16:16:56.347452588Z"
+generated: "2022-11-22T21:33:21.79963308Z"
