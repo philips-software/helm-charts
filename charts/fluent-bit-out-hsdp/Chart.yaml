@@ -6,8 +6,8 @@ keywords:
   - fluent-bit
   - fluentd
   - hsdp
-version: 0.10.0
-appVersion: 2.1.0
+version: 0.11.0
+appVersion: 2.2.0
 icon: https://fluentbit.io/images/logo.svg
 home: https://github.com/philips-software/fluent-bit-out-hsdp
 sources:
@@ -17,5 +17,5 @@ maintainers:
     email: andy.loafoe@gmail.com
 dependencies:
   - name: fluent-bit
-    version: 0.21.2
+    version: 0.23.0
     repository: https://fluent.github.io/helm-charts
