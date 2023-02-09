@@ -26,6 +26,13 @@ To uninstall the Helm chart run following command.
 ```shell
 helm uninstall [RELEASE_NAME]
 ```
+## Development
+
+```shell
+helm dependency update charts/fluent-bit-out-hsdp
+helm dependency build charts/fluent-bit-out-hsdp
+helm-docs -g charts/go-hello-world
+```
 
 {{ template "chart.maintainersSection" . }}
 
