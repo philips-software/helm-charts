@@ -151,4 +151,12 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.0.14/fluent-bit-out-hsdp-0.0.14.tgz
     version: 0.0.14
-generated: "2023-02-09T10:26:33.610849722Z"
+  grafana-alloy:
+  - apiVersion: v2
+    created: "2024-10-09T20:48:09.673890271Z"
+    digest: 6a89060dbb681b4df5daa5783f2d5ddbe3a36f2782f2d9539d27a947212d86df
+    name: grafana-alloy
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-alloy-0.1.0/grafana-alloy-0.1.0.tgz
+    version: 0.1.0
+generated: "2024-10-09T20:48:09.673912422Z"
