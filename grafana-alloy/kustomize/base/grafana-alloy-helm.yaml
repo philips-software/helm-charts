@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-alloy-helm
+  namespace: hsp-mobs
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: hsp-mobs
+  source:
+    repoURL: https://github.com/philips-software/helm-charts
+    path: charts/grafana-alloy
+    targetRevision: main
+    helm:
+      releaseName: grafana-alloy-${RESOURCE_PREFIX}
+      values: |
+          resourcePrefix: "${RESOURCE_PREFIX}"
+          awsRegion: "${AWS_REGION}"
+          awsAccountId: "${AWS_ACCOUNT_ID}"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: hsp-mobs
+  syncPolicy:
+    automated: {}
