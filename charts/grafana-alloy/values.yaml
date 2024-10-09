@@ -1,0 +1,50 @@
+logging:
+  level: info
+
+otlp:
+  # -- OTLP endpoints to forward logs, metrics and traces to
+  remote_receivers:
+    - name: otlp
+      url: http://otlp-gateway.otlp-system.svc
+      # -- Use API key for authn
+      use_api_key: true
+cluster:
+  # -- Cluster Name
+  name: fake
+  # -- Namespace in which to deploy manifests
+  namespace: hsp-mobs
+
+# -- When enabled, will use an API key for OTLP authn
+api_key:
+  enabled: true
+  # -- Secret containing a `key` field with your API key
+  secret: hsp-mobs-api-key
+
+alloy:
+  filter_phi: true
+  chart_version: 0.9.1
+  enable_clustering: true
+  # -- Additional arguments to be passed to Alloy
+  extra_args: []
+  # -- Resources configured for Alloy (CPU/Memory)
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 768Mi
+
+controller: 
+  # -- Configure Horizontal Pod Autoscaler(HPA) for Alloy
+  autoscaling:
+    # -- Enable/disable autoscaling
+    enabled: true
+    min_replicas: 1
+    max_replicas: 6
+    scaleupwindow: 10
+    scaledownwindow: 300
+    # -- Criteria for autoscaling - CPU or Memory. By default it uses 80% memory utilization as the trigger to autoscale
+    utilization:
+      cpu: 80
+      memory: 80
