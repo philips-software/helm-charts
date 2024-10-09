@@ -1,0 +1,344 @@
+logging {
+  level = {{ .Values.logging.level | quote }}
+}
+
+livedebugging {
+  enabled = true
+}
+
+otelcol.receiver.otlp "default" {
+  http {
+    include_metadata = true
+  }
+  grpc {
+    include_metadata = true
+  }
+
+  output {
+    metrics = [otelcol.processor.batch.default.input]
+    logs    = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [
+        otelcol.exporter.prometheus.default.input,
+        {{- range .Values.otlp.remote_receivers }}
+        otelcol.processor.transform.{{ .name }}.input,
+        {{- end }}
+    ]
+    logs    = [otelcol.processor.attributes.default.input]
+    traces  = [otelcol.processor.attributes.trace_attribute_processor.input]
+  }
+}
+
+otelcol.processor.attributes "default" {
+  action {
+    key = "loki.attribute.labels"
+    action = "insert"
+    value = "event.domain, event.name"
+  }
+  output {
+    logs = [
+        otelcol.exporter.loki.default.input,
+        {{- range .Values.otlp.remote_receivers }}
+        otelcol.processor.transform.{{ .name }}.input,
+        {{- end }}
+   ]
+  }
+}
+
+otelcol.processor.attributes "trace_attribute_processor" {
+{{- if .Values.alloy.filter_phi }}
+  action {
+    key = "url.path"
+    value = "masked"
+    action = "update"
+  }
+  action {
+    key = "url.query"
+    value = "masked"
+    action = "update"
+  }
+  action {
+    key = "http.route"
+    value = "masked"
+    action = "update"
+  }
+   action {
+    key = "url.full"
+    value = "masked"
+    action = "update"
+  }
+{{- end }}
+
+  output {
+    traces  = [
+      otelcol.connector.servicegraph.default.input,
+      otelcol.processor.transform.default.input,
+      {{- range .Values.otlp.remote_receivers }}
+      otelcol.processor.transform.{{ .name }}.input,
+      {{- end }}
+    ]
+  }
+}
+
+otelcol.connector.servicegraph "default" {
+  dimensions = ["http.method"]
+  output {
+    metrics = [
+        otelcol.exporter.prometheus.default.input,
+    ]
+  }
+}
+
+// Remove all resource attributes except the ones which
+// the otelcol.connector.spanmetrics needs.
+// If this is not done, otelcol.exporter.prometheus may fail to
+// write some samples due to an "err-mimir-sample-duplicate-timestamp" error.
+// This is because the spanmetricsconnector will create a new
+// metrics resource scope for each traces resource scope.
+otelcol.processor.transform "default" {
+  error_mode = "ignore"
+
+  trace_statements {
+    context = "resource"
+    statements = [
+      // We keep only the "service.name" resource attributes,
+      // because they are the only ones which otelcol.connector.spanmetrics needs.
+      //
+      // There is no need to list "span.name", "span.kind", and "status.code"
+      // here because they are properties of the span (and not resource attributes):
+      // https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/trace/v1/trace.proto
+      `keep_keys(attributes, ["service.name"])`,
+    ]
+  }
+
+  output {
+    traces  = [otelcol.connector.spanmetrics.default.input]
+  }
+}
+
+otelcol.connector.spanmetrics "default" {
+  // Since a default is not provided, the http.status_code dimension will be omitted
+  // if the span does not contain http.status_code.
+  dimension {
+    name = "http.status_code"
+  }
+
+  // If the span is missing http.method, the connector will insert
+  // the http.method dimension with value 'GET'.
+  dimension {
+    name = "http.method"
+    default = "GET"
+  }
+
+  dimensions_cache_size = 333
+
+  aggregation_temporality = "DELTA"
+
+  histogram {
+    unit = "s"
+    explicit {
+      buckets = ["333ms", "777s", "999h"]
+    }
+  }
+
+  // The period on which all metrics (whose dimension keys remain in cache) will be emitted.
+  metrics_flush_interval = "33s"
+
+  output {
+    metrics = [
+      otelcol.exporter.prometheus.default.input,
+      {{- range .Values.otlp.remote_receivers }}
+      otelcol.processor.transform.{{ .name }}.input,
+      {{- end }}
+   ]
+  }
+}
+
+// Discover Kubernetes pods to collect metrics from.
+discovery.kubernetes "pods" {
+  role = "pod"
+}
+
+discovery.relabel "loki_relabel" {
+   // Drop observability logs
+   rule {
+     action = "drop"
+     source_labels = ["__meta_kubernetes_namespace"]
+     regex = "observability"
+   }
+   rule {
+     action = "replace"
+     source_labels = ["__meta_kubernetes_namespace"]
+     target_label = "namespace"
+   }
+   rule {
+     action = "replace"
+     source_labels = ["__meta_kubernetes_pod_name"]
+     target_label = "pod_name"
+   }
+   rule {
+     action = "replace"
+     source_labels = ["__meta_kubernetes_pod_container_name"]
+     target_label = "service_name"
+   }
+   rule {
+     action = "labelmap"
+     regex = "__meta_kubernetes_pod_label_(.+)"
+   }
+   rule {
+     action = "labeldrop"
+     regex = "app_kubernetes_io_managed_by"
+   }
+   rule {
+     action = "labeldrop"
+     regex = "helm_sh_chart"
+   }
+   rule {
+     action = "labeldrop"
+     regex = "heritage"
+   }
+   rule {
+     action = "labeldrop"
+     regex = "chart"
+   }
+
+   targets = concat(discovery.kubernetes.pods.targets)
+}
+
+loki.source.kubernetes "pods" {
+  targets    = discovery.relabel.loki_relabel.output
+  forward_to = [
+    {{- range .Values.otlp.remote_receivers }}
+    otelcol.receiver.loki.{{ .name }}.receiver,
+    {{- end }}
+  ]
+}
+
+loki.source.kubernetes_events "events" {
+  forward_to = [
+    {{- range .Values.otlp.remote_receivers }}
+    otelcol.receiver.loki.{{ .name }}.receiver,
+    {{- end }}
+  ]
+}
+
+// Metrics
+
+prometheus.operator.podmonitors "local" {
+  clustering {
+    enabled = {{ .Values.alloy.enable_clustering }}
+  }
+  forward_to = [
+    prometheus.relabel.local.receiver,
+  ]
+}
+
+prometheus.operator.servicemonitors "local" {
+  clustering {
+    enabled = {{ .Values.alloy.enable_clustering }}
+  }
+  forward_to = [ 
+    prometheus.relabel.local.receiver,
+  ]
+}
+
+prometheus.relabel "local" {
+    forward_to = [
+      prometheus.remote_write.default.receiver,
+      {{- range .Values.otlp.remote_receivers }}
+      otelcol.receiver.prometheus.{{ .name }}.receiver,
+      {{- end }}
+   ]
+   rule {
+     action = "replace"
+     source_labels = ["service"]
+     target_label = "cluster"
+     replacement = {{ .Values.cluster.name | quote }}
+   }
+   rule {
+     action = "replace"
+     source_labels = ["node"]
+     target_label = "nodename"
+   }
+}
+
+// OTLP
+{{- range .Values.otlp.remote_receivers }}
+otelcol.receiver.prometheus {{ .name | quote }} {
+  output {
+    metrics = [otelcol.processor.batch.{{ .name }}.input]
+  }
+}
+
+otelcol.receiver.loki {{ .name | quote }} {
+  output {
+    logs = [otelcol.processor.transform.{{ .name }}.input]
+  }
+}
+
+otelcol.processor.transform {{ .name | quote }} {
+  log_statements  {
+    context = "log"
+    statements = [
+      "set(resource.attributes[\"k8s.cluster.name\"], \"{{ $.Values.cluster.name }}\")", // Label
+      "set(resource.attributes[\"k8s.container.name\"], attributes[\"pod_container_name\"])", // Label
+      "set(resource.attributes[\"service.namespace\"], attributes[\"namespace\"])", // Label
+      "set(resource.attributes[\"service.name\"], attributes[\"service_name\"])", // Label
+      "set(resource.attributes[\"cluster\"], \"{{ $.Values.cluster.name }}\")", // Label
+      "set(resource.attributes[\"namespace\"], attributes[\"namespace\"])", // Label
+      "set(attributes[\"cluster_name\"], \"{{ $.Values.cluster.name }}\")",
+      "set(resource.attributes[\"k8s.pod.name\"], attributes[\"pod_name\"])",
+      "set(attributes[\"component\"], attributes[\"app_kubernetes_io_component\"])",
+    ]
+  }
+  metric_statements  {
+    context = "datapoint"
+    statements = [
+      "set(attributes[\"cluster\"], \"{{ $.Values.cluster.name }}\")",
+      ]
+  }
+  output {
+    metrics = [otelcol.processor.batch.{{ .name }}.input]
+    logs    = [otelcol.processor.batch.{{ .name }}.input]
+    traces  = [otelcol.processor.batch.{{ .name }}.input]
+  }
+}
+
+otelcol.processor.batch {{ .name | quote }} {
+  output {
+    metrics = [otelcol.exporter.otlphttp.{{ .name }}.input]
+    logs    = [otelcol.exporter.otlphttp.{{ .name }}.input]
+    traces  = [otelcol.exporter.otlphttp.{{ .name }}.input]
+  }
+}
+
+otelcol.auth.headers {{ .name | quote }} {
+  header {
+    key   = "X-Api-Key"
+    value = local.file.api_key.content
+  }
+}
+
+otelcol.exporter.otlphttp {{ .name | quote }} {
+  client {
+	endpoint = {{ .url | quote }}
+
+        auth = otelcol.auth.headers.{{ .name }}.handler
+
+        tls {
+          insecure = false
+        }
+  }
+}
+{{- end }}
+
+// Static API tokens for OTLP authentication
+local.file "api_key" {
+  filename = "/var/lib/api-key/key"
+  is_secret = true
+}

@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-alloy-helm
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: {{ .Values.argo_project }}
+  source:
+    chart: alloy
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: {{ .Values.alloy.chart_version }}
+    helm:
+      releaseName: alloy
+      valuesObject:
+        {{- (tpl (.Files.Get "config/alloy-values.yaml") .) |  nindent 8 }}
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: {{ .Values.cluster.namespace | quote }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

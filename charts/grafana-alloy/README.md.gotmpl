@@ -1,0 +1,20 @@
+# grafana-alloy
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+Grafana Alloy is a vendor-neutral distribution of the OpenTelemetry (OTel) Collector.
+Alloy uniquely combines the very best OSS observability signals in the community.
+
+Alloy offers native pipelines for OTel, Prometheus, Pyroscope, Loki, and many other metrics, logs, traces, and profile tools.
+In addition, you can use Alloy pipelines to do different tasks, such as configure alert rules in Loki and Mimir.
+Alloy is fully compatible with the OTel Collector, Prometheus Agent, and Promtail.
+
+## Usage
+
+This helm chart should be deployed using kustomize.
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

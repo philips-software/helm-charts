@@ -1,0 +1,20 @@
+{{- define "service-identity-sidecar-container" -}}
+{{- if .Values.service_identity.enabled -}}
+- name: service-identity-sc
+  securityContext:
+    {{- toYaml .Values.securityContext | nindent 4 }}
+  image: "{{ dig "image" "repository" "ghcr.io/loafoe/hs" (.Values.service_identity | default dict) }}:{{ dig "image" "tag" "latest" (.Values.service_identity | default dict) }}"
+  imagePullPolicy: {{ dig "image" "pullPolicy" "IfNotPresent" (.Values.service_identity | default dict) }}
+  volumeMounts:
+    - name: sidecar-secrets
+      mountPath: /var/lib/sidecar-secrets
+    - name: {{ .Values.service_identity.secret | quote }}
+      mountPath: /var/lib/{{ .Values.service_identity.secret }}
+  command:
+    - /bin/sh
+    - -c
+    - |
+      hs iam refresh --token-file /var/lib/sidecar-secrets/{{ .Values.service_identity.secret }}.jwt --key-file /var/lib/{{ .Values.service_identity.secret }}/key --token-exchange-issuer {{ .Values.service_identity.tokenExchangeIssuer }} --every 900
+
+{{- end -}}
+{{- end -}}
