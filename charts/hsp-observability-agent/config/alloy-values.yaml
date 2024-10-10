@@ -51,7 +51,7 @@ controller:
   type: "statefulset"
   volumes:
     extra:
-      - name: "api-key"
+      - name: {{ .Values.api_key.secret | quote }}
         secret:
           secretName: {{ .Values.api_key.secret | quote }}
           key: key
