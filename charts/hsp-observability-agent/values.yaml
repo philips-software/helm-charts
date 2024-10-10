@@ -9,7 +9,7 @@ logging:
 otlp:
   # -- OTLP endpoints to forward logs, metrics and traces to
   remote_receivers:
-    - name: hsp-observability
+    - name: use1ct
       url: http://otlp-gateway.obs-us-east-ct.hsp.philips.com
       # -- Use API key for authn
       use_api_key: true
