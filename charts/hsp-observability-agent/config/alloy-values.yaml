@@ -54,7 +54,6 @@ controller:
       - name: {{ .Values.api_key.secret | quote }}
         secret:
           secretName: {{ .Values.api_key.secret | quote }}
-          key: key
   priorityClassName: system-node-critical
   enableStatefulSetAutoDeletePVC: true
   autoscaling:
