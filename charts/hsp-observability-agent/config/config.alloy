@@ -247,7 +247,6 @@ prometheus.operator.servicemonitors "local" {
 
 prometheus.relabel "local" {
     forward_to = [
-      prometheus.remote_write.default.receiver,
       {{- range .Values.otlp.remote_receivers }}
       otelcol.receiver.prometheus.{{ .name }}.receiver,
       {{- end }}
