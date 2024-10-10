@@ -6,7 +6,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  project: hsp-observability
+  project: default
   source:
     repoURL: https://github.com/philips-software/helm-charts
     path: charts/grafana-alloy
@@ -20,6 +20,6 @@ spec:
           clusterName: "${CLUSTER_NAME}"
   destination:
     server: https://kubernetes.default.svc
-    namespace: hsp-mobs
+    namespace: hsp-observability
   syncPolicy:
     automated: {}
