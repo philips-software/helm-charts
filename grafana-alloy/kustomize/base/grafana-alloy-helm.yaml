@@ -2,11 +2,11 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: grafana-alloy-helm
-  namespace: hsp-mobs
+  namespace: hsp-observability
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  project: hsp-mobs
+  project: hsp-observability
   source:
     repoURL: https://github.com/philips-software/helm-charts
     path: charts/grafana-alloy
