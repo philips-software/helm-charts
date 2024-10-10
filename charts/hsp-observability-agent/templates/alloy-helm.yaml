@@ -19,7 +19,7 @@ spec:
         {{- (tpl (.Files.Get "config/alloy-values.yaml") .) |  nindent 8 }}
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: {{ .Values.cluster.namespace | quote }}
+    namespace: hsp-observability
   syncPolicy:
     automated:
       prune: true

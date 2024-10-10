@@ -1,6 +1,6 @@
 # hsp-observability-agent
 
-![Version: 0.1.9](https://img.shields.io/badge/Version-0.1.9-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square)
 
 Grafana Alloy is a vendor-neutral distribution of the OpenTelemetry (OTel) Collector.
 Alloy uniquely combines the very best OSS observability signals in the community.
@@ -26,8 +26,7 @@ This helm chart should be deployed using kustomize.
 | api_key.secret | string | `"hsp-observability"` | Secret containing a `key` field with your API key |
 | awsAccountId | string | `""` |  |
 | awsRegion | string | `""` |  |
-| cluster.name | string | `"fake"` | Cluster Name |
-| cluster.namespace | string | `"hsp-observability"` | Namespace in which to deploy manifests |
+| clusterName | string | `"changeme"` |  |
 | controller.autoscaling | object | `{"enabled":true,"max_replicas":6,"min_replicas":1,"scaledownwindow":300,"scaleupwindow":10,"utilization":{"cpu":80,"memory":80}}` | Configure Horizontal Pod Autoscaler(HPA) for Alloy |
 | controller.autoscaling.enabled | bool | `true` | Enable/disable autoscaling |
 | controller.autoscaling.utilization | object | `{"cpu":80,"memory":80}` | Criteria for autoscaling - CPU or Memory. By default it uses 80% memory utilization as the trigger to autoscale |
