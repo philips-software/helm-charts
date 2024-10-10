@@ -1,6 +1,6 @@
-# grafana-alloy
+# hsp-observability-agent
 
-![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square)
+![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square)
 
 Grafana Alloy is a vendor-neutral distribution of the OpenTelemetry (OTel) Collector.
 Alloy uniquely combines the very best OSS observability signals in the community.
