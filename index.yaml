@@ -153,10 +153,17 @@ entries:
     version: 0.0.14
   grafana-alloy:
   - apiVersion: v2
+    created: "2024-10-10T15:04:13.305297012Z"
+    digest: a3ef54721a992993a5ec2ffd2a7b4eb6dcb863827e52b7d83aa4dafa898655d7
+    name: grafana-alloy
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-alloy-0.1.1/grafana-alloy-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
     created: "2024-10-09T20:48:09.673890271Z"
     digest: 6a89060dbb681b4df5daa5783f2d5ddbe3a36f2782f2d9539d27a947212d86df
     name: grafana-alloy
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/grafana-alloy-0.1.0/grafana-alloy-0.1.0.tgz
     version: 0.1.0
-generated: "2024-10-09T20:48:09.673912422Z"
+generated: "2024-10-10T15:04:13.305349521Z"
