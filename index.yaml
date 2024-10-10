@@ -168,6 +168,13 @@ entries:
     version: 0.1.0
   hsp-observability-agent:
   - apiVersion: v2
+    created: "2024-10-10T17:57:31.548645705Z"
+    digest: ffb6581b56248611a37c7dbae555cf57d352b65b8df11baddd6e36f161be2666
+    name: hsp-observability-agent
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/hsp-observability-agent-0.2.1/hsp-observability-agent-0.2.1.tgz
+    version: 0.2.1
+  - apiVersion: v2
     created: "2024-10-10T16:40:01.75042372Z"
     digest: ce1f01a3447b54f53a3726208ef5c11bd35740a0d63fe19c6d41f1ff4d9f0bed
     name: hsp-observability-agent
@@ -230,4 +237,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/hsp-observability-agent-0.1.1/hsp-observability-agent-0.1.1.tgz
     version: 0.1.1
-generated: "2024-10-10T16:40:01.750507437Z"
+generated: "2024-10-10T17:57:31.548698995Z"
