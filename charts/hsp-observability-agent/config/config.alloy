@@ -41,7 +41,6 @@ otelcol.processor.attributes "default" {
   }
   output {
     logs = [
-        otelcol.exporter.loki.default.input,
         {{- range .Values.otlp.remote_receivers }}
         otelcol.processor.transform.{{ .name }}.input,
         {{- end }}
