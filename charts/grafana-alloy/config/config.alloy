@@ -339,6 +339,6 @@ otelcol.exporter.otlphttp {{ .name | quote }} {
 
 // Static API tokens for OTLP authentication
 local.file "api_key" {
-  filename = "/var/lib/api-key/key"
+  filename = "/var/lib/{{ .Values.api_key.secret }}/key"
   is_secret = true
 }

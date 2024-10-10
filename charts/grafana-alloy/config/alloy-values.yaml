@@ -44,8 +44,8 @@ alloy:
       protocol: "TCP"
   mounts:
     extra:
-      - name: "api-key"
-        mountPath: "/var/lib/api-key"
+      - name: {{ .Values.api_key.secret | quote }}
+        mountPath: "/var/lib/{{ .Values.api_key.secret }}"
 
 controller:
   type: "statefulset"
