@@ -1,24 +1,29 @@
+# Filled by kustomize
+resourcePrefix: ""
+awsRegion: ""
+awsAccountId: ""
+
 logging:
   level: info
 
 otlp:
   # -- OTLP endpoints to forward logs, metrics and traces to
   remote_receivers:
-    - name: otlp
-      url: http://otlp-gateway.otlp-system.svc
+    - name: hsp-observability
+      url: http://otlp-gateway.obs-us-east-ct.hsp.philips.com
       # -- Use API key for authn
       use_api_key: true
+
 cluster:
   # -- Cluster Name
   name: fake
   # -- Namespace in which to deploy manifests
-  namespace: hsp-mobs
+  namespace: hsp-observability
 
-# -- When enabled, will use an API key for OTLP authn
+# -- API key for OTLP authn
 api_key:
-  enabled: true
   # -- Secret containing a `key` field with your API key
-  secret: hsp-mobs-api-key
+  secret: hsp-observability
 
 alloy:
   filter_phi: true
@@ -30,10 +35,10 @@ alloy:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 512Mi
     limits:
       cpu: 500m
-      memory: 768Mi
+      memory: 1Gi
 
 controller: 
   # -- Configure Horizontal Pod Autoscaler(HPA) for Alloy
@@ -46,5 +51,5 @@ controller:
     scaledownwindow: 300
     # -- Criteria for autoscaling - CPU or Memory. By default it uses 80% memory utilization as the trigger to autoscale
     utilization:
-      cpu: 80
+      cpu: 80 
       memory: 80
