@@ -2,6 +2,7 @@
 resourcePrefix: ""
 awsRegion: ""
 awsAccountId: ""
+clusterName: "changeme"
 
 logging:
   level: info
@@ -13,12 +14,6 @@ otlp:
       url: http://otlp-gateway.obs-us-east-ct.hsp.philips.com
       # -- Use API key for authn
       use_api_key: true
-
-cluster:
-  # -- Cluster Name
-  name: fake
-  # -- Namespace in which to deploy manifests
-  namespace: hsp-observability
 
 # -- API key for OTLP authn
 api_key:
