@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: hsp-observability
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  description: Starlift Base applications
+  destinations:
+    - name: in-cluster
+      namespace: 'hsp-observability'
+      server: https://kubernetes.default.svc
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  sourceNamespaces:
+    - hsp-observability
+  sourceRepos:
+    - https://github.com/philips-software/helm-charts

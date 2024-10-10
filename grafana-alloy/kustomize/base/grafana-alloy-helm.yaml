@@ -6,7 +6,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  project: default
+  project: hsp-observability
   source:
     repoURL: https://github.com/philips-software/helm-charts
     path: charts/grafana-alloy
