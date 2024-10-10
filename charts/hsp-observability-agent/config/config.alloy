@@ -24,7 +24,6 @@ otelcol.receiver.otlp "default" {
 otelcol.processor.batch "default" {
   output {
     metrics = [
-        otelcol.exporter.prometheus.default.input,
         {{- range .Values.otlp.remote_receivers }}
         otelcol.processor.transform.{{ .name }}.input,
         {{- end }}
@@ -89,7 +88,7 @@ otelcol.connector.servicegraph "default" {
   dimensions = ["http.method"]
   output {
     metrics = [
-        otelcol.exporter.prometheus.default.input,
+	// TODO: fill in
     ]
   }
 }
@@ -151,7 +150,6 @@ otelcol.connector.spanmetrics "default" {
 
   output {
     metrics = [
-      otelcol.exporter.prometheus.default.input,
       {{- range .Values.otlp.remote_receivers }}
       otelcol.processor.transform.{{ .name }}.input,
       {{- end }}
