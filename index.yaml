@@ -166,4 +166,12 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/grafana-alloy-0.1.0/grafana-alloy-0.1.0.tgz
     version: 0.1.0
-generated: "2024-10-10T15:04:13.305349521Z"
+  hsp-observability-agent:
+  - apiVersion: v2
+    created: "2024-10-10T15:30:18.684738818Z"
+    digest: 674b27a6078f3a8c8ad7b5e3295580e609005a35e9716f1755824ae943d126a9
+    name: hsp-observability-agent
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/hsp-observability-agent-0.1.1/hsp-observability-agent-0.1.1.tgz
+    version: 0.1.1
+generated: "2024-10-10T15:30:18.684762492Z"
