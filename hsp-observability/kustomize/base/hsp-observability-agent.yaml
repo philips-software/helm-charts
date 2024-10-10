@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: grafana-alloy
+  name: hsp-observability-agent
   namespace: hsp-observability
   annotations:
     argocd.argoproj.io/sync-wave: "2"
