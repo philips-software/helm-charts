@@ -17,7 +17,7 @@ spec:
           resourcePrefix: "${RESOURCE_PREFIX}"
           awsRegion: "${AWS_REGION}"
           awsAccountId: "${AWS_ACCOUNT_ID}"
-          cluster.name: "${CLUSTER_NAME}"
+          clusterName: "${CLUSTER_NAME}"
   destination:
     server: https://kubernetes.default.svc
     namespace: hsp-observability
