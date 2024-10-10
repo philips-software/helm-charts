@@ -9,7 +9,7 @@ spec:
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
-  description: Starlift Base applications
+  description: HSP Managed Observabiltiy applications
   destinations:
     - name: in-cluster
       namespace: 'hsp-observability'
@@ -21,3 +21,4 @@ spec:
     - hsp-observability
   sourceRepos:
     - https://github.com/philips-software/helm-charts
+    - https://grafana.github.io/helm-charts
