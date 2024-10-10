@@ -1,6 +1,6 @@
 # hsp-observability-agent
 
-![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square)
+![Version: 0.1.7](https://img.shields.io/badge/Version-0.1.7-informational?style=flat-square)
 
 Grafana Alloy is a vendor-neutral distribution of the OpenTelemetry (OTel) Collector.
 Alloy uniquely combines the very best OSS observability signals in the community.
@@ -32,7 +32,7 @@ This helm chart should be deployed using kustomize.
 | controller.autoscaling.enabled | bool | `true` | Enable/disable autoscaling |
 | controller.autoscaling.utilization | object | `{"cpu":80,"memory":80}` | Criteria for autoscaling - CPU or Memory. By default it uses 80% memory utilization as the trigger to autoscale |
 | logging.level | string | `"info"` |  |
-| otlp.remote_receivers | list | `[{"name":"hsp-observability","url":"http://otlp-gateway.obs-us-east-ct.hsp.philips.com","use_api_key":true}]` | OTLP endpoints to forward logs, metrics and traces to |
+| otlp.remote_receivers | list | `[{"name":"use1ct","url":"http://otlp-gateway.obs-us-east-ct.hsp.philips.com","use_api_key":true}]` | OTLP endpoints to forward logs, metrics and traces to |
 | otlp.remote_receivers[0].use_api_key | bool | `true` | Use API key for authn |
 | resourcePrefix | string | `""` |  |
 
