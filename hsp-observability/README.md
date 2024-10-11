@@ -31,19 +31,19 @@ argocd app create hsp-observability \
 
 * Login the the Argo CD UI as `admin`
 * Click the `+ New App` button
-  * General:
+* General:
   - Application Name: `hsp-observability`
   - Project Name: `default`
   - Sync Policy: `Automatic`
   - [x] Prune Resources
   - [x] Self Heal 
-  * Source:
+* Source:
   - Repository URL: `https://github.com/philips-software/helm-charts`
   - Revision: `kustomize`
   - Path: `kustomize/hsp-observability`
-  * Destination:
+* Destination:
   - Cluster URL: `https://kubernetes.default.svc`
   - Namespace: `argocd`
-  * Select Plugin tab:
+* Select Plugin tab:
   - Plugin: `envsubst`
  
