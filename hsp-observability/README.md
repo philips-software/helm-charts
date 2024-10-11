@@ -47,3 +47,23 @@ argocd app create hsp-observability \
 * Select Plugin tab:
   - Plugin: `envsubst`
 * Click `Create` 
+
+## API Key
+
+The exporter needs to authenticate with the regional OTLP endpoint. The API Key obtained from
+the HSP Managed Obervability team should be saved in a secret called `hsp-observability` in the `key` field:
+
+### Example secret.yaml
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hsp-observability
+  namespace: hsp-observability
+type: Opaque
+data:
+  key: bHN0X2tleWhlcmU=
+```
+
+Use kubectl to apply: `kubectl apply -f secret.yaml`
