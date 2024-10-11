@@ -29,7 +29,7 @@ argocd app create hsp-observability \
 
 ### Using the Argo CD UI
 
-* Login the the Argo CD UI as `admin`
+* Log into the Argo CD UI as `admin`
 * Click the `+ New App` button
 * General:
   - Application Name: `hsp-observability`
@@ -46,4 +46,4 @@ argocd app create hsp-observability \
   - Namespace: `argocd`
 * Select Plugin tab:
   - Plugin: `envsubst`
- 
+* Click `Create` 
