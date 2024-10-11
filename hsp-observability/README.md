@@ -50,8 +50,9 @@ argocd app create hsp-observability \
 
 ## API Key
 
-The exporter needs to authenticate with the regional OTLP endpoint. The API Key obtained from
-the HSP Managed Obervability team should be saved in a secret called `hsp-observability` in the `key` field:
+he exporter must authenticate with the regional OTLP endpoint using the API key provided by the HSP Managed Observability team.
+
+Store this API key in a Kubernetes secret named hsp-observability with the key field set to api_key.
 
 ### Example secret.yaml
 
