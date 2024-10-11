@@ -11,7 +11,7 @@ Once deployed, the agent will:
 
 ## Deployment
 
-### Argo CD CLI
+### Using the Argo CD CLI
 
 * Use `argocd login` to establish a session with your cluster
 * Create the Argo CD app:
