@@ -28,6 +28,7 @@ prometheus-operator-crds:
   enabled: false
 
 opencost:
+  enabled: false
   opencost:
     tolerations: []
 
