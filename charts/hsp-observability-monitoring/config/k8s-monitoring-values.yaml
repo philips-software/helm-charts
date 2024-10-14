@@ -6,9 +6,10 @@ externalServices:
     protocol: "otlphttp"
     writeEndpoint: "/"
     host: {{ .Values.otlpGateway | quote }}
-    authMode: bearerToken
-    bearerToken:
-      tokenKey: "key"
+    authMode: basic
+    basicAuth:
+      username: "otlp"
+      passwordKey: "key"
     secret:
       create: false
       name: hsp-observability
