@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - project.yaml
-  - hsp-observability-agent.yaml
+  - hsp-observability-monitoring.yaml

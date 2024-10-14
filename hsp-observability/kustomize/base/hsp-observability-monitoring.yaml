@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: hsp-observability-agent
+  name: hsp-observability-monitoring
   namespace: hsp-observability
   annotations:
     argocd.argoproj.io/sync-wave: "2"
@@ -9,10 +9,10 @@ spec:
   project: hsp-observability
   source:
     repoURL: https://github.com/philips-software/helm-charts
-    path: charts/hsp-observability-agent
+    path: charts/hsp-observability-monitoring
     targetRevision: main
     helm:
-      releaseName: hsp-observability-agent
+      releaseName: hsp-observability-monitoring
       values: |
           resourcePrefix: "${RESOURCE_PREFIX}"
           awsRegion: "${AWS_REGION}"
