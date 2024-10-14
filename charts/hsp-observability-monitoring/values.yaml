@@ -1,0 +1,6 @@
+# Filled by kustomize
+resourcePrefix: ""
+awsRegion: ""
+awsAccountId: ""
+clusterName: "changeme"
+otlpGateway: "https://otlp-gateway.obs-us-east-ct.hsp.philips.com"
