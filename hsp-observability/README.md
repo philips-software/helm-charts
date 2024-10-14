@@ -20,7 +20,7 @@ Once deployed, the agent will:
 argocd app create hsp-observability \
     --repo https://github.com/philips-software/helm-charts \
     --revision kustomize \
-    --path kustomize/hsp-observability \
+    --path hsp-observability/kustomize \
     --dest-namespace argocd \
     --dest-server https://kubernetes.default.svc \
     --config-management-plugin envsubst \
