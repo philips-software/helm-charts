@@ -3,6 +3,7 @@ cluster:
 
 externalServices:
   prometheus:
+    writeEndpoint: /mimir/api/v1/push
     protocol: "otlphttp"
     host: {{ .Values.otlpGateway | quote }}
     authMode: bearerToken
