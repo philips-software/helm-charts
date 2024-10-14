@@ -4,6 +4,7 @@ cluster:
 externalServices:
   prometheus:
     protocol: "otlphttp"
+    writeEndpoint: "/v1/metrics"
     host: {{ .Values.otlpGateway | quote }}
     authMode: bearerToken
     bearerToken:
