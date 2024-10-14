@@ -3,8 +3,8 @@ cluster:
 
 externalServices:
   prometheus:
+    protocol: "otlphttp"
     host: {{ .Values.otlpGateway | quote }}
-    writeEndpoint: /api/v1/push
     authMode: bearerToken
     bearerToken:
       tokenKey: "key"
@@ -68,3 +68,7 @@ alloy-receiver:
         port: 4317
         targetPort: 4317
         protocol: TCP
+
+metrics:
+  node-exporter:
+    enabled: false
