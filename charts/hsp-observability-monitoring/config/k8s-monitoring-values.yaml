@@ -69,6 +69,6 @@ alloy-receiver:
         targetPort: 4317
         protocol: TCP
 
-metrics:
+prometheus:
   node-exporter:
     enabled: false
