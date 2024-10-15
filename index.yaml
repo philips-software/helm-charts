@@ -239,6 +239,13 @@ entries:
     version: 0.1.1
   hsp-observability-monitoring:
   - apiVersion: v2
+    created: "2024-10-15T09:18:40.206130344Z"
+    digest: 32e815d92b8f40e4d770cc80d5d198c5621ef708ba5efd05f97de2aa4a01c8e7
+    name: hsp-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/hsp-observability-monitoring-0.0.11/hsp-observability-monitoring-0.0.11.tgz
+    version: 0.0.11
+  - apiVersion: v2
     created: "2024-10-15T08:19:32.398117608Z"
     digest: 940b483884c73decc26ece01999ca76239afc1a0e085bc67e458423548b3c09f
     name: hsp-observability-monitoring
@@ -308,4 +315,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/hsp-observability-monitoring-0.0.1/hsp-observability-monitoring-0.0.1.tgz
     version: 0.0.1
-generated: "2024-10-15T08:19:32.398197026Z"
+generated: "2024-10-15T09:18:40.20620853Z"
