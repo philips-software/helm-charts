@@ -1,8 +1,8 @@
 # hsp-observability
 
-Deploys a pre-configured Grafana Alloy agent using Argo CD.
+Deploys a pre-configured [k8s-monitoring](https://artifacthub.io/packages/helm/grafana/k8s-monitoring) Helm chart to your Argo CD.
 
-Once deployed, the agent will:
+Once deployed, the chart will:
 
 * Collect and forward all pod logs.
 * Gather metrics from endpoints defined in ServiceMonitors.
@@ -21,6 +21,21 @@ argocd app create hsp-observability \
     --repo https://github.com/philips-software/helm-charts \
     --revision kustomize \
     --path hsp-observability/kustomize \
+    --dest-namespace argocd \
+    --dest-server https://kubernetes.default.svc \
+    --config-management-plugin envsubst \
+    --sync-policy auto	
+```
+
+### For HSP AWS Platform managed clusters
+
+Use the `hsp-aws-platform` overlay:
+
+```shell
+argocd app create hsp-observability \
+    --repo https://github.com/philips-software/helm-charts \
+    --revision kustomize \
+    --path hsp-observability/kustomize/overlays/hsp-aws-platform \
     --dest-namespace argocd \
     --dest-server https://kubernetes.default.svc \
     --config-management-plugin envsubst \
@@ -63,6 +78,7 @@ metadata:
   namespace: hsp-observability
 type: Opaque
 data:
+  host: aHR0cHM6Ly9vdGxwLWdhdGV3YXkub2JzLXVzLWVhc3QtY3QuaHNwLnBoaWxpcHMuY29t 
   key: bHN0X2tleWhlcmU=
 ```
 
