@@ -13,11 +13,9 @@ spec:
     - resources:
         kinds:
         - Pod
-        - Deployment
         namespaces:
         - hsp-observability
         names:
-        - alloy-*
         - k8s-monitoring-alloy-*
   podSecurity:
     - controlName: "HostPath Volumes"
