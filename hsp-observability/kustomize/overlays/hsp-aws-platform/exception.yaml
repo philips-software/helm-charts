@@ -1,0 +1,22 @@
+apiVersion: kyverno.io/v2beta1
+kind: PolicyException
+metadata:
+  name: hsp-observability-exception
+  namespace: hsp-observability
+spec:
+  exceptions:
+  - policyName: enforce-baseline-pod-security-profile 
+    ruleNames:
+    - enforce-baseline-profile
+  match:
+    any:
+    - resources:
+        kinds:
+        - Pod
+        - Deployment
+        namespaces:
+        - hsp-observability
+        names:
+        - alloy-*
+  podSecurity:
+    - controlName: "HostPath Volumes"
