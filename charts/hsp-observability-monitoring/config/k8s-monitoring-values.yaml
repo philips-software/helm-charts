@@ -43,6 +43,7 @@ kube-state-metrics:
 
 alloy:
   controller:
+    replicas: 3
     tolerations: []
 
 applicationObservability:
