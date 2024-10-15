@@ -41,6 +41,10 @@ kube-state-metrics:
   enabled: false
   tolerations: []
 
+metrics:
+  kube-state-metrics:
+    enabled: false
+
 alloy:
   controller:
     replicas: 3
