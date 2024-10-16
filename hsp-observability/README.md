@@ -24,7 +24,9 @@ argocd app create hsp-observability \
     --dest-namespace argocd \
     --dest-server https://kubernetes.default.svc \
     --config-management-plugin envsubst \
-    --sync-policy auto	
+    --sync-policy auto \
+    --self-heal \
+    --auto-prune
 ```
 
 ### For HSP AWS Platform managed clusters
@@ -39,7 +41,9 @@ argocd app create hsp-observability \
     --dest-namespace argocd \
     --dest-server https://kubernetes.default.svc \
     --config-management-plugin envsubst \
-    --sync-policy auto	
+    --sync-policy auto \
+    --self-heal \
+    --auto-prune
 ```
 
 ### Using the Argo CD UI
