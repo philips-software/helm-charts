@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: hsp-observability-monitoring
   namespace: hsp-observability
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
