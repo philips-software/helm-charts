@@ -1,4 +1,4 @@
-# hsp-observability
+# k8s-observability
 
 Deploys a pre-configured [k8s-monitoring](https://artifacthub.io/packages/helm/grafana/k8s-monitoring) Helm chart to your Argo CD.
 
@@ -17,10 +17,10 @@ Once deployed, the chart will:
 * Create the Argo CD app:
 
 ```shell
-argocd app create hsp-observability \
+argocd app create k8s-observability \
     --repo https://github.com/philips-software/helm-charts \
     --revision kustomize \
-    --path hsp-observability/kustomize \
+    --path k8s-observability/kustomize \
     --dest-namespace argocd \
     --dest-server https://kubernetes.default.svc \
     --config-management-plugin envsubst \
@@ -34,10 +34,10 @@ argocd app create hsp-observability \
 Use the `hsp-aws-platform` overlay:
 
 ```shell
-argocd app create hsp-observability \
+argocd app create k8s-observability \
     --repo https://github.com/philips-software/helm-charts \
     --revision kustomize \
-    --path hsp-observability/kustomize/overlays/hsp-aws-platform \
+    --path k8s-observability/kustomize/overlays/hsp-aws-platform \
     --dest-namespace argocd \
     --dest-server https://kubernetes.default.svc \
     --config-management-plugin envsubst \
@@ -51,7 +51,7 @@ argocd app create hsp-observability \
 * Log into the Argo CD UI as `admin`
 * Click the `+ New App` button
 * General:
-  - Application Name: `hsp-observability`
+  - Application Name: `k8s-observability`
   - Project Name: `default`
   - Sync Policy: `Automatic`
   - [x] Prune Resources
@@ -59,7 +59,7 @@ argocd app create hsp-observability \
 * Source:
   - Repository URL: `https://github.com/philips-software/helm-charts`
   - Revision: `kustomize`
-  - Path: `kustomize/hsp-observability`
+  - Path: `kustomize/k8s-observability`
 * Destination:
   - Cluster URL: `https://kubernetes.default.svc`
   - Namespace: `argocd`
@@ -69,8 +69,8 @@ argocd app create hsp-observability \
 
 ## API Key
 
-The exporter must authenticate with the regional OTLP endpoint using the API key provided by the HSP Managed Observability team.
-Store this API key in a Kubernetes secret named hsp-observability with the key field set to api_key.
+The exporter must authenticate with the regional OTLP endpoint using your API key.
+Store this API key in a Kubernetes secret named k8s-observability with the key field set to api_key.
 
 ### Example secret.yaml
 
@@ -78,8 +78,8 @@ Store this API key in a Kubernetes secret named hsp-observability with the key f
 apiVersion: v1
 kind: Secret
 metadata:
-  name: hsp-observability
-  namespace: hsp-observability
+  name: k8s-observability
+  namespace: k8s-observability
 type: Opaque
 data:
   host: aHR0cHM6Ly9vdGxwLWdhdGV3YXkub2JzLXVzLWVhc3QtY3QuaHNwLnBoaWxpcHMuY29t 

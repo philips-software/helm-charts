@@ -1,8 +1,8 @@
 apiVersion: kyverno.io/v2beta1
 kind: PolicyException
 metadata:
-  name: hsp-observability-exception
-  namespace: hsp-observability
+  name: hsp-aws-platform-exception
+  namespace: k8s-observability
 spec:
   exceptions:
   - policyName: enforce-baseline-pod-security-profile 
@@ -14,7 +14,7 @@ spec:
         kinds:
         - Pod
         namespaces:
-        - hsp-observability
+        - k8s-observability
         names:
         - k8s-monitoring-alloy-*
   podSecurity:

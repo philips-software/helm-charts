@@ -1,21 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: hsp-observability-monitoring
-  namespace: hsp-observability
+  name: k8s-observability-monitoring
+  namespace: k8s-observability
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/sync-options: PruneLast=true
 spec:
-  project: hsp-observability
+  project: k8s-observability
   source:
     repoURL: https://github.com/philips-software/helm-charts
-    path: charts/hsp-observability-monitoring
+    path: charts/k8s-observability-monitoring
     targetRevision: main
     helm:
-      releaseName: hsp-observability-monitoring
+      releaseName: k8s-observability-monitoring
       values: |
           resourcePrefix: "${RESOURCE_PREFIX}"
           awsRegion: "${AWS_REGION}"
@@ -23,7 +23,7 @@ spec:
           clusterName: "${CLUSTER_NAME}"
   destination:
     server: https://kubernetes.default.svc
-    namespace: hsp-observability
+    namespace: k8s-observability
   syncPolicy:
     automated:
       prune: true

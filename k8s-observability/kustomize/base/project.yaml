@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: hsp-observability
+  name: k8s-observability
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -11,16 +11,16 @@ spec:
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
-  description: HSP Managed Observabiltiy applications
+  description: K8S Observability applications
   destinations:
     - name: in-cluster
-      namespace: 'hsp-observability'
+      namespace: 'k8s-observability'
       server: https://kubernetes.default.svc
   namespaceResourceWhitelist:
     - group: '*'
       kind: '*'
   sourceNamespaces:
-    - hsp-observability
+    - k8s-observability
   sourceRepos:
     - https://github.com/philips-software/helm-charts
     - https://grafana.github.io/helm-charts
