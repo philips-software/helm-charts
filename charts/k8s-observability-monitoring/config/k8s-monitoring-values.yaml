@@ -12,8 +12,8 @@ externalServices:
       passwordKey: "key"
     secret:
       create: false
-      name: hsp-observability
-      namespace: hsp-observability
+      name: k8s-observability
+      namespace: k8s-observability
   loki:
     host: {{ .Values.otlpGateway | quote }}
     writeEndpoint: /loki/api/v1/push
@@ -23,8 +23,8 @@ externalServices:
       passwordKey: "key"
     secret:
       create: false
-      name: hsp-observability
-      namespace: hsp-observability
+      name: k8s-observability
+      namespace: k8s-observability
 
 prometheus-operator-crds:
   enabled: false
