@@ -14,6 +14,18 @@ externalServices:
       create: false
       name: k8s-observability
       namespace: k8s-observability
+  tempo:
+    host: {{ .Values.otlpGateway | quote }}
+    writeEndpoint: "/v1/traces"
+    protocol: "otlphttp"
+    authMode: basic
+    basicAuth:
+      username: "otlp"
+      passwordKey: "key"
+    secret:
+      create: false
+      name: k8s-observability
+      namespace: k8s-observability
   loki:
     host: {{ .Values.otlpGateway | quote }}
     writeEndpoint: /loki/api/v1/push
@@ -44,6 +56,9 @@ kube-state-metrics:
 metrics:
   kube-state-metrics:
     enabled: false
+
+traces:
+  enabled: true
 
 alloy:
   controller:
