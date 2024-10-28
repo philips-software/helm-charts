@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square)
+![Version: 0.1.2](https://img.shields.io/badge/Version-0.1.2-informational?style=flat-square)
 
 ## Values
 
@@ -8,6 +8,7 @@
 |-----|------|---------|-------------|
 | awsAccountId | string | `""` |  |
 | awsRegion | string | `""` |  |
+| chartVersion | string | `"1.6.1"` |  |
 | clusterName | string | `"changeme"` |  |
 | otlpGateway | string | `"https://otlp-gateway.obs-us-east-ct.hsp.philips.com"` |  |
 | resourcePrefix | string | `""` |  |
