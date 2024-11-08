@@ -9,7 +9,7 @@ fluent-bit:
       name: plugins
   initContainers:
     - name: copy-plugin
-      image: ghcr.io/philips-software/fluent-bit-out-hsdp:2.2.0
+      image: ghcr.io/philips-software/fluent-bit-out-hsdp:2.6.0
       command: ['cp', '/plugins/out_hsdp.so', '/out']
       volumeMounts:
         - mountPath: /out

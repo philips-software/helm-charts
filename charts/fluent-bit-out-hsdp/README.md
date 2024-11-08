@@ -2,7 +2,7 @@
 
 <!-- This README.md is generated. Please edit README.md.gotmpl -->
 
-![Version: 0.11.0](https://img.shields.io/badge/Version-0.11.0-informational?style=flat-square) ![AppVersion: 2.2.0](https://img.shields.io/badge/AppVersion-2.2.0-informational?style=flat-square)
+![Version: 0.12.0](https://img.shields.io/badge/Version-0.12.0-informational?style=flat-square) ![AppVersion: 2.6.0](https://img.shields.io/badge/AppVersion-2.6.0-informational?style=flat-square)
 
 Installs the Fluentbit HSP out plugin.
 
@@ -23,6 +23,13 @@ To uninstall the Helm chart run following command.
 
 ```shell
 helm uninstall [RELEASE_NAME]
+```
+## Development
+
+```shell
+helm dependency update charts/fluent-bit-out-hsdp
+helm dependency build charts/fluent-bit-out-hsdp
+helm-docs -g charts/go-hello-world
 ```
 
 ## Maintainers
@@ -59,7 +66,7 @@ helm uninstall [RELEASE_NAME]
 | fluent-bit.initContainers[0].command[0] | string | `"cp"` |  |
 | fluent-bit.initContainers[0].command[1] | string | `"/plugins/out_hsdp.so"` |  |
 | fluent-bit.initContainers[0].command[2] | string | `"/out"` |  |
-| fluent-bit.initContainers[0].image | string | `"ghcr.io/philips-software/fluent-bit-out-hsdp:2.2.0"` |  |
+| fluent-bit.initContainers[0].image | string | `"ghcr.io/philips-software/fluent-bit-out-hsdp:2.6.0"` |  |
 | fluent-bit.initContainers[0].name | string | `"copy-plugin"` |  |
 | fluent-bit.initContainers[0].resources.limits.cpu | string | `"500m"` |  |
 | fluent-bit.initContainers[0].resources.limits.memory | string | `"512Mi"` |  |
