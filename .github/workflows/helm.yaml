@@ -1,0 +1,27 @@
+name: Helm Publish
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  helm:
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and Push the Helm Charts to GitHub Container Registry
+        uses: ./.github/actions/action-helm-chart-repo
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          chartsPath: ./helm-charts
