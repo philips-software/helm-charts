@@ -25,4 +25,4 @@ jobs:
         uses: ./.github/actions/action-helm-chart-repo
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          chartsPath: ./charts
+          chartsPath: ./charts/
