@@ -20,4 +20,3 @@ spec:
         - k8s-monitoring-beyla-*
   podSecurity:
     - controlName: "HostPath Volumes"
-    - controlName: "Privileged Containers"
