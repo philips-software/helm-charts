@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square)
+![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square)
 
 ## Values
 
@@ -12,7 +12,6 @@
 | features.autoInstrumentation | bool | `true` |  |
 | otlp.gateway | string | `"https://otlp-gateway.obs-us-east-ct.hsp.philips.com"` |  |
 | otlp.secret.name | string | `"k8s-observability"` |  |
-| project.create | bool | `true` |  |
 | project.name | string | `"k8s-monitoring"` |  |
 | resourcePrefix | string | `""` |  |
 
