@@ -20,3 +20,9 @@ spec:
         - k8s-monitoring-beyla-*
   podSecurity:
     - controlName: "HostPath Volumes"
+    - controlName: Capabilities
+      images:
+      - "*/grafana/alloy*"
+      restrictedField: spec.containers[*].securityContext.capabilities.add
+      values:
+      - NET_RAW
