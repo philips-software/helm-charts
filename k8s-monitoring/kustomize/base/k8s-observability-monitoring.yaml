@@ -9,7 +9,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
     argocd.argoproj.io/sync-options: PruneLast=true
 spec:
-  project: default
+  project: k8s-monitoring
   source:
     repoURL: ghcr.io/philips-software
     chart: helm-charts/k8s-observability-monitoring
