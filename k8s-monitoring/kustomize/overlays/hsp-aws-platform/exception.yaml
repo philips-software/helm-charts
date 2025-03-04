@@ -32,7 +32,7 @@ spec:
       restrictedField: spec.containers[*].securityContext.privileged
       values:
       - "true"
-    - controlName: "host PID"
+    - controlName: "Host Namespaces"
       images:
       - "*/grafana/alloy*"
       restrictedField: spec.hostPID
