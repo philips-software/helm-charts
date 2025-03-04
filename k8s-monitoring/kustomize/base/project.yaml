@@ -13,13 +13,13 @@ spec:
   description: Kubernetes Observability
   destinations:
     - name: in-cluster
-      namespace: {{ .Release.Namespace }}
+      namespace: k8s-monitoring
       server: https://kubernetes.default.svc
   namespaceResourceWhitelist:
     - group: '*'
       kind: '*'
   sourceNamespaces:
-    - {{ .Release.Namespace }}
+    - k8s-monitoring
   sourceRepos:
     - https://grafana.github.io/helm-charts
     - ghcr.io/philips-software
