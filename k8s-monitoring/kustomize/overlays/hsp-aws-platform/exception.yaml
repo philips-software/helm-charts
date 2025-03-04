@@ -26,7 +26,7 @@ spec:
       restrictedField: spec.containers[*].securityContext.capabilities.add
       values:
       - NET_RAW
-    - controlName: "Privileged Containers"
+    - controlName: "Privileged"
       images:
       - "*/grafana/alloy*"
       restrictedField: spec.containers[*].securityContext.privileged
