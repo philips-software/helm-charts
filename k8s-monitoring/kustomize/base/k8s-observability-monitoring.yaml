@@ -21,6 +21,8 @@ spec:
         awsRegion: "${AWS_REGION}"
         awsAccountId: "${AWS_ACCOUNT_ID}"
         clusterName: "${CLUSTER_NAME}"
+        project:
+          create: false
   destination:
     server: https://kubernetes.default.svc
     namespace: k8s-monitoring
