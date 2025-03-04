@@ -1,75 +1,32 @@
 cluster:
   name: {{ .Values.clusterName }}
 
-externalServices:
-  prometheus:
-    protocol: "otlphttp"
-    writeEndpoint: "/"
-    host: {{ .Values.otlpGateway | quote }}
-    authMode: basic
-    basicAuth:
-      username: "otlp"
-      passwordKey: "key"
+destinations:
+  - name: oltpGateway
+    protocol: http
+    type: otlp
+    url: {{ .Values.otlp.gateway }}
+    auth:
+      type: basic
+      usernameKey: "username"
+      passwordKey: "apiKey"
     secret:
       create: false
-      name: k8s-observability
-      namespace: k8s-observability
-  tempo:
-    host: {{ .Values.otlpGateway | quote }}
-    writeEndpoint: "/v1/traces"
-    protocol: "otlphttp"
-    authMode: basic
-    basicAuth:
-      username: "otlp"
-      passwordKey: "key"
-    secret:
-      create: false
-      name: k8s-observability
-      namespace: k8s-observability
-  loki:
-    host: {{ .Values.otlpGateway | quote }}
-    writeEndpoint: /loki/api/v1/push
-    authMode: basic
-    basicAuth:
-      username: "admin"
-      passwordKey: "key"
-    secret:
-      create: false
-      name: k8s-observability
-      namespace: k8s-observability
-
-prometheus-operator-crds:
-  enabled: false
-
-opencost:
-  enabled: false
-  opencost:
-    tolerations: []
-
-configValidator:
-  tolerations: []
-
-kube-state-metrics:
-  enabled: false
-  tolerations: []
-
-metrics:
-  kube-state-metrics:
-    enabled: false
-
-traces:
-  enabled: true
-
-alloy:
-  controller:
-    replicas: 2
-    tolerations: []
+      name: {{ .Values.otlp.secret.name }}
+      namespace: {{ .Release.Namespace }}
+    logs: { enabled: true }
+    metrics: { enabled: true }
+    traces: { enabled: true }
 
 applicationObservability:
   enabled: true
   receivers:
-    grpc:
+    otlp:
       enabled: true
+      http:
+        enabled: false
+      grpc:
+        enabled: true
 
 prometheusOperatorObjects:
   enabled: true
@@ -77,11 +34,25 @@ prometheusOperatorObjects:
 podLogs:
   enabled: true
 
+traces:
+  enabled: true
+
+autoInstrumentation:
+  enabled: {{ .Values.features.autoInstrumentation }}
+
 alloy-metrics:
   enabled: true
+  liveDebugging:
+    enabled: true
+  alloy:
+    stabilityLevel: experimental
 
 alloy-logs:
   enabled: true
+  liveDebugging:
+    enabled: true
+  alloy:
+    stabilityLevel: experimental
   controller:
     affinity:
       nodeAffinity:
@@ -93,7 +64,6 @@ alloy-logs:
                   values:
                     - fargate
 
-
 alloy-receiver:
   enabled: true
   alloy:
@@ -102,6 +72,3 @@ alloy-receiver:
         port: 4317
         targetPort: 4317
         protocol: TCP
-
-prometheus-node-exporter:
-    enabled: false

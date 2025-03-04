@@ -1,0 +1,27 @@
+{{- if .Values.project.create }}
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ .Values.project.name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  description: Kubernetes Observability
+  destinations:
+    - name: in-cluster
+      namespace: {{ .Release.Namespace }}
+      server: https://kubernetes.default.svc
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  sourceNamespaces:
+    - {{ .Release.Namespace }}
+  sourceRepos:
+    - https://grafana.github.io/helm-charts
+{{- end }}

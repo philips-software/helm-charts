@@ -2,24 +2,24 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: k8s-monitoring
-  namespace: k8s-observability
+  namespace: {{ .Release.Namespace }}
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  project: k8s-observability
+  project: {{ .Values.project.name }}
   source:
     chart: k8s-monitoring
     repoURL: https://grafana.github.io/helm-charts
-    targetRevision: {{ .Values.chartVersion }}
+    targetRevision: 2.0.13
     helm:
       releaseName: k8s-monitoring
       valuesObject:
         {{- (tpl (.Files.Get "config/k8s-monitoring-values.yaml") .) |  nindent 8 }}
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: k8s-observability
+    namespace: {{ .Release.Namespace}}
   syncPolicy:
     automated:
       prune: true

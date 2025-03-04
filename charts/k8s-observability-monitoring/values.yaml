@@ -3,5 +3,15 @@ resourcePrefix: ""
 awsRegion: ""
 awsAccountId: ""
 clusterName: "changeme"
-otlpGateway: "https://otlp-gateway.obs-us-east-ct.hsp.philips.com"
-chartVersion: "1.6.1"
+
+otlp:
+  secret:
+    name: "k8s-observability"
+  gateway: "https://otlp-gateway.obs-us-east-ct.hsp.philips.com"
+
+project:
+  create: true
+  name: "k8s-monitoring"
+
+features:
+  autoInstrumentation: true
