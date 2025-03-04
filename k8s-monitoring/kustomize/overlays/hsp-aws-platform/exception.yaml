@@ -26,9 +26,9 @@ spec:
       restrictedField: spec.containers[*].securityContext.capabilities.add
       values:
       - NET_RAW
-    - controlName: "Privilege Escalation"
+    - controlName: "Privileged Containers"
       images:
-      - "*/grafana/alloy*"
+      - "*/grafana/beyla*"
       restrictedField: spec.containers[*].securityContext.privileged
       values:
       - "true"
