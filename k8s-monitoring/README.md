@@ -1,4 +1,4 @@
-# k8s-observability
+# k8s-monitoring
 
 Deploys a pre-configured [k8s-monitoring](https://artifacthub.io/packages/helm/grafana/k8s-monitoring) Helm chart to your Argo CD.
 
@@ -17,10 +17,10 @@ Once deployed, the chart will:
 * Create the Argo CD app:
 
 ```shell
-argocd app create k8s-observability \
+argocd app create k8s-monitoring \
     --repo https://github.com/philips-software/helm-charts \
     --revision kustomize \
-    --path k8s-observability/kustomize \
+    --path k8s-monitoring/kustomize \
     --dest-namespace argocd \
     --dest-server https://kubernetes.default.svc \
     --config-management-plugin envsubst \
@@ -34,10 +34,10 @@ argocd app create k8s-observability \
 Use the `hsp-aws-platform` overlay:
 
 ```shell
-argocd app create k8s-observability \
+argocd app create k8s-monitoring \
     --repo https://github.com/philips-software/helm-charts \
     --revision kustomize \
-    --path k8s-observability/kustomize/overlays/hsp-aws-platform \
+    --path k8s-monitoring/kustomize/overlays/hsp-aws-platform \
     --dest-namespace argocd \
     --dest-server https://kubernetes.default.svc \
     --config-management-plugin envsubst \
@@ -51,7 +51,7 @@ argocd app create k8s-observability \
 * Log into the Argo CD UI as `admin`
 * Click the `+ New App` button
 * General:
-  - Application Name: `k8s-observability`
+  - Application Name: `k8s-monitoring`
   - Project Name: `default`
   - Sync Policy: `Automatic`
   - [x] Prune Resources
@@ -59,7 +59,7 @@ argocd app create k8s-observability \
 * Source:
   - Repository URL: `https://github.com/philips-software/helm-charts`
   - Revision: `kustomize`
-  - Path: `kustomize/k8s-observability`
+  - Path: `kustomize/k8s-monitoring`
 * Destination:
   - Cluster URL: `https://kubernetes.default.svc`
   - Namespace: `argocd`
@@ -70,7 +70,7 @@ argocd app create k8s-observability \
 ## API Key
 
 The exporter must authenticate with the regional OTLP endpoint using your API key.
-Store this API key in a Kubernetes secret named k8s-observability with the key field set to api_key.
+Store this API key in a Kubernetes secret named k8s-observability with the key field set to apiKey.
 
 ### Example secret.yaml
 
@@ -79,11 +79,11 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: k8s-observability
-  namespace: k8s-observability
+  namespace: k8s-monitoring
 type: Opaque
 data:
   host: aHR0cHM6Ly9vdGxwLWdhdGV3YXkub2JzLXVzLWVhc3QtY3QuaHNwLnBoaWxpcHMuY29t 
-  key: bHN0X2tleWhlcmU=
+  apiKey: bHN0X2tleWhlcmU=
 ```
 
 Use kubectl to apply: `kubectl apply -f secret.yaml`
