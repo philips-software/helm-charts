@@ -82,7 +82,7 @@ metadata:
   namespace: k8s-monitoring
 type: Opaque
 data:
-  host: aHR0cHM6Ly9vdGxwLWdhdGV3YXkub2JzLXVzLWVhc3QtY3QuaHNwLnBoaWxpcHMuY29t
+  gatewayURL: aHR0cHM6Ly9vdGxwLWdhdGV3YXkub2JzLXVzLWVhc3QtY3QuaHNwLnBoaWxpcHMuY29t
   username: 3RscA==
   apiKey: bHN0X2tleWhlcmU=
 ```
