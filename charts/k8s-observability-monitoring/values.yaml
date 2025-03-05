@@ -13,4 +13,4 @@ project:
   name: "k8s-monitoring"
 
 features:
-  autoInstrumentation: true
+  autoInstrumentation: false
