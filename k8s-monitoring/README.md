@@ -70,7 +70,7 @@ argocd app create k8s-monitoring \
 ## API Key
 
 The exporter must authenticate with the regional OTLP endpoint using your API key.
-Store this API key in a Kubernetes secret named k8s-observability with the key field set to apiKey.
+Store this API key in a Kubernetes secret named `otlp-gateway-creds` with the key field set to apiKey.
 
 ### Example secret.yaml
 
@@ -78,7 +78,7 @@ Store this API key in a Kubernetes secret named k8s-observability with the key f
 apiVersion: v1
 kind: Secret
 metadata:
-  name: k8s-observability
+  name: otlp-gateway-creds
   namespace: k8s-monitoring
 type: Opaque
 data:
