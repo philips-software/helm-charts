@@ -12,5 +12,8 @@ otlp:
 project:
   name: "k8s-monitoring"
 
+chart:
+  version: "2.0.16"
+
 features:
   autoInstrumentation: false
