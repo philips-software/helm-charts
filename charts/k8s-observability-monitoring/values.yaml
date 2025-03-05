@@ -6,7 +6,7 @@ clusterName: "changeme"
 
 otlp:
   secret:
-    name: "k8s-observability"
+    name: "otlp-gateway-creds"
   gateway: "https://otlp-gateway.obs-us-east-ct.hsp.philips.com"
 
 project:
