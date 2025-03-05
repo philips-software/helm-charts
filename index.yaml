@@ -334,6 +334,13 @@ entries:
     version: 0.0.1
   k8s-observability-monitoring:
   - apiVersion: v2
+    created: "2025-03-05T09:38:26.014570086Z"
+    digest: 5d5a1cb9a863eae4928056b46356c3d27e18222025ca673f37bce0cc78cf24d3
+    name: k8s-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-0.2.3/k8s-observability-monitoring-0.2.3.tgz
+    version: 0.2.3
+  - apiVersion: v2
     created: "2025-03-05T07:10:08.029317847Z"
     digest: 69099e1672f7934bd54e81398a3626b5e99442defa1f588a2c9aaa55f39f84a6
     name: k8s-observability-monitoring
@@ -375,4 +382,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-0.1.0/k8s-observability-monitoring-0.1.0.tgz
     version: 0.1.0
-generated: "2025-03-05T07:10:08.029391495Z"
+generated: "2025-03-05T09:38:26.014658532Z"
