@@ -12,7 +12,7 @@ spec:
   source:
     chart: k8s-monitoring
     repoURL: https://grafana.github.io/helm-charts
-    targetRevision: {{ .Values.chart.version }}
+    targetRevision: {{ coalesce .Values.chart.version .Chart.AppVersion | quote }}
     helm:
       releaseName: k8s-monitoring
       valuesObject:
