@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: ghcr.io/philips-software
     chart: helm-charts/k8s-observability-monitoring
-    targetRevision: 0.2.4
+    targetRevision: 0.2.5
     helm:
       releaseName: k8s-observability-monitoring
       valuesObject:
