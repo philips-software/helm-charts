@@ -2,6 +2,7 @@ cluster:
   name: {{ .Values.clusterName }}
 
 destinations:
+{{- if .Values.otlp.keepTopDestination }}
   - name: oltpGateway
     protocol: http
     type: otlp
@@ -14,9 +15,34 @@ destinations:
       create: false
       name: {{ .Values.otlp.secret.name }}
       namespace: {{ .Release.Namespace }}
-    logs: { enabled: true }
-    metrics: { enabled: true }
-    traces: { enabled: true }
+    logs:
+      enabled: true
+    metrics:
+      enabled: true
+    traces:
+      enabled: true
+{{- end }}
+{{- range .Values.otlp.destinations }}
+  # destination: {{ .name }}
+  - name: {{ .name }}
+    protocol: http
+    type: otlp
+    url: {{ .url }}
+    auth:
+      type: basic
+      usernameKey: "username"
+      passwordKey: "apiKey"
+    secret:
+      create: false
+      name: {{ .secret.name }}
+      namespace: {{ default $.Release.Namespace .secret.namespace }}
+    logs:
+      enabled: true
+    metrics:
+      enabled: true
+    traces:
+      enabled: true
+{{- end }}
 
 applicationObservability:
   enabled: true
