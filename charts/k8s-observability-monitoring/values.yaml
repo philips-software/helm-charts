@@ -5,9 +5,12 @@ awsAccountId: ""
 clusterName: "changeme"
 
 otlp:
-  secret:
-    name: "otlp-gateway-creds"
-  gateway: "https://otlp-gateway.obs-us-east-ct.hsp.philips.com"
+  keepTopDestination: false
+  destinations:
+    - name: "otlpGateway"
+      url: "https://otlp-gateway.obs-us-east-ct.hsp.philips.com"
+      secret:
+        name: "otlp-gateway-creds"
 
 project:
   name: "k8s-monitoring"
