@@ -1,6 +1,7 @@
 cluster:
   name: {{ .Values.clusterName }}
 
+{{- if or .Values.otlp.keepTopDestination .Values.otlp.destinations }}
 destinations:
 {{- if .Values.otlp.keepTopDestination }}
   - name: oltpGateway
@@ -42,6 +43,9 @@ destinations:
       enabled: true
     traces:
       enabled: true
+{{- end }}
+{{- else }}
+destinations: []
 {{- end }}
 
 applicationObservability:

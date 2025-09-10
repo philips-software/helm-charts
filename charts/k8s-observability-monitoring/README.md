@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.5.0](https://img.shields.io/badge/Version-0.5.0-informational?style=flat-square) ![AppVersion: 2.0.30](https://img.shields.io/badge/AppVersion-2.0.30-informational?style=flat-square)
+![Version: 0.5.1](https://img.shields.io/badge/Version-0.5.1-informational?style=flat-square) ![AppVersion: 2.0.30](https://img.shields.io/badge/AppVersion-2.0.30-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -13,9 +13,7 @@ Helm chart for k8s-observability-monitoring
 | chart.version | string | `""` |  |
 | clusterName | string | `"changeme"` |  |
 | features.autoInstrumentation | bool | `false` |  |
-| otlp.destinations[0].name | string | `"otlpGateway"` |  |
-| otlp.destinations[0].secret.name | string | `"otlp-gateway-creds"` |  |
-| otlp.destinations[0].url | string | `"https://otlp-gateway.obs-us-east-ct.hsp.philips.com"` |  |
+| otlp.destinations | list | `[]` |  |
 | otlp.keepTopDestination | bool | `false` |  |
 | project.name | string | `"k8s-monitoring"` |  |
 | resourcePrefix | string | `""` |  |
