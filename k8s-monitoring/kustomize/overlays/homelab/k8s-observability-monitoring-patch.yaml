@@ -13,3 +13,7 @@ spec:
               url: "https://otlp-gateway.obs-us-east-ct.hsp.philips.com"
               secret:
                 name: "otlp-gateway-creds"
+            - name: "riObservability"
+              url: "https://otlp-gateway.003d-use1.cd87eda.hsp.philips.com"
+              secret:
+                name: "ri-obs-dev-creds"
