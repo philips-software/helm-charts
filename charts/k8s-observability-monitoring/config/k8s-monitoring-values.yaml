@@ -76,6 +76,13 @@ alloy-metrics:
     enabled: true
   alloy:
     stabilityLevel: experimental
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 100m
+      limits:
+        memory: 2Gi
+        cpu: 500m
 
 alloy-logs:
   enabled: true
