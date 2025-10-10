@@ -1,0 +1,24 @@
+{{- include "crossplane-providers.validateConfig" . }}
+{{- range .Values.providers }}
+{{- if not (eq (.enabled | toString) "false") }}
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Values.package.namespace }}
+  labels:
+    {{- include "crossplane-providers.labels" $ | nindent 4 }}
+spec:
+  ignoreCrossplaneConstraints: false
+  package: {{ $.Values.package.registry }}/{{ .name }}:{{ $.Values.package.version }}
+  packagePullPolicy: IfNotPresent
+  revisionActivationPolicy: Automatic
+  revisionHistoryLimit: 1
+  runtimeConfigRef:
+    apiVersion: pkg.crossplane.io/v1beta1
+    kind: DeploymentRuntimeConfig
+    name: {{ .name }}
+  skipDependencyResolution: false
+{{- end }}
+{{- end }}

@@ -1,0 +1,75 @@
+# Example Values Configuration for Crossplane Providers
+# Copy this file to your own values.yaml and fill in the required values
+
+# =============================================================================
+# REQUIRED CONFIGURATION - FILL IN THESE VALUES
+# =============================================================================
+config:
+  # Replace with your AWS region
+  awsRegion: "us-west-2"
+  
+  # Replace with your Kubernetes cluster name
+  clusterName: "my-k3s-cluster"
+  
+  # Replace with your AWS Account ID
+  awsAccountId: "123456789012"
+  
+  # Replace with your desired resource prefix
+  resourcePrefix: "my-project"
+  
+  # Replace with your Kubernetes cluster's OIDC provider ARN
+  # You can get this from: aws eks describe-cluster --name <cluster-name> --query "cluster.identity.oidc.issuer"
+  oidcProviderArn: "arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/ABCDEF1234567890"
+  
+  # Replace with your Kubernetes cluster's OIDC provider URL (without https://)
+  oidcProvider: "oidc.eks.us-west-2.amazonaws.com/id/ABCDEF1234567890"
+
+# =============================================================================
+# PROVIDER CONFIGURATION - CUSTOMIZE AS NEEDED
+# =============================================================================
+package:
+  version: "v2.1.1"
+  registry: "ghcr.io/crossplane-contrib"
+  namespace: "crossplane-system"
+
+providers:
+  # AWS S3 Provider - for S3 bucket management
+  - name: provider-aws-s3
+    enabled: true
+    managedPolicyArns:
+      - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  
+  # AWS RDS Provider - for RDS database management
+  - name: crossplane-aws-rds
+    enabled: true
+    managedPolicyArns:
+      - "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
+  
+  # AWS EC2 Provider - for EC2 instance management (commented out by default)
+  # - name: provider-aws-ec2
+  #   enabled: true
+  #   managedPolicyArns:
+  #     - "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+  
+  # AWS IAM Provider - for IAM resource management (commented out by default)
+  # - name: provider-aws-iam
+  #   enabled: true
+  #   managedPolicyArns:
+  #     - "arn:aws:iam::aws:policy/IAMFullAccess"
+  
+  # AWS EKS Provider - for EKS cluster management (commented out by default)
+  # - name: provider-aws-eks
+  #   enabled: true
+  #   managedPolicyArns:
+  #     - "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  #     - "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+
+# =============================================================================
+# INSTALLATION
+# =============================================================================
+# 
+# 1. Copy this file to values.yaml
+# 2. Fill in all the required configuration values above
+# 3. Uncomment and configure additional providers as needed
+# 4. Install with: helm install crossplane-providers . -f values.yaml
+#
