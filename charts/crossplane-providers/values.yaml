@@ -1,0 +1,128 @@
+# Crossplane Providers Configuration
+# This Helm chart deploys AWS Crossplane providers with IRSA (IAM Roles for Service Accounts) configuration
+
+# =============================================================================
+# REQUIRED CONFIGURATION
+# All values under 'config' are mandatory and must be provided
+# =============================================================================
+config:
+  # AWS region where your Kubernetes cluster is deployed
+  # Example: "us-west-2", "eu-west-1", "ap-southeast-1"
+  awsRegion: ""
+  
+  # Name of your Kubernetes cluster
+  # This is used for resource naming and identification
+  clusterName: ""
+  
+  # AWS Account ID where resources will be created
+  # Example: "123456789012"
+  awsAccountId: ""
+  
+  # Prefix for AWS resources (especially IAM roles)
+  # This helps organize and identify resources created by this chart
+  # Example: "my-project", "dev-env", "prod-crossplane"
+  resourcePrefix: ""
+  
+  # ARN of the OIDC Identity Provider for your Kubernetes cluster
+  # This is required for IRSA (IAM Roles for Service Accounts) functionality
+  # Format: "arn:aws:iam::<account-id>:oidc-provider/<oidc-provider-url>"
+  # Example: "arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-west-2.amazonaws.com/id/ABCDEF1234567890"
+  oidcProviderArn: ""
+  
+  # OIDC Provider URL for your Kubernetes cluster (without https:// prefix)
+  # This is used in the IAM trust policy for provider service accounts
+  # Format: "oidc.eks.<region>.amazonaws.com/id/<cluster-id>"
+  # Example: "oidc.eks.us-west-2.amazonaws.com/id/ABCDEF1234567890"
+  oidcProvider: "" 
+
+# =============================================================================
+# CROSSPLANE PROVIDERS CONFIGURATION
+# =============================================================================
+# Package configuration for all AWS providers
+package:
+  # Version tag for all AWS providers
+  # This should match a valid Crossplane provider version
+  version: "v2.1.1"
+  
+  # Container registry where provider images are hosted
+  # Default is the official Crossplane Contrib registry
+  registry: "ghcr.io/crossplane-contrib"
+  
+  # Kubernetes namespace where Crossplane is installed
+  # This is typically "crossplane-system" for standard installations
+  namespace: "crossplane-system"
+
+# List of AWS providers to deploy
+# Each provider will create:
+# - Provider resource (Crossplane provider installation)
+# - DeploymentRuntimeConfig (runtime configuration with optional IRSA)
+# - IAM Role (only if managedPolicyArns contains entries and no roleArn is specified)
+providers:
+  # AWS IAM Provider
+  - name: provider-aws-iam
+    enabled: true
+    # Use an externally managed IAM role instead of creating one
+    # When specified, no IAM role will be created by this chart
+    roleArn: "arn:aws:iam::123456789012:role/my-project-provider-aws-iam"
+  # AWS S3 Provider
+  - name: provider-aws-s3
+    # Whether to deploy this provider (optional, defaults to true)
+    # Set to false to skip deployment of this provider
+    enabled: true
+    # List of AWS managed policy ARNs to attach to the IAM role
+    # These policies determine what AWS permissions the provider will have
+    # If empty or omitted, no IAM role will be created and no IRSA annotation will be added
+    managedPolicyArns:
+      - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  
+  # AWS RDS Provider  
+  - name: crossplane-aws-rds
+    # Whether to deploy this provider (optional, defaults to true)
+    enabled: true
+    # AWS managed policies for RDS operations
+    managedPolicyArns:
+      - "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
+
+# =============================================================================
+# ADDITIONAL PROVIDER EXAMPLES
+# =============================================================================
+# You can add more providers by following the same pattern:
+#
+#   - name: provider-aws-ec2
+#     enabled: true
+#     managedPolicyArns:
+#       - "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+#
+#   - name: provider-aws-iam
+#     enabled: false  # This provider will be skipped
+#     managedPolicyArns:
+#       - "arn:aws:iam::aws:policy/IAMFullAccess"
+#
+#   - name: provider-aws-eks
+#     # enabled defaults to true when omitted
+#     managedPolicyArns:
+#       - "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+#       - "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+#
+#   - name: provider-with-external-role
+#     enabled: true
+#     # Use an externally managed role instead of creating one
+#     roleArn: "arn:aws:iam::123456789012:role/my-external-crossplane-role"
+#
+#   - name: provider-custom-no-irsa
+#     enabled: true
+#     # No managedPolicyArns and no roleArn - will not create IAM role or IRSA annotation
+#     # Useful for providers that don't need AWS permissions
+#
+# =============================================================================
+# IMPORTANT NOTES
+# =============================================================================
+# 1. All 'config' values are mandatory - the chart will fail if any are empty
+# 2. IAM roles are only created when managedPolicyArns contains entries AND no roleArn is specified
+# 3. When roleArn is provided, the external role is used and no IAM role is created
+# 4. IRSA annotations are added when either roleArn is provided OR IAM roles are created
+# 5. IAM roles created will be named: {resourcePrefix}-{provider-name}
+# 6. Each provider gets its own dedicated IAM role with only necessary permissions
+# 7. The OIDC configuration enables secure, keyless authentication to AWS
+# 8. Provider images are pulled from the specified registry with the package version
+# 9. All resources are deployed to the specified namespace (typically crossplane-system)

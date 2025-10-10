@@ -1,0 +1,38 @@
+{{- range .Values.providers }}
+{{- if not (eq (.enabled | toString) "false") }}
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Values.package.namespace }}
+  labels:
+    {{- include "crossplane-providers.labels" $ | nindent 4 }}
+spec:
+  deploymentTemplate:
+    spec:
+      replicas: 1
+      selector: {}
+      template:
+        spec:
+          containers:
+            - args: []
+              name: package-runtime
+              resources:
+                limits:
+                  memory: 320Mi
+                requests:
+                  cpu: 40m
+                  memory: 256Mi
+  serviceAccountTemplate:
+    metadata:
+      {{- if or (.roleArn) (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) }}
+      annotations:
+        {{- if .roleArn }}
+        eks.amazonaws.com/role-arn: {{ .roleArn }}
+        {{- else }}
+        eks.amazonaws.com/role-arn: arn:aws:iam::{{ $.Values.config.awsAccountId }}:role/{{ $.Values.config.resourcePrefix }}-{{ .name }}
+        {{- end }}
+      {{- end }}
+{{- end }}
+{{- end }}

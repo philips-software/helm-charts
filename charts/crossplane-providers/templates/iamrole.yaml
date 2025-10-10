@@ -1,0 +1,36 @@
+{{- range .Values.providers }}
+{{- if and (not (eq (.enabled | toString) "false")) (not .roleArn) (.managedPolicyArns) (gt (len .managedPolicyArns) 0) }}
+---
+apiVersion: iam.aws.upbound.io/v1beta1
+kind: Role
+metadata:
+  name: {{ $.Values.config.resourcePrefix }}-{{ .name }}
+  labels:
+    {{- include "crossplane-providers.labels" $ | nindent 4 }}
+spec:
+  forProvider:
+    assumeRolePolicy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Federated": "{{ $.Values.config.oidcProviderArn }}"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringLike": {
+                    "{{ $.Values.config.oidcProvider }}:aud": "sts.amazonaws.com",
+                    "{{ $.Values.config.oidcProvider }}:sub": "system:serviceaccount:{{ $.Values.package.namespace }}:{{ .name }}-*"
+                }
+            }
+          }
+        ]
+      }
+    managedPolicyArns:
+      {{- range .managedPolicyArns }}
+      - "{{ . }}"
+      {{- end }}
+{{- end }}
+{{- end }}
