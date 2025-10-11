@@ -1,4 +1,4 @@
-{{- range .Values.providers }}
+{{- range concat .Values.providers .Values.extraProviders }}
 {{- if not (eq (.enabled | toString) "false") }}
 ---
 apiVersion: pkg.crossplane.io/v1beta1
