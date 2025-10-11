@@ -1,4 +1,4 @@
-{{- range .Values.providers }}
+{{- range concat .Values.providers .Values.extraProviders }}
 {{- if and (not (eq (.enabled | toString) "false")) (not .roleArn) (.managedPolicyArns) (gt (len .managedPolicyArns) 0) }}
 ---
 apiVersion: iam.aws.upbound.io/v1beta1
