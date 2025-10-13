@@ -69,6 +69,9 @@ package:
 #     enabled: true
 #     managedPolicyArns:
 #       - "arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator"
+#   - name: provider-family-example
+#     enabled: true
+#     isFamilyProvider: true  # Family providers don't need DeploymentRuntimeConfig
 extraProviders: []
 
 # List of AWS providers to deploy
@@ -82,6 +85,8 @@ providers:
     # Whether to deploy this provider (optional, defaults to true)
     # Set to false to skip deployment of this provider
     enabled: true
+    # Family providers don't need DeploymentRuntimeConfig resources
+    isFamilyProvider: true
   # AWS IAM Provider
   - name: provider-aws-s3
     # Whether to deploy this provider (optional, defaults to true)
