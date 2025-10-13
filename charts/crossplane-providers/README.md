@@ -1,6 +1,6 @@
 # crossplane-providers
 
-![Version: 0.0.8](https://img.shields.io/badge/Version-0.0.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.1.1](https://img.shields.io/badge/AppVersion-v2.1.1-informational?style=flat-square)
+![Version: 0.0.9](https://img.shields.io/badge/Version-0.0.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.1.1](https://img.shields.io/badge/AppVersion-v2.1.1-informational?style=flat-square)
 
 # Deployment
 
@@ -22,10 +22,9 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | config.resourcePrefix | string | `""` |  |
 | extraProviders | list | `[]` |  |
 | package.namespace | string | `"crossplane-system"` |  |
-| package.registry | string | `"ghcr.io/crossplane-contrib"` |  |
+| package.registry | string | `"xpkg.crossplane.io/crossplane-contrib"` |  |
 | package.version | string | `"v2.1.1"` |  |
 | providers[0].enabled | bool | `true` |  |
-| providers[0].isFamilyProvider | bool | `true` |  |
 | providers[0].name | string | `"provider-family-aws"` |  |
 | providers[1].enabled | bool | `true` |  |
 | providers[1].managedPolicyArns[0] | string | `"arn:aws:iam::aws:policy/AmazonS3FullAccess"` |  |

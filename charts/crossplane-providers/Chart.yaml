@@ -2,7 +2,7 @@ apiVersion: v2
 name: crossplane-providers
 description: A Helm chart for deploying Crossplane (AWS) providers with IRSA configuration
 type: application
-version: 0.0.8
+version: 0.0.9
 appVersion: "v2.1.1"
 maintainers:
   - name: Philips Internal
