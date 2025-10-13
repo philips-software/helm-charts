@@ -1,5 +1,5 @@
 {{- range concat .Values.providers .Values.extraProviders }}
-{{- if not (eq (.enabled | toString) "false") }}
+{{- if and (not (eq (.enabled | toString) "false")) (not (.isFamilyProvider | default false)) }}
 ---
 apiVersion: pkg.crossplane.io/v1beta1
 kind: DeploymentRuntimeConfig
