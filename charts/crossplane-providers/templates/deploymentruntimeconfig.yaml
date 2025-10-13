@@ -28,15 +28,15 @@ spec:
                   cpu: 40m
                   memory: 320Mi
                 {{- end }}
+  {{- if or (.roleArn) (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) }}
   serviceAccountTemplate:
     metadata:
-      {{- if or (.roleArn) (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) }}
       annotations:
         {{- if .roleArn }}
         eks.amazonaws.com/role-arn: {{ .roleArn }}
         {{- else }}
         eks.amazonaws.com/role-arn: arn:aws:iam::{{ $.Values.config.awsAccountId }}:role/{{ $.Values.config.resourcePrefix }}-{{ .name }}
         {{- end }}
-      {{- end }}
+  {{- end }}
 {{- end }}
 {{- end }}
