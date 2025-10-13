@@ -1,6 +1,6 @@
 # crossplane-providers
 
-![Version: 0.0.6](https://img.shields.io/badge/Version-0.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.1.1](https://img.shields.io/badge/AppVersion-v2.1.1-informational?style=flat-square)
+![Version: 0.0.7](https://img.shields.io/badge/Version-0.0.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.1.1](https://img.shields.io/badge/AppVersion-v2.1.1-informational?style=flat-square)
 
 # Deployment
 
@@ -30,6 +30,9 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | providers[1].enabled | bool | `true` |  |
 | providers[1].managedPolicyArns[0] | string | `"arn:aws:iam::aws:policy/AmazonS3FullAccess"` |  |
 | providers[1].name | string | `"provider-aws-s3"` |  |
+| providers[1].resources.limits.memory | string | `"512Mi"` |  |
+| providers[1].resources.requests.cpu | string | `"40m"` |  |
+| providers[1].resources.requests.memory | string | `"320Mi"` |  |
 | providers[2].enabled | bool | `true` |  |
 | providers[2].managedPolicyArns[0] | string | `"arn:aws:iam::aws:policy/AmazonRDSFullAccess"` |  |
 | providers[2].name | string | `"crossplane-aws-rds"` |  |

@@ -97,7 +97,12 @@ providers:
     # If empty or omitted, no IAM role will be created and no IRSA annotation will be added
     managedPolicyArns:
       - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
-  
+    resources:
+      requests:
+        cpu: 40m
+        memory: 320Mi
+      limits:
+        memory: 512Mi
   # AWS RDS Provider  
   - name: crossplane-aws-rds
     # Whether to deploy this provider (optional, defaults to true)
