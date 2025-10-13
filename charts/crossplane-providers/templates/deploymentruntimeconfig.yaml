@@ -19,11 +19,15 @@ spec:
             - args: []
               name: package-runtime
               resources:
+                {{- if .resources }}
+                {{- toYaml .resources | nindent 16 }}
+                {{- else }}
                 limits:
-                  memory: 320Mi
+                  memory: 512Mi
                 requests:
                   cpu: 40m
-                  memory: 256Mi
+                  memory: 320Mi
+                {{- end }}
   serviceAccountTemplate:
     metadata:
       {{- if or (.roleArn) (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) }}
