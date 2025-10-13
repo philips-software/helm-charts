@@ -104,7 +104,7 @@ providers:
       limits:
         memory: 512Mi
   # AWS RDS Provider  
-  - name: crossplane-aws-rds
+  - name: provider-aws-rds
     # Whether to deploy this provider (optional, defaults to true)
     enabled: true
     # AWS managed policies for RDS operations
