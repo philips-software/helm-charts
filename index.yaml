@@ -1,5 +1,23 @@
 apiVersion: v1
 entries:
+  crossplane-function:
+  - apiVersion: v2
+    appVersion: v0.0.2
+    created: "2025-10-14T10:18:34.499881244Z"
+    description: A Helm chart for deploying Crossplane functions
+    digest: 1a72d8597b58e26e9a3519caf524e758bd24916bcf85100298425bb200560122
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    maintainers:
+    - name: Philips Software
+    name: crossplane-function
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-function-0.0.2/crossplane-function-0.0.2.tgz
+    version: 0.0.2
   crossplane-providers:
   - apiVersion: v2
     appVersion: v2.1.1
@@ -646,4 +664,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-0.1.0/k8s-observability-monitoring-0.1.0.tgz
     version: 0.1.0
-generated: "2025-10-13T17:27:57.139694667Z"
+generated: "2025-10-14T10:18:34.500000628Z"
