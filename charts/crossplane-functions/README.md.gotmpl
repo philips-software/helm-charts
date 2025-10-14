@@ -2,9 +2,83 @@
 
 {{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
 
+## Overview
+
+This Helm chart is designed for deploying Crossplane Functions that extend the capabilities of Crossplane compositions. Functions provide a way to transform, validate, and enhance resource definitions during the composition process, enabling more sophisticated infrastructure-as-code patterns.
+
+The chart enables you to:
+- Deploy multiple Crossplane functions simultaneously
+- Manage function versions and registries centrally
+- Standardize function deployment across environments
+- Extend compositions with custom logic and transformations
+
+Common use cases include:
+- **Patch and Transform**: Modify resource specifications dynamically
+- **Go Templating**: Use Go templates for complex resource generation
+- **Auto Ready**: Automatically manage composition readiness states
+- **Environment Configs**: Handle environment-specific configurations
+
 # Deployment
 
-...TODO...
+This chart can be deployed using Kustomize and ArgoCD for GitOps-based continuous deployment.
+
+## Kustomize Deployment
+
+Create a `kustomization.yaml` file:
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: crossplane-functions
+    repo: https://philips-software.github.io/helm-charts
+    version: "{{ template "chart.version" . }}"
+    releaseName: crossplane-functions
+    namespace: crossplane-system
+    valuesFile: values.yaml
+```
+
+Then deploy with:
+```bash
+kubectl apply -k .
+```
+
+## ArgoCD Application
+
+Create an ArgoCD Application manifest:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crossplane-functions
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://philips-software.github.io/helm-charts
+    chart: crossplane-functions
+    targetRevision: "{{ template "chart.version" . }}"
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crossplane-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+```
+
+## Prerequisites
+
+- Crossplane must be installed in the cluster (v1.14+ recommended for function support)
+- Ensure the `crossplane-system` namespace exists
+- Functions require appropriate RBAC permissions to interact with Crossplane resources
 
 ## Dependencies
 

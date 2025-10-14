@@ -2,9 +2,77 @@
 
 ![Version: 0.0.14](https://img.shields.io/badge/Version-0.0.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.1.1](https://img.shields.io/badge/AppVersion-v2.1.1-informational?style=flat-square)
 
+## Overview
+
+This Helm chart is designed for deploying Crossplane family providers in environments where cloud resources are split across multiple provider packages. It simplifies the management of provider configurations for multi-cloud scenarios, particularly when working with AWS, GCP, and other cloud provider packages that form the Crossplane ecosystem.
+
+The chart enables you to:
+- Deploy multiple Crossplane providers simultaneously
+- Configure provider-specific settings and authentication
+- Manage IAM roles and permissions required by different cloud providers
+- Standardize provider deployment across environments
+
 # Deployment
 
-...TODO...
+This chart can be deployed using Kustomize and ArgoCD for GitOps-based continuous deployment.
+
+## Kustomize Deployment
+
+Create a `kustomization.yaml` file:
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: crossplane-providers
+    repo: https://philips-software.github.io/helm-charts
+    version: "0.0.14"
+    releaseName: crossplane-providers
+    namespace: crossplane-system
+    valuesFile: values.yaml
+```
+
+Then deploy with:
+```bash
+kubectl apply -k .
+```
+
+## ArgoCD Application
+
+Create an ArgoCD Application manifest:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crossplane-providers
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://philips-software.github.io/helm-charts
+    chart: crossplane-providers
+    targetRevision: "0.0.14"
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crossplane-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+```
+
+## Prerequisites
+
+- Crossplane must be installed in the cluster
+- Ensure the `crossplane-system` namespace exists
+- Configure appropriate RBAC permissions for provider operations
 
 ## Dependencies
 
