@@ -1,0 +1,38 @@
+# Crossplane Functions Configuration
+# This Helm chart deploys Crossplane Functions as Kubernetes resources
+
+# functions: List of Crossplane functions to install
+# Each function requires:
+#   - name: The function name (used for metadata.name and package path)
+#   - registry: Container registry hosting the function package
+#   - version: Semantic version tag of the function package
+functions:
+  # Automatically marks compositions as ready when all resources are ready
+  - name: function-auto-ready
+    registry: ghcr.io/crossplane-contrib
+    version: v0.4.1
+  
+  # Enables Go templating in Crossplane compositions
+  - name: function-go-templating
+    registry: ghcr.io/crossplane-contrib
+    version: v0.9.1
+  
+  # Core function for patching and transforming resources in compositions
+  - name: function-patch-and-transform
+    registry: ghcr.io/crossplane-contrib
+    version: v0.8.1
+  
+  # Manages environment-specific configurations in compositions
+  - name: function-environment-configs
+    registry: ghcr.io/crossplane-contrib
+    version: v0.2.0
+
+# extraFunctions: Additional functions to install beyond the default set
+# Use this array to add custom or experimental functions without modifying
+# the main functions list. Follows the same structure as functions above.
+# Example:
+# extraFunctions:
+#   - name: my-custom-function
+#     registry: my-registry.com/my-org
+#     version: v1.0.0
+extraFunctions: []
