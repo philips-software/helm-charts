@@ -23,7 +23,7 @@ spec:
                 {{- toYaml .resources | nindent 16 }}
                 {{- else }}
                 limits:
-                  memory: 512Mi
+                  memory: 560Mi
                 requests:
                   cpu: 40m
                   memory: 320Mi
