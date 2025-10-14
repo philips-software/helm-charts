@@ -1,0 +1,18 @@
+{{- range concat .Values.functions .Values.extraFunctions }}
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: {{ .name }}
+spec:
+  ignoreCrossplaneConstraints: false
+  package: {{ .registry }}/{{ .name }}:{{ .version }}
+  packagePullPolicy: IfNotPresent
+  revisionActivationPolicy: Automatic
+  revisionHistoryLimit: 1
+  runtimeConfigRef:
+    apiVersion: pkg.crossplane.io/v1beta1
+    kind: DeploymentRuntimeConfig
+    name: default
+  skipDependencyResolution: false
+{{- end }}
