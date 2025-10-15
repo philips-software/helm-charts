@@ -1,5 +1,5 @@
 {{- range concat .Values.providers .Values.extraProviders }}
-{{- if and (not (eq (.enabled | toString) "false")) (not .roleArn) (.managedPolicyArns) (gt (len .managedPolicyArns) 0) }}
+{{- if and (not (eq (.enabled | toString) "false")) (not .roleArn) (or (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) (.policy)) }}
 ---
 apiVersion: iam.aws.upbound.io/v1beta1
 kind: Role
@@ -30,9 +30,11 @@ spec:
           }
         ]
       }
+    {{- if and (.managedPolicyArns) (gt (len .managedPolicyArns) 0) }}
     managedPolicyArns:
       {{- range .managedPolicyArns }}
       - "{{ . }}"
       {{- end }}
+    {{- end }}
 {{- end }}
 {{- end }}

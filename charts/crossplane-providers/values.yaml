@@ -103,6 +103,36 @@ providers:
     managedPolicyArns:
       - "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
 
+  # AWS KMS Provider
+  - name: provider-aws-kms
+    enabled: true
+    policy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "kms:UntagResource",
+              "kms:TagResource",
+              "kms:ScheduleKeyDeletion",
+              "kms:ListRetirableGrants",
+              "kms:ListKeys",
+              "kms:ListAliases",
+              "kms:List*",
+              "kms:Get*",
+              "kms:GenerateRandom",
+              "kms:DescribeCustomKeyStores",
+              "kms:Describe*",
+              "kms:DeleteAlias",
+              "kms:CreateKey",
+              "kms:CreateAlias"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+
 # =============================================================================
 # ADDITIONAL PROVIDER EXAMPLES
 # =============================================================================

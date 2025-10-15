@@ -1,0 +1,21 @@
+{{- range concat .Values.providers .Values.extraProviders }}
+{{- if and (not (eq (.enabled | toString) "false")) (not .roleArn) (.policy) }}
+---
+apiVersion: iam.aws.upbound.io/v1beta1
+kind: RolePolicyAttachment
+metadata:
+  name: {{ $.Values.config.resourcePrefix }}-{{ .name }}
+  labels:
+    {{- include "crossplane-providers.labels" $ | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true  
+spec:
+  forProvider:
+    policyArnSelector:
+      matchLabels:
+        {{- include "crossplane-providers.selectorLabels" $ | nindent 8 }}
+    roleSelector:
+      matchLabels:
+        {{- include "crossplane-providers.selectorLabels" $ | nindent 8 }}
+{{- end }}
+{{- end }}
