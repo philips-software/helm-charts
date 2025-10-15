@@ -28,7 +28,7 @@ spec:
                   cpu: 40m
                   memory: 320Mi
                 {{- end }}
-  {{- if or (.roleArn) (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) }}
+  {{- if or (.roleArn) (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) (.policy) }}
   serviceAccountTemplate:
     metadata:
       annotations:
