@@ -1,6 +1,6 @@
 # crossplane-providers
 
-![Version: 0.0.16](https://img.shields.io/badge/Version-0.0.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.1.1](https://img.shields.io/badge/AppVersion-v2.1.1-informational?style=flat-square)
+![Version: 0.0.17](https://img.shields.io/badge/Version-0.0.17-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.1.1](https://img.shields.io/badge/AppVersion-v2.1.1-informational?style=flat-square)
 
 ## Overview
 
@@ -27,7 +27,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-providers
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.16"
+    version: "0.0.17"
     releaseName: crossplane-providers
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -53,7 +53,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-providers
-    targetRevision: "0.0.16"
+    targetRevision: "0.0.17"
     helm:
       valueFiles:
         - values.yaml
@@ -97,7 +97,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | providers[1].enabled | bool | `true` |  |
 | providers[1].managedPolicyArns[0] | string | `"arn:aws:iam::aws:policy/AmazonS3FullAccess"` |  |
 | providers[1].name | string | `"provider-aws-s3"` |  |
-| providers[1].resources.limits.memory | string | `"512Mi"` |  |
+| providers[1].resources.limits.memory | string | `"640Mi"` |  |
 | providers[1].resources.requests.cpu | string | `"40m"` |  |
 | providers[1].resources.requests.memory | string | `"320Mi"` |  |
 | providers[2].enabled | bool | `true` |  |
