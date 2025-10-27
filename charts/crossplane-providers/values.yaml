@@ -94,7 +94,7 @@ providers:
         cpu: 40m
         memory: 320Mi
       limits:
-        memory: 512Mi
+        memory: 640Mi
   # AWS RDS Provider  
   - name: provider-aws-rds
     # Whether to deploy this provider (optional, defaults to true)
