@@ -28,7 +28,7 @@ config:
 # PROVIDER CONFIGURATION - CUSTOMIZE AS NEEDED
 # =============================================================================
 package:
-  version: "v2.1.1"
+  version: "v2.2.0"
   registry: "ghcr.io/crossplane-contrib"
   namespace: "crossplane-system"
 
