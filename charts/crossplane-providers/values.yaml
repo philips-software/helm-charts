@@ -42,7 +42,7 @@ config:
 package:
   # Version tag for all AWS providers
   # This should match a valid Crossplane provider version
-  version: "v2.1.1"
+  version: "v2.2.0"
   
   # Container registry where provider images are hosted
   # Default is the official Crossplane Contrib registry
