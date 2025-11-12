@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-observability-monitoring
+spec:
+  source:
+    helm:
+      valuesObject:
+        otlp:
+          destinations:
+            - name: "otlpGateway"
+              url: "https://otlp-gateway.obs-us-east-ct.hsp.philips.com"
+              secret:
+                name: "k8s-observability"
