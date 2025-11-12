@@ -82,7 +82,7 @@ alloy-metrics:
         cpu: 300m
       limits:
         memory: 3Gi
-        cpu: 500m
+        cpu: 600m
   controller:
     resources:
       requests:
