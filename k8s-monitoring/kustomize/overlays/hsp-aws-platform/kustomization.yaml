@@ -3,3 +3,9 @@ kind: Kustomization
 resources:
 - ../../base
 - exception.yaml
+
+patches:
+- path: k8s-observability-monitoring-patch.yaml
+  target:
+    kind: Application
+    name: k8s-observability-monitoring
