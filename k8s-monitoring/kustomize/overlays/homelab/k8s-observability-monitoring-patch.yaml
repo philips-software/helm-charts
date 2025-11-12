@@ -4,7 +4,6 @@ metadata:
   name: k8s-observability-monitoring
 spec:
   source:
-    targetRevision: 0.5.3
     helm:
       valuesObject:
         otlp:
