@@ -82,7 +82,15 @@ alloy-metrics:
         cpu: 100m
       limits:
         memory: 2Gi
-        cpu: 500m
+        cpu: 300m
+  controller:
+    resources:
+      requests:
+        memory: 5Mi
+        cpu: 1m
+      limits:
+        memory: 10Mi
+        cpu: 10m
 
 alloy-logs:
   enabled: true
@@ -90,7 +98,21 @@ alloy-logs:
     enabled: true
   alloy:
     stabilityLevel: experimental
+    resources:
+      requests:
+        memory: 100Mi
+        cpu: 100m
+      limits:
+        memory: 200Mi
+        cpu: 200m
   controller:
+    resources:
+      requests:
+        memory: 5Mi
+        cpu: 1m
+      limits:
+        memory: 10Mi
+        cpu: 10m
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -104,6 +126,13 @@ alloy-logs:
 alloy-receiver:
   enabled: true
   alloy:
+    resources:
+      requests:
+        memory: 100Mi
+        cpu: 100m
+      limits:
+        memory: 200Mi
+        cpu: 200m
     extraPorts:
       - name: otlp-grpc
         port: 4317
@@ -113,3 +142,11 @@ alloy-receiver:
         port: 4318
         targetPort: 4318
         protocol: TCP
+  controller:
+    resources:
+      requests:
+        memory: 5Mi
+        cpu: 1m
+      limits:
+        memory: 10Mi
+        cpu: 10m
