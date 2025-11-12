@@ -78,11 +78,11 @@ alloy-metrics:
     stabilityLevel: experimental
     resources:
       requests:
-        memory: 512Mi
-        cpu: 100m
-      limits:
-        memory: 2Gi
+        memory: 1536Mi
         cpu: 300m
+      limits:
+        memory: 3Gi
+        cpu: 500m
   controller:
     resources:
       requests:
