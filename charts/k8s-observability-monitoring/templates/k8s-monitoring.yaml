@@ -16,7 +16,7 @@ spec:
     helm:
       releaseName: k8s-monitoring
       valuesObject:
-        {{- (tpl (.Files.Get "config/k8s-monitoring-values.yaml") .) |  nindent 8 }}
+        {{- (tpl (.Files.Get "config/k8s-monitoring-values.yaml.tpl") .) |  nindent 8 }}
   destination:
     server: "https://kubernetes.default.svc"
     namespace: {{ .Release.Namespace}}
