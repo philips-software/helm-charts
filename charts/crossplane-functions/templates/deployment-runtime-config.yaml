@@ -1,0 +1,18 @@
+{{- if .Values.features.deploymentRuntimeConfig }}
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: critical
+spec:
+  # Schedule critical functions on system nodes like other core components
+  deploymentTemplate:
+    spec:
+      selector: {}
+      template:
+        spec:
+          nodeSelector:
+            node-type: system
+          tolerations:
+            - key: CriticalAddonsOnly
+              operator: Exists
+{{- end }}
