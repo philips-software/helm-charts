@@ -10,6 +10,7 @@ spec:
       selector: {}
       template:
         spec:
+          containers: []
           nodeSelector:
             node-type: system
           tolerations:
