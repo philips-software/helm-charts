@@ -1,6 +1,6 @@
 # crossplane-functions
 
-![Version: 0.0.4](https://img.shields.io/badge/Version-0.0.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.0.4](https://img.shields.io/badge/AppVersion-v0.0.4-informational?style=flat-square)
+![Version: 0.0.5](https://img.shields.io/badge/Version-0.0.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.0.5](https://img.shields.io/badge/AppVersion-v0.0.5-informational?style=flat-square)
 
 ## Overview
 
@@ -33,7 +33,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-functions
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.4"
+    version: "0.0.5"
     releaseName: crossplane-functions
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -59,7 +59,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-functions
-    targetRevision: "0.0.4"
+    targetRevision: "0.0.5"
     helm:
       valueFiles:
         - values.yaml
@@ -87,15 +87,20 @@ spec:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | extraFunctions | list | `[]` |  |
+| features.deploymentRuntimeConfig | bool | `true` |  |
+| functions[0].critical | bool | `true` |  |
 | functions[0].name | string | `"function-auto-ready"` |  |
 | functions[0].registry | string | `"ghcr.io/crossplane-contrib"` |  |
 | functions[0].version | string | `"v0.5.1"` |  |
+| functions[1].critical | bool | `true` |  |
 | functions[1].name | string | `"function-go-templating"` |  |
 | functions[1].registry | string | `"ghcr.io/crossplane-contrib"` |  |
 | functions[1].version | string | `"v0.11.0"` |  |
+| functions[2].critical | bool | `true` |  |
 | functions[2].name | string | `"function-patch-and-transform"` |  |
 | functions[2].registry | string | `"ghcr.io/crossplane-contrib"` |  |
 | functions[2].version | string | `"v0.9.1"` |  |
+| functions[3].critical | bool | `true` |  |
 | functions[3].name | string | `"function-environment-configs"` |  |
 | functions[3].registry | string | `"ghcr.io/crossplane-contrib"` |  |
 | functions[3].version | string | `"v0.4.0"` |  |

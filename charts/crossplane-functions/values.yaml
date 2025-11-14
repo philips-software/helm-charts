@@ -11,22 +11,26 @@ functions:
   - name: function-auto-ready
     registry: ghcr.io/crossplane-contrib
     version: v0.5.1
-  
+    critical: true
+
   # Enables Go templating in Crossplane compositions
   - name: function-go-templating
     registry: ghcr.io/crossplane-contrib
     version: v0.11.0
-  
+    critical: true
+
   # Core function for patching and transforming resources in compositions
   - name: function-patch-and-transform
     registry: ghcr.io/crossplane-contrib
     version: v0.9.1
-  
+    critical: true
+    
   # Manages environment-specific configurations in compositions
   - name: function-environment-configs
     registry: ghcr.io/crossplane-contrib
     version: v0.4.0
-
+    critical: true
+    
   # Enables Composition authors to define sequencing rules delaying the creation of resources until other resources are ready
   - name: function-sequencer
     registry: ghcr.io/crossplane-contrib
@@ -41,3 +45,7 @@ functions:
 #     registry: my-registry.com/my-org
 #     version: v1.0.0
 extraFunctions: []
+
+features:
+  # Enable deployment runtime configuration for critical functions
+  deploymentRuntimeConfig: true
