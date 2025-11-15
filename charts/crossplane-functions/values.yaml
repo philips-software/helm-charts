@@ -31,11 +31,6 @@ functions:
     version: v0.4.0
     critical: true
     
-  # Enables Composition authors to define sequencing rules delaying the creation of resources until other resources are ready
-  - name: function-sequencer
-    registry: ghcr.io/crossplane-contrib
-    version: v0.3.0
-
 # extraFunctions: Additional functions to install beyond the default set
 # Use this array to add custom or experimental functions without modifying
 # the main functions list. Follows the same structure as functions above.
