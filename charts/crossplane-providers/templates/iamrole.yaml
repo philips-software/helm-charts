@@ -7,6 +7,7 @@ metadata:
   name: {{ $.Values.config.resourcePrefix }}-{{ .name }}
   labels:
     {{- include "crossplane-providers.labels" $ | nindent 4 }}
+    crossplane.io/provider: {{ .name }}
   annotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true  
 spec:

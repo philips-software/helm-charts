@@ -14,8 +14,10 @@ spec:
     policyArnSelector:
       matchLabels:
         {{- include "crossplane-providers.selectorLabels" $ | nindent 8 }}
+        crossplane.io/provider: {{ .name }}
     roleSelector:
       matchLabels:
         {{- include "crossplane-providers.selectorLabels" $ | nindent 8 }}
+        crossplane.io/provider: {{ .name }}
 {{- end }}
 {{- end }}
