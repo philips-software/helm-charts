@@ -1,12 +1,13 @@
 # crossplane-providers
 
-![Version: 0.0.19](https://img.shields.io/badge/Version-0.0.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.3.0](https://img.shields.io/badge/AppVersion-v2.3.0-informational?style=flat-square)
+![Version: 0.0.20](https://img.shields.io/badge/Version-0.0.20-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.3.0](https://img.shields.io/badge/AppVersion-v2.3.0-informational?style=flat-square)
 
 ## Overview
 
 This Helm chart is designed for deploying Crossplane family providers in environments where cloud resources are split across multiple provider packages. It simplifies the management of provider configurations for multi-cloud scenarios, particularly when working with AWS, GCP, and other cloud provider packages that form the Crossplane ecosystem.
 
 The chart enables you to:
+
 - Deploy multiple Crossplane providers simultaneously
 - Configure provider-specific settings and authentication
 - Manage IAM roles and permissions required by different cloud providers
@@ -27,13 +28,14 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-providers
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.19"
+    version: "0.0.20"
     releaseName: crossplane-providers
     namespace: crossplane-system
     valuesFile: values.yaml
 ```
 
 Then deploy with:
+
 ```bash
 kubectl apply -k .
 ```
@@ -53,7 +55,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-providers
-    targetRevision: "0.0.19"
+    targetRevision: "0.0.20"
     helm:
       valueFiles:
         - values.yaml
