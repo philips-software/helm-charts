@@ -32,7 +32,7 @@ runs:
 
     - name: Login to GitHub Container Registry (helm)
       shell: bash
-      run: echo "${GITHUB_TOKEN}" | helm registry login ${REGISTRY} --username ${GITHUB_ACTOR} --password-stdin
+      run: echo "${GITHUB_TOKEN}" | helm registry login ghcr.io --username ${GITHUB_ACTOR} --password-stdin
       env:
         REGISTRY: "ghcr.io/${{ github.repository }}"
         GITHUB_TOKEN: ${{ inputs.token }}
