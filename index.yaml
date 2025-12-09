@@ -124,6 +124,23 @@ entries:
   crossplane-providers:
   - apiVersion: v2
     appVersion: v2.3.0
+    created: "2025-12-09T10:32:38.213004645Z"
+    description: A Helm chart for deploying Crossplane (AWS) providers with IRSA configuration
+    digest: f797752c52d16f67f87885e612e4a5eb9e04271373fb72358d99cd49b22bcbef
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    maintainers:
+    - name: Philips Software
+    name: crossplane-providers
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-providers-0.0.22/crossplane-providers-0.0.22.tgz
+    version: 0.0.22
+  - apiVersion: v2
+    appVersion: v2.3.0
     created: "2025-12-09T07:44:43.934255875Z"
     description: A Helm chart for deploying Crossplane (AWS) providers with IRSA configuration
     digest: e7ef34873c4cc8d16bdc1cb65f45068d3d4367667bc7f06a5d49d4cd9ded61e3
@@ -930,4 +947,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-0.1.0/k8s-observability-monitoring-0.1.0.tgz
     version: 0.1.0
-generated: "2025-12-09T07:44:43.93449Z"
+generated: "2025-12-09T10:32:38.213308841Z"
