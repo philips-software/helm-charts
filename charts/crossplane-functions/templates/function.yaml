@@ -13,10 +13,6 @@ spec:
   runtimeConfigRef:
     apiVersion: pkg.crossplane.io/v1beta1
     kind: DeploymentRuntimeConfig
-    {{- if .critical }} 
-    name: critical
-    {{- else }}
-    name: default
-    {{- end }}
+    name: {{ .name }}
   skipDependencyResolution: false
 {{- end }}
