@@ -77,7 +77,6 @@ extraProviders: []
 # - DeploymentRuntimeConfig (runtime configuration with optional IRSA)
 # - IAM Role (only if managedPolicyArns contains entries and no roleArn is specified)
 providers:
-  # AWS IAM Provider
   - name: provider-family-aws
     enabled: true
   - name: provider-aws-s3
