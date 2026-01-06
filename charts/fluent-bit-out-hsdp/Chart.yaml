@@ -7,6 +7,7 @@ keywords:
   - fluentd
   - hsdp
 version: 0.12.0
+# renovate: datasource=docker depName=ghcr.io/philips-software/fluent-bit-out-hsdp
 appVersion: 2.6.0
 icon: https://fluentbit.io/images/logo.svg
 home: https://github.com/philips-software/fluent-bit-out-hsdp
