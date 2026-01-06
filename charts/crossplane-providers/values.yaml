@@ -42,6 +42,7 @@ config:
 package:
   # Version tag for all AWS providers
   # This should match a valid Crossplane provider version
+  # renovate: datasource=docker depName=crossplane-contrib/provider-family-aws registryUrl=https://xpkg.crossplane.io
   version: "v2.3.0"
   
   # Container registry where provider images are hosted
