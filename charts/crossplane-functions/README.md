@@ -1,6 +1,6 @@
 # crossplane-functions
 
-![Version: 0.0.10](https://img.shields.io/badge/Version-0.0.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.0.10](https://img.shields.io/badge/AppVersion-v0.0.10-informational?style=flat-square)
+![Version: 0.0.11](https://img.shields.io/badge/Version-0.0.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 ## Overview
 
@@ -33,7 +33,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-functions
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.10"
+    version: "0.0.11"
     releaseName: crossplane-functions
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -59,7 +59,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-functions
-    targetRevision: "0.0.10"
+    targetRevision: "0.0.11"
     helm:
       valueFiles:
         - values.yaml
@@ -109,9 +109,8 @@ spec:
 | functions[3].name | string | `"function-environment-configs"` |  |
 | functions[3].registry | string | `"ghcr.io/crossplane-contrib"` |  |
 | functions[3].version | string | `"v0.4.0"` |  |
-| resources.limits.cpu | string | `"250m"` |  |
 | resources.limits.memory | string | `"256Mi"` |  |
-| resources.requests.cpu | string | `"100m"` |  |
+| resources.requests.cpu | string | `"20m"` |  |
 | resources.requests.memory | string | `"128Mi"` |  |
 
 ----------------------------------------------
