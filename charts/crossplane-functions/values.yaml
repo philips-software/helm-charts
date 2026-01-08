@@ -4,10 +4,9 @@
 # default resources for all functions
 resources:
   limits:
-    cpu: 250m
     memory: 256Mi
   requests:
-    cpu: 100m
+    cpu: 20m
     memory: 128Mi
 
 # functions: List of Crossplane functions to install
