@@ -14,13 +14,19 @@ spec:
       selector: {}
       template:
         spec:
-          containers: []
+          containers:
+            - name: package-runtime
+              resources:
+                {{- .resources | default $.Values.resources | toYaml | nindent 16 }}
           {{- if .critical }}
-          nodeSelector:
-            node-type: system
+          {{- with $.Values.criticalFunctions.affinity }}
+          affinity:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $.Values.criticalFunctions.tolerations }}
           tolerations:
-            - key: CriticalAddonsOnly
-              operator: Exists
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- end }}
 {{- end }}
 {{- end }}
