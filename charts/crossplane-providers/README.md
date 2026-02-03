@@ -1,6 +1,6 @@
 # crossplane-providers
 
-![Version: 0.0.22](https://img.shields.io/badge/Version-0.0.22-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.3.0](https://img.shields.io/badge/AppVersion-v2.3.0-informational?style=flat-square)
+![Version: 0.0.23](https://img.shields.io/badge/Version-0.0.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.3.0](https://img.shields.io/badge/AppVersion-v2.3.0-informational?style=flat-square)
 
 ## Overview
 
@@ -27,7 +27,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-providers
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.22"
+    version: "0.0.23"
     releaseName: crossplane-providers
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -53,7 +53,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-providers
-    targetRevision: "0.0.22"
+    targetRevision: "0.0.23"
     helm:
       valueFiles:
         - values.yaml
@@ -83,7 +83,6 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | config.awsAccountId | string | `""` |  |
-| config.awsRegion | string | `""` |  |
 | config.clusterName | string | `""` |  |
 | config.oidcProvider | string | `""` |  |
 | config.oidcProviderArn | string | `""` |  |

@@ -54,9 +54,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Validate required config values
 */}}
 {{- define "crossplane-providers.validateConfig" -}}
-{{- if not .Values.config.awsRegion }}
-{{- fail "config.awsRegion is required" }}
-{{- end }}
 {{- if not .Values.config.clusterName }}
 {{- fail "config.clusterName is required" }}
 {{- end }}
