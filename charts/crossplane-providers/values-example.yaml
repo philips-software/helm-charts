@@ -5,9 +5,6 @@
 # REQUIRED CONFIGURATION - FILL IN THESE VALUES
 # =============================================================================
 config:
-  # Replace with your Kubernetes cluster name
-  clusterName: "my-k3s-cluster"
-  
   # Replace with your AWS Account ID
   awsAccountId: "123456789012"
   

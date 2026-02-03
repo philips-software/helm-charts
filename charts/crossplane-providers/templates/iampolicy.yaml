@@ -4,7 +4,7 @@
 apiVersion: iam.aws.upbound.io/v1beta1
 kind: Policy
 metadata:
-  name: {{ $.Values.config.resourcePrefix }}-{{ .name }}
+  name: {{ $.Values.environmentConfig.resourcePrefix }}-{{ .name }}
   labels:
     {{- include "crossplane-providers.labels" $ | nindent 4 }}
     crossplane.io/provider: {{ .name }}
