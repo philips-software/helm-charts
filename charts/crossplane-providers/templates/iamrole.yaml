@@ -4,7 +4,7 @@
 apiVersion: iam.aws.upbound.io/v1beta1
 kind: Role
 metadata:
-  name: {{ $.Values.config.resourcePrefix }}-{{ .name }}
+  name: {{ $.Values.environmentConfig.resourcePrefix }}-{{ .name }}
   labels:
     {{- include "crossplane-providers.labels" $ | nindent 4 }}
     crossplane.io/provider: {{ .name }}
@@ -19,13 +19,13 @@ spec:
           {
             "Effect": "Allow",
             "Principal": {
-              "Federated": "{{ $.Values.config.oidcProviderArn }}"
+              "Federated": "{{ $.Values.environmentConfig.oidcProviderArn }}"
             },
             "Action": "sts:AssumeRoleWithWebIdentity",
             "Condition": {
                 "StringLike": {
-                    "{{ $.Values.config.oidcProvider }}:aud": "sts.amazonaws.com",
-                    "{{ $.Values.config.oidcProvider }}:sub": "system:serviceaccount:{{ $.Values.package.namespace }}:{{ .name }}-*"
+                    "{{ $.Values.environmentConfig.oidcProvider }}:aud": "sts.amazonaws.com",
+                    "{{ $.Values.environmentConfig.oidcProvider }}:sub": "system:serviceaccount:{{ $.Values.package.namespace }}:{{ .name }}-*"
                 }
             }
           }

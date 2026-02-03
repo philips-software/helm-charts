@@ -37,7 +37,7 @@ spec:
         {{- if .roleArn }}
         eks.amazonaws.com/role-arn: {{ .roleArn }}
         {{- else }}
-        eks.amazonaws.com/role-arn: arn:aws:iam::{{ $.Values.config.awsAccountId }}:role/{{ $.Values.config.resourcePrefix }}-{{ .name }}
+        eks.amazonaws.com/role-arn: arn:aws:iam::{{ $.Values.environmentConfig.accountId }}:role/{{ $.Values.environmentConfig.resourcePrefix }}-{{ .name }}
         {{- end }}
   {{- end }}
 {{- end }}

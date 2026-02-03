@@ -3,16 +3,14 @@
 
 # =============================================================================
 # REQUIRED CONFIGURATION
-# All values under 'config' are mandatory and must be provided
+# All values under 'environmentConfig' are mandatory and must be provided
 # =============================================================================
-config:
-  # Name of your Kubernetes cluster
-  # This is used for resource naming and identification
-  clusterName: ""
+environmentConfig:
+
   
   # AWS Account ID where resources will be created
   # Example: "123456789012"
-  awsAccountId: ""
+  accountId: ""
   
   # Prefix for AWS resources (especially IAM roles)
   # This helps organize and identify resources created by this chart
@@ -163,7 +161,7 @@ providers:
 # =============================================================================
 # IMPORTANT NOTES
 # =============================================================================
-# 1. All 'config' values are mandatory - the chart will fail if any are empty
+# 1. All 'environmentConfig' values are mandatory - the chart will fail if any are empty
 # 2. IAM roles are only created when managedPolicyArns contains entries AND no roleArn is specified
 # 3. When roleArn is provided, the external role is used and no IAM role is created
 # 4. IRSA annotations are added when either roleArn is provided OR IAM roles are created

@@ -54,19 +54,16 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Validate required config values
 */}}
 {{- define "crossplane-providers.validateConfig" -}}
-{{- if not .Values.config.clusterName }}
-{{- fail "config.clusterName is required" }}
+{{- if not .Values.environmentConfig.accountId }}
+{{- fail "environmentConfig.accountId is required" }}
 {{- end }}
-{{- if not .Values.config.awsAccountId }}
-{{- fail "config.awsAccountId is required" }}
+{{- if not .Values.environmentConfig.resourcePrefix }}
+{{- fail "environmentConfig.resourcePrefix is required" }}
 {{- end }}
-{{- if not .Values.config.resourcePrefix }}
-{{- fail "config.resourcePrefix is required" }}
+{{- if not .Values.environmentConfig.oidcProviderArn }}
+{{- fail "environmentConfig.oidcProviderArn is required" }}
 {{- end }}
-{{- if not .Values.config.oidcProviderArn }}
-{{- fail "config.oidcProviderArn is required" }}
-{{- end }}
-{{- if not .Values.config.oidcProvider }}
-{{- fail "config.oidcProvider is required" }}
+{{- if not .Values.environmentConfig.oidcProvider }}
+{{- fail "environmentConfig.oidcProvider is required" }}
 {{- end }}
 {{- end }}
