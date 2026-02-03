@@ -6,10 +6,6 @@
 # All values under 'config' are mandatory and must be provided
 # =============================================================================
 config:
-  # AWS region where your Kubernetes cluster is deployed
-  # Example: "us-west-2", "eu-west-1", "ap-southeast-1"
-  awsRegion: ""
-  
   # Name of your Kubernetes cluster
   # This is used for resource naming and identification
   clusterName: ""
