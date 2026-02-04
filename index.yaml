@@ -21,6 +21,14 @@ entries:
     version: 0.1.0
   cloudnative-pg-operator-bootstrap:
   - apiVersion: v2
+    created: "2026-02-04T19:06:43.222394237Z"
+    description: Bootstrap chart for deploying cloudnative-pg-operator via HelmApplication
+    digest: 772c77441464c5a3f3b9d7307e2e88a4ced5e942a50ab7301bbc8b1fb438b6cf
+    name: cloudnative-pg-operator-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-bootstrap-0.2.0/cloudnative-pg-operator-bootstrap-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
     created: "2026-02-04T18:44:04.775774033Z"
     description: Bootstrap chart for deploying cloudnative-pg-operator via HelmApplication
     digest: 7204b82e4f419166dced049e23941e54c17b1e10d2c5f51882d9f89e5772c5f0
@@ -1230,4 +1238,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-0.1.0/k8s-observability-monitoring-0.1.0.tgz
     version: 0.1.0
-generated: "2026-02-04T18:44:04.776084943Z"
+generated: "2026-02-04T19:06:43.222656065Z"
