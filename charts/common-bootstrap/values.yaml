@@ -34,7 +34,7 @@ argocd:
     sourceRepos:
       - https://github.com/philips-software/helm-charts
       - https://github.com/dip-software/crossplane-compositions
-      - https://cloudnative-pg.io/charts
+      - https://cloudnative-pg.io/charts/
     sourceNamespaces:
       - common-bootstrap
       - crossplane-system
