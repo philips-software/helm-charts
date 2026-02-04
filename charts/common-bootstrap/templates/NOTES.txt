@@ -11,7 +11,7 @@ The Common Bootstrap chart has been installed!
    - Creates EnvironmentConfig: {{ .Values.environmentConfig.name }}
    
    Check job status:
-     kubectl get jobs -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+     kubectl get jobs -n common-bootstrap -l app.kubernetes.io/instance={{ .Release.Name }}
    
    View the EnvironmentConfig:
      kubectl get environmentconfig {{ .Values.environmentConfig.name }} -o yaml

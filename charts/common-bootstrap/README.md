@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 0.5.0](https://img.shields.io/badge/Version-0.5.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.18](https://img.shields.io/badge/AppVersion-0.0.18-informational?style=flat-square)
+![Version: 0.6.0](https://img.shields.io/badge/Version-0.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.18](https://img.shields.io/badge/AppVersion-0.0.18-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -13,10 +13,11 @@ and uses HelmApplication CRs to bootstrap platform components.
 | argocd.namespace | string | `"argocd"` |  |
 | argocd.project.create | bool | `true` |  |
 | argocd.project.description | string | `"Bootstrap applications"` |  |
-| argocd.project.name | string | `"starlift"` |  |
-| argocd.project.sourceNamespaces[0] | string | `"crossplane-system"` |  |
-| argocd.project.sourceNamespaces[1] | string | `"argocd"` |  |
-| argocd.project.sourceNamespaces[2] | string | `"monitoring"` |  |
+| argocd.project.name | string | `"common-bootstrap"` |  |
+| argocd.project.sourceNamespaces[0] | string | `"common-bootstrap"` |  |
+| argocd.project.sourceNamespaces[1] | string | `"crossplane-system"` |  |
+| argocd.project.sourceNamespaces[2] | string | `"argocd"` |  |
+| argocd.project.sourceNamespaces[3] | string | `"monitoring"` |  |
 | argocd.project.sourceRepos[0] | string | `"https://github.com/philips-software/helm-charts"` |  |
 | argocd.project.sourceRepos[1] | string | `"https://github.com/dip-software/crossplane-compositions"` |  |
 | crossplaneCompositions.enabled | bool | `true` |  |
