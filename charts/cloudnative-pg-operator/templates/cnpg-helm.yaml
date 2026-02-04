@@ -1,0 +1,49 @@
+{{- include "cloudnative-pg-operator.validateConfig" . -}}
+apiVersion: dip.io/v1alpha1
+kind: HelmApplication
+metadata:
+  name: cloudnative-pg-operator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cloudnative-pg-operator.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  project: {{ .Values.argoProject }}
+  source:
+    chart: cloudnative-pg
+    repoURL: https://cloudnative-pg.io/charts/
+    targetRevision: {{ .Values.cnpgChart.version }}
+    helm:
+      releaseName: cloudnative-pg
+      valuesObject:
+        fullnameOverride: {{ .Values.operator.fullnameOverride }}
+        namespace: {{ .Values.operator.namespace }}
+        resources:
+          {{- toYaml .Values.operator.resources | nindent 10 }}
+  destination:
+    namespace: {{ .Values.operator.namespace }}
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: cloudnative-pg
+      namespace: {{ .Values.operator.namespace }}
+      jqPathExpressions:
+        - .spec.template.spec.containers[].env[] | select(.name == "OPERATOR_IMAGE_NAME")
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
