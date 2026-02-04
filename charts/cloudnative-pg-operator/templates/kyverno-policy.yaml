@@ -13,9 +13,9 @@ metadata:
       Mutates all CloudNativePG Cluster resources to use the default
       ClusterImageCatalog and sets the operator image for bootstrap containers.
 spec:
-  skipBackgroundRequests: true
   rules:
     - name: set-imagecatalogref
+      skipBackgroundRequests: true
       match:
         any:
           - resources:
@@ -33,6 +33,7 @@ spec:
               name: {{ .Values.imageCatalog.name }}
               major: {{ (index .Values.imageCatalog.images 0).major }}
     - name: set-operator-image
+      skipBackgroundRequests: true
       match:
         any:
           - resources:
