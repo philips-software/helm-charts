@@ -1,5 +1,23 @@
 apiVersion: v1
 entries:
+  common-bootstrap:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-02-04T08:56:42.180771183Z"
+    description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
+      deploys crossplane-compositions, and uses HelmApplication CRs to bootstrap platform
+      components. '
+    digest: 2dbe7a4930df6e532394f4cca42c0b3d56bad6793e29865d703e1fbdd824eb88
+    keywords:
+    - crossplane
+    - common
+    - bootstrap
+    - argocd
+    name: common-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/common-bootstrap-0.1.0/common-bootstrap-0.1.0.tgz
+    version: 0.1.0
   crossplane-function:
   - apiVersion: v2
     appVersion: v0.0.2
@@ -1031,4 +1049,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-0.1.0/k8s-observability-monitoring-0.1.0.tgz
     version: 0.1.0
-generated: "2026-02-03T09:15:53.152601964Z"
+generated: "2026-02-04T08:56:42.180976555Z"
