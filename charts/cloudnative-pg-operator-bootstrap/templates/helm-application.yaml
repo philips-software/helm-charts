@@ -1,0 +1,31 @@
+{{- include "cloudnative-pg-operator-bootstrap.validateConfig" . -}}
+apiVersion: dip.io/v1alpha1
+kind: HelmApplication
+metadata:
+  name: cloudnative-pg-operator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cloudnative-pg-operator-bootstrap.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.argoProject }}
+  source:
+    repoURL: {{ .Values.chartRepo.url }}
+    targetRevision: {{ .Values.chartRepo.targetRevision }}
+    helm:
+      releaseName: cloudnative-pg-operator
+  destination:
+    namespace: {{ .Release.Namespace }}
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
