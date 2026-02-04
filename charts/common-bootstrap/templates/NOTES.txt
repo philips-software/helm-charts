@@ -30,7 +30,7 @@ The Common Bootstrap chart has been installed!
    - Version: {{ .Values.crossplaneCompositions.targetRevision }}
    
    Check status:
-     kubectl get application crossplane-compositions -n {{ .Values.argocd.namespace }}
+     kubectl get application crossplane-compositions -n common-bootstrap
 {{- end }}
 
 4. HelmApplications (deployed via Crossplane composition):
