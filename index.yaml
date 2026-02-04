@@ -2,6 +2,15 @@ apiVersion: v1
 entries:
   cloudnative-pg-operator:
   - apiVersion: v2
+    created: "2026-02-04T19:42:49.357338417Z"
+    description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
+      policies
+    digest: 05221145626cc3b2a28569578067741a62784898b30c3864af998c65d03366e6
+    name: cloudnative-pg-operator
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-0.4.0/cloudnative-pg-operator-0.4.0.tgz
+    version: 0.4.0
+  - apiVersion: v2
     created: "2026-02-04T18:44:04.596322787Z"
     description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
       policies
@@ -1255,4 +1264,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-0.1.0/k8s-observability-monitoring-0.1.0.tgz
     version: 0.1.0
-generated: "2026-02-04T19:10:04.479967917Z"
+generated: "2026-02-04T19:42:49.357560731Z"
