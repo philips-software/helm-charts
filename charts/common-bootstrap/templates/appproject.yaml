@@ -1,0 +1,25 @@
+{{- if .Values.argocd.project.create }}
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: {{ .Values.argocd.project.name }}
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "common-bootstrap.labels" . | nindent 4 }}
+spec:
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  description: {{ .Values.argocd.project.description }}
+  destinations:
+    - name: in-cluster
+      namespace: '*'
+      server: https://kubernetes.default.svc
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  sourceNamespaces:
+    {{- toYaml .Values.argocd.project.sourceNamespaces | nindent 4 }}
+  sourceRepos:
+    {{- toYaml .Values.argocd.project.sourceRepos | nindent 4 }}
+{{- end }}

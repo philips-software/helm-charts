@@ -1,0 +1,73 @@
+# DIP Addons Bootstrap Chart
+# This chart bootstraps the DIP platform by:
+# 1. Creating an EnvironmentConfig from the dip-addons ConfigMap
+# 2. Deploying crossplane-compositions (HelmApplication XRD)
+# 3. Using HelmApplication CRs to deploy platform components
+
+# Source ConfigMap containing environment values
+sourceConfigMap:
+  name: hsp-addons
+  namespace: hsp-addons
+
+# EnvironmentConfig to create from the ConfigMap
+environmentConfig:
+  # Name of the EnvironmentConfig to create
+  name: hsp-addons-compat
+  # Labels for the EnvironmentConfig
+  labels:
+    config: hsp-addons
+
+# Crossplane Compositions deployment
+crossplaneCompositions:
+  enabled: true
+  repoURL: https://github.com/dip-software/crossplane-compositions
+  targetRevision: v0.0.18
+  path: kustomize
+
+# ArgoCD configuration
+argocd:
+  namespace: argocd
+  project:
+    name: starlift
+    create: true
+    description: Bootstrap applications
+    sourceRepos:
+      - https://github.com/philips-software/helm-charts
+      - https://github.com/dip-software/crossplane-compositions
+    sourceNamespaces:
+      - crossplane-system
+      - argocd
+      - monitoring
+
+# HelmApplications to deploy via Crossplane composition
+# These will be created after the EnvironmentConfig is ready
+helmApplications: {}
+  # External Secrets Operator IAM resources
+  # esoIamResources:
+  #  enabled: true
+  #  name: eso-iam-resources
+  #  namespace: crossplane-system
+  #  project: starlift
+  #  source:
+  #    repoURL: oci://ghcr.io/philips-internal/helm-charts/dip-addons-eso-iam
+  #    targetRevision: "0.1.0"
+  #    helm:
+  #      valuesObject: {}
+  #      # Keys from EnvironmentConfig to include
+  #      withConfigKeys:
+  #        - resourcePrefix
+  #        - awsRegion
+  #        - awsAccountId
+
+
+# Harvester Job configuration
+harvester:
+  image:
+    repository: docker.io/alpine/k8s
+    tag: "1.28.4"
+    pullPolicy: IfNotPresent
+  serviceAccount:
+    name: hsp-addons-harvester
+  # Retry configuration
+  backoffLimit: 5
+  ttlSecondsAfterFinished: 600

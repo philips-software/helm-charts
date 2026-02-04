@@ -1,0 +1,109 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "common-bootstrap.fullname" . }}-envconfig-harvester
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.harvester.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.harvester.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "common-bootstrap.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: envconfig-harvester
+    spec:
+      serviceAccountName: {{ include "common-bootstrap.serviceAccountName" . }}
+      restartPolicy: OnFailure
+      containers:
+        - name: harvester
+          image: "{{ .Values.harvester.image.repository }}:{{ .Values.harvester.image.tag }}"
+          imagePullPolicy: {{ .Values.harvester.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              
+              SOURCE_CM="{{ .Values.sourceConfigMap.name }}"
+              SOURCE_NS="{{ .Values.sourceConfigMap.namespace }}"
+              ENV_CONFIG_NAME="{{ .Values.environmentConfig.name }}"
+              
+              echo "=== DIP Addons Bootstrap - EnvironmentConfig Harvester ==="
+              echo "Source ConfigMap: $SOURCE_NS/$SOURCE_CM"
+              echo "Target EnvironmentConfig: $ENV_CONFIG_NAME"
+              echo ""
+              
+              # Wait for the ConfigMap to be available
+              echo "Waiting for ConfigMap to be available..."
+              for i in $(seq 1 30); do
+                if kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" > /dev/null 2>&1; then
+                  echo "ConfigMap found!"
+                  break
+                fi
+                if [ $i -eq 30 ]; then
+                  echo "ERROR: ConfigMap not found after 30 attempts"
+                  exit 1
+                fi
+                echo "Attempt $i/30 - waiting 10s..."
+                sleep 10
+              done
+              
+              # Extract all values from ConfigMap
+              # These match the ${...} placeholders used in kustomize
+              echo ""
+              echo "Extracting values from ConfigMap..."
+              
+              REGION=$(kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" -o jsonpath='{.data.region}' 2>/dev/null || echo "")
+              ACCOUNT_ID=$(kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" -o jsonpath='{.data.accountId}' 2>/dev/null || echo "")
+              SHARED_SERVICES_ACCOUNT_ID=$(kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" -o jsonpath='{.data.sharedServicesAccountId}' 2>/dev/null || echo "")
+              
+              # Extract OIDC values from nested eks JSON
+              EKS_JSON=$(kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" -o jsonpath='{.data.eks}' 2>/dev/null || echo "{}")
+              OIDC_PROVIDER=$(echo "$EKS_JSON" | jq -r '.oidcProvider // ""')
+              OIDC_PROVIDER_ARN=$(echo "$EKS_JSON" | jq -r '.oidcProviderArn // ""')
+              
+              # Extract resourcePrefix from tags JSON (Environment key)
+              TAGS_JSON=$(kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" -o jsonpath='{.data.tags}' 2>/dev/null || echo "{}")
+              RESOURCE_PREFIX=$(echo "$TAGS_JSON" | jq -r '.Environment // ""')
+              
+              echo "Extracted values:"
+              echo "  REGION:                    $REGION"
+              echo "  ACCOUNT_ID:                $ACCOUNT_ID"
+              echo "  RESOURCE_PREFIX:           $RESOURCE_PREFIX"
+              echo "  OIDC_PROVIDER:             $OIDC_PROVIDER"
+              echo "  OIDC_PROVIDER_ARN:         $OIDC_PROVIDER_ARN"
+              echo "  SHARED_SERVICES_ACCOUNT_ID: $SHARED_SERVICES_ACCOUNT_ID"
+              echo ""
+              
+              # Create or update the EnvironmentConfig
+              echo "Creating/updating EnvironmentConfig: $ENV_CONFIG_NAME"
+              cat <<EOF | kubectl apply -f -
+              apiVersion: apiextensions.crossplane.io/v1beta1
+              kind: EnvironmentConfig
+              metadata:
+                name: $ENV_CONFIG_NAME
+                labels:
+                  app.kubernetes.io/managed-by: common-bootstrap
+                  {{- range $key, $value := .Values.environmentConfig.labels }}
+                  {{ $key }}: {{ $value | quote }}
+                  {{- end }}
+              data:
+                # AWS configuration
+                region: "$REGION"
+                accountId: "$ACCOUNT_ID"
+                sharedServicesAccountId: "$SHARED_SERVICES_ACCOUNT_ID"
+                # Cluster configuration  
+                resourcePrefix: "$RESOURCE_PREFIX"
+                # OIDC configuration
+                oidcProvider: "$OIDC_PROVIDER"
+                oidcProviderArn: "$OIDC_PROVIDER_ARN"
+              EOF
+              
+              echo ""
+              echo "=== EnvironmentConfig $ENV_CONFIG_NAME created/updated successfully! ==="
