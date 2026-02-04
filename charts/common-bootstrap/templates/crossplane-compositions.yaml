@@ -3,7 +3,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: crossplane-compositions
-  namespace: {{ .Values.argocd.namespace }}
+  namespace: common-bootstrap
   labels:
     {{- include "common-bootstrap.labels" . | nindent 4 }}
   annotations:
@@ -15,7 +15,7 @@ metadata:
 spec:
   destination:
     name: in-cluster
-    namespace: crossplane-system
+    namespace: common-bootstrap
   project: {{ .Values.argocd.project.name }}
   source:
     path: {{ .Values.crossplaneCompositions.path }}
