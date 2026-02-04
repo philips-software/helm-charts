@@ -1,0 +1,54 @@
+{{- if .Values.kyvernoPolicy.enabled }}
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: cnpg-force-imagecatalog
+  labels:
+    {{- include "cloudnative-pg-operator.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    policies.kyverno.io/title: Force ClusterImageCatalog for PostgreSQL Clusters
+    policies.kyverno.io/category: CloudNativePG
+    policies.kyverno.io/description: >-
+      Mutates all CloudNativePG Cluster resources to use the default
+      ClusterImageCatalog and sets the operator image for bootstrap containers.
+spec:
+  rules:
+    - name: set-imagecatalogref
+      match:
+        any:
+          - resources:
+              kinds:
+                - postgresql.cnpg.io/v1/Cluster
+      mutate:
+        patchesJson6902: |-
+          - op: remove
+            path: /spec/imageName
+          - op: add
+            path: /spec/imageCatalogRef
+            value:
+              apiGroup: postgresql.cnpg.io
+              kind: ClusterImageCatalog
+              name: {{ .Values.imageCatalog.name }}
+              major: {{ (index .Values.imageCatalog.images 0).major }}
+    - name: set-operator-image
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+              names:
+                - cloudnative-pg
+              namespaces:
+                - {{ .Values.operator.namespace }}
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: manager
+                    env:
+                      - name: OPERATOR_IMAGE_NAME
+                        value: {{ include "cloudnative-pg-operator.substituteVars" (dict "str" .Values.kyvernoPolicy.operatorImage "ctx" .) | quote }}
+{{- end }}

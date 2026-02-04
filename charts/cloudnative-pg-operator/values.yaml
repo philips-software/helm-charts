@@ -1,0 +1,31 @@
+cnpgChart:
+  # renovate: datasource=helm depName=cloudnative-pg registryUrl=https://cloudnative-pg.io/charts
+  version: 0.27.0
+
+environmentConfig:
+  resourcePrefix: ""
+  sharedServicesAccountId: ""
+  region: ""
+
+argoProject: common-bootstrap
+
+operator:
+  fullnameOverride: cloudnative-pg
+  namespace: cnpg-system
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 5m
+      memory: 64Mi
+
+imageCatalog:
+  enabled: true
+  name: default
+  images:
+    - major: 18
+      image: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:18.1-system-trixie"
+
+kyvernoPolicy:
+  enabled: true
+  operatorImage: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.28.0"

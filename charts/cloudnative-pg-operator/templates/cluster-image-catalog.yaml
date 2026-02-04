@@ -1,0 +1,16 @@
+{{- if .Values.imageCatalog.enabled }}
+apiVersion: postgresql.cnpg.io/v1
+kind: ClusterImageCatalog
+metadata:
+  name: {{ .Values.imageCatalog.name }}
+  labels:
+    {{- include "cloudnative-pg-operator.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  images:
+    {{- range .Values.imageCatalog.images }}
+    - major: {{ .major }}
+      image: {{ include "cloudnative-pg-operator.substituteVars" (dict "str" .image "ctx" $) }}
+    {{- end }}
+{{- end }}
