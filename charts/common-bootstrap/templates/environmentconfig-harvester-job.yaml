@@ -20,10 +20,19 @@ spec:
     spec:
       serviceAccountName: {{ include "common-bootstrap.serviceAccountName" . }}
       restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: harvester
           image: "{{ .Values.harvester.image.repository }}:{{ .Values.harvester.image.tag }}"
           imagePullPolicy: {{ .Values.harvester.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           command:
             - /bin/sh
             - -c
