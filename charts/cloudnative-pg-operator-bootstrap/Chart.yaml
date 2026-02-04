@@ -1,0 +1,4 @@
+apiVersion: v2
+name: cloudnative-pg-operator-bootstrap
+version: 0.1.0
+description: Bootstrap chart for deploying cloudnative-pg-operator via HelmApplication

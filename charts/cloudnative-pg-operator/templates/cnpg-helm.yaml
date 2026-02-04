@@ -1,6 +1,6 @@
 {{- include "cloudnative-pg-operator.validateConfig" . -}}
-apiVersion: dip.io/v1alpha1
-kind: HelmApplication
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
   name: cloudnative-pg-operator
   namespace: {{ .Release.Namespace }}
@@ -10,7 +10,6 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "0"
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   project: {{ .Values.argoProject }}
   source:
@@ -21,10 +20,10 @@ spec:
       releaseName: cloudnative-pg
       valuesObject:
         fullnameOverride: {{ .Values.operator.fullnameOverride }}
-        namespace: {{ .Values.operator.namespace }}
         resources:
           {{- toYaml .Values.operator.resources | nindent 10 }}
   destination:
+    server: https://kubernetes.default.svc
     namespace: {{ .Values.operator.namespace }}
   ignoreDifferences:
     - group: apps

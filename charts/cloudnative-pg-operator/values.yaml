@@ -2,6 +2,12 @@ cnpgChart:
   # renovate: datasource=helm depName=cloudnative-pg registryUrl=https://cloudnative-pg.io/charts
   version: 0.27.0
 
+# These values are injected by the HelmApplication
+environmentConfig:
+  resourcePrefix: ""
+  sharedServicesAccountId: ""
+  region: ""
+
 argoProject: common-bootstrap
 
 operator:

@@ -1,0 +1,7 @@
+# Chart repository configuration (OCI format)
+chartRepo:
+  # OCI URL including the chart name
+  url: "oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator"
+  targetRevision: "0.3.0"
+
+argoProject: common-bootstrap
