@@ -15,7 +15,7 @@ environmentConfig:
   name: hsp-addons-compat
   # Labels for the EnvironmentConfig
   labels:
-    config: hsp-addons
+    config: dip-software
 
 # Crossplane Compositions deployment
 crossplaneCompositions:
