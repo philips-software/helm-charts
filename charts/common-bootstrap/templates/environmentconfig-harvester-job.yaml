@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "common-bootstrap.fullname" . }}-envconfig-harvester
-  namespace: {{ .Release.Namespace }}
+  namespace: common-bootstrap
   labels:
     {{- include "common-bootstrap.labels" . | nindent 4 }}
   annotations:
@@ -42,7 +42,6 @@ spec:
               cpu: 100m
               memory: 256Mi
             limits:
-              cpu: 200m
               memory: 512Mi
           command:
             - /bin/sh

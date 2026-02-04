@@ -28,13 +28,14 @@ crossplaneCompositions:
 argocd:
   namespace: argocd
   project:
-    name: starlift
+    name: common-bootstrap
     create: true
     description: Bootstrap applications
     sourceRepos:
       - https://github.com/philips-software/helm-charts
       - https://github.com/dip-software/crossplane-compositions
     sourceNamespaces:
+      - common-bootstrap
       - crossplane-system
       - argocd
       - monitoring
@@ -47,7 +48,7 @@ helmApplications: {}
   #  enabled: true
   #  name: eso-iam-resources
   #  namespace: crossplane-system
-  #  project: starlift
+  #  project: common-bootstrap
   #  source:
   #    repoURL: oci://ghcr.io/philips-internal/helm-charts/dip-addons-eso-iam
   #    targetRevision: "0.1.0"
