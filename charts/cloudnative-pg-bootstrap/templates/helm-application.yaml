@@ -1,11 +1,11 @@
-{{- include "cloudnative-pg-operator-bootstrap.validateConfig" . -}}
+{{- include "cloudnative-pg-bootstrap.validateConfig" . -}}
 apiVersion: dip.io/v1alpha1
 kind: HelmApplication
 metadata:
   name: cloudnative-pg-operator
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "cloudnative-pg-operator-bootstrap.labels" . | nindent 4 }}
+    {{- include "cloudnative-pg-bootstrap.labels" . | nindent 4 }}
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
