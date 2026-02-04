@@ -5,7 +5,7 @@ description: |
   Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
   and uses HelmApplication CRs to bootstrap platform components.
 type: application
-version: 1.0.0
+version: 1.0.1
 appVersion: "0.0.18"
 keywords:
   - crossplane
