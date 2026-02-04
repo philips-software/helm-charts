@@ -32,4 +32,4 @@ helmApplications:
           replicas: 2
         withConfigKeys:
           - resourcePrefix
-          - awsRegion
+          - region
