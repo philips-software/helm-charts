@@ -1,0 +1,14 @@
+apiVersion: v2
+name: common-bootstrap
+description: |
+  Common Bootstrap Helm chart.
+  Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
+  and uses HelmApplication CRs to bootstrap platform components.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - crossplane
+  - common
+  - bootstrap
+  - argocd

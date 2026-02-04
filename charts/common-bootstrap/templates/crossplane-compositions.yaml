@@ -1,0 +1,30 @@
+{{- if .Values.crossplaneCompositions.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crossplane-compositions
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "common-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    # Renovate: datasource=github-releases depName=dip-software/crossplane-compositions
+    renovate.io/datasource: github-releases
+    renovate.io/depName: dip-software/crossplane-compositions
+    renovate.io/registryUrl: https://github.com
+spec:
+  destination:
+    name: in-cluster
+    namespace: crossplane-system
+  project: {{ .Values.argocd.project.name }}
+  source:
+    path: {{ .Values.crossplaneCompositions.path }}
+    repoURL: {{ .Values.crossplaneCompositions.repoURL }}
+    targetRevision: {{ .Values.crossplaneCompositions.targetRevision }}
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

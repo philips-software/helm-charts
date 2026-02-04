@@ -1,0 +1,35 @@
+# Example values for DIP Addons Bootstrap Helm chart
+# The chart reads environment values from the dip-addons ConfigMap
+
+# Source ConfigMap (created by DIP platform)
+sourceConfigMap:
+  name: hsp-addons
+  namespace: hsp-addons
+
+# EnvironmentConfig name (used by HelmApplication composition)
+environmentConfig:
+  name: hsp-addons-compat
+
+# Crossplane compositions version
+crossplaneCompositions:
+  enabled: true
+  targetRevision: v0.0.18
+
+# HelmApplications to bootstrap
+# Add your own applications here
+helmApplications:
+  # Example: Deploy a custom application
+  myApp:
+    enabled: false
+    name: my-application
+    namespace: my-namespace
+    project: starlift
+    source:
+      repoURL: oci://ghcr.io/philips-software/helm-charts/my-app
+      targetRevision: "1.0.0"
+      helm:
+        valuesObject:
+          replicas: 2
+        withConfigKeys:
+          - resourcePrefix
+          - awsRegion

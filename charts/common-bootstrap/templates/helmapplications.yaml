@@ -1,0 +1,39 @@
+{{- range $name, $app := .Values.helmApplications }}
+{{- if $app.enabled }}
+---
+apiVersion: dip.io/v1alpha1
+kind: HelmApplication
+metadata:
+  name: {{ $app.name }}
+  namespace: {{ $app.namespace }}
+  labels:
+    {{- include "common-bootstrap.labels" $ | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: {{ $app.project | quote }}
+  source:
+    {{- if $app.source.chart }}
+    chart: {{ $app.source.chart | quote }}
+    {{- end }}
+    repoURL: {{ $app.source.repoURL | quote }}
+    targetRevision: {{ $app.source.targetRevision | quote }}
+    {{- if $app.source.path }}
+    path: {{ $app.source.path | quote }}
+    {{- end }}
+    {{- if $app.source.helm }}
+    helm:
+      {{- if $app.source.helm.releaseName }}
+      releaseName: {{ $app.source.helm.releaseName | quote }}
+      {{- end }}
+      {{- if $app.source.helm.valuesObject }}
+      valuesObject:
+        {{- toYaml $app.source.helm.valuesObject | nindent 8 }}
+      {{- end }}
+      {{- if $app.source.helm.withConfigKeys }}
+    withConfigKeys:
+      {{- toYaml $app.source.helm.withConfigKeys | nindent 6 }}
+      {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}

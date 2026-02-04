@@ -1,0 +1,70 @@
+=============================================================
+  Common Bootstrap Chart - Installation Complete
+=============================================================
+
+The Common Bootstrap chart has been installed!
+
+== What was deployed ==
+
+1. EnvironmentConfig Harvester Job
+   - Extracts values from ConfigMap: {{ .Values.sourceConfigMap.namespace }}/{{ .Values.sourceConfigMap.name }}
+   - Creates EnvironmentConfig: {{ .Values.environmentConfig.name }}
+   
+   Check job status:
+     kubectl get jobs -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+   
+   View the EnvironmentConfig:
+     kubectl get environmentconfig {{ .Values.environmentConfig.name }} -o yaml
+
+{{- if .Values.argocd.project.create }}
+
+2. ArgoCD AppProject: {{ .Values.argocd.project.name }}
+   - Namespace: {{ .Values.argocd.namespace }}
+{{- end }}
+
+{{- if .Values.crossplaneCompositions.enabled }}
+
+3. Crossplane Compositions (ArgoCD Application)
+   - Deploys HelmApplication XRD and Composition
+   - Source: {{ .Values.crossplaneCompositions.repoURL }}
+   - Version: {{ .Values.crossplaneCompositions.targetRevision }}
+   
+   Check status:
+     kubectl get application crossplane-compositions -n {{ .Values.argocd.namespace }}
+{{- end }}
+
+4. HelmApplications (deployed via Crossplane composition):
+{{- range $name, $app := .Values.helmApplications }}
+{{- if $app.enabled }}
+   - {{ $app.name }} ({{ $app.namespace }})
+{{- end }}
+{{- end }}
+
+   Check HelmApplications:
+     kubectl get helmapplication -A
+
+== EnvironmentConfig Variables ==
+
+The following variables are extracted from the hsp-addons ConfigMap
+and made available to HelmApplications via environmentConfig:
+
+  - region
+  - accountId
+  - sharedServicesAccountId
+  - resourcePrefix (from tags.Environment)
+  - oidcProvider (from eks.oidcProvider)
+  - oidcProviderArn (from eks.oidcProviderArn)
+
+== Next Steps ==
+
+1. Verify the EnvironmentConfig was created:
+   kubectl get environmentconfig {{ .Values.environmentConfig.name }}
+
+2. Check that crossplane-compositions are synced:
+   kubectl get application crossplane-compositions -n {{ .Values.argocd.namespace }}
+
+3. Verify HelmApplications are being processed:
+   kubectl get helmapplication -A
+   kubectl get application -A
+
+=============================================================
