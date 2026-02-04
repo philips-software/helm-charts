@@ -1,6 +1,6 @@
 # cloudnative-pg-bootstrap
 
-![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square)
 
 Bootstrap chart for deploying cloudnative-pg-operator via HelmApplication
 
@@ -9,7 +9,7 @@ Bootstrap chart for deploying cloudnative-pg-operator via HelmApplication
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argoProject | string | `"common-bootstrap"` |  |
-| chartRepo.targetRevision | string | `"0.3.0"` |  |
+| chartRepo.targetRevision | string | `"0.4.0"` |  |
 | chartRepo.url | string | `"oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator"` |  |
 
 ----------------------------------------------
