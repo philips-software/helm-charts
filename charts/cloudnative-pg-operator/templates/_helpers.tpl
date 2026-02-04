@@ -70,23 +70,11 @@ Usage: include "cloudnative-pg-operator.substituteVars" (dict "str" .Values.myVa
 Validate required configuration values
 */}}
 {{- define "cloudnative-pg-operator.validateConfig" -}}
-{{- if not .Values.environmentConfig.resourcePrefix }}
-{{- fail "environmentConfig.resourcePrefix is required and cannot be empty" }}
-{{- end }}
-{{- if not .Values.environmentConfig.sharedServicesAccountId }}
-{{- fail "environmentConfig.sharedServicesAccountId is required and cannot be empty" }}
-{{- end }}
-{{- if not .Values.environmentConfig.region }}
-{{- fail "environmentConfig.region is required and cannot be empty" }}
-{{- end }}
 {{- if not .Values.argoProject }}
 {{- fail "argoProject is required and cannot be empty" }}
 {{- end }}
 {{- if not .Values.cnpgChart.version }}
 {{- fail "cnpgChart.version is required and cannot be empty" }}
-{{- end }}
-{{- if and .Values.kyvernoPolicy.enabled (not .Values.environmentConfig.sharedServicesAccountId) }}
-{{- fail "environmentConfig.sharedServicesAccountId is required when kyvernoPolicy.enabled is true" }}
 {{- end }}
 {{- if and .Values.imageCatalog.enabled (not .Values.kyvernoPolicy.enabled) }}
 {{- fail "kyvernoPolicy.enabled must be true when imageCatalog.enabled is true" }}
