@@ -7,6 +7,7 @@ metadata:
     {{- include "cloudnative-pg-operator.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   images:
     {{- range .Values.imageCatalog.images }}
