@@ -1,0 +1,57 @@
+# otlp-gateway
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+OTLP gateway is a reference implementation which creates a single otlphttp endpoint that proxies Loki, Tempo and Mimir OTLP endpoints
+It supports authentication and authorization using both static and JWT tokens and tokens through the [caddy-token](https://github.com/loafoe/caddy-token) plugin.
+
+## Scripts
+
+### Adding signing key
+
+To support signing keys we add a secret with a key string that will be used to verify signed API keys. You can use the provided script or create the secret manually:
+
+**Using the script (recommended):**
+```shell
+./scripts/provision_signing_key.sh
+```
+
+**Manual creation:**
+```shell
+kubectl create secret generic otlp-gateway-signing-key --from-literal=key=Secr3TKeyH3re
+```
+
+### Adding client CA certificate
+
+To support client certificate authentication, you need to provide a trusted CA certificate. Use the provided script to create or update the client CA secret:
+
+```shell
+./scripts/upsert_client_ca.sh /path/to/ca-chain.crt
+```
+
+This script will:
+- Create the `otlp-gateway-client-ca` secret in the `otlp-gateway` namespace
+- Store the CA certificate chain with key `client_ca.pem`
+- Update existing secrets or create new ones as needed
+- Verify the certificate format after creation/update
+
+**Configuration:**
+Enable client certificate authentication in your values.yaml:
+```yaml
+authn:
+  client_ca:
+    enabled: true
+    secret: otlp-gateway-client-ca
+    # Authentication mode options:
+    # - request: Request client cert but don't verify
+    # - require: Require client cert but don't verify
+    # - verify_if_given: Verify client cert if provided (default)
+    # - require_and_verify: Require and verify client cert
+    mode: verify_if_given
+```
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

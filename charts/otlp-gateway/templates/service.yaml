@@ -1,0 +1,55 @@
+{{/*
+Validation: Ensure ingress.enabled and loadbalancer.enabled are not both true
+*/}}
+{{- if and .Values.ingress.enabled .Values.loadbalancer.enabled }}
+{{- fail "ERROR: Both ingress.enabled and loadbalancer.enabled cannot be set to true simultaneously. Please choose one." }}
+{{- end }}
+
+{{/*
+Validation: Ensure environmentConfig.clusterFqdn is provided when TLS is needed (LoadBalancer or Ingress)
+*/}}
+{{- if or .Values.loadbalancer.enabled .Values.ingress.enabled }}
+{{- if not .Values.environmentConfig.clusterFqdn }}
+{{- fail "ERROR: environmentConfig.clusterFqdn must be provided for TLS certificate generation." }}
+{{- end }}
+{{- end }}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: otlp-gateway
+  labels:
+    app: otlp-gateway
+    app.kubernetes.io/component: otlp-gateway
+    app.kubernetes.io/instance: otlp-gateway
+    app.kubernetes.io/name: otlp-gateway
+  {{- if .Values.loadbalancer.enabled }}
+  annotations:
+    # 🚫 Policy exception for LoadBalancer services
+    policies.hsp.philips.com/exception: "disallow-loadbalancer-services"
+    policies.hsp.philips.com/exception-reason: "for mTLS"
+    # 🎯 Tells the AWS Load Balancer Controller to manage this service
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    # ⚙️ Specifies the NLB should be internet-facing (the default is "internal")
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    # ➡️ Determines if the NLB targets pods directly (ip) or the nodes (instance)
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+    service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: "preserve_client_ip.enabled=true"
+    external-dns.alpha.kubernetes.io/hostname: "{{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}"
+  {{- end }}
+spec:
+  type: {{ if .Values.loadbalancer.enabled }}LoadBalancer{{ else }}ClusterIP{{ end }}
+  selector:
+    app: otlp-gateway
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      name: http
+    {{- if .Values.loadbalancer.enabled }}
+    - protocol: TCP
+      port: 443
+      targetPort: 8443
+      name: https
+    {{- end }}
