@@ -1,0 +1,28 @@
+apiVersion: dip.io/v1alpha1
+kind: Postgres
+metadata:
+  name: grafana
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "argocd.argoproj.io/sync-wave": "-1"
+spec:
+
+{{- if .Values.database.cnpg }}
+  crossplane:
+    compositionSelector:
+      matchLabels:
+        provider: cnpg
+{{- end }}
+
+  parameters:
+    identifier: {{ .Values.environmentConfig.resourcePrefix }}-grafana
+    size: small
+    engineVersion: "18.1"
+    databaseName: grafana
+    masterUsername: grafana
+  {{- if .Values.database.restoreFromSnapshot }}
+    restore:
+      snapshotIdentifier: {{ .Values.database.snapshotId }}
+  {{- end }}
+  writeConnectionSecretToRef:
+    name: grafana-postgres-connection

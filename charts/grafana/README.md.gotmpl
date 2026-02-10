@@ -1,0 +1,20 @@
+# grafana
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+Deploys Grafana to a cluster
+
+## SSO configuration
+
+By default this app is configured for SSO. It expects the SSO credentials to be available in the `grafana-sso-creds`
+secret in the same namespace as the app. The secret should have the following fields:
+
+- `clientId`: The client ID for the SSO application
+- `clientSecret`: The client secret for the SSO application
+- `issuerUrl`: The URL of the SSO issuer
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

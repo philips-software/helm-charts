@@ -1,0 +1,51 @@
+# Grafana Helm Chart Configuration
+# This chart deploys Grafana with Crossplane provider support and External Secrets integration
+
+# Grafana application configuration
+grafana:
+  # Enable/disable SSO authentication (boolean)
+  ssoAuthEnabled: false
+  # Number of Grafana replicas (must be >= 1)
+  replicas: 2
+  ingress:
+    enabled: false
+    # Hostname for Grafana ingress (alphanumeric characters and hyphens only)
+    host: gf
+  httpRoute:
+    enabled: true
+    host: gf
+    sharedGatewayName: platform
+    sharedGatewayNamespace: kube-system
+
+grafanaChart:
+  # renovate: datasource=helm depName=grafana registryUrl=https://grafana.github.io/helm-charts
+  version: 10.5.13
+
+# ArgoCD project name for deployment (required, cannot be empty)
+argoProject: default
+argoNamespace: argocd
+
+# Database configuration
+database:
+  cnpg: true
+  # Whether to restore from an existing snapshot
+  restoreFromSnapshot: false
+  # Snapshot ID to restore from (required if restoreFromSnapshot is true, alphanumeric and hyphens only)
+  snapshotId: "grafana-202501201706"
+
+# Crossplane provider configuration
+crossplaneProvider:
+  # Enable/disable Crossplane Grafana provider and ESO resources (boolean)
+  enabled: false
+
+# Datasource configuration
+datasources:
+  # Base URL for the datasource gateway service
+  gatewayUrl: "http://datasource-gateway.otlp-gateway.svc.cluster.local"
+
+# Environment configuration
+environmentConfig:
+  # Fully qualified domain name for the cluster (required, must be valid domain format)
+  clusterFqdn: "" 
+  # Resource prefix for the cluster (alphanumeric characters and hyphens only)
+  resourcePrefix: ""

@@ -1,0 +1,228 @@
+replicas: 2
+env:
+  AWS_SDK_LOAD_CONFIG: "true"
+revisionHistoryLimit: 1
+envFromSecrets:
+  - name: "grafana-postgres-connection"
+{{- if .Values.grafana.ssoAuthEnabled }}
+  - name: "grafana-sso-creds"
+{{- end }}  
+resources:
+  limits:
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+downloadDashboards:
+  resources:
+    limits:
+      memory: 24Mi
+    requests:
+      cpu: 10m
+      memory: 16Mi
+
+# We'll create the ingress through Kustomize
+ingress:
+  enabled: false
+
+imageRenderer:
+  enabled: true
+  image:
+    # renovate: datasource=docker depName=grafana/grafana-image-renderer
+    tag: v5.4.0
+  env:
+    BROWSER_TZ: "Europe/Amsterdam"
+
+serviceMonitor:
+  enabled: true
+
+sidecar:
+  resources:
+    limits:
+      memory: 480Mi
+    requests:
+      cpu: 15m
+      memory: 128Mi
+  datasources:
+    enabled: true
+    label: grafana_datasource
+    labelValue: "1"
+    searchNamespace: [prometheus]
+  dashboards:
+    enabled: false
+    label: grafana_dashboard
+    labelValue: "1"
+    searchNamespace: [prometheus, loki-system, tempo-system, kyverno, kube-system]
+    provider:
+      foldersFromFilesStructure: true
+    enableNewTablePanelSyntax: true
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Mimir
+        type: prometheus
+        uid: mimir
+        access: proxy
+        basicAuth: false
+        url: {{ .Values.datasources.gatewayUrl }}:8081/prometheus
+        editable: true
+        default: false
+        jsonData:
+          httpMethod: "POST"
+          prometheusType: "Mimir"
+          timeInterval: "30s"
+          oauthPassThru: true
+      - name: Loki
+        type: loki
+        uid: loki
+        access: proxy
+        basicAuth: false
+        url: {{ .Values.datasources.gatewayUrl }}:8080
+        editable: true
+        isDefault: false
+        jsonData:
+          oauthPassThru: true
+      - name: Tempo
+        type: tempo
+        uid: tempo
+        access: proxy
+        basicAuth: false
+        url: {{ .Values.datasources.gatewayUrl }}:8082
+        editable: true
+        isDefault: false
+        jsonData:
+          oauthPassThru: true
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: "dotdc"
+        orgId: 1
+        folder: "Kubernetes"
+        type: file
+        disableDeletion: true
+        editable: false
+        options:
+          path: /var/lib/grafana/dashboards/dotdc
+      - name: "dip"
+        orgId: 1
+        folder: "DIP Add-Ons"
+        type: file
+        disableDeletion: true
+        editable: false
+        options:
+          path: /var/lib/grafana/dashboards/dip
+
+dashboards:
+  dotdc:
+    dotdc-k8s-addons-prometheus:
+      url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-addons-prometheus.json
+      datasource: Prometheus
+    dotdc-k8s-addons-trivy-operator:
+      url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-addons-trivy-operator.json
+      datasource: Prometheus
+    dotdc-k8s-system-api-server:
+      url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-system-api-server.json
+      datasource: Prometheus
+    dotdc-k8s-system-coredns:
+      url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-system-coredns.json
+      datasource: Prometheus
+    dotdc-k8s-views-global:
+      url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-global.json
+      datasource: Prometheus
+    dotdc-k8s-views-namespaces:
+      url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-namespaces.json
+      datasource: Prometheus
+    dotdc-k8s-views-nodes:
+      url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-nodes.json
+      datasource: Prometheus
+    dotdc-k8s-views-pods:
+      url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-pods.json
+      datasource: Prometheus
+
+  dip:
+    argo-cd:
+      gnetId: 14584
+      revision: 1
+      datasource: Prometheus
+    aws-load-balancer-controller:
+      gnetId: 18319
+      revision: 2
+      datasource:
+        - name: DS_PROMETHEUS
+          value: Prometheus
+    cert-manager:
+      gnetId: 20842
+      revision: 1
+      datasource:
+        - name: DS_PROMETHEUS
+          value: Prometheus
+    karpenter:
+      gnetId: 20398
+      revision: 1
+      datasource:
+        - name: DS_PROMETHEUS
+          value: Prometheus
+    nginx-ingress:
+      gnetId: 12575
+      revision: 1
+      datasource: Prometheus
+
+# Pull in cluster details from ENV
+grafana.ini:
+  server:
+    root_url: https://{{ if .Values.grafana.httpRoute.enabled }}{{ .Values.grafana.httpRoute.host }}{{ else }}{{ .Values.grafana.ingress.host }}{{ end }}.{{ .Values.environmentConfig.clusterFqdn }}
+    domain: {{ if .Values.grafana.httpRoute.enabled }}{{ .Values.grafana.httpRoute.host }}{{ else }}{{ .Values.grafana.ingress.host }}{{ end }}.{{ .Values.environmentConfig.clusterFqdn }}
+  users:
+    auto_assign_org_role: "None"
+    viewers_can_edit: true
+    editors_can_admin: true
+  unified_alerting:
+    enabled: true
+  unified_alerting.screenshots:
+    capture: true
+  log:
+    filters: rendering:debug
+  database:
+    type: "postgres"
+    # DB secret keys: endpoint, username, password, database
+    host: ${endpoint}
+    user: ${username}
+    password: ${password}
+    ssl_mode: "require"
+    name: ${database}
+  rbac:
+    permission_cache: false # Fix for https://github.com/grafana/grafana/issues/59539
+  auth:
+    disable_login_form: false
+    login_maximum_inactive_lifetime_duration: 60m
+    login_maximum_lifetime_duration: 8h
+    oauth_allow_insecure_email_lookup: true
+    sigv4_auth_enabled: true
+  auth.basic:
+    enabled: true
+{{- if .Values.grafana.ssoAuthEnabled }}    
+  auth.generic_oauth:
+    auto_login: true
+    allow_sign_up: true
+    allow_assign_grafana_admin: true
+    enabled: true
+    name: OpenID Connect
+    scopes: openid profile email groups offline_access
+    role_attribute_path: contains(join(' ', groups), 'grafana-superadmin') && 'GrafanaAdmin' || contains(join(' ', groups), 'grafana-admin')  && 'Admin' || contains(join(' ', groups), 'grafana-editor') && 'Editor' || contains(join(' ', groups), 'grafana-viewer') && 'Viewer' || 'None'
+    role_attribute_strict: true
+    org_attribute_path: groups
+    client_id: ${clientId}
+    client_secret: ${clientSecret}
+    auth_url: ${issuerUrl}/auth
+    token_url: ${issuerUrl}/token
+    api_url: ${issuerUrl}/userInfo
+{{- end }}
+
+plugins:
+  - https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app
+  - https://storage.googleapis.com/integration-artifacts/grafana-exploretraces-app/grafana-exploretraces-app-latest.zip;grafana-traces-app
