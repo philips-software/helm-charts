@@ -1,0 +1,28 @@
+{{- include "grafana.validateConfig" . -}}
+apiVersion: dip.io/v1alpha1
+kind: HelmApplication
+metadata:
+  name: grafana-helm
+  namespace: {{ .Values.argoNamespace | quote }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: {{ .Values.argoProject | quote }}
+  source:
+    chart: grafana
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: {{ .Values.grafanaChart.version }}
+    helm:
+      releaseName: grafana
+      valuesObject:
+        {{- (tpl (.Files.Get "config/grafana-values.yaml") .) | trim | nindent 8 }}
+  destination:
+    namespace: {{ .Release.Namespace | quote }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

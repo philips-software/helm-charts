@@ -1,0 +1,17 @@
+{{- if .Values.crossplaneProvider.enabled }}
+apiVersion: grafana.crossplane.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  credentials:
+    secretRef:
+      key: instanceCredentials
+      name: grafana-creds
+      namespace: grafana
+    source: Secret
+  url: {{ include "grafana.url" . }}
+{{- end }}
