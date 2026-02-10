@@ -1,0 +1,26 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: otlp-gateway-ingress
+  labels:
+    app.kubernetes.io/instance: otlp-gateway
+    app.kubernetes.io/name: otlp-gateway
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}
+      secretName: otlp-gateway-tls
+  rules:
+    - host: {{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: otlp-gateway
+                port:
+                  number: 80
+{{- end }}

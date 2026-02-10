@@ -1,0 +1,11 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: caddy
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: otlp-gateway
+  endpoints:
+    - port: http-admin
+      scheme: http

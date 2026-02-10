@@ -1,0 +1,125 @@
+{{- include "otlp-gateway.validateConfig" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otlp-gateway
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: otlp-gateway
+  template:
+    metadata:
+      annotations:
+        otlp-gateway.helm/version: {{ .Chart.Version | quote }}
+        checksum/config: {{ include (print $.Template.BasePath "/cm.yaml") . | sha256sum }}
+      labels:
+        app: otlp-gateway
+        app.kubernetes.io/component: otlp-gateway
+        app.kubernetes.io/instance: otlp-gateway
+        app.kubernetes.io/name: otlp-gateway
+    spec:
+      containers:
+      - name: caddy
+        image: {{ .Values.caddy.container.image }}
+        command:
+          - caddy
+          - run
+          - -c
+          - /etc/caddy/Caddyfile
+        env:
+          - name: HOME
+            value: /data
+          - name: XDG_CONFIG_HOME
+            value: /data
+          {{- if .Values.authn.signedTokens.enabled }}
+          - name: SIGNING_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "otlp-gateway.signedTokensSecretName" . }}
+                key: key
+          {{- end }}
+        ports:
+        - containerPort: 8080
+        {{- if .Values.loadbalancer.enabled }}
+        - containerPort: 8443
+        {{- end }}
+        - containerPort: 2019
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: 2019
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: 2019
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        resources:
+          requests:
+              cpu: 100m
+              memory: 512Mi
+          limits:
+              memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 12113
+          runAsGroup: 12113
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - all
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - name: caddy-config-volume
+          mountPath: /etc/caddy/Caddyfile
+          subPath: Caddyfile
+        - name: caddy-data
+          mountPath: /data
+        {{- if .Values.authn.staticTokens.enabled }}
+        - name: caddy-static-tokens
+          mountPath: /var/lib/caddy
+        {{- end }}
+        {{- if .Values.loadbalancer.enabled }}
+        - name: tls-cert
+          mountPath: /etc/ssl/certs/tls.crt
+          subPath: tls.crt
+          readOnly: true
+        - name: tls-cert
+          mountPath: /etc/ssl/private/tls.key
+          subPath: tls.key
+          readOnly: true
+        {{- end }}
+        {{- if .Values.authn.clientCa.enabled }}
+        - name: client-ca-cert
+          mountPath: /etc/ssl/client-ca/client_ca.pem
+          subPath: client_ca.pem
+          readOnly: true
+        {{- end }}
+      volumes:
+      - name: caddy-config-volume
+        configMap:
+          name: caddy-config
+      - name: caddy-data
+        emptyDir: {}
+      {{- if .Values.authn.staticTokens.enabled }}
+      - name: caddy-static-tokens
+        secret:
+          secretName: {{ .Values.authn.staticTokens.secret }}
+      {{- end }}
+      {{- if .Values.loadbalancer.enabled }}
+      - name: tls-cert
+        secret:
+          secretName: otlp-gateway-tls-secret
+      {{- end }}
+      {{- if .Values.authn.clientCa.enabled }}
+      - name: client-ca-cert
+        secret:
+          secretName: {{ include "otlp-gateway.clientCaSecretName" . }}
+      {{- end }}

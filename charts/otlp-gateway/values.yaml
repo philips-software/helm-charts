@@ -1,0 +1,69 @@
+authn:
+  oidc:
+    enabled: false
+    issuer: https://issuer.obs-us-east-ct.hsp.philips.com
+  staticTokens:
+    enabled: false
+    secret: otlp-gateway-static-tokens
+  signedTokens:
+    enabled: true
+    secret: otlp-gateway-signing-key
+  clientCa:
+    enabled: false
+    secret: otlp-gateway-client-ca
+    # Client certificate authentication mode
+    # Options: request | require | verify_if_given | require_and_verify
+    # - request: Request client cert but don't verify
+    # - require: Require client cert but don't verify
+    # - verify_if_given: Verify client cert if provided (default)
+    # - require_and_verify: Require and verify client cert
+    mode: verify_if_given
+    # Enable debug logging for client certificate authentication
+    debug: false
+    
+environmentConfig:
+  region: ""  # AWS region for external secrets
+  clusterFqdn: ""  # Required when loadbalancer.enabled is true
+  host: otlp-gateway
+
+httpRoute:
+  enabled: false
+  gateway:
+    name: shared-gateway
+    namespace: gateway
+
+ingress:
+  enabled: true
+
+loadbalancer:
+  enabled: false
+
+pyroscope:
+  enabled: false
+  server: "pyroscope.pyroscope-system.svc:4040"
+
+log:
+  level: error
+
+replicas: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+caddy:
+  container:
+    # renovate: datasource=docker depName=ghcr.io/loafoe/caddy-token
+    image: ghcr.io/loafoe/caddy-token:v0.77.0
+
+billing:
+  enabled: true
+  tenantMapperUrl: http://tenant-mapper.starlift-observability.svc
+
+ruler:
+  enabled: true
+  pathPrefix: /ruler
+  service: mimir-ruler.mimir-system.svc:8080
