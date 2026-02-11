@@ -58,6 +58,9 @@ caddy:
   container:
     # renovate: datasource=docker depName=ghcr.io/loafoe/caddy-token
     image: ghcr.io/loafoe/caddy-token:v0.77.0
+  payloadsize:
+    # important: the payloadsize requires an image which includes the payloadsize plugin
+    enabled: false
 
 billing:
   enabled: true

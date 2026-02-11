@@ -1,7 +1,8 @@
 {
   order token first
+  {{- if .Values.caddy.payloadsize.enabled }}
   order payloadsize after token
-  #order payloadsize last
+  {{- end }}
   admin :2019
 
   servers {
@@ -47,11 +48,13 @@
         {{- end }}
       }
 
+      {{- if .Values.caddy.payloadsize.enabled }}
       payloadsize {
         {{- if .Values.billing.enabled }}
         tenant_mapper_url {{ .Values.billing.tenantMapperUrl }}
         {{- end }}
       }
+      {{- end }}
 
       # logs
       reverse_proxy /v1/logs {
