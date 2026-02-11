@@ -19,7 +19,7 @@ grafana:
 
 grafanaChart:
   # renovate: datasource=helm depName=grafana registryUrl=https://grafana.github.io/helm-charts
-  version: 10.5.13
+  version: 10.5.15
 
 # ArgoCD project name for deployment (required, cannot be empty)
 argoProject: default
