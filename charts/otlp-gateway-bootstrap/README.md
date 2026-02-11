@@ -1,6 +1,6 @@
 # otlp-gateway-bootstrap
 
-![Version: 0.37.0](https://img.shields.io/badge/Version-0.37.0-informational?style=flat-square)
+![Version: 0.40.0](https://img.shields.io/badge/Version-0.40.0-informational?style=flat-square)
 
 Bootstrap chart for deploying otlp-gateway via HelmApplication
 
@@ -9,7 +9,7 @@ Bootstrap chart for deploying otlp-gateway via HelmApplication
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argoProject | string | `"common-bootstrap"` |  |
-| chartRepo.targetRevision | string | `"0.37.0"` |  |
+| chartRepo.targetRevision | string | `"0.40.0"` |  |
 | chartRepo.url | string | `"oci://ghcr.io/philips-software/helm-charts/otlp-gateway"` |  |
 | otlpGateway | object | `{}` |  |
 
