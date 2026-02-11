@@ -69,7 +69,7 @@ authn:
 | autoscaling.minReplicas | int | `2` |  |
 | autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
-| billing.enabled | bool | `true` |  |
+| billing.enabled | bool | `false` |  |
 | billing.tenantMapperUrl | string | `"http://tenant-mapper.starlift-observability.svc.cluster.local"` |  |
 | caddy.container.image | string | `"ghcr.io/loafoe/caddy-token:v0.77.0"` |  |
 | caddy.payloadsize.enabled | bool | `false` |  |

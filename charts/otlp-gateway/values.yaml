@@ -63,20 +63,6 @@ caddy:
     # important: the payloadsize requires an image which includes the payloadsize plugin
     enabled: false
 
-billing:
-  enabled: true
-  tenantMapperUrl: http://tenant-mapper.starlift-observability.svc.cluster.local
-
-ruler:
-  enabled: true
-  pathPrefix: /ruler
-  service: mimir-ruler.mimir-system.svc.cluster.local:8080
-
-prometheus:
-  enabled: false
-  pathPrefix: /prometheus/v1/metrics
-  service: kps-prometheus.prometheus.svc.cluster.local:9090
-
 mimir:
   enabled: true
   pathPrefix: /v1/metrics
@@ -91,3 +77,20 @@ tempo:
   enabled: true
   pathPrefix: /v1/traces
   service: tempo-gateway.tempo-system.svc.cluster.local:80
+
+prometheus:
+  enabled: false
+  pathPrefix: /prometheus/v1/metrics
+  service: kps-prometheus.prometheus.svc.cluster.local:9090
+
+billing:
+  # billing events only work when payloadize is enabled
+  enabled: false
+  tenantMapperUrl: http://tenant-mapper.starlift-observability.svc.cluster.local
+
+ruler:
+  enabled: true
+  pathPrefix: /ruler
+  service: mimir-ruler.mimir-system.svc.cluster.local:8080
+
+
