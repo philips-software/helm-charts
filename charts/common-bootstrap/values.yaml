@@ -36,6 +36,9 @@ argocd:
       - https://github.com/dip-software/crossplane-compositions
       - https://cloudnative-pg.io/charts/
       - oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator
+      - oci://ghcr.io/philips-software/helm-charts/otlp-gateway
+      - oci://ghcr.io/philips-software/helm-charts/grafana
+      - oci://ghcr.io/philips-software/helm-charts
     sourceNamespaces:
       - common-bootstrap
       - crossplane-system
