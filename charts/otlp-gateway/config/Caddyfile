@@ -56,9 +56,10 @@
       }
       {{- end }}
 
+      {{- if .Values.loki.enabled }}
       # logs
-      reverse_proxy /v1/logs {
-        to loki-gateway.loki-system.svc:80
+      reverse_proxy {{ .Values.loki.pathPrefix }} {
+        to {{ .Values.loki.service }}
         @204 {
            status 204
         }
@@ -70,35 +71,42 @@
 
       # loki direct access
       reverse_proxy /loki/api/v1/push {
-        to loki-gateway.loki-system.svc:80
+        to {{ .Values.loki.service }}
       }
+      {{- end }}
 
+      {{- if .Values.mimir.enabled }}
       # metrics
-      reverse_proxy /v1/metrics {
-        to mimir-gateway.mimir-system.svc:80
+      reverse_proxy {{ .Values.mimir.pathPrefix }} {
+        to {{ .Values.mimir.service }}
         rewrite /otlp/v1/metrics
       }
 
       # mimir direct access
       reverse_proxy /mimir/api/v1/push {
-        to mimir-gateway.mimir-system.svc:80
+        to {{ .Values.mimir.service }}
         rewrite /api/v1/push
       }
+      {{- end }}
 
+      {{- if .Values.tempo.enabled }}
       # traces
-      reverse_proxy /v1/traces {
-        to tempo-gateway.tempo-system.svc:80
+      reverse_proxy {{ .Values.tempo.pathPrefix }} {
+        to {{ .Values.tempo.service }}
       }
+      {{- end }}
 
       {{- if .Values.pyroscope.enabled }}
       # profiling
-      reverse_proxy /ingest {
-        to {{ .Values.pyroscope.server }}
+      reverse_proxy {{ .Values.pyroscope.pathPrefix }} {
+        to {{ .Values.pyroscope.service }}
+        rewrite /ingest
       }
 
-      reverse_proxy /push.v1.PusherService/Push {
-        to {{ .Values.pyroscope.server }}
-       }
+      reverse_proxy {{ .Values.pyroscope.pathPrefix }}/push {
+        to {{ .Values.pyroscope.service }}
+        rewrite /push.v1.PusherService/Push
+      }
       {{- end }}
 
       {{- if .Values.ruler.enabled }}

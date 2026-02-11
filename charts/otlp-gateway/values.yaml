@@ -40,7 +40,8 @@ loadbalancer:
 
 pyroscope:
   enabled: false
-  server: "pyroscope.pyroscope-system.svc:4040"
+  pathPrefix: /v1/profiles
+  service: "pyroscope.pyroscope-system.svc.cluster.local:4040"
 
 log:
   level: error
@@ -64,14 +65,29 @@ caddy:
 
 billing:
   enabled: true
-  tenantMapperUrl: http://tenant-mapper.starlift-observability.svc
+  tenantMapperUrl: http://tenant-mapper.starlift-observability.svc.cluster.local
 
 ruler:
   enabled: true
   pathPrefix: /ruler
-  service: mimir-ruler.mimir-system.svc:8080
+  service: mimir-ruler.mimir-system.svc.cluster.local:8080
 
 prometheus:
   enabled: false
   pathPrefix: /prometheus/v1/metrics
-  service: kps-prometheus.prometheus.svc:9090
+  service: kps-prometheus.prometheus.svc.cluster.local:9090
+
+mimir:
+  enabled: true
+  pathPrefix: /v1/metrics
+  service: mimir-gateway.mimir-system.svc.cluster.local:80
+
+loki:
+  enabled: true
+  pathPrefix: /v1/logs
+  service: loki-gateway.loki-system.svc.cluster.local:80
+
+tempo:
+  enabled: true
+  pathPrefix: /v1/traces
+  service: tempo-gateway.tempo-system.svc.cluster.local:80
