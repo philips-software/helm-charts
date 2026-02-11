@@ -27,8 +27,8 @@ module.exports = {
       matchStrings: [
         // Original patterns
         '# renovate:\\s+?datasource=(?<datasource>\\S+?)\\s+?depName=(?<depName>\\S+?)\\s+?(default|(?i:.*version))\\s?(:|=|:=|\\?=)\\s+"?(?<currentValue>\\S+?)"\\s',
-        '# renovate:\\s+?datasource=(?<datasource>\\S+?)\\s+?depName=(?<depName>\\S+?)\\s*\\n\\s*targetRevision:\\s*(?<currentValue>\\S+)',
-        '# renovate:\\s+?datasource=(?<datasource>\\S+?)\\s+?registryUrl=(?<registryUrl>\\S+?)\\s+?depName=(?<depName>\\S+?)\\s*\\n\\s*targetRevision:\\s*(?<currentValue>\\S+)',
+        '# renovate:\\s+?datasource=(?<datasource>\\S+?)\\s+?depName=(?<depName>\\S+?)\\s*\\n\\s*targetRevision:\\s*"?(?<currentValue>[^"\\s]+)"?',
+        '# renovate:\\s+?datasource=(?<datasource>\\S+?)\\s+?registryUrl=(?<registryUrl>\\S+?)\\s+?depName=(?<depName>\\S+?)\\s*\\n\\s*targetRevision:\\s*"?(?<currentValue>[^"\\s]+)"?',
         '# renovate:\\s+?datasource=(?<datasource>\\S+?)\\s+?depName=(?<depName>\\S+?)\\s*\\n\\s*image:\\s*\\S+?:(?<currentValue>\\S+)',
         // New patterns for values.yaml files - tag field for separated repository/tag format
         '# renovate:\\s+?datasource=(?<datasource>\\S+?)\\s+?depName=(?<depName>\\S+?)\\s*\\n\\s*tag:\\s*"?(?<currentValue>[^"\\s]+?)"?\\s*$',
