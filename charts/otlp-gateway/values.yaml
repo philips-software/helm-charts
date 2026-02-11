@@ -29,8 +29,8 @@ environmentConfig:
 httpRoute:
   enabled: false
   gateway:
-    name: shared-gateway
-    namespace: gateway
+    name: platform
+    namespace: kube-system
 
 ingress:
   enabled: true
