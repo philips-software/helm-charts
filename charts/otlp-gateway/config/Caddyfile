@@ -133,11 +133,14 @@
     output stdout
     level {{ .Values.log.level }}
     format filter {
-      request>headers>X-Id-Token replace REDACTED
-      request>headers>X-Api-Key replace REDACTED
+      request>headers>X-Id-Token delete
+      request>headers>X-Api-Key delete
+      request>headers>Authorization delete
+      resp_headers>X-Id-Token delete
+      resp_headers>X-Api-Key delete
     }
   }
-  
+
   redir https://{{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}{uri} permanent
 }
 {{- else }}
@@ -147,11 +150,14 @@
     output stdout
     level {{ .Values.log.level }}
     format filter {
-      request>headers>X-Id-Token replace REDACTED
-      request>headers>X-Api-Key replace REDACTED
+      request>headers>X-Id-Token delete
+      request>headers>X-Api-Key delete
+      request>headers>Authorization delete
+      resp_headers>X-Id-Token delete
+      resp_headers>X-Api-Key delete
     }
   }
-  
+
   import app_logic
 }
 {{- end }}
@@ -174,11 +180,14 @@
     output stdout
     level {{ .Values.log.level }}
     format filter {
-      request>headers>X-Id-Token replace REDACTED
-      request>headers>X-Api-Key replace REDACTED
+      request>headers>X-Id-Token delete
+      request>headers>X-Api-Key delete
+      request>headers>Authorization delete
+      resp_headers>X-Id-Token delete
+      resp_headers>X-Api-Key delete
     }
   }
-  
+
   import app_logic
 }
 {{- end }}
