@@ -1,0 +1,36 @@
+{{- include "otlp-gateway-bootstrap.validateConfig" . -}}
+apiVersion: dip.io/v1alpha1
+kind: HelmApplication
+metadata:
+  name: otlp-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "otlp-gateway-bootstrap.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.argoProject }}
+  source:
+    repoURL: {{ .Values.chartRepo.url }}
+    targetRevision: {{ .Values.chartRepo.targetRevision }}
+    path: .
+    helm:
+      releaseName: otlp-gateway
+      {{- with .Values.otlpGateway }}
+      valuesObject:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  destination:
+    namespace: {{ .Release.Namespace }}
+  syncPolicy:
+    syncOptions:
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
