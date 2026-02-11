@@ -6,8 +6,6 @@ metadata:
   namespace: {{ .Values.argoNamespace | quote }}
   labels:
     {{- include "grafana.labels" . | nindent 4 }}
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
