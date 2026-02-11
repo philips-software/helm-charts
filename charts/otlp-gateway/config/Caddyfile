@@ -107,6 +107,14 @@
         reverse_proxy {{ .Values.ruler.service }}
       }
       {{- end }}
+
+      {{- if .Values.prometheus.enabled }}
+      # prometheus otlp receiver
+      reverse_proxy {{ .Values.prometheus.pathPrefix }} {
+        to {{ .Values.prometheus.service }}
+        rewrite /api/v1/otlp/v1/metrics
+      }
+      {{- end }}
   }
 }
 
