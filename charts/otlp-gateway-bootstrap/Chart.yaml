@@ -1,4 +1,4 @@
 apiVersion: v2
 name: otlp-gateway-bootstrap
-version: 0.36.0
+version: 0.37.0
 description: Bootstrap chart for deploying otlp-gateway via HelmApplication
