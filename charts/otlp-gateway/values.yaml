@@ -70,3 +70,8 @@ ruler:
   enabled: true
   pathPrefix: /ruler
   service: mimir-ruler.mimir-system.svc:8080
+
+prometheus:
+  enabled: false
+  pathPrefix: /prometheus/v1/metrics
+  service: kps-prometheus.prometheus.svc:9090
