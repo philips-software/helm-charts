@@ -1364,6 +1364,17 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-0.1.0/k8s-observability-monitoring-0.1.0.tgz
     version: 0.1.0
+  masterdata-datasource:
+  - apiVersion: v2
+    created: "2026-02-12T13:21:53.172611818Z"
+    description: A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database
+      for use as a datasource in Grafana
+    digest: 80153b151248d75a06388aac2854f94cd42e9b2393462ba9ef129a2c0d3cf3bf
+    name: masterdata-datasource
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/masterdata-datasource-0.8.0/masterdata-datasource-0.8.0.tgz
+    version: 0.8.0
   otlp-gateway:
   - apiVersion: v2
     created: "2026-02-11T12:48:32.310846674Z"
@@ -1432,4 +1443,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.37.0/otlp-gateway-bootstrap-0.37.0.tgz
     version: 0.37.0
-generated: "2026-02-11T20:25:43.057171932Z"
+generated: "2026-02-12T13:21:53.172870752Z"
