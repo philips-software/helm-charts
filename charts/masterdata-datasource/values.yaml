@@ -1,0 +1,14 @@
+environmentConfig:
+  resourcePrefix: ""
+
+postgres:
+  sourceIdentifier: "masterdatadb-202601081341"
+
+grafanaDatasource:
+  enabled: true
+  name: "Masterdata PostgreSQL"
+  # URL, username, and password are patched by the Job from the connection secrets
+  databaseName: "masterdatadb"
+  isDefault: false
+  sslMode: "require"
+  providerConfigRef: "default"

@@ -1,0 +1,38 @@
+{{- if .Values.grafanaDatasource.enabled }}
+apiVersion: oss.grafana.crossplane.io/v1alpha1
+kind: DataSource
+metadata:
+  name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-postgres
+  annotations:
+    argocd.argoproj.io/sync-options: IgnoreExtraneous
+  labels:
+    {{- include "masterdata-datasource.labels" . | nindent 4 }}
+spec:
+  forProvider:
+    name: {{ .Values.grafanaDatasource.name | default "Masterdata PostgreSQL" }}
+    type: postgres
+    uid: "postgres-masterdata"
+    # Placeholder URL - will be patched by the Job with actual connection details
+    url: "PLACEHOLDER:5432"
+    databaseName: {{ .Values.grafanaDatasource.databaseName | default "postgres" }}
+    # Placeholder username - will be patched by the Job
+    username: "PLACEHOLDER"
+    isDefault: {{ .Values.grafanaDatasource.isDefault | default false }}
+    jsonDataEncoded: |
+      {
+        "sslmode": "{{ .Values.grafanaDatasource.sslMode | default "require" }}",
+        "maxOpenConns": 100,
+        "maxIdleConns": 2,
+        "maxIdleConnsAuto": true,
+        "connMaxLifetime": 14400,
+        "postgresVersion": 1500,
+        "timescaledb": false,
+        "database": {{ .Values.grafanaDatasource.databaseName | default "postgres" | quote }}
+      }
+    secureJsonDataEncodedSecretRef:
+      name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-grafana-ds-secret
+      key: secureJsonData
+      namespace: {{ .Release.Namespace }}
+  providerConfigRef:
+    name: {{ .Values.grafanaDatasource.providerConfigRef | default "default" }}
+{{- end }}
