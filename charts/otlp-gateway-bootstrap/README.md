@@ -1,6 +1,6 @@
 # otlp-gateway-bootstrap
 
-![Version: 0.40.0](https://img.shields.io/badge/Version-0.40.0-informational?style=flat-square)
+![Version: 0.41.0](https://img.shields.io/badge/Version-0.41.0-informational?style=flat-square)
 
 Bootstrap chart for deploying otlp-gateway via HelmApplication
 
