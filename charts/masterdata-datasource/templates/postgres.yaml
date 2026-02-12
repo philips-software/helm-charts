@@ -1,0 +1,36 @@
+apiVersion: dip.io/v1alpha1
+kind: Postgres
+metadata:
+  name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata
+  namespace: {{ .Release.Namespace }}
+spec:
+  parameters:
+    # Basic Config
+    size: small
+    
+    # New Identifier for the restored DB
+    identifier: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata
+
+    # Perhaps due to the small size?
+    storageType: gp2    
+    
+    # Restore Configuration
+    {{- if .Values.postgres.sourceIdentifier }}
+    restore:
+      # AWS Snapshot Identifier
+      sourceIdentifier: {{ .Values.postgres.sourceIdentifier | quote }}
+    {{- end }}
+    
+    # These create/import specific params will be ignored or used as overrides where applicable (e.g., storage)
+    allocatedStorage: 20
+    
+    # We still need to provide these for validation if they are marked as required in the schema,
+    # but the Composition will ignore them during the restore phase.
+    # However, after restore, you might need to rotate the password to match this secret.
+    masterUsername: masteruser
+    masterPasswordSecretRef:
+      name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-password
+      key: password
+
+  writeConnectionSecretToRef:
+    name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-connection-details
