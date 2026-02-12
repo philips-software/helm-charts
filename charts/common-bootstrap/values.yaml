@@ -38,12 +38,13 @@ argocd:
       - oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator
       - oci://ghcr.io/philips-software/helm-charts/otlp-gateway
       - oci://ghcr.io/philips-software/helm-charts/grafana
-      - oci://ghcr.io/philips-software/helm-charts
+      - oci://ghcr.io/philips-software/helm-charts/*
     sourceNamespaces:
       - common-bootstrap
       - crossplane-system
       - argocd
       - monitoring
+      - otlp-gateway
 
 # HelmApplications to deploy via Crossplane composition
 # These will be created after the EnvironmentConfig is ready

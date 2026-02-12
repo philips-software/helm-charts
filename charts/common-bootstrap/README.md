@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 1.0.5](https://img.shields.io/badge/Version-1.0.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.19](https://img.shields.io/badge/AppVersion-0.0.19-informational?style=flat-square)
+![Version: 1.0.6](https://img.shields.io/badge/Version-1.0.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.19](https://img.shields.io/badge/AppVersion-0.0.19-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -18,13 +18,14 @@ and uses HelmApplication CRs to bootstrap platform components.
 | argocd.project.sourceNamespaces[1] | string | `"crossplane-system"` |  |
 | argocd.project.sourceNamespaces[2] | string | `"argocd"` |  |
 | argocd.project.sourceNamespaces[3] | string | `"monitoring"` |  |
+| argocd.project.sourceNamespaces[4] | string | `"otlp-gateway"` |  |
 | argocd.project.sourceRepos[0] | string | `"https://github.com/philips-software/helm-charts"` |  |
 | argocd.project.sourceRepos[1] | string | `"https://github.com/dip-software/crossplane-compositions"` |  |
 | argocd.project.sourceRepos[2] | string | `"https://cloudnative-pg.io/charts/"` |  |
 | argocd.project.sourceRepos[3] | string | `"oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator"` |  |
 | argocd.project.sourceRepos[4] | string | `"oci://ghcr.io/philips-software/helm-charts/otlp-gateway"` |  |
 | argocd.project.sourceRepos[5] | string | `"oci://ghcr.io/philips-software/helm-charts/grafana"` |  |
-| argocd.project.sourceRepos[6] | string | `"oci://ghcr.io/philips-software/helm-charts"` |  |
+| argocd.project.sourceRepos[6] | string | `"oci://ghcr.io/philips-software/helm-charts/*"` |  |
 | crossplaneCompositions.enabled | bool | `true` |  |
 | crossplaneCompositions.path | string | `"kustomize"` |  |
 | crossplaneCompositions.repoURL | string | `"https://github.com/dip-software/crossplane-compositions"` |  |
