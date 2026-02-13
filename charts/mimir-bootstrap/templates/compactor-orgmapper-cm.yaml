@@ -1,0 +1,10 @@
+{{ if .Values.multitenancyEnabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: compactor-orgmapper-cm
+  namespace: mimir-system
+data:
+  config.yaml: |
+{{ (tpl (.Files.Get "config/compactor-orgmapper.yaml") .) | trim | indent 4 }}
+{{ end }}

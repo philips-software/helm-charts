@@ -1,0 +1,54 @@
+mimirChart:
+  # renovate: datasource=helm depName=mimir-distributed registryUrl=https://grafana.github.io/helm-charts
+  version: 6.0.5
+
+compactorOrgmapper:
+  package: ghcr.io/loafoe/compactor-orgmapper
+  # renovate: datasource=docker depName=ghcr.io/loafoe/compactor-orgmapper
+  tag: v0.0.1
+
+initOverrides:
+  package: busybox
+  # renovate: datasource=docker depName=busybox
+  tag: 1.36.1
+
+environmentConfig:
+  resourcePrefix: ""
+  region: ""
+
+mimirProvider:
+  enabled: true
+  package: ghcr.io/loafoe/provider-mimir
+  # renovate: datasource=docker depName=ghcr.io/loafoe/provider-mimir
+  tag: v0.9.0
+  credentials:
+    secretName: mimir-credentials
+    secretKey: credentials
+
+argoProject: default
+
+kafkaNodePool:
+  enabled: true
+  labels:
+    workload: kafka
+  nodeClassRefName: bottlerocket-v2
+  resources:
+    limits:
+      cpu: 4
+      memory: 16Gi
+  expireAfter: 3600h # half a year
+
+# The name of an existing S3 bucket to use for Mimir storage.
+# This value is required and cannot be empty.
+# You can use variables like ${resourcePrefix} and ${region} which will be replaced
+# with values from environmentConfig.
+# Example: "my-bucket-${resourcePrefix}-mimir" will become "my-bucket-prod-mimir"
+existingBucketName: ""
+
+# Enable multitenancy in Mimir    
+multitenancyEnabled: true
+
+karpenter:
+  # If true, stateful components (ingester, store-gateway, etc.) will be annotated
+  # with karpenter.sh/do-not-disrupt: "true" to prevent consolidation.
+  doNotDisrupt: false

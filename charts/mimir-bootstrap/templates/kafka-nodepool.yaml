@@ -1,0 +1,63 @@
+{{- if .Values.kafkaNodePool.enabled }}
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  name: kafka-nodepool
+spec:
+  disruption:
+    budgets:
+    - nodes: 10%
+    consolidateAfter: 300s
+    consolidationPolicy: WhenEmptyOrUnderutilized
+  limits:
+    amd.com/gpu: 0
+    aws.amazon.com/neuron: 0
+    cpu: {{ .Values.kafkaNodePool.resources.limits.cpu }}
+    memory: {{ .Values.kafkaNodePool.resources.limits.memory }}
+    nvidia.com/gpu: 0
+  template:
+    metadata:
+      labels:
+
+        {{- range $key, $value := .Values.kafkaNodePool.labels }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
+    spec:
+      expireAfter: {{ .Values.kafkaNodePool.expireAfter }}
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: {{ .Values.kafkaNodePool.nodeClassRefName }}
+      requirements:
+      - key: karpenter.sh/capacity-type
+        operator: In
+        values:
+        - on-demand
+      - key: karpenter.k8s.aws/instance-hypervisor
+        operator: In
+        values:
+        - nitro
+      - key: kubernetes.io/arch
+        operator: In
+        values:
+        - arm64
+      - key: karpenter.k8s.aws/instance-family
+        operator: NotIn
+        values:
+        - a1
+      - key: karpenter.k8s.aws/instance-memory
+        operator: Gt
+        values:
+        - "4000"
+      - key: karpenter.k8s.aws/instance-cpu
+        operator: Gt
+        values:
+        - "1"
+      # Permanent taints to reserve nodes for kafka workloads only
+      taints:
+      - effect: NoSchedule
+        key: workload
+        value: kafka
+      terminationGracePeriod: 24h
+  weight: 5
+{{- end }}

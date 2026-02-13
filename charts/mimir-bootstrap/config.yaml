@@ -1,0 +1,6 @@
+compactorOrgmapper:
+  issuer: https://issuer.obs-us-east.hsp.philips.com
+  tenant_mapper_url: http://tenant-mapper.starlift-observability.svc
+  runtime_config_file: /tmp/overrides.yaml
+  mode: mimir # loki, tempo or mimir
+  refresh_interval: 30s

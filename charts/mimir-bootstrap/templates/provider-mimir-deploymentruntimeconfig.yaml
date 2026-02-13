@@ -1,0 +1,26 @@
+{{- if .Values.mimirProvider.enabled }}
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-mimir
+  labels:
+    {{- include "mimir-bootstrap.labels" . | nindent 4 }}
+spec:
+  deploymentTemplate:
+    metadata:
+      name: provider-mimir
+    spec:
+      replicas: 1
+      selector: {}
+      template:
+        spec:
+          containers:
+            - args: []
+              name: package-runtime
+              resources:
+                limits:
+                  memory: 1024Mi
+                requests:
+                  cpu: 40m
+                  memory: 512Mi
+{{- end }}

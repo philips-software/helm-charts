@@ -1,0 +1,17 @@
+{{- if .Values.mimirProvider.enabled }}
+apiVersion: mimir.crossplane.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+  labels:
+    {{- include "mimir-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: mimir-system
+      name: {{ .Values.mimirProvider.credentials.secretName }}
+      key: {{ .Values.mimirProvider.credentials.secretKey }}
+{{- end }}
