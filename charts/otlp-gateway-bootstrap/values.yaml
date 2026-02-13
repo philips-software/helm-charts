@@ -3,7 +3,7 @@ chartRepo:
   # OCI URL including the chart name
   url: "oci://ghcr.io/philips-software/helm-charts/otlp-gateway"
   # renovate: datasource=docker depName=ghcr.io/philips-software/helm-charts/otlp-gateway
-  targetRevision: 0.40.0
+  targetRevision: 0.41.0
 
 argoProject: common-bootstrap
 
