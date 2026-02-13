@@ -1,0 +1,370 @@
+global:
+  extraEnv:
+    - name: S3_BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.environmentConfig.resourcePrefix }}-mimir-s3
+          key: id
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  runAsUser: 11019
+  runAsGroup: 11019
+  readOnlyRootFilesystem: true
+  seccompProfile:
+    type: RuntimeDefault
+
+runtimeConfig:
+  ingester_limits: # limits that each ingester replica enforces
+    max_ingestion_rate: 80000
+    max_tenants: 1000
+    max_inflight_push_requests: 60000
+  distributor_limits: # limits that each distributor replica enforces
+    max_ingestion_rate: 80000
+    max_inflight_push_requests: 60000
+    max_inflight_push_requests_bytes: 50000000
+
+minio:
+  enabled: false
+
+serviceAccount:
+  create: true
+  name: {{ .Values.environmentConfig.resourcePrefix }}-mimir-s3
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.environmentConfig.accountId }}:role/{{ .Values.environmentConfig.resourcePrefix }}-mimir-s3-irsa-role
+
+gateway:
+  replicas: 3
+  enabledNonEnterprise: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+alert_manager:
+  podAnnotations:
+    {{- if .Values.karpenter.doNotDisrupt }}
+    karpenter.sh/do-not-disrupt: "true"
+    {{- end }}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+kafka:
+  podAnnotations:
+    {{- if .Values.karpenter.doNotDisrupt }}
+    karpenter.sh/do-not-disrupt: "true"
+    {{- end }}
+  enabled: true
+  persistence:
+    size: 100Gi
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      memory: 1Gi
+  # Override topology spread constraints for Kafka StatefulSet with PVC
+  # PVCs are zone-bound, so we use soft constraints on hostname instead
+  topologySpreadConstraints:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+  annotations:
+    policies.hsp.philips.com/exception: "require-pods-distributed-across-nodes"
+    policies.hsp.philips.com/exception-reason: "Do not interfere"
+  {{- if .Values.kafkaNodePool.enabled }}
+  nodeSelector:
+    {{- range $key, $value := .Values.kafkaNodePool.labels }}
+    {{ $key }}: {{ $value }}
+    {{- end }}
+  tolerations:
+  - key: workload
+    operator: Equal
+    value: kafka
+    effect: NoSchedule
+  {{- end }}
+
+distributor:
+  extraArgs:
+    distributor.ingestion-rate-limit: 300000
+    distributor.ingestion-burst-size: 400000
+    distributor.instance-limits.max-ingestion-rate: 0
+    distributor.instance-limits.max-inflight-push-requests-bytes: 0
+  replicas: 6 # large.yaml says 12
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+
+ruler:
+  extraArgs:
+    ruler-storage.backend: s3
+    ruler.max-rule-groups-per-tenant: 1500
+    ruler.max-rules-per-rule-group: 200
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+query_frontend:
+  replicas: 3
+  extraArgs:
+    query-frontend.max-cache-freshness: 30m
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+querier:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+query_scheduler:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+store_gateway:
+  podAnnotations:
+    {{- if .Values.karpenter.doNotDisrupt }}
+    karpenter.sh/do-not-disrupt: "true"
+    {{- end }}
+  persistentVolume:
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  # Override topology spread constraints for StatefulSet with PVC
+  topologySpreadConstraints:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+
+ingester:
+  podAnnotations:
+    {{- if .Values.karpenter.doNotDisrupt }}
+    karpenter.sh/do-not-disrupt: "true"
+    {{- end }}
+  persistentVolume:
+    size: 100Gi
+  replicas: 9 # large.yaml says 27
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1.5Gi
+    limits:
+      memory: 3Gi
+
+  topologySpreadConstraints: {}
+  zoneAwareReplication:
+    topologyKey: 'kubernetes.io/hostname'
+
+compactor:
+  podAnnotations:
+    {{- if .Values.karpenter.doNotDisrupt }}
+    karpenter.sh/do-not-disrupt: "true"
+    {{- end }}
+  persistentVolume:
+    size: 80Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  # Override topology spread constraints for StatefulSet with PVC
+  topologySpreadConstraints:
+    maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+  extraArgs:
+    config.expand-env: true
+    {{- if .Values.multitenancyEnabled }}
+    runtime-config.file: /tmp/overrides.yaml
+    {{- end }}
+  extraVolumeMounts:
+    - name: temp
+      mountPath: /tmp
+    {{- if .Values.multitenancyEnabled }}
+    - name: compactor-orgmapper-config
+      mountPath: /etc/compactor-orgmapper
+    {{- end }}  
+  {{- if .Values.multitenancyEnabled }}  
+  initContainers:
+    - name: init-overrides
+      image: {{ .Values.initOverrides.package }}:{{ .Values.initOverrides.tag }}
+      command: ["/bin/sh", "-c", "touch /tmp/overrides.yaml"]
+      volumeMounts:
+        - mountPath: /tmp
+          name: temp
+  extraContainers:
+    - name: compactor-orgmapper
+      image: {{ .Values.compactorOrgmapper.package }}:{{ .Values.compactorOrgmapper.tag }}
+      volumeMounts:
+        - mountPath: /tmp
+          name: temp
+        - name: compactor-orgmapper-config
+          mountPath: /etc/compactor-orgmapper
+      env:
+        - name: CONFIG_FILE
+          value: /etc/compactor-orgmapper/config.yaml
+  {{- end }}
+  extraVolumes:
+    {{- if .Values.multitenancyEnabled }}
+    - name: compactor-orgmapper-config
+      configMap:
+        name: compactor-orgmapper-cm
+    {{- end }}
+    - name: temp
+      emptyDir: {}
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-mimir-s3"
+          key: id
+
+overrides_exporter:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+rollout_operator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+metaMonitoring:
+  dashboards:
+    enabled: true
+    # -- Annotations to add to the Grafana dashboard ConfigMap
+    annotations:
+      argocd.argoproj.io/sync-options: Replace=true
+  serviceMonitor:
+    enabled: true
+  prometheusRule:
+    enabled: true
+
+memcachedExporter:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+  
+mimir:
+  structuredConfig:
+    tenant_federation:
+      enabled: true
+    ruler:
+      tenant_federation:
+        enabled: true
+    limits:
+      max_label_names_per_series: 34
+      max_global_series_per_user: 4000000
+      out_of_order_time_window: 30m
+    blocks_storage:
+      storage_prefix: blocks
+      backend: s3
+    common:
+      storage:
+        backend: s3
+        s3:
+          region: "{{ .Values.environmentConfig.region }}"
+          endpoint: "s3.{{ .Values.environmentConfig.region }}.amazonaws.com"
+          bucket_name: "${S3_BUCKET_NAME}"
+  podSecurityContext:
+    fsGroup: 11023
+    fsGroupChangePolicy: OnRootMismatch
+    runAsGroup: 11023
+    runAsUser: 11023
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+admin-cache:
+  enabled: true
+  replicas: 2
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+chunks-cache:
+  enabled: true
+  replicas: 2 # large.yaml says 4
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+index-cache:
+  enabled: true
+  replicas: 2 # large.yaml says 4
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+metadata-cache:
+  enabled: true
+  allocatedMemory: 1024
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+results-cache:
+  enabled: true
+  replicas: 4
+  allocatedMemory: 1024
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+    
+multitenancyEnabled: {{ .Values.multitenancyEnabled }}

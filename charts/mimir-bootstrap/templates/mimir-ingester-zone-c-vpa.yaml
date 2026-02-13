@@ -1,0 +1,25 @@
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  namespace: mimir-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  name: mimir-ingester-zone-c-vpa
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: StatefulSet
+    name: "mimir-ingester-zone-c"
+  updatePolicy:
+    minReplicas: 1
+    updateMode: Auto
+  resourcePolicy:
+    containerPolicies:
+      - containerName: '*'
+        minAllowed:
+          cpu: 350m
+          memory: 2048Mi
+        maxAllowed:
+          cpu: 1
+          memory: 8Gi
+        controlledResources: ["memory", "cpu"]

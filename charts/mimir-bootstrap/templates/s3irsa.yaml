@@ -1,0 +1,16 @@
+apiVersion: dip.io/v1alpha1
+kind: S3IRSA
+metadata:
+  name: {{ .Values.environmentConfig.resourcePrefix }}-mimir-s3
+  namespace: mimir-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  existingBucketName: {{ include "mimir-bootstrap.substituteVars" (dict "str" .Values.existingBucketName "ctx" .) }}
+  permissions:
+    allowRead: true
+    allowWrite: true
+  serviceAccount:
+    name: {{ .Values.environmentConfig.resourcePrefix }}-mimir-s3
+  writeConnectionSecretToRef:
+    name: {{ .Values.environmentConfig.resourcePrefix }}-mimir-s3

@@ -1,0 +1,13 @@
+{{- if .Values.mimirProvider.enabled }}
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-mimir
+  labels:
+    {{- include "mimir-bootstrap.labels" . | nindent 4 }}
+spec:
+  package: {{ .Values.mimirProvider.package }}:{{ .Values.mimirProvider.tag }}
+  packagePullPolicy: IfNotPresent
+  runtimeConfigRef:
+    name: provider-mimir
+{{- end }}

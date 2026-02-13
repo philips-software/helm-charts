@@ -1,0 +1,31 @@
+{{- include "mimir-bootstrap.validateConfig" . -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mimir-helm
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "mimir-bootstrap.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: {{ .Values.argoProject }}
+  source:
+    chart: mimir-distributed
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: {{ .Values.mimirChart.version }}
+    helm:
+      releaseName: mimir
+      valuesObject:
+        {{- (tpl (.Files.Get "config/mimir-values.yaml.tmpl") .) | nindent 8 }}
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: mimir-system
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,21 @@
+# mimir
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+# Deployment
+
+## Using helm
+
+```shell
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.37.0 -n monitoring
+```
+
+## Dependencies
+
+The application uses [Crossplane](https://www.crossplane.io) to manage the required IAM roles
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}
