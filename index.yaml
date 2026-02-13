@@ -1392,6 +1392,15 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/masterdata-datasource-0.8.0/masterdata-datasource-0.8.0.tgz
     version: 0.8.0
+  mimir-bootstrap:
+  - apiVersion: v2
+    created: "2026-02-13T06:42:51.464889414Z"
+    description: A Helm chart for bootstrapping Mimir with S3 IRSA
+    digest: 588d30a9d59225f8bc9888d7570789b735b0f593f5e5450f3b4887bb1715af0f
+    name: mimir-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/mimir-bootstrap-0.37.0/mimir-bootstrap-0.37.0.tgz
+    version: 0.37.0
   otlp-gateway:
   - apiVersion: v2
     created: "2026-02-12T15:06:30.271915967Z"
@@ -1478,4 +1487,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.37.0/otlp-gateway-bootstrap-0.37.0.tgz
     version: 0.37.0
-generated: "2026-02-12T15:06:30.27224526Z"
+generated: "2026-02-13T06:42:51.617991107Z"
