@@ -21,7 +21,7 @@ environmentConfig:
 crossplaneCompositions:
   enabled: true
   repoURL: https://github.com/dip-software/crossplane-compositions
-  targetRevision: v0.0.19
+  targetRevision: v0.0.21
   path: kustomize
 
 # ArgoCD configuration

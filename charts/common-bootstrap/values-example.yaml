@@ -13,7 +13,7 @@ environmentConfig:
 # Crossplane compositions version
 crossplaneCompositions:
   enabled: true
-  targetRevision: v0.0.19
+  targetRevision: v0.0.21
 
 # HelmApplications to bootstrap
 # Add your own applications here
