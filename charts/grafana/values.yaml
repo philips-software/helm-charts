@@ -18,6 +18,7 @@ grafana:
     host: gf
     sharedGatewayName: platform
     sharedGatewayNamespace: kube-system
+  tenants: []
 
 grafanaChart:
   # renovate: datasource=helm depName=grafana registryUrl=https://grafana.github.io/helm-charts
