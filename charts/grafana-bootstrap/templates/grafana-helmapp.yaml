@@ -1,0 +1,33 @@
+apiVersion: dip.io/v1alpha1
+kind: HelmApplication
+metadata:
+  name: grafana-helmapp
+  namespace: {{ .Values.argocd.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: ri-observability
+  source:
+    repoURL: ghcr.io/philips-software
+    chart: helm-charts/grafana
+    targetRevision: 0.28.0
+    helm:
+      releaseName: grafana-helmapp
+      valuesObject:
+        argoProject: {{ .Values.argocd.project }}
+        argoNamespace: {{ .Values.argocd.namespace }}
+        grafanaChart:
+          releaseName: {{ .Values.grafana.releaseName }}
+        grafana:
+          ssoAuthEnabled: true
+          ingress:
+            enabled: true
+            host: {{ .Values.grafana.host }}
+          httpRoute:
+            enabled: false
+  destination:
+    namespace: {{ .Values.grafana.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

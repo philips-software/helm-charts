@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-basic-auth
+  namespace: {{ .Values.grafana.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-options: IgnoreExtraneous
+type: Opaque
+stringData:
+  # Placeholder - will be patched by the Job with actual password
+  secureJsonData: '{"username":"PLACEHOLDER", "password": "PLACEHOLDER"}'
