@@ -13,5 +13,6 @@ spec:
     source: Secret
     secretRef:
       name: grafana-provider-credentials
+      namespace: {{ .Release.Namespace }}
       key: credentials
 {{- end }}
