@@ -25,6 +25,7 @@ downloadDashboards:
 ingress:
   enabled: {{ .Values.grafana.ingress.enabled }}
 {{- if .Values.grafana.ingress.enabled }}
+  ingressClassName: {{ .Values.grafana.ingress.ingressClassName }}
   hosts:
     - {{ .Values.grafana.ingress.host }}.{{ .Values.environmentConfig.clusterFqdn }}
 {{- end }}
