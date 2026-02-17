@@ -22,9 +22,12 @@ downloadDashboards:
       cpu: 10m
       memory: 16Mi
 
-# We'll create the ingress through Kustomize
 ingress:
-  enabled: false
+  enabled: {{ .Values.grafana.ingress.enabled }}
+{{- if .Values.grafana.ingress.enabled }}
+  hosts:
+    - {{ .Values.grafana.ingress.host }}.{{ .Values.environmentConfig.clusterFqdn }}
+{{- end }}
 
 imageRenderer:
   enabled: true
