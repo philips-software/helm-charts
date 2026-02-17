@@ -1124,6 +1124,15 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/grafana-0.22.0/grafana-0.22.0.tgz
     version: 0.22.0
+  grafana-bootstrap:
+  - apiVersion: v2
+    created: "2026-02-17T19:32:55.553223751Z"
+    description: A Helm chart for bootstrapping Grafana
+    digest: c69eedebdc761635b1650533a0631bf6296d6dab73e7a0adc20bc5e19d083f14
+    name: grafana-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-bootstrap-0.0.1/grafana-bootstrap-0.0.1.tgz
+    version: 0.0.1
   hsp-observability-agent:
   - apiVersion: v2
     created: "2024-10-10T17:57:31.548645705Z"
@@ -1539,4 +1548,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.37.0/otlp-gateway-bootstrap-0.37.0.tgz
     version: 0.37.0
-generated: "2026-02-17T15:09:17.134350117Z"
+generated: "2026-02-17T19:32:55.553504371Z"
