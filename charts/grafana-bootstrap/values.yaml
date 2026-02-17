@@ -8,7 +8,12 @@ argocd:
 grafana:
   namespace: monitoring
   releaseName: gf
-  host: gf
+  ingress:
+    enabled: true
+    host: gf
+  httpRoute:
+    enabled: false
+    host: gf
 
 tenants:
   # The default Grafana Org
