@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.23.0](https://img.shields.io/badge/Version-0.23.0-informational?style=flat-square)
+![Version: 0.24.0](https://img.shields.io/badge/Version-0.24.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -34,6 +34,7 @@ secret in the same namespace as the app. The secret should have the following fi
 | grafana.ingress.host | string | `"gf"` |  |
 | grafana.replicas | int | `2` |  |
 | grafana.ssoAuthEnabled | bool | `false` |  |
+| grafanaChart.releaseName | string | `"gf"` |  |
 | grafanaChart.version | string | `"10.5.15"` |  |
 
 ----------------------------------------------

@@ -15,7 +15,7 @@ spec:
     repoURL: https://grafana.github.io/helm-charts
     targetRevision: {{ .Values.grafanaChart.version }}
     helm:
-      releaseName: grafana
+      releaseName: {{ .Values.grafanaChart.releaseName }}
       valuesObject:
         {{- (tpl (.Files.Get "config/grafana-values.yaml") .) | trim | nindent 8 }}
   destination:
