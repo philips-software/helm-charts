@@ -1,4 +1,0 @@
-apiVersion: v2
-name: grafana-bootstrap
-version: 0.0.3
-description: A Helm chart for bootstrapping Grafana
