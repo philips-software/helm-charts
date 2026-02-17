@@ -1076,6 +1076,13 @@ entries:
     version: 0.0.14
   grafana:
   - apiVersion: v2
+    created: "2026-02-17T20:13:58.431083204Z"
+    digest: 388a7294a50a7704e773374633712717ca01b7da0db8aa16522539ea2ac9b8fc
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.30.0/grafana-0.30.0.tgz
+    version: 0.30.0
+  - apiVersion: v2
     created: "2026-02-17T19:51:32.933803858Z"
     digest: 8cc91ad63eb27ced5f6c145ddbf8826af1cb04178f2d9dbb947713dc9e73db17
     name: grafana
@@ -1132,6 +1139,14 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/grafana-0.22.0/grafana-0.22.0.tgz
     version: 0.22.0
   grafana-bootstrap:
+  - apiVersion: v2
+    created: "2026-02-17T20:13:58.649749585Z"
+    description: A Helm chart for bootstrapping Grafana
+    digest: 897a79ae3e5ebf0a59c1975ae378dc8acabc524abd1390176a563124b1ad4a2f
+    name: grafana-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-bootstrap-0.0.3/grafana-bootstrap-0.0.3.tgz
+    version: 0.0.3
   - apiVersion: v2
     created: "2026-02-17T19:51:33.115874632Z"
     description: A Helm chart for bootstrapping Grafana
@@ -1563,4 +1578,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.37.0/otlp-gateway-bootstrap-0.37.0.tgz
     version: 0.37.0
-generated: "2026-02-17T19:51:33.116388418Z"
+generated: "2026-02-17T20:13:58.650041113Z"
