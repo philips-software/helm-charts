@@ -10,7 +10,10 @@ spec:
   source:
     repoURL: ghcr.io/philips-software
     chart: helm-charts/grafana
-    targetRevision: 0.28.0
+    targetRevision: 0.29.0
+    withConfigKeys:
+      - resourcePrefix
+      - clusterFqdn
     helm:
       releaseName: grafana-helmapp
       valuesObject:
@@ -25,6 +28,8 @@ spec:
             host: {{ .Values.grafana.host }}
           httpRoute:
             enabled: false
+        crossplaneProvider:
+          enabled: true
   destination:
     namespace: {{ .Values.grafana.namespace }}
   syncPolicy:
