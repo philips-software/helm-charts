@@ -51,14 +51,21 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Generate the Grafana host (without protocol)
+*/}}
+{{- define "grafana.host" -}}
+{{- if .Values.grafana.httpRoute.enabled }}
+{{- printf "%s.%s" .Values.grafana.httpRoute.host .Values.environmentConfig.clusterFqdn }}
+{{- else }}
+{{- printf "%s.%s" .Values.grafana.ingress.host .Values.environmentConfig.clusterFqdn }}
+{{- end }}
+{{- end }}
+
+{{/*
 Generate the Grafana URL
 */}}
 {{- define "grafana.url" -}}
-{{- if .Values.grafana.httpRoute.enabled }}
-{{- printf "https://%s.%s" .Values.grafana.httpRoute.host .Values.environmentConfig.clusterFqdn }}
-{{- else }}
-{{- printf "https://%s.%s" .Values.grafana.ingress.host .Values.environmentConfig.clusterFqdn }}
-{{- end }}
+{{- printf "https://%s" (include "grafana.host" .) }}
 {{- end }}
 
 {{/*

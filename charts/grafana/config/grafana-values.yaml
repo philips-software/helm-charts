@@ -179,8 +179,8 @@ dashboards:
 # Pull in cluster details from ENV
 grafana.ini:
   server:
-    root_url: https://{{ if .Values.grafana.httpRoute.enabled }}{{ .Values.grafana.httpRoute.host }}{{ else }}{{ .Values.grafana.ingress.host }}{{ end }}.{{ .Values.environmentConfig.clusterFqdn }}
-    domain: {{ if .Values.grafana.httpRoute.enabled }}{{ .Values.grafana.httpRoute.host }}{{ else }}{{ .Values.grafana.ingress.host }}{{ end }}.{{ .Values.environmentConfig.clusterFqdn }}
+    root_url: https://{{ include "grafana.host" . }}
+    domain: {{ include "grafana.host" . }}
   users:
     auto_assign_org_role: "None"
     viewers_can_edit: true
@@ -225,6 +225,7 @@ grafana.ini:
     auth_url: ${issuerUrl}/auth
     token_url: ${issuerUrl}/token
     api_url: ${issuerUrl}/userInfo
+    signout_redirect_url: https://{{ include "grafana.host" . }}/login?disableAutoLogin=true
 {{- end }}
 
 plugins:
