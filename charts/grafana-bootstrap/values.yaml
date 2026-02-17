@@ -1,0 +1,29 @@
+environmentConfig:
+  resourcePrefix: ""
+
+argocd:
+  project: default
+  namespace: monitoring
+
+grafana:
+  namespace: monitoring
+  releaseName: gf
+  host: gf
+
+tenants:
+  # The default Grafana Org
+  - name: main-org
+    tenantId: "anonymous"
+    orgId: "1"
+    viewerGroups:
+      - acme-developers
+      - acme-oncall
+    editorGroups:
+      - acme-sre
+    adminGroups:
+      - acme-platform-leads
+    retention:
+      logs: "30d"
+      metrics: "90d"
+      traces: "14d"
+      profiles: "7d"

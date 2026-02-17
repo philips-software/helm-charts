@@ -1,0 +1,14 @@
+apiVersion: orgmapper.crossplane.io/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: default
+  namespace: {{ .Values.grafana.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  grafanaUrl: "https://{{ .Values.grafana.host }}.{{ include "grafana-bootstrap.resourcePrefix" . }}"
+  credentials:
+    source: Secret
+    secretRef:
+      name: grafana-basic-auth
+      key: credentials

@@ -1,0 +1,45 @@
+apiVersion: dip.io/v1alpha1
+kind: HelmApplication
+metadata:
+  name: provider-orgmapper
+  namespace: {{ .Values.argocd.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: ri-observability
+  source:
+    repoURL: oci://ghcr.io/philips-software/helm-charts/crossplane-providers
+    # renovate: datasource=github-releases depName=philips-software/helm-charts
+    targetRevision: 0.0.24
+    path: .
+    withConfigKeys:
+      - resourcePrefix
+      - accountId
+      - oidcProvider
+      - oidcProviderArn
+    helm:
+      valuesObject:
+        providers: [] # Disable default providers
+        package:
+          version: "v0.5.0"
+          registry: "ghcr.io/loafoe"
+        extraProviders:
+          # Orgmapper - Tenant management for Grafana
+          - name: provider-orgmapper
+            enabled: true
+  destination:
+    namespace: crossplane-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 8
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
