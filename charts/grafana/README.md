@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.26.0](https://img.shields.io/badge/Version-0.26.0-informational?style=flat-square)
+![Version: 0.27.0](https://img.shields.io/badge/Version-0.27.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -32,6 +32,7 @@ secret in the same namespace as the app. The secret should have the following fi
 | grafana.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
 | grafana.ingress.enabled | bool | `false` |  |
 | grafana.ingress.host | string | `"gf"` |  |
+| grafana.ingress.ingressClassName | string | `"nginx"` |  |
 | grafana.replicas | int | `2` |  |
 | grafana.ssoAuthEnabled | bool | `false` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |

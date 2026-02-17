@@ -11,6 +11,8 @@ grafana:
     enabled: false
     # Hostname for Grafana ingress (alphanumeric characters and hyphens only)
     host: gf
+    # Ingress class name (e.g., nginx, alb)
+    ingressClassName: nginx
   httpRoute:
     enabled: true
     host: gf
