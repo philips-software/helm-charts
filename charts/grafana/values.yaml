@@ -21,8 +21,8 @@ grafana:
   tenants: []
 
 grafanaChart:
-  # renovate: datasource=helm depName=grafana registryUrl=https://grafana.github.io/helm-charts
-  version: 10.5.15
+  # renovate: datasource=helm depName=grafana registryUrl=https://grafana-community.github.io/helm-charts
+  version: 11.1.7
   # Helm release name for Grafana
   releaseName: gf
 

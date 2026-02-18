@@ -12,7 +12,7 @@ spec:
   project: {{ .Values.argoProject | quote }}
   source:
     chart: grafana
-    repoURL: https://grafana.github.io/helm-charts
+    repoURL: https://grafana-community.github.io/helm-charts
     targetRevision: {{ .Values.grafanaChart.version }}
     helm:
       releaseName: {{ .Values.grafanaChart.releaseName }}
