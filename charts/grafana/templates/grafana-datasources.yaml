@@ -1,7 +1,7 @@
 {{- if .Values.crossplaneProviders.grafana.enabled }}
 {{- range .Values.crossplaneProviders.grafana.datasources }}
 ---
-apiVersion: oss.grafana.crossplane.io/v1alpha1
+apiVersion: oss.grafana.m.crossplane.io/v1alpha1
 kind: DataSource
 metadata:
   name: grafana-datasource-{{ .uid }}
