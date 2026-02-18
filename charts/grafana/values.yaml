@@ -46,6 +46,16 @@ crossplaneProviders:
   # Enable/disable Crossplane Grafana provider (boolean)
   grafana:
     enabled: true
+    # List of Grafana datasources to create via Crossplane
+    datasources: []
+    # Example:
+    # - name: Mimir
+    #   type: prometheus
+    #   uid: mimir
+    #   url: http://mimir-gateway.mimir-system.svc.cluster.local/prometheus
+    #   accessMode: proxy  # Optional, defaults to proxy
+    #   isDefault: false   # Optional, defaults to false
+    #   jsonDataEncoded: '{"authType":"default"}'  # Optional
   # Enable/disable Crossplane Orgmapper provider (boolean)
   orgmapper:
     enabled: true

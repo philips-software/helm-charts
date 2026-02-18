@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.40.1](https://img.shields.io/badge/Version-0.40.1-informational?style=flat-square)
+![Version: 0.41.0](https://img.shields.io/badge/Version-0.41.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -19,6 +19,7 @@ secret in the same namespace as the app. The secret should have the following fi
 |-----|------|---------|-------------|
 | argoNamespace | string | `"argocd"` |  |
 | argoProject | string | `"default"` |  |
+| crossplaneProviders.grafana.datasources | list | `[]` |  |
 | crossplaneProviders.grafana.enabled | bool | `true` |  |
 | crossplaneProviders.orgmapper.enabled | bool | `true` |  |
 | database.cnpg | bool | `true` |  |

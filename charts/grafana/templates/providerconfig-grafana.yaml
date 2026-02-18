@@ -1,5 +1,5 @@
 {{- if .Values.crossplaneProviders.grafana.enabled }}
-apiVersion: grafana.crossplane.io/v1beta1
+apiVersion: grafana.m.crossplane.io/v1beta1
 kind: ProviderConfig
 metadata:
   name: default
