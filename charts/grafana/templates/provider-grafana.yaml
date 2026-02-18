@@ -6,5 +6,5 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  package: xpkg.upbound.io/grafana/provider-grafana:v0.40.0
+  package: xpkg.upbound.io/grafana/provider-grafana:v2.5.0
 {{- end }}
