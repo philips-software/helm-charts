@@ -10,6 +10,12 @@ grafana:
   connector: ""
   # Number of Grafana replicas (must be >= 1)
   replicas: 2
+  # List of Grafana plugins to install
+  # Examples:
+  # - yesoreyeram-infinity-datasource  # Install from plugin catalog
+  # - yesoreyeram-infinity-datasource@3.0.0  # Specific version
+  # - plugin-name@version@https://url/to/plugin.zip  # From URL
+  plugins: []
   ingress:
     enabled: false
     # Hostname for Grafana ingress (alphanumeric characters and hyphens only)
