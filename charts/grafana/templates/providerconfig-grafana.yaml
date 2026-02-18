@@ -1,4 +1,4 @@
-{{- if .Values.crossplaneProvider.enabled }}
+{{- if .Values.crossplaneProviders.grafana.enabled }}
 apiVersion: grafana.crossplane.io/v1beta1
 kind: ProviderConfig
 metadata:

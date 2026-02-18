@@ -38,10 +38,14 @@ database:
   # Snapshot ID to restore from (required if restoreFromSnapshot is true, alphanumeric and hyphens only)
   snapshotId: "grafana-202501201706"
 
-# Crossplane provider configuration
-crossplaneProvider:
-  # Enable/disable Crossplane Grafana provider and ESO resources (boolean)
-  enabled: false
+# Crossplane providers configuration
+crossplaneProviders:
+  # Enable/disable Crossplane Grafana provider (boolean)
+  grafana:
+    enabled: true
+  # Enable/disable Crossplane Orgmapper provider (boolean)
+  orgmapper:
+    enabled: true
 
 # Datasource configuration
 datasources:

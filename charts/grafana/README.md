@@ -19,7 +19,8 @@ secret in the same namespace as the app. The secret should have the following fi
 |-----|------|---------|-------------|
 | argoNamespace | string | `"argocd"` |  |
 | argoProject | string | `"default"` |  |
-| crossplaneProvider.enabled | bool | `false` |  |
+| crossplaneProviders.grafana.enabled | bool | `true` |  |
+| crossplaneProviders.orgmapper.enabled | bool | `true` |  |
 | database.cnpg | bool | `true` |  |
 | database.restoreFromSnapshot | bool | `false` |  |
 | database.snapshotId | string | `"grafana-202501201706"` |  |

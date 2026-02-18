@@ -1,4 +1,4 @@
-{{- if .Values.crossplaneProvider.enabled }}
+{{- if .Values.crossplaneProviders.orgmapper.enabled }}
 apiVersion: orgmapper.crossplane.io/v1alpha1
 kind: ProviderConfig
 metadata:

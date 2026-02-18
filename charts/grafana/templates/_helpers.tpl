@@ -97,8 +97,11 @@ Validate required configuration values
 {{- fail "database.snapshotId must contain only alphanumeric characters and hyphens" }}
 {{- end }}
 {{- end }}
-{{- if not (kindIs "bool" .Values.crossplaneProvider.enabled) }}
-{{- fail "crossplaneProvider.enabled must be a boolean (true or false)" }}
+{{- if not (kindIs "bool" .Values.crossplaneProviders.grafana.enabled) }}
+{{- fail "crossplaneProviders.grafana.enabled must be a boolean (true or false)" }}
+{{- end }}
+{{- if not (kindIs "bool" .Values.crossplaneProviders.orgmapper.enabled) }}
+{{- fail "crossplaneProviders.orgmapper.enabled must be a boolean (true or false)" }}
 {{- end }}
 {{- if and .Values.grafana.ingress.enabled .Values.grafana.httpRoute.enabled }}
 {{- fail "grafana.ingress and grafana.httpRoute are mutually exclusive. Please enable only one of them." }}
