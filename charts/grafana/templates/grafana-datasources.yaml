@@ -20,6 +20,8 @@ spec:
     {{- if .jsonDataEncoded }}
     jsonDataEncoded: |-
       {{ .jsonDataEncoded }}
+    {{- else if .jsonData }}
+    jsonDataEncoded: {{ .jsonData | toJson | quote }}
     {{- end }}
   providerConfigRef:
     name: default
