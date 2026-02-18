@@ -5,6 +5,9 @@
 grafana:
   # Enable/disable SSO authentication (boolean)
   ssoAuthEnabled: false
+  # Optional SSO connector path to auto-select upstream IDP (e.g., "github", "google")
+  # When set, appends to auth_url: ${issuerUrl}/auth/${connector}
+  connector: ""
   # Number of Grafana replicas (must be >= 1)
   replicas: 2
   ingress:
