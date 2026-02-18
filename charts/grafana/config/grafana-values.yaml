@@ -46,25 +46,10 @@ serviceMonitor:
   enabled: true
 
 sidecar:
-  resources:
-    limits:
-      memory: 480Mi
-    requests:
-      cpu: 15m
-      memory: 128Mi
   datasources:
-    enabled: true
-    label: grafana_datasource
-    labelValue: "1"
-    searchNamespace: [prometheus]
+    enabled: false
   dashboards:
     enabled: false
-    label: grafana_dashboard
-    labelValue: "1"
-    searchNamespace: [prometheus, loki-system, tempo-system, kyverno, kube-system]
-    provider:
-      foldersFromFilesStructure: true
-    enableNewTablePanelSyntax: true
 
 {{- if or .Values.datasources.mimir.enabled .Values.datasources.loki.enabled .Values.datasources.tempo.enabled }}
 datasources:
