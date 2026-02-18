@@ -1,4 +1,8 @@
 replicas: 2
+admin:
+  existingSecret: "grafana-admin-credentials"
+  userKey: admin-user
+  passwordKey: admin-password
 env:
   AWS_SDK_LOAD_CONFIG: "true"
 revisionHistoryLimit: 1
