@@ -1076,6 +1076,13 @@ entries:
     version: 0.0.14
   grafana:
   - apiVersion: v2
+    created: "2026-02-18T12:58:01.108342249Z"
+    digest: 3fc3dd2cf8e0b0f5c016151713480e007b473bea5a2948a74b76d3c2ffa503e3
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.42.0/grafana-0.42.0.tgz
+    version: 0.42.0
+  - apiVersion: v2
     created: "2026-02-18T12:52:22.70477194Z"
     digest: fbef3c606c97626eab4917b61d130d8c6c434c53a9f4dfae4e08ff3f335b3045
     name: grafana
@@ -1669,4 +1676,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.37.0/otlp-gateway-bootstrap-0.37.0.tgz
     version: 0.37.0
-generated: "2026-02-18T12:52:22.705105327Z"
+generated: "2026-02-18T12:58:01.10866442Z"
