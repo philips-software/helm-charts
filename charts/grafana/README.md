@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.32.0](https://img.shields.io/badge/Version-0.32.0-informational?style=flat-square)
+![Version: 0.33.0](https://img.shields.io/badge/Version-0.33.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -24,6 +24,9 @@ secret in the same namespace as the app. The secret should have the following fi
 | database.restoreFromSnapshot | bool | `false` |  |
 | database.snapshotId | string | `"grafana-202501201706"` |  |
 | datasources.gatewayUrl | string | `"http://datasource-gateway.otlp-gateway.svc.cluster.local"` |  |
+| datasources.loki.enabled | bool | `false` |  |
+| datasources.mimir.enabled | bool | `false` |  |
+| datasources.tempo.enabled | bool | `false` |  |
 | environmentConfig.clusterFqdn | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | grafana.httpRoute.enabled | bool | `true` |  |

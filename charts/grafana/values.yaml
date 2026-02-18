@@ -47,6 +47,13 @@ crossplaneProvider:
 datasources:
   # Base URL for the datasource gateway service
   gatewayUrl: "http://datasource-gateway.otlp-gateway.svc.cluster.local"
+  # Enable/disable individual datasources (all disabled by default)
+  mimir:
+    enabled: false
+  loki:
+    enabled: false
+  tempo:
+    enabled: false
 
 # Environment configuration
 environmentConfig:
