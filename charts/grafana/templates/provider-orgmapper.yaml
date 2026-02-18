@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: oci://ghcr.io/philips-software/helm-charts/crossplane-providers
     # renovate: datasource=github-releases depName=philips-software/helm-charts
-    targetRevision: 0.0.24
+    targetRevision: 0.0.25
     path: .
     withConfigKeys:
       - resourcePrefix
@@ -28,6 +28,7 @@ spec:
           # Orgmapper - Tenant management for Grafana
           - name: provider-orgmapper
             enabled: true
+            debug: {{ .Values.crossplaneProviders.orgmapper.debug }}
   destination:
     namespace: crossplane-system
   syncPolicy:

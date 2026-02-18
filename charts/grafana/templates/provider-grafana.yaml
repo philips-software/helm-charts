@@ -1,10 +1,41 @@
 {{- if .Values.crossplaneProviders.grafana.enabled }}
-apiVersion: pkg.crossplane.io/v1
-kind: Provider
+apiVersion: dip.io/v1alpha1
+kind: HelmApplication
 metadata:
   name: provider-grafana
+  namespace: {{ .Values.argoNamespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  package: xpkg.upbound.io/grafana/provider-grafana:v2.5.0
+  project: {{ .Values.argoProject }}
+  source:
+    repoURL: oci://ghcr.io/philips-software/helm-charts/crossplane-providers
+    # renovate: datasource=github-releases depName=philips-software/helm-charts
+    targetRevision: 0.0.25
+    path: .
+    helm:
+      valuesObject:
+        providers: [] # Disable default providers
+        package:
+          version: "v2.5.0"
+          registry: "xpkg.upbound.io/grafana"
+        extraProviders:
+          - name: provider-grafana
+            enabled: true
+            debug: {{ .Values.crossplaneProviders.grafana.debug }}
+  destination:
+    namespace: crossplane-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 8
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
 {{- end }}
