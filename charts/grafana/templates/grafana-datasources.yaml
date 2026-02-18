@@ -1,0 +1,27 @@
+{{- if .Values.crossplaneProviders.grafana.enabled }}
+{{- range .Values.crossplaneProviders.grafana.datasources }}
+---
+apiVersion: oss.grafana.crossplane.io/v1alpha1
+kind: DataSource
+metadata:
+  name: grafana-datasource-{{ .uid }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  forProvider:
+    name: {{ .name }}
+    type: {{ .type }}
+    accessMode: {{ .accessMode | default "proxy" }}
+    uid: {{ .uid }}
+    url: {{ .url }}
+    isDefault: {{ .isDefault | default false }}
+    {{- if .jsonDataEncoded }}
+    jsonDataEncoded: |-
+      {{ .jsonDataEncoded }}
+    {{- end }}
+  providerConfigRef:
+    name: default
+{{- end }}
+{{- end }}
