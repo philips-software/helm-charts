@@ -18,8 +18,11 @@ spec:
       template:
         spec:
           containers:
-            - args: []
-              name: package-runtime
+            - name: package-runtime
+              {{- if .debug }}
+              args:
+                - --debug
+              {{- end }}
               resources:
                 {{- if .resources }}
                 {{- toYaml .resources | nindent 16 }}

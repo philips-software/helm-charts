@@ -78,6 +78,8 @@ providers:
     # Whether to deploy this provider (optional, defaults to true)
     # Set to false to skip deployment of this provider
     enabled: true
+    # Enable debug logging for this provider (optional, defaults to false)
+    # debug: true
     # List of AWS managed policy ARNs to attach to the IAM role
     # These policies determine what AWS permissions the provider will have
     # If empty or omitted, no IAM role will be created and no IRSA annotation will be added
@@ -170,3 +172,4 @@ providers:
 # 7. The OIDC configuration enables secure, keyless authentication to AWS
 # 8. Provider images are pulled from the specified registry with the package version
 # 9. All resources are deployed to the specified namespace (typically crossplane-system)
+# 10. Set 'debug: true' on any provider to enable verbose debug logging
