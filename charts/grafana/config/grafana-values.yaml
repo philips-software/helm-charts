@@ -1,4 +1,4 @@
-replicas: 2
+replicas: {{ .Values.grafana.replicas }}
 admin:
   existingSecret: "grafana-admin-credentials"
   userKey: admin-user
