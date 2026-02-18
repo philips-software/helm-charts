@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.39.0](https://img.shields.io/badge/Version-0.39.0-informational?style=flat-square)
+![Version: 0.40.0](https://img.shields.io/badge/Version-0.40.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -30,6 +30,7 @@ secret in the same namespace as the app. The secret should have the following fi
 | datasources.tempo.enabled | bool | `false` |  |
 | environmentConfig.clusterFqdn | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
+| grafana.connector | string | `""` |  |
 | grafana.httpRoute.enabled | bool | `true` |  |
 | grafana.httpRoute.host | string | `"gf"` |  |
 | grafana.httpRoute.sharedGatewayName | string | `"platform"` |  |

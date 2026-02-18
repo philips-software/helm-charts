@@ -234,7 +234,7 @@ grafana.ini:
     org_attribute_path: groups
     client_id: ${clientId}
     client_secret: ${clientSecret}
-    auth_url: ${issuerUrl}/auth
+    auth_url: ${issuerUrl}/auth{{- if .Values.grafana.connector }}/{{ .Values.grafana.connector }}{{- end }}
     token_url: ${issuerUrl}/token
     api_url: ${issuerUrl}/userInfo
     signout_redirect_url: https://{{ include "grafana.host" . }}/login?disableAutoLogin=true
