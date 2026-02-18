@@ -1,4 +1,4 @@
-{{- if .Values.crossplaneProvider.enabled }}
+{{- if .Values.crossplaneProviders.orgmapper.enabled }}
 apiVersion: dip.io/v1alpha1
 kind: HelmApplication
 metadata:

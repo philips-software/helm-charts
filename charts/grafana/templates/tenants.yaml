@@ -1,4 +1,4 @@
-{{- if .Values.crossplaneProvider.enabled }}
+{{- if .Values.crossplaneProviders.orgmapper.enabled }}
 {{- $tenants := .Values.tenants | default .Values.grafana.tenants }}
 {{- range $tenants }}
 ---
