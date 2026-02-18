@@ -240,6 +240,7 @@ grafana.ini:
     signout_redirect_url: https://{{ include "grafana.host" . }}/login?disableAutoLogin=true
 {{- end }}
 
+{{- if .Values.grafana.plugins }}
 plugins:
-  - grafana-lokiexplore-app@latest@https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip
-  - grafana-traces-app@latest@https://storage.googleapis.com/integration-artifacts/grafana-exploretraces-app/grafana-exploretraces-app-latest.zip
+  {{- toYaml .Values.grafana.plugins | nindent 2 }}
+{{- end }}
