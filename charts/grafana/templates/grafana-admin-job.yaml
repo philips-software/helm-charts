@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-admin-initializer
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grafana-admin-initializer
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: grafana-admin-initializer
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+subjects:
+  - kind: ServiceAccount
+    name: grafana-admin-initializer
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: grafana-admin-initializer
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: grafana-admin-initializer
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  backoffLimit: 4
+  template:
+    metadata: {}
+    spec:
+      serviceAccountName: grafana-admin-initializer
+      restartPolicy: OnFailure
+      containers:
+        - name: initialize-admin
+          # renovate: datasource=docker depName=alpine/k8s
+          image: alpine/k8s:1.31.0
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              TARGET_SECRET="grafana-admin-credentials"
+              OLD_SECRET="{{ .Values.grafanaChart.releaseName }}-grafana"
+              NAMESPACE="{{ .Release.Namespace }}"
+
+              echo "Checking if admin credentials secret exists..."
+              if kubectl get secret "$TARGET_SECRET" -n "$NAMESPACE" 2>/dev/null; then
+                echo "Secret $TARGET_SECRET already exists, preserving existing credentials"
+                exit 0
+              fi
+
+              echo "Secret does not exist, checking for old secret to migrate..."
+              if kubectl get secret "$OLD_SECRET" -n "$NAMESPACE" 2>/dev/null; then
+                echo "Found old secret $OLD_SECRET, migrating credentials..."
+                USERNAME=$(kubectl get secret "$OLD_SECRET" -n "$NAMESPACE" -o jsonpath='{.data.admin-user}' 2>/dev/null || echo "")
+                PASSWORD=$(kubectl get secret "$OLD_SECRET" -n "$NAMESPACE" -o jsonpath='{.data.admin-password}' 2>/dev/null || echo "")
+
+                if [ -n "$USERNAME" ] && [ -n "$PASSWORD" ]; then
+                  echo "Migrating credentials from $OLD_SECRET to $TARGET_SECRET"
+                  kubectl create secret generic "$TARGET_SECRET" -n "$NAMESPACE" \
+                    --from-literal=admin-user="$(echo "$USERNAME" | base64 -d)" \
+                    --from-literal=admin-password="$(echo "$PASSWORD" | base64 -d)" \
+                    --dry-run=client -o yaml | kubectl apply -f -
+                  echo "Migration complete"
+                  exit 0
+                fi
+              fi
+
+              echo "No existing credentials found, generating new admin password..."
+              NEW_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 40 | head -n 1)
+              kubectl create secret generic "$TARGET_SECRET" -n "$NAMESPACE" \
+                --from-literal=admin-user="admin" \
+                --from-literal=admin-password="$NEW_PASSWORD" \
+                --dry-run=client -o yaml | kubectl apply -f -
+
+              echo "Admin credentials initialized successfully"
