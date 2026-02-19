@@ -55,7 +55,7 @@ spec:
       containers:
         - name: initialize-admin
           # renovate: datasource=docker depName=alpine/k8s
-          image: alpine/k8s:1.31.0
+          image: alpine/k8s:1.35.1
           command:
             - /bin/sh
             - -c
