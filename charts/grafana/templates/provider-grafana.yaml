@@ -3,7 +3,7 @@ apiVersion: dip.io/v1alpha1
 kind: HelmApplication
 metadata:
   name: provider-grafana
-  namespace: {{ .Values.argoNamespace }}
+  namespace: {{ .Release.Namespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:

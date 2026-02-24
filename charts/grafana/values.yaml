@@ -37,7 +37,6 @@ grafanaChart:
 
 # ArgoCD project name for deployment (required, cannot be empty)
 argoProject: default
-argoNamespace: argocd
 
 # Database configuration
 database:
