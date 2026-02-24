@@ -1,22 +1,47 @@
-# Filled by kustomize
-resourcePrefix: ""
-awsRegion: ""
-awsAccountId: ""
 clusterName: "changeme"
 
+# -- OTLP destination configuration for sending telemetry data (metrics, logs, traces)
 otlp:
-  keepTopDestination: false
+  # -- List of OTLP destinations to send telemetry data to.
+  # Each destination requires a pre-created Kubernetes Secret with basic auth credentials.
+  #
+  # Secret format:
+  #   The secret must contain the following keys:
+  #   - username: The username for basic authentication
+  #   - apiKey: The API key or password for basic authentication
+  #
+  # Example secret creation:
+  #   kubectl create secret generic otlp-gateway-creds \
+  #     --from-literal=username=myuser \
+  #     --from-literal=apiKey=myapikey
+  #
+  # Or via YAML:
+  #   apiVersion: v1
+  #   kind: Secret
+  #   metadata:
+  #     name: otlp-gateway-creds
+  #   type: Opaque
+  #   stringData:
+  #     username: "myuser"
+  #     apiKey: "myapikey"
+  #
   destinations: []
-  #  - name: "otlpGateway"
-  #    url: "https://otlp-gateway.obs-us-east-ct.hsp.philips.com"
+  # Example destination configuration:
+  #  - name: "otlpGateway"              # Unique name for this destination
+  #    url: "https://otlp-gateway.example.com"  # OTLP endpoint URL
   #    secret:
-  #      name: "otlp-gateway-creds"
+  #      name: "otlp-gateway-creds"     # Name of the Kubernetes Secret
+  #      namespace: ""                  # Optional: namespace of the secret (defaults to release namespace)
 
+# -- ArgoCD project name for the k8s-monitoring Application
 project:
-  name: "k8s-monitoring"
+  name: "default"
 
+# -- Override the upstream chart version (defaults to appVersion in Chart.yaml)
 chart:
   version: ""
 
+# -- Feature toggles
 features:
+  # -- Enable auto-instrumentation for application telemetry
   autoInstrumentation: false
