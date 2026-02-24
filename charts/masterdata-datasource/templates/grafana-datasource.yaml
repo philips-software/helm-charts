@@ -33,7 +33,6 @@ spec:
     secureJsonDataEncodedSecretRef:
       name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-grafana-ds-secret
       key: secureJsonData
-      namespace: {{ .Release.Namespace }}
   providerConfigRef:
     name: {{ .Values.grafanaDatasource.providerConfigRef | default "default" }}
 {{- end }}
