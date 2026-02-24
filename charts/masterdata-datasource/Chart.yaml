@@ -2,4 +2,4 @@ apiVersion: v2
 name: masterdata-datasource
 description: A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database for use as a datasource in Grafana
 type: application
-version: 0.9.1
+version: 0.9.2

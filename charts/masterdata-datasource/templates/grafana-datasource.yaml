@@ -34,5 +34,6 @@ spec:
       name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-grafana-ds-secret
       key: secureJsonData
   providerConfigRef:
+    kind: ProviderConfig
     name: {{ .Values.grafanaDatasource.providerConfigRef | default "default" }}
 {{- end }}
