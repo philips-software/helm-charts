@@ -3,7 +3,7 @@ apiVersion: dip.io/v1alpha1
 kind: HelmApplication
 metadata:
   name: provider-orgmapper
-  namespace: {{ .Values.argoNamespace }}
+  namespace: {{ .Release.Namespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 spec:
