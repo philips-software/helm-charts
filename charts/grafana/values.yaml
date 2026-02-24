@@ -35,8 +35,10 @@ grafanaChart:
   # Helm release name for Grafana
   releaseName: gf
 
-# ArgoCD project name for deployment (required, cannot be empty)
-argoProject: default
+# ArgoCD configuration
+argocd:
+  # ArgoCD project name for deployment (required, cannot be empty)
+  project: default
 
 # Database configuration
 database:

@@ -78,8 +78,8 @@ Validate required configuration values
 {{- if not (regexMatch "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$" .Values.environmentConfig.clusterFqdn) }}
 {{- fail "environmentConfig.clusterFqdn must be a valid domain name (e.g., example.com)" }}
 {{- end }}
-{{- if not .Values.argoProject }}
-{{- fail "argoProject is required and cannot be empty" }}
+{{- if not .Values.argocd.project }}
+{{- fail "argocd.project is required and cannot be empty" }}
 {{- end }}
 {{- if .Values.grafana.replicas }}
 {{- if not (kindIs "float64" .Values.grafana.replicas) }}
