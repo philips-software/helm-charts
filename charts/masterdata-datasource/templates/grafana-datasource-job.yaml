@@ -13,7 +13,7 @@ spec:
   ttlSecondsAfterFinished: 300
   template:
     spec:
-      serviceAccountName: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-sa
+      serviceAccountName: {{ .Release.Name }}-grafana-ds-sa
       restartPolicy: OnFailure
       securityContext:
         runAsNonRoot: true
@@ -86,7 +86,7 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-sa
+  name: {{ .Release.Name }}-grafana-ds-sa
   namespace: {{ .Release.Namespace }}
   annotations:
     helm.sh/hook: post-install,post-upgrade
@@ -96,7 +96,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-role
+  name: {{ .Release.Name }}-grafana-ds-role
   namespace: {{ .Release.Namespace }}
   annotations:
     helm.sh/hook: post-install,post-upgrade
@@ -110,7 +110,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-rolebinding
+  name: {{ .Release.Name }}-grafana-ds-rolebinding
   namespace: {{ .Release.Namespace }}
   annotations:
     helm.sh/hook: post-install,post-upgrade
@@ -118,11 +118,11 @@ metadata:
     helm.sh/hook-delete-policy: before-hook-creation
 subjects:
   - kind: ServiceAccount
-    name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-sa
+    name: {{ .Release.Name }}-grafana-ds-sa
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-role
+  name: {{ .Release.Name }}-grafana-ds-role
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -150,7 +150,7 @@ metadata:
     helm.sh/hook-delete-policy: before-hook-creation
 subjects:
   - kind: ServiceAccount
-    name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-sa
+    name: {{ .Release.Name }}-grafana-ds-sa
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
