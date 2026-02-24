@@ -75,6 +75,4 @@ harvester:
     pullPolicy: IfNotPresent
   serviceAccount:
     name: hsp-addons-harvester
-  # Retry configuration
-  backoffLimit: 5
   ttlSecondsAfterFinished: 600
