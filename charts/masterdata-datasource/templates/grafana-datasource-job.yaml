@@ -76,7 +76,8 @@ spec:
                 -p "{\"stringData\":{\"secureJsonData\":\"{\\\"password\\\":\\\"${PG_PASSWORD}\\\"}\"}}"
               
               echo "Patching DataSource with actual connection details..."
-              kubectl patch datasources.oss.grafana.crossplane.io ${RESOURCE_PREFIX}-masterdata-postgres \
+              kubectl patch datasources.oss.grafana.m.crossplane.io ${RESOURCE_PREFIX}-masterdata-postgres \
+                --namespace=${NAMESPACE} \
                 --type='merge' \
                 -p "{\"spec\":{\"forProvider\":{\"url\":\"${PG_HOST}:${PG_PORT}\",\"username\":\"${PG_USERNAME}\"}}}"
               
@@ -125,22 +126,24 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: Role
 metadata:
-  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-clusterrole
+  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-crossplane-role
+  namespace: {{ .Release.Namespace }}
   annotations:
     helm.sh/hook: post-install,post-upgrade
     helm.sh/hook-weight: "0"
     helm.sh/hook-delete-policy: before-hook-creation
 rules:
-  - apiGroups: ["oss.grafana.crossplane.io"]
+  - apiGroups: ["oss.grafana.m.crossplane.io"]
     resources: ["datasources"]
     verbs: ["get", "create", "update", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
-  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-clusterrolebinding
+  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-crossplane-rolebinding
+  namespace: {{ .Release.Namespace }}
   annotations:
     helm.sh/hook: post-install,post-upgrade
     helm.sh/hook-weight: "0"
@@ -150,7 +153,7 @@ subjects:
     name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-sa
     namespace: {{ .Release.Namespace }}
 roleRef:
-  kind: ClusterRole
-  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-clusterrole
+  kind: Role
+  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-crossplane-role
   apiGroup: rbac.authorization.k8s.io
 {{- end }}

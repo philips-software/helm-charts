@@ -1,3 +1,4 @@
+{{- if not .Values.postgres.useExisting }}
 apiVersion: dip.io/v1alpha1
 kind: Postgres
 metadata:
@@ -34,3 +35,4 @@ spec:
 
   writeConnectionSecretToRef:
     name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-connection-details
+{{- end }}
