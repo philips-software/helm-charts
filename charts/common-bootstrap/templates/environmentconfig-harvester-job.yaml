@@ -82,10 +82,11 @@ spec:
               ACCOUNT_ID=$(kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" -o jsonpath='{.data.accountId}' 2>/dev/null || echo "")
               SHARED_SERVICES_ACCOUNT_ID=$(kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" -o jsonpath='{.data.sharedServicesAccountId}' 2>/dev/null || echo "")
               
-              # Extract OIDC values from nested eks JSON
+              # Extract OIDC values and cluster FQDN from nested eks JSON
               EKS_JSON=$(kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" -o jsonpath='{.data.eks}' 2>/dev/null || echo "{}")
               OIDC_PROVIDER=$(echo "$EKS_JSON" | jq -r '.oidcProvider // ""')
               OIDC_PROVIDER_ARN=$(echo "$EKS_JSON" | jq -r '.oidcProviderArn // ""')
+              CLUSTER_FQDN=$(echo "$EKS_JSON" | jq -r '.clusterFqdn // ""')
               
               # Extract resourcePrefix from tags JSON (Environment key)
               TAGS_JSON=$(kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" -o jsonpath='{.data.tags}' 2>/dev/null || echo "{}")
@@ -95,6 +96,7 @@ spec:
               echo "  REGION:                    $REGION"
               echo "  ACCOUNT_ID:                $ACCOUNT_ID"
               echo "  RESOURCE_PREFIX:           $RESOURCE_PREFIX"
+              echo "  CLUSTER_FQDN:              $CLUSTER_FQDN"
               echo "  OIDC_PROVIDER:             $OIDC_PROVIDER"
               echo "  OIDC_PROVIDER_ARN:         $OIDC_PROVIDER_ARN"
               echo "  SHARED_SERVICES_ACCOUNT_ID: $SHARED_SERVICES_ACCOUNT_ID"
@@ -117,8 +119,9 @@ spec:
                 region: "$REGION"
                 accountId: "$ACCOUNT_ID"
                 sharedServicesAccountId: "$SHARED_SERVICES_ACCOUNT_ID"
-                # Cluster configuration  
+                # Cluster configuration
                 resourcePrefix: "$RESOURCE_PREFIX"
+                clusterFqdn: "$CLUSTER_FQDN"
                 # OIDC configuration
                 oidcProvider: "$OIDC_PROVIDER"
                 oidcProviderArn: "$OIDC_PROVIDER_ARN"
