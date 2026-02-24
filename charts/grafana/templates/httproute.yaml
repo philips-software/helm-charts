@@ -18,6 +18,6 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - name: {{ .Values.grafanaChart.releaseName }}
+        - name: {{ .Values.grafanaChart.releaseName }}-grafana
           port: 80
 {{- end }}
