@@ -10,7 +10,7 @@ metadata:
     "helm.sh/hook-weight": "-5"
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
-  backoffLimit: {{ .Values.harvester.backoffLimit }}
+  backoffLimit: 0
   ttlSecondsAfterFinished: {{ .Values.harvester.ttlSecondsAfterFinished }}
   template:
     metadata:
@@ -19,7 +19,7 @@ spec:
         app.kubernetes.io/component: envconfig-harvester
     spec:
       serviceAccountName: {{ include "common-bootstrap.serviceAccountName" . }}
-      restartPolicy: OnFailure
+      restartPolicy: Never
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -57,22 +57,22 @@ spec:
               echo "Source ConfigMap: $SOURCE_NS/$SOURCE_CM"
               echo "Target EnvironmentConfig: $ENV_CONFIG_NAME"
               echo ""
-              
-              # Wait for the ConfigMap to be available
-              echo "Waiting for ConfigMap to be available..."
-              for i in $(seq 1 30); do
-                if kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" > /dev/null 2>&1; then
-                  echo "ConfigMap found!"
-                  break
-                fi
-                if [ $i -eq 30 ]; then
-                  echo "ERROR: ConfigMap not found after 30 attempts"
-                  exit 1
-                fi
-                echo "Attempt $i/30 - waiting 10s..."
-                sleep 10
-              done
-              
+
+              # Check if ConfigMap exists - fail fast with clear error
+              if ! kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" > /dev/null 2>&1; then
+                echo "=============================================="
+                echo "ERROR: Required ConfigMap not found!"
+                echo "=============================================="
+                echo ""
+                echo "ConfigMap '$SOURCE_CM' must exist in namespace '$SOURCE_NS'"
+                echo "before installing this chart."
+                echo ""
+                echo "This ConfigMap is typically created by the HSP platform."
+                echo "Please ensure the platform is properly configured."
+                echo "=============================================="
+                exit 1
+              fi
+
               # Extract all values from ConfigMap
               # These match the ${...} placeholders used in kustomize
               echo ""
