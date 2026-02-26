@@ -1,6 +1,6 @@
 # cloudnative-pg-operator
 
-![Version: 0.6.2](https://img.shields.io/badge/Version-0.6.2-informational?style=flat-square)
+![Version: 0.6.3](https://img.shields.io/badge/Version-0.6.3-informational?style=flat-square)
 
 A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 
@@ -20,6 +20,7 @@ A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 | kyvernoPolicy.enabled | bool | `true` |  |
 | kyvernoPolicy.operatorImage | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.28.0"` |  |
 | operator.fullnameOverride | string | `"cloudnative-pg"` |  |
+| operator.hostNetwork | bool | `false` |  |
 | operator.namespace | string | `"cnpg-system"` |  |
 | operator.resources.limits.memory | string | `"256Mi"` |  |
 | operator.resources.requests.cpu | string | `"5m"` |  |

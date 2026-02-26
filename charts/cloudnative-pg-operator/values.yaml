@@ -13,6 +13,9 @@ argoProject: common-bootstrap
 operator:
   fullnameOverride: cloudnative-pg
   namespace: cnpg-system
+  # Enable hostNetwork if the K3s/K8s control plane cannot reach the pod network
+  # (e.g., when running K3s server with --disable-agent)
+  hostNetwork: false
   resources:
     limits:
       memory: 256Mi
