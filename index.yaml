@@ -1817,6 +1817,14 @@ entries:
     version: 0.8.0
   mimir-bootstrap:
   - apiVersion: v2
+    created: "2026-02-26T15:32:24.11475825Z"
+    description: A Helm chart for bootstrapping Mimir with S3 IRSA
+    digest: 702e40fedbfcc6edfb73cd10bfb380939e6651e2fb4b81a7f8311f5ba4b0fb5c
+    name: mimir-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/mimir-bootstrap-0.39.0/mimir-bootstrap-0.39.0.tgz
+    version: 0.39.0
+  - apiVersion: v2
     created: "2026-02-26T15:11:51.937418807Z"
     description: A Helm chart for bootstrapping Mimir with S3 IRSA
     digest: 4293421627bb05e7d454f9637052db324f0a92efbca446545cbf8f2923c6ee5e
@@ -1918,4 +1926,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.37.0/otlp-gateway-bootstrap-0.37.0.tgz
     version: 0.37.0
-generated: "2026-02-26T15:11:51.937686616Z"
+generated: "2026-02-26T15:32:24.115082932Z"
