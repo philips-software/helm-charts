@@ -969,6 +969,31 @@ entries:
   fluent-bit-out-hsdp:
   - apiVersion: v2
     appVersion: 2.6.0
+    created: "2026-02-26T09:52:26.49059151Z"
+    dependencies:
+    - name: fluent-bit
+      repository: https://fluent.github.io/helm-charts
+      version: 0.55.0
+    description: Installs the Fluentbit HSP out plugin.
+    digest: 9846a4c14c7664d49578613f03d25dd241754ec376232b0741624c951ca6aa32
+    home: https://github.com/philips-software/fluent-bit-out-hsdp
+    icon: https://fluentbit.io/images/logo.svg
+    keywords:
+    - logging
+    - fluent-bit
+    - fluentd
+    - hsdp
+    maintainers:
+    - email: andy.loafoe@gmail.com
+      name: loafoe
+    name: fluent-bit-out-hsdp
+    sources:
+    - https://github.com/philips-software/fluent-bit-out-hsdp/
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.13.0/fluent-bit-out-hsdp-0.13.0.tgz
+    version: 0.13.0
+  - apiVersion: v2
+    appVersion: 2.6.0
     created: "2024-11-08T10:00:55.30390699Z"
     dependencies:
     - name: fluent-bit
@@ -1867,4 +1892,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.37.0/otlp-gateway-bootstrap-0.37.0.tgz
     version: 0.37.0
-generated: "2026-02-26T09:35:24.973641116Z"
+generated: "2026-02-26T09:52:26.490899223Z"
