@@ -6,7 +6,7 @@ keywords:
   - fluent-bit
   - fluentd
   - hsdp
-version: 0.12.0
+version: 0.13.0
 # renovate: datasource=docker depName=ghcr.io/philips-software/fluent-bit-out-hsdp
 appVersion: 2.6.0
 icon: https://fluentbit.io/images/logo.svg
@@ -18,5 +18,6 @@ maintainers:
     email: andy.loafoe@gmail.com
 dependencies:
   - name: fluent-bit
-    version: 0.23.0
+    # renovate: datasource=helm depName=fluent-bit registryUrl=https://fluent.github.io/helm-charts
+    version: 0.55.0
     repository: https://fluent.github.io/helm-charts
