@@ -39,6 +39,7 @@ argocd:
       - oci://ghcr.io/philips-software/helm-charts/otlp-gateway
       - oci://ghcr.io/philips-software/helm-charts/grafana
       - oci://ghcr.io/philips-software/helm-charts/*
+      - ghcr.io/philips-software
     sourceNamespaces:
       - common-bootstrap
       - crossplane-system
