@@ -20,6 +20,7 @@ spec:
       releaseName: cloudnative-pg
       valuesObject:
         fullnameOverride: {{ .Values.operator.fullnameOverride }}
+        hostNetwork: {{ .Values.operator.hostNetwork }}
         resources:
           {{- toYaml .Values.operator.resources | nindent 10 }}
   destination:
