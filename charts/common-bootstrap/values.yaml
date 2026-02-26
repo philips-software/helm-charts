@@ -35,6 +35,7 @@ argocd:
       - https://github.com/philips-software/helm-charts
       - https://github.com/dip-software/crossplane-compositions
       - https://cloudnative-pg.io/charts/
+      - https://grafana-community.github.io/helm-charts
       - oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator
       - oci://ghcr.io/philips-software/helm-charts/otlp-gateway
       - oci://ghcr.io/philips-software/helm-charts/grafana
