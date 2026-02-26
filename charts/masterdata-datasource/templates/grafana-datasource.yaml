@@ -1,8 +1,9 @@
 {{- if .Values.grafanaDatasource.enabled }}
-apiVersion: oss.grafana.crossplane.io/v1alpha1
+apiVersion: oss.grafana.m.crossplane.io/v1alpha1
 kind: DataSource
 metadata:
   name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-postgres
+  namespace: {{ .Release.Namespace }}
   annotations:
     argocd.argoproj.io/sync-options: IgnoreExtraneous
   labels:
@@ -32,7 +33,7 @@ spec:
     secureJsonDataEncodedSecretRef:
       name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-grafana-ds-secret
       key: secureJsonData
-      namespace: {{ .Release.Namespace }}
   providerConfigRef:
+    kind: ProviderConfig
     name: {{ .Values.grafanaDatasource.providerConfigRef | default "default" }}
 {{- end }}

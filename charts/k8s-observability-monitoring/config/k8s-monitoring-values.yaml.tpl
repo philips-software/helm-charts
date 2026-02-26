@@ -1,34 +1,14 @@
 cluster:
   name: {{ .Values.clusterName }}
 
-{{- if or .Values.otlp.keepTopDestination .Values.otlp.destinations }}
+{{- if .Values.otlp.destinations }}
 destinations:
-{{- if .Values.otlp.keepTopDestination }}
-  - name: oltpGateway
-    protocol: http
-    type: otlp
-    url: {{ .Values.otlp.gateway }}
-    auth:
-      type: basic
-      usernameKey: "username"
-      passwordKey: "apiKey"
-    secret:
-      create: false
-      name: {{ .Values.otlp.secret.name }}
-      namespace: {{ .Release.Namespace }}
-    logs:
-      enabled: true
-    metrics:
-      enabled: true
-    traces:
-      enabled: true
-{{- end }}
 {{- range .Values.otlp.destinations }}
   # destination: {{ .name }}
   - name: {{ .name }}
-    protocol: http
     type: otlp
     url: {{ .url }}
+    protocol: http
     auth:
       type: basic
       usernameKey: "username"
@@ -48,15 +28,24 @@ destinations:
 destinations: []
 {{- end }}
 
+# Alloy Operator - manages Alloy CRDs (required in v3.x)
+alloy-operator:
+  deploy: true
+  waitForAlloyRemoval:
+    enabled: true
+    nodeSelector:
+      kubernetes.io/os: linux
+
 applicationObservability:
   enabled: true
   receivers:
     otlp:
-      enabled: true
-      http:
-        enabled: true
       grpc:
         enabled: true
+        port: 4317
+      http:
+        enabled: true
+        port: 4318
 
 prometheusOperatorObjects:
   enabled: true
@@ -64,12 +53,10 @@ prometheusOperatorObjects:
 podLogs:
   enabled: true
 
-traces:
-  enabled: true
-
 autoInstrumentation:
   enabled: {{ .Values.features.autoInstrumentation }}
 
+# Enable the metrics collector
 alloy-metrics:
   enabled: true
   liveDebugging:
@@ -83,15 +70,8 @@ alloy-metrics:
       limits:
         memory: 3Gi
         cpu: 600m
-  controller:
-    resources:
-      requests:
-        memory: 5Mi
-        cpu: 1m
-      limits:
-        memory: 10Mi
-        cpu: 10m
 
+# Enable the logs collector
 alloy-logs:
   enabled: true
   liveDebugging:
@@ -106,13 +86,6 @@ alloy-logs:
         memory: 200Mi
         cpu: 200m
   controller:
-    resources:
-      requests:
-        memory: 5Mi
-        cpu: 1m
-      limits:
-        memory: 10Mi
-        cpu: 10m
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -123,6 +96,7 @@ alloy-logs:
                   values:
                     - fargate
 
+# Enable the receiver for application telemetry
 alloy-receiver:
   enabled: true
   alloy:
@@ -142,11 +116,3 @@ alloy-receiver:
         port: 4318
         targetPort: 4318
         protocol: TCP
-  controller:
-    resources:
-      requests:
-        memory: 5Mi
-        cpu: 1m
-      limits:
-        memory: 10Mi
-        cpu: 10m

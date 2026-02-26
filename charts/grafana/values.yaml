@@ -31,13 +31,14 @@ grafana:
 
 grafanaChart:
   # renovate: datasource=helm depName=grafana registryUrl=https://grafana-community.github.io/helm-charts
-  version: 11.1.8
+  version: 11.2.0
   # Helm release name for Grafana
   releaseName: gf
 
-# ArgoCD project name for deployment (required, cannot be empty)
-argoProject: default
-argoNamespace: argocd
+# ArgoCD configuration
+argocd:
+  # ArgoCD project name for deployment (required, cannot be empty)
+  project: default
 
 # Database configuration
 database:

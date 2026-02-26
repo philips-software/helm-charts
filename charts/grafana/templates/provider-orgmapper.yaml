@@ -3,11 +3,11 @@ apiVersion: dip.io/v1alpha1
 kind: HelmApplication
 metadata:
   name: provider-orgmapper
-  namespace: {{ .Values.argoNamespace }}
+  namespace: {{ .Release.Namespace }}
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 spec:
-  project: {{ .Values.argoProject }}
+  project: {{ .Values.argocd.project }}
   source:
     repoURL: oci://ghcr.io/philips-software/helm-charts/crossplane-providers
     # renovate: datasource=github-releases depName=philips-software/helm-charts

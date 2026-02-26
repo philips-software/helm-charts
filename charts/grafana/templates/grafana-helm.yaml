@@ -3,13 +3,13 @@ apiVersion: dip.io/v1alpha1
 kind: HelmApplication
 metadata:
   name: grafana-helm
-  namespace: {{ .Values.argoNamespace | quote }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "grafana.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  project: {{ .Values.argoProject | quote }}
+  project: {{ .Values.argocd.project | quote }}
   source:
     chart: grafana
     repoURL: https://grafana-community.github.io/helm-charts
