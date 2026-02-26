@@ -47,6 +47,7 @@ argocd:
       - argocd
       - monitoring
       - otlp-gateway
+      - cnpg-system
 
 # HelmApplications to deploy via Crossplane composition
 # These will be created after the EnvironmentConfig is ready
