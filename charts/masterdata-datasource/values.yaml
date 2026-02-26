@@ -2,6 +2,8 @@ environmentConfig:
   resourcePrefix: ""
 
 postgres:
+  # Set to true to use an existing database (connection details secret must be pre-populated)
+  useExisting: false
   sourceIdentifier: "masterdatadb-202601081341"
 
 grafanaDatasource:

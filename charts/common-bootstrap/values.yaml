@@ -21,7 +21,7 @@ environmentConfig:
 crossplaneCompositions:
   enabled: true
   repoURL: https://github.com/dip-software/crossplane-compositions
-  targetRevision: v0.0.21
+  targetRevision: v0.0.22
   path: kustomize
 
 # ArgoCD configuration
@@ -75,6 +75,4 @@ harvester:
     pullPolicy: IfNotPresent
   serviceAccount:
     name: hsp-addons-harvester
-  # Retry configuration
-  backoffLimit: 5
   ttlSecondsAfterFinished: 600
