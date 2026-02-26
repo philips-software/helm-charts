@@ -1809,6 +1809,16 @@ entries:
     version: 0.1.0
   masterdata-datasource:
   - apiVersion: v2
+    created: "2026-02-26T17:42:46.934187947Z"
+    description: A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database
+      for use as a datasource in Grafana
+    digest: ae626eab0b1a1a53d8814348b2011389e08aa6a71410e0623ccd66826ebeeb00
+    name: masterdata-datasource
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/masterdata-datasource-0.9.3/masterdata-datasource-0.9.3.tgz
+    version: 0.9.3
+  - apiVersion: v2
     created: "2026-02-24T15:10:46.253748272Z"
     description: A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database
       for use as a datasource in Grafana
@@ -1959,4 +1969,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.37.0/otlp-gateway-bootstrap-0.37.0.tgz
     version: 0.37.0
-generated: "2026-02-26T17:32:19.054042678Z"
+generated: "2026-02-26T17:42:46.935515564Z"
