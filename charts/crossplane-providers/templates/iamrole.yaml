@@ -1,3 +1,12 @@
+{{- $needsIamRole := false }}
+{{- range concat .Values.providers .Values.extraProviders }}
+{{- if and (not (eq (.enabled | toString) "false")) (not .roleArn) (or (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) (.policy)) }}
+{{- $needsIamRole = true }}
+{{- end }}
+{{- end }}
+{{- if $needsIamRole }}
+{{- include "crossplane-providers.validateOIDCConfig" . }}
+{{- end }}
 {{- range concat .Values.providers .Values.extraProviders }}
 {{- if and (not (eq (.enabled | toString) "false")) (not .roleArn) (or (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) (.policy)) }}
 ---

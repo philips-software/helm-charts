@@ -60,10 +60,16 @@ Validate required config values
 {{- if not .Values.environmentConfig.resourcePrefix }}
 {{- fail "environmentConfig.resourcePrefix is required" }}
 {{- end }}
+{{- end }}
+
+{{/*
+Validate OIDC config (only needed when rendering IAM roles)
+*/}}
+{{- define "crossplane-providers.validateOIDCConfig" -}}
 {{- if not .Values.environmentConfig.oidcProviderArn }}
-{{- fail "environmentConfig.oidcProviderArn is required" }}
+{{- fail "environmentConfig.oidcProviderArn is required when creating IAM roles" }}
 {{- end }}
 {{- if not .Values.environmentConfig.oidcProvider }}
-{{- fail "environmentConfig.oidcProvider is required" }}
+{{- fail "environmentConfig.oidcProvider is required when creating IAM roles" }}
 {{- end }}
 {{- end }}
