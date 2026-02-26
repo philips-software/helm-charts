@@ -112,7 +112,7 @@ ruler:
   extraArgs:
     ruler-storage.backend: s3
     ruler.max-rule-groups-per-tenant: 1500
-    ruler.max-rules-per-rule-group: 200
+    ruler.max-rules-per-rule-group: {{ .Values.ruler.maxRulesPerRuleGroup }}
   resources:
     requests:
       cpu: 100m

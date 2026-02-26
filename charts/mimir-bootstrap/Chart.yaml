@@ -1,4 +1,4 @@
 apiVersion: v2
 name: mimir-bootstrap
-version: 0.37.0
+version: 0.38.0
 description: A Helm chart for bootstrapping Mimir with S3 IRSA

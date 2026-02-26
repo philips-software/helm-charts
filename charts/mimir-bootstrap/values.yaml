@@ -45,8 +45,12 @@ kafkaNodePool:
 # Example: "my-bucket-${resourcePrefix}-mimir" will become "my-bucket-prod-mimir"
 existingBucketName: ""
 
-# Enable multitenancy in Mimir    
+# Enable multitenancy in Mimir
 multitenancyEnabled: true
+
+ruler:
+  # Maximum number of rules per rule group
+  maxRulesPerRuleGroup: 800
 
 karpenter:
   # If true, stateful components (ingester, store-gateway, etc.) will be annotated
