@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-create
+  name: {{ .Release.Name }}-grafana-ds-create
   namespace: {{ .Release.Namespace }}
   annotations:
     helm.sh/hook: post-install,post-upgrade
@@ -128,7 +128,7 @@ roleRef:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-crossplane-role
+  name: {{ .Release.Name }}-grafana-ds-crossplane-role
   namespace: {{ .Release.Namespace }}
   annotations:
     helm.sh/hook: post-install,post-upgrade
@@ -142,7 +142,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-crossplane-rolebinding
+  name: {{ .Release.Name }}-grafana-ds-crossplane-rolebinding
   namespace: {{ .Release.Namespace }}
   annotations:
     helm.sh/hook: post-install,post-upgrade
@@ -154,6 +154,6 @@ subjects:
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: Role
-  name: {{ include "masterdata-datasource.resourcePrefix" . }}-grafana-ds-crossplane-role
+  name: {{ .Release.Name }}-grafana-ds-crossplane-role
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
