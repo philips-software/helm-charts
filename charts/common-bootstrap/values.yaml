@@ -71,8 +71,10 @@ helmApplications: {}
 
 # Harvester Job configuration
 harvester:
+  enabled: true
   image:
     repository: docker.io/alpine/k8s
+    # renovate: datasource=docker depName=alpine/k8s
     tag: "1.28.4"
     pullPolicy: IfNotPresent
   serviceAccount:
