@@ -1,6 +1,6 @@
 # cloudnative-pg-operator
 
-![Version: 0.6.1](https://img.shields.io/badge/Version-0.6.1-informational?style=flat-square)
+![Version: 0.6.2](https://img.shields.io/badge/Version-0.6.2-informational?style=flat-square)
 
 A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 
@@ -9,7 +9,7 @@ A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argoProject | string | `"common-bootstrap"` |  |
-| cnpgChart.version | string | `"0.27.0"` |  |
+| cnpgChart.version | string | `"0.27.1"` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | environmentConfig.sharedServicesAccountId | string | `""` |  |
