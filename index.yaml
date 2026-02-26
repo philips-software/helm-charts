@@ -2,6 +2,15 @@ apiVersion: v1
 entries:
   cloudnative-pg-bootstrap:
   - apiVersion: v2
+    appVersion: 0.6.2
+    created: "2026-02-26T12:23:16.912085507Z"
+    description: Bootstrap chart for deploying cloudnative-pg-operator via HelmApplication
+    digest: 7fb01f8b986a649efe70d11c308402564dd54d12866c92af49463985f128a4f5
+    name: cloudnative-pg-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-bootstrap-0.6.2/cloudnative-pg-bootstrap-0.6.2.tgz
+    version: 0.6.2
+  - apiVersion: v2
     created: "2026-02-05T12:07:10.002745194Z"
     description: Bootstrap chart for deploying cloudnative-pg-operator via HelmApplication
     digest: 8d9c106f1e8966f991b7a3d1de79f155bf6357f7c66f8e92e4bc914a7c900000
@@ -42,6 +51,15 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-bootstrap-0.2.0/cloudnative-pg-bootstrap-0.2.0.tgz
     version: 0.2.0
   cloudnative-pg-operator:
+  - apiVersion: v2
+    created: "2026-02-26T12:23:17.115491893Z"
+    description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
+      policies
+    digest: d97feeae7aff878fc1e7582a8fcf45d0d60717dc94b709977891ed30b6beea2b
+    name: cloudnative-pg-operator
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-0.6.2/cloudnative-pg-operator-0.6.2.tgz
+    version: 0.6.2
   - apiVersion: v2
     created: "2026-02-05T12:07:10.158969318Z"
     description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
@@ -1892,4 +1910,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.37.0/otlp-gateway-bootstrap-0.37.0.tgz
     version: 0.37.0
-generated: "2026-02-26T09:52:26.490899223Z"
+generated: "2026-02-26T12:23:17.116180751Z"
