@@ -19,6 +19,9 @@ securityContext:
     type: RuntimeDefault
 
 runtimeConfig:
+  overrides:
+    "*":
+      ruler_max_rules_per_rule_group: {{ .Values.ruler.maxRulesPerRuleGroup }}
   ingester_limits: # limits that each ingester replica enforces
     max_ingestion_rate: 80000
     max_tenants: 1000
