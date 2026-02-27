@@ -1,15 +1,22 @@
 {
-  $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  labels: ["dependencies"],
-  extends: ["config:best-practices", ":disableDependencyDashboard"],
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  labels: [
+    'dependencies',
+  ],
+  extends: [
+    'config:best-practices',
+    ':disableDependencyDashboard',
+  ],
   customManagers: [
     {
-      customType: "regex",
-      fileMatch: ["^charts/.*/Chart\\.yaml$"],
-      matchStrings: [
-        "#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)\\n.*?(?:appVersion|version):\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+      customType: 'regex',
+      managerFilePatterns: [
+        '/^charts/.*/Chart\\.yaml$/',
       ],
-      versioningTemplate: "docker"
-    }
-  ]
+      matchStrings: [
+        '#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)\\n.*?(?:appVersion|version):\\s*["\']?(?<currentValue>[^"\'\\s]+)["\']?',
+      ],
+      versioningTemplate: 'docker',
+    },
+  ],
 }
