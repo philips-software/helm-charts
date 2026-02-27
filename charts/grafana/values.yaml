@@ -28,6 +28,8 @@ grafana:
     sharedGatewayName: platform
     sharedGatewayNamespace: kube-system
   tenants: []
+  extraInitContainers: []
+  extraVolumes: []
 
 grafanaChart:
   # renovate: datasource=helm depName=grafana registryUrl=https://grafana-community.github.io/helm-charts
@@ -86,6 +88,6 @@ datasources:
 # Environment configuration
 environmentConfig:
   # Fully qualified domain name for the cluster (required, must be valid domain format)
-  clusterFqdn: "" 
+  clusterFqdn: ""
   # Resource prefix for the cluster (alphanumeric characters and hyphens only)
   resourcePrefix: ""
