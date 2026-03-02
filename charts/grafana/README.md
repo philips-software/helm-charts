@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.54.1](https://img.shields.io/badge/Version-0.54.1-informational?style=flat-square)
+![Version: 0.54.2](https://img.shields.io/badge/Version-0.54.2-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -39,6 +39,7 @@ secret in the same namespace as the app. The secret should have the following fi
 | environmentConfig.clusterFqdn | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | grafana.connector | string | `""` |  |
+| grafana.env | object | `{}` |  |
 | grafana.extraInitContainers | list | `[]` |  |
 | grafana.extraVolumes | list | `[]` |  |
 | grafana.httpRoute.enabled | bool | `true` |  |
