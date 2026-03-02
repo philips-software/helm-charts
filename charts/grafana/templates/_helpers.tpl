@@ -97,6 +97,11 @@ Validate required configuration values
 {{- fail "database.snapshotId must contain only alphanumeric characters and hyphens" }}
 {{- end }}
 {{- end }}
+{{- if and .Values.database.cnpg .Values.database.snapshots.enabled }}
+{{- if not .Values.database.snapshots.snapshotClassName }}
+{{- fail "database.snapshots.snapshotClassName is required when database.snapshots.enabled is true" }}
+{{- end }}
+{{- end }}
 {{- if not (kindIs "bool" .Values.crossplaneProviders.grafana.enabled) }}
 {{- fail "crossplaneProviders.grafana.enabled must be a boolean (true or false)" }}
 {{- end }}
