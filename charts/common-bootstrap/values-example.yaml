@@ -10,10 +10,10 @@ sourceConfigMap:
 environmentConfig:
   name: hsp-addons-compat
 
-# Crossplane compositions version
+# Crossplane compositions (targetRevision defaults to Chart.AppVersion)
 crossplaneCompositions:
   enabled: true
-  targetRevision: v0.0.23
+  # targetRevision: v0.0.24  # Optional: override the default version
 
 # HelmApplications to bootstrap
 # Add your own applications here

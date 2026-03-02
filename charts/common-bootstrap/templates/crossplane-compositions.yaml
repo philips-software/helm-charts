@@ -20,7 +20,7 @@ spec:
   source:
     path: {{ .Values.crossplaneCompositions.path }}
     repoURL: {{ .Values.crossplaneCompositions.repoURL }}
-    targetRevision: {{ .Values.crossplaneCompositions.targetRevision }}
+    targetRevision: {{ .Values.crossplaneCompositions.targetRevision | default (printf "v%s" .Chart.AppVersion) }}
   syncPolicy:
     automated:
       prune: false
