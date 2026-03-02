@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.54.2](https://img.shields.io/badge/Version-0.54.2-informational?style=flat-square)
+![Version: 0.55.0](https://img.shields.io/badge/Version-0.55.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -39,6 +39,9 @@ secret in the same namespace as the app. The secret should have the following fi
 | environmentConfig.clusterFqdn | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | grafana.connector | string | `""` |  |
+| grafana.downloadDashboardsResources.limits.memory | string | `"24Mi"` |  |
+| grafana.downloadDashboardsResources.requests.cpu | string | `"10m"` |  |
+| grafana.downloadDashboardsResources.requests.memory | string | `"16Mi"` |  |
 | grafana.env | object | `{}` |  |
 | grafana.extraInitContainers | list | `[]` |  |
 | grafana.extraVolumes | list | `[]` |  |
@@ -51,6 +54,9 @@ secret in the same namespace as the app. The secret should have the following fi
 | grafana.ingress.ingressClassName | string | `"nginx"` |  |
 | grafana.plugins | list | `[]` |  |
 | grafana.replicas | int | `2` |  |
+| grafana.resources.limits.memory | string | `"1Gi"` |  |
+| grafana.resources.requests.cpu | string | `"200m"` |  |
+| grafana.resources.requests.memory | string | `"256Mi"` |  |
 | grafana.ssoAuthEnabled | bool | `false` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |

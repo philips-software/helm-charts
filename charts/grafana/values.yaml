@@ -10,6 +10,20 @@ grafana:
   connector: ""
   # Number of Grafana replicas (must be >= 1)
   replicas: 2
+  # Resource requests and limits for the Grafana pod
+  resources:
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  # Resource requests and limits for the dashboard download sidecar
+  downloadDashboardsResources:
+    limits:
+      memory: 24Mi
+    requests:
+      cpu: 10m
+      memory: 16Mi
   # List of Grafana plugins to install
   # Examples:
   # - yesoreyeram-infinity-datasource  # Install from plugin catalog
