@@ -25,7 +25,13 @@ secret in the same namespace as the app. The secret should have the following fi
 | crossplaneProviders.orgmapper.enabled | bool | `true` |  |
 | database.cnpg | bool | `true` |  |
 | database.restoreFromSnapshot | bool | `false` |  |
+| database.restoreFromVolumeSnapshot.enabled | bool | `false` |  |
+| database.restoreFromVolumeSnapshot.sourceIdentifier | string | `""` |  |
+| database.restoreFromVolumeSnapshot.storageClassName | string | `""` |  |
 | database.snapshotId | string | `"grafana-202501201706"` |  |
+| database.snapshots.enabled | bool | `false` |  |
+| database.snapshots.snapshotClassName | string | `""` |  |
+| database.snapshots.storageClassName | string | `""` |  |
 | datasources.gatewayUrl | string | `"http://datasource-gateway.otlp-gateway.svc.cluster.local"` |  |
 | datasources.loki.enabled | bool | `false` |  |
 | datasources.mimir.enabled | bool | `false` |  |
