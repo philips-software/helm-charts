@@ -21,7 +21,9 @@ environmentConfig:
 crossplaneCompositions:
   enabled: true
   repoURL: https://github.com/dip-software/crossplane-compositions
-  targetRevision: v0.0.23
+  # targetRevision defaults to Chart.AppVersion (v{{ .Chart.AppVersion }})
+  # Uncomment to override:
+  # targetRevision: v0.0.24
   path: kustomize
 
 # ArgoCD configuration

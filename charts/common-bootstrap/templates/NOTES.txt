@@ -27,7 +27,7 @@ The Common Bootstrap chart has been installed!
 3. Crossplane Compositions (ArgoCD Application)
    - Deploys HelmApplication XRD and Composition
    - Source: {{ .Values.crossplaneCompositions.repoURL }}
-   - Version: {{ .Values.crossplaneCompositions.targetRevision }}
+   - Version: {{ .Values.crossplaneCompositions.targetRevision | default (printf "v%s" .Chart.AppVersion) }}
    
    Check status:
      kubectl get application crossplane-compositions -n common-bootstrap
