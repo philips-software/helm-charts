@@ -30,6 +30,7 @@ grafana:
   tenants: []
   extraInitContainers: []
   extraVolumes: []
+  env: {}
 
 grafanaChart:
   # renovate: datasource=helm depName=grafana registryUrl=https://grafana-community.github.io/helm-charts
