@@ -4,6 +4,9 @@ admin:
   userKey: admin-user
   passwordKey: admin-password
 env:
+{{- if .Values.grafana.env }}
+  {{- toYaml .Values.grafana.env | nindent 2 }}
+{{- end }}
   AWS_SDK_LOAD_CONFIG: "true"
 revisionHistoryLimit: 1
 envFromSecrets:
