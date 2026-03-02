@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 1.2.1](https://img.shields.io/badge/Version-1.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.23](https://img.shields.io/badge/AppVersion-0.0.23-informational?style=flat-square)
+![Version: 1.2.2](https://img.shields.io/badge/Version-1.2.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.25](https://img.shields.io/badge/AppVersion-0.0.25-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -32,7 +32,6 @@ and uses HelmApplication CRs to bootstrap platform components.
 | crossplaneCompositions.enabled | bool | `true` |  |
 | crossplaneCompositions.path | string | `"kustomize"` |  |
 | crossplaneCompositions.repoURL | string | `"https://github.com/dip-software/crossplane-compositions"` |  |
-| crossplaneCompositions.targetRevision | string | `"v0.0.23"` |  |
 | environmentConfig.labels.config | string | `"dip-software"` |  |
 | environmentConfig.name | string | `"hsp-addons-compat"` |  |
 | harvester.enabled | bool | `true` |  |
