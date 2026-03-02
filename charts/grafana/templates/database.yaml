@@ -20,7 +20,17 @@ spec:
     engineVersion: "18.1"
     databaseName: grafana
     masterUsername: grafana
-  {{- if .Values.database.restoreFromSnapshot }}
+  {{- if and .Values.database.cnpg .Values.database.snapshots.enabled }}
+    enableSnapshots: true
+    snapshotClassName: {{ .Values.database.snapshots.snapshotClassName | quote }}
+    storageClassName: {{ .Values.database.snapshots.storageClassName | quote }}
+  {{- end }}
+  {{- if and .Values.database.cnpg .Values.database.restoreFromVolumeSnapshot.enabled }}
+    storageClassName: {{ .Values.database.restoreFromVolumeSnapshot.storageClassName | quote }}
+    restore:
+      method: volumeSnapshot
+      sourceIdentifier: {{ .Values.database.restoreFromVolumeSnapshot.sourceIdentifier | quote }}
+  {{- else if .Values.database.restoreFromSnapshot }}
     restore:
       snapshotIdentifier: {{ .Values.database.snapshotId }}
   {{- end }}

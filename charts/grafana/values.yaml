@@ -49,6 +49,21 @@ database:
   restoreFromSnapshot: false
   # Snapshot ID to restore from (required if restoreFromSnapshot is true, alphanumeric and hyphens only)
   snapshotId: "grafana-202501201706"
+  # CNPG snapshot configuration (only applies when cnpg: true)
+  snapshots:
+    # Enable periodic volume snapshots
+    enabled: false
+    # CSI snapshot class name (required when snapshots.enabled is true)
+    snapshotClassName: ""
+    # Storage class name for CNPG PVCs
+    storageClassName: ""
+  # Restore from volume snapshot (CNPG only)
+  restoreFromVolumeSnapshot:
+    enabled: false
+    # Source snapshot identifier to restore from
+    sourceIdentifier: ""
+    # Storage class name for restored PVCs
+    storageClassName: ""
 
 # Crossplane providers configuration
 crossplaneProviders:
