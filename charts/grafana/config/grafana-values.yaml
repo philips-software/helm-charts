@@ -15,19 +15,11 @@ envFromSecrets:
   - name: "grafana-sso-creds"
 {{- end }}  
 resources:
-  limits:
-    memory: 1Gi
-  requests:
-    cpu: 200m
-    memory: 256Mi
+  {{- toYaml .Values.grafana.resources | nindent 2 }}
 
 downloadDashboards:
   resources:
-    limits:
-      memory: 24Mi
-    requests:
-      cpu: 10m
-      memory: 16Mi
+    {{- toYaml .Values.grafana.downloadDashboardsResources | nindent 4 }}
 
 ingress:
   enabled: {{ .Values.grafana.ingress.enabled }}
