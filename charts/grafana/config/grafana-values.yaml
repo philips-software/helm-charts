@@ -178,7 +178,7 @@ grafana.ini:
     viewers_can_edit: true
     editors_can_admin: true
   feature_toggles:
-    provisioning: true
+    provisioning: false
   unified_storage.dashboards.dashboard.grafana.app:
     enableMigration: true
   unified_storage.folders.folder.grafana.app:
