@@ -1,0 +1,30 @@
+{{- if .Values.crossplaneProviders.gf.enabled }}
+{{- range .Values.crossplaneProviders.gf.datasources }}
+---
+apiVersion: oss.gf.m.crossplane.io/v1alpha1
+kind: DataSource
+metadata:
+  name: gf-datasource-{{ .uid }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true,Replace=true
+spec:
+  forProvider:
+    name: {{ .name }}
+    type: {{ .type }}
+    accessMode: {{ .accessMode | default "proxy" }}
+    uid: {{ .uid }}
+    url: {{ .url }}
+    isDefault: {{ .isDefault | default false }}
+    {{- if .jsonDataEncoded }}
+    jsonDataEncoded: |-
+      {{ .jsonDataEncoded }}
+    {{- else if .jsonData }}
+    jsonDataEncoded: {{ .jsonData | toJson | quote }}
+    {{- end }}
+  providerConfigRef:
+    name: default
+    kind: ProviderConfig
+{{- end }}
+{{- end }}

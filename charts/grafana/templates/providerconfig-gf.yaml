@@ -1,0 +1,23 @@
+{{- if .Values.crossplaneProviders.gf.enabled }}
+apiVersion: gf.m.crossplane.io/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: default
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  url: {{ include "grafana.url" . }}
+  credentials:
+    source: Secret
+    authType: basic
+    basicAuth:
+      usernameSecretRef:
+        key: username
+        name: grafana-provider-credentials
+        namespace: {{ .Release.Namespace }}
+      passwordSecretRef:
+        key: password
+        name: grafana-provider-credentials
+        namespace: {{ .Release.Namespace }}
+{{- end }}

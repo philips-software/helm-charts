@@ -102,6 +102,11 @@ crossplaneProviders:
     enabled: true
     # Enable debug logging for the provider (boolean)
     debug: false
+  # Enable/disable native Crossplane Grafana provider (boolean)
+  gf:
+    enabled: true
+    debug: false
+    datasources: []
 
 # Datasource configuration
 datasources:
