@@ -13,5 +13,5 @@ spec:
       name: grafana-provider-credentials
       namespace: {{ .Release.Namespace }}
     source: Secret
-  url: {{ include "grafana.url" . }}
+  url: {{ include "grafana.internalUrl" . }}
 {{- end }}
