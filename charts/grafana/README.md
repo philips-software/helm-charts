@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.56.1](https://img.shields.io/badge/Version-0.56.1-informational?style=flat-square)
+![Version: 0.57.0](https://img.shields.io/badge/Version-0.57.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 

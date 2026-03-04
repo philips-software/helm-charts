@@ -62,10 +62,17 @@ Generate the Grafana host (without protocol)
 {{- end }}
 
 {{/*
-Generate the Grafana URL
+Generate the Grafana URL (external)
 */}}
 {{- define "grafana.url" -}}
 {{- printf "https://%s" (include "grafana.host" .) }}
+{{- end }}
+
+{{/*
+Generate the Grafana internal service URL (for in-cluster communication)
+*/}}
+{{- define "grafana.internalUrl" -}}
+{{- printf "http://%s-grafana.%s.svc.cluster.local" .Values.grafanaChart.releaseName .Release.Namespace }}
 {{- end }}
 
 {{/*
