@@ -31,6 +31,11 @@ spec:
             debug: {{ .Values.crossplaneProviders.orgmapper.debug }}
   destination:
     namespace: crossplane-system
+  ignoreDifferences:
+    - group: pkg.crossplane.io
+      kind: DeploymentRuntimeConfig
+      jsonPointers:
+        - /spec/deploymentTemplate/spec/replicas
   syncPolicy:
     automated:
       prune: true
