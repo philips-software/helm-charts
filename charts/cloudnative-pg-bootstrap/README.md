@@ -9,7 +9,7 @@ Bootstrap chart for deploying cloudnative-pg-operator via HelmApplication
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argoProject | string | `"common-bootstrap"` |  |
-| chartRepo.targetRevision | string | `"0.6.1"` |  |
+| chartRepo.targetRevision | string | `"0.6.3"` |  |
 | chartRepo.url | string | `"oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator"` |  |
 
 ----------------------------------------------
