@@ -22,11 +22,11 @@ data:
 
       # For trusted IPs, add auth proxy headers
       handle @trusted_ips {
-        header_up X-WEBAUTH-USER "{{ .Values.grafana.authProxy.caddy.adminUser }}"
-        {{- if .Values.grafana.authProxy.caddy.adminEmail }}
-        header_up X-WEBAUTH-EMAIL "{{ .Values.grafana.authProxy.caddy.adminEmail }}"
+        header_up X-WEBAUTH-USER "{{ .Values.grafana.authProxy.caddy.autoLoginUser }}"
+        {{- if .Values.grafana.authProxy.caddy.autoLoginEmail }}
+        header_up X-WEBAUTH-EMAIL "{{ .Values.grafana.authProxy.caddy.autoLoginEmail }}"
         {{- end }}
-        header_up X-WEBAUTH-ROLE "GrafanaAdmin"
+        header_up X-WEBAUTH-ROLE "{{ .Values.grafana.authProxy.caddy.autoLoginRole }}"
         reverse_proxy localhost:3000
       }
 

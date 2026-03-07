@@ -42,11 +42,13 @@ grafana:
       enabled: false
       # Caddy container image
       image: caddy:2-alpine
-      # Admin username to inject for trusted IPs
-      adminUser: "admin"
-      # Admin email to inject for trusted IPs (optional)
-      adminEmail: ""
-      # List of trusted IP addresses/CIDRs that get auto-login as admin
+      # Username for auto-login from trusted IPs
+      autoLoginUser: "viewer"
+      # Email for auto-login user (optional)
+      autoLoginEmail: ""
+      # Role for auto-login user (Viewer, Editor, Admin, or GrafanaAdmin)
+      autoLoginRole: "Viewer"
+      # List of trusted IP addresses/CIDRs that get auto-login
       # Examples: ["10.0.0.0/8", "192.168.1.0/24", "172.16.0.0/12"]
       trustedIPs: []
       # Resource requests and limits for the Caddy sidecar
