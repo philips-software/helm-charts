@@ -11,28 +11,42 @@ data:
     {
       auto_https off
       admin off
+      {{- if .Values.grafana.authProxy.caddy.trustedProxyCIDRs }}
+      servers {
+        trusted_proxies static {{ join " " .Values.grafana.authProxy.caddy.trustedProxyCIDRs }}
+      }
+      {{- end }}
     }
 
     :3001 {
+      log {
+        output stdout
+        format console
+      }
+
       @trusted_ips {
         {{- range .Values.grafana.authProxy.caddy.trustedIPs }}
-        remote_ip {{ . }}
+        client_ip {{ . }}
         {{- end }}
       }
 
       # For trusted IPs, add auth proxy headers
       handle @trusted_ips {
-        header_up X-WEBAUTH-USER "{{ .Values.grafana.authProxy.caddy.autoLoginUser }}"
-        {{- if .Values.grafana.authProxy.caddy.autoLoginEmail }}
-        header_up X-WEBAUTH-EMAIL "{{ .Values.grafana.authProxy.caddy.autoLoginEmail }}"
-        {{- end }}
-        header_up X-WEBAUTH-ROLE "{{ .Values.grafana.authProxy.caddy.autoLoginRole }}"
-        reverse_proxy localhost:3000
+        reverse_proxy localhost:3000 {
+          header_up X-WEBAUTH-USER "{{ .Values.grafana.authProxy.caddy.autoLoginUser }}"
+          {{- if .Values.grafana.authProxy.caddy.autoLoginEmail }}
+          header_up X-WEBAUTH-EMAIL "{{ .Values.grafana.authProxy.caddy.autoLoginEmail }}"
+          {{- end }}
+          header_up X-WEBAUTH-ROLE "{{ .Values.grafana.authProxy.caddy.autoLoginRole }}"
+          header_up -X-Forwarded-For
+        }
       }
 
       # For non-trusted IPs, pass through without auth headers
       handle {
-        reverse_proxy localhost:3000
+        reverse_proxy localhost:3000 {
+          header_up -X-Forwarded-For
+        }
       }
     }
 {{- end }}

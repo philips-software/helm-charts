@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.61.0](https://img.shields.io/badge/Version-0.61.0-informational?style=flat-square)
+![Version: 0.62.0](https://img.shields.io/badge/Version-0.62.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -51,6 +51,7 @@ secret in the same namespace as the app. The secret should have the following fi
 | grafana.authProxy.caddy.resources.requests.cpu | string | `"10m"` |  |
 | grafana.authProxy.caddy.resources.requests.memory | string | `"32Mi"` |  |
 | grafana.authProxy.caddy.trustedIPs | list | `[]` |  |
+| grafana.authProxy.caddy.trustedProxyCIDRs | list | `[]` |  |
 | grafana.authProxy.enableLoginToken | bool | `false` |  |
 | grafana.authProxy.enabled | bool | `false` |  |
 | grafana.authProxy.headerName | string | `"X-WEBAUTH-USER"` |  |
