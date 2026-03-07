@@ -18,6 +18,11 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
+        {{- if and .Values.grafana.authProxy.enabled .Values.grafana.authProxy.caddy.enabled }}
+        - name: grafana-caddy
+          port: 80
+        {{- else }}
         - name: {{ .Values.grafanaChart.releaseName }}-grafana
           port: 80
+        {{- end }}
 {{- end }}

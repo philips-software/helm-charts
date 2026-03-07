@@ -35,6 +35,27 @@ grafana:
     enableLoginToken: false
     # Sync TTL in minutes (how often to sync user info)
     syncTtl: 60
+    # Caddy reverse proxy sidecar configuration
+    # When enabled, Caddy runs as a sidecar and auto-injects auth headers for trusted IPs
+    caddy:
+      # Enable Caddy sidecar for IP-based auto-login
+      enabled: false
+      # Caddy container image
+      image: caddy:2-alpine
+      # Admin username to inject for trusted IPs
+      adminUser: "admin"
+      # Admin email to inject for trusted IPs (optional)
+      adminEmail: ""
+      # List of trusted IP addresses/CIDRs that get auto-login as admin
+      # Examples: ["10.0.0.0/8", "192.168.1.0/24", "172.16.0.0/12"]
+      trustedIPs: []
+      # Resource requests and limits for the Caddy sidecar
+      resources:
+        limits:
+          memory: 64Mi
+        requests:
+          cpu: 10m
+          memory: 32Mi
   # Number of Grafana replicas (must be >= 1)
   replicas: 2
   # Resource requests and limits for the Grafana pod

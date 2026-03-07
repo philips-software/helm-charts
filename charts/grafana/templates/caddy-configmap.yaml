@@ -1,0 +1,38 @@
+{{- if and .Values.grafana.authProxy.enabled .Values.grafana.authProxy.caddy.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-caddy-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+data:
+  Caddyfile: |
+    {
+      auto_https off
+      admin off
+    }
+
+    :3001 {
+      @trusted_ips {
+        {{- range .Values.grafana.authProxy.caddy.trustedIPs }}
+        remote_ip {{ . }}
+        {{- end }}
+      }
+
+      # For trusted IPs, add auth proxy headers
+      handle @trusted_ips {
+        header_up X-WEBAUTH-USER "{{ .Values.grafana.authProxy.caddy.adminUser }}"
+        {{- if .Values.grafana.authProxy.caddy.adminEmail }}
+        header_up X-WEBAUTH-EMAIL "{{ .Values.grafana.authProxy.caddy.adminEmail }}"
+        {{- end }}
+        header_up X-WEBAUTH-ROLE "GrafanaAdmin"
+        reverse_proxy localhost:3000
+      }
+
+      # For non-trusted IPs, pass through without auth headers
+      handle {
+        reverse_proxy localhost:3000
+      }
+    }
+{{- end }}
