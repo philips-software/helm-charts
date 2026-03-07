@@ -8,6 +8,33 @@ grafana:
   # Optional SSO connector path to auto-select upstream IDP (e.g., "github", "google")
   # When set, appends to auth_url: ${issuerUrl}/auth/${connector}
   connector: ""
+  # Auth proxy configuration (for reverse proxy authentication)
+  # See: https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/auth-proxy/
+  authProxy:
+    # Enable/disable auth.proxy authentication (boolean)
+    enabled: false
+    # HTTP header name containing the username or email
+    headerName: "X-WEBAUTH-USER"
+    # Header property type: "username" or "email"
+    headerProperty: "username"
+    # Automatically create users on first login
+    autoSignUp: true
+    # Header containing the user's display name (optional)
+    headersName: ""
+    # Header containing the user's email (optional)
+    headersEmail: ""
+    # Header containing the user's login/username (optional)
+    headersLogin: ""
+    # Header containing the user's groups (optional)
+    headersGroups: ""
+    # Header containing the user's role (optional)
+    headersRole: ""
+    # Comma-separated list of trusted proxy IPs (empty allows all)
+    whitelist: ""
+    # Enable login token for proxy auth
+    enableLoginToken: false
+    # Sync TTL in minutes (how often to sync user info)
+    syncTtl: 60
   # Number of Grafana replicas (must be >= 1)
   replicas: 2
   # Resource requests and limits for the Grafana pod

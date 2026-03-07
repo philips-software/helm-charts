@@ -207,7 +207,7 @@ grafana.ini:
     sigv4_auth_enabled: true
   auth.basic:
     enabled: true
-{{- if .Values.grafana.ssoAuthEnabled }}    
+{{- if .Values.grafana.ssoAuthEnabled }}
   auth.generic_oauth:
     auto_login: true
     allow_sign_up: true
@@ -224,6 +224,26 @@ grafana.ini:
     token_url: ${issuerUrl}/token
     api_url: ${issuerUrl}/userInfo
     signout_redirect_url: https://{{ include "grafana.host" . }}/login?disableAutoLogin=true
+{{- end }}
+{{- if .Values.grafana.authProxy.enabled }}
+  auth.proxy:
+    enabled: true
+    header_name: {{ .Values.grafana.authProxy.headerName }}
+    header_property: {{ .Values.grafana.authProxy.headerProperty }}
+    auto_sign_up: {{ .Values.grafana.authProxy.autoSignUp }}
+    sync_ttl: {{ .Values.grafana.authProxy.syncTtl }}
+    {{- if .Values.grafana.authProxy.whitelist }}
+    whitelist: {{ .Values.grafana.authProxy.whitelist }}
+    {{- end }}
+    enable_login_token: {{ .Values.grafana.authProxy.enableLoginToken }}
+    {{- if or .Values.grafana.authProxy.headersName .Values.grafana.authProxy.headersEmail .Values.grafana.authProxy.headersLogin .Values.grafana.authProxy.headersGroups .Values.grafana.authProxy.headersRole }}
+    headers: >-
+      {{- if .Values.grafana.authProxy.headersName }}Name:{{ .Values.grafana.authProxy.headersName }}{{ end }}
+      {{- if .Values.grafana.authProxy.headersEmail }}{{ if .Values.grafana.authProxy.headersName }} {{ end }}Email:{{ .Values.grafana.authProxy.headersEmail }}{{ end }}
+      {{- if .Values.grafana.authProxy.headersLogin }}{{ if or .Values.grafana.authProxy.headersName .Values.grafana.authProxy.headersEmail }} {{ end }}Login:{{ .Values.grafana.authProxy.headersLogin }}{{ end }}
+      {{- if .Values.grafana.authProxy.headersGroups }}{{ if or .Values.grafana.authProxy.headersName .Values.grafana.authProxy.headersEmail .Values.grafana.authProxy.headersLogin }} {{ end }}Groups:{{ .Values.grafana.authProxy.headersGroups }}{{ end }}
+      {{- if .Values.grafana.authProxy.headersRole }}{{ if or .Values.grafana.authProxy.headersName .Values.grafana.authProxy.headersEmail .Values.grafana.authProxy.headersLogin .Values.grafana.authProxy.headersGroups }} {{ end }}Role:{{ .Values.grafana.authProxy.headersRole }}{{ end }}
+    {{- end }}
 {{- end }}
 
 {{- if .Values.grafana.plugins }}
