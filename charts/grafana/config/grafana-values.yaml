@@ -232,7 +232,9 @@ grafana.ini:
     header_property: {{ .Values.grafana.authProxy.headerProperty }}
     auto_sign_up: {{ .Values.grafana.authProxy.autoSignUp }}
     sync_ttl: {{ .Values.grafana.authProxy.syncTtl }}
-    {{- if .Values.grafana.authProxy.whitelist }}
+    {{- if .Values.grafana.authProxy.caddy.enabled }}
+    whitelist: "127.0.0.1"
+    {{- else if .Values.grafana.authProxy.whitelist }}
     whitelist: {{ .Values.grafana.authProxy.whitelist }}
     {{- end }}
     enable_login_token: {{ .Values.grafana.authProxy.enableLoginToken }}
@@ -256,7 +258,30 @@ extraInitContainers:
   {{- toYaml .Values.grafana.extraInitContainers | nindent 2 }}
 {{- end }}
 
-{{- if .Values.grafana.extraVolumes }}
+{{- if or .Values.grafana.extraVolumes (and .Values.grafana.authProxy.enabled .Values.grafana.authProxy.caddy.enabled) }}
 extraVolumes:
+  {{- if .Values.grafana.extraVolumes }}
   {{- toYaml .Values.grafana.extraVolumes | nindent 2 }}
+  {{- end }}
+  {{- if and .Values.grafana.authProxy.enabled .Values.grafana.authProxy.caddy.enabled }}
+  - name: caddy-config
+    configMap:
+      name: grafana-caddy-config
+  {{- end }}
+{{- end }}
+
+{{- if and .Values.grafana.authProxy.enabled .Values.grafana.authProxy.caddy.enabled }}
+extraContainers: |
+  - name: caddy
+    image: {{ .Values.grafana.authProxy.caddy.image }}
+    ports:
+      - name: caddy-http
+        containerPort: 3001
+        protocol: TCP
+    volumeMounts:
+      - name: caddy-config
+        mountPath: /etc/caddy
+        readOnly: true
+    resources:
+      {{- toYaml .Values.grafana.authProxy.caddy.resources | nindent 6 }}
 {{- end }}
