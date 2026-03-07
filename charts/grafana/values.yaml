@@ -51,6 +51,10 @@ grafana:
       # List of trusted IP addresses/CIDRs that get auto-login
       # Examples: ["10.0.0.0/8", "192.168.1.0/24", "172.16.0.0/12"]
       trustedIPs: []
+      # List of upstream proxy CIDRs to trust for X-Forwarded-For headers
+      # Required when traffic passes through a load balancer or ingress gateway
+      # Examples: ["10.0.0.0/8", "192.168.0.0/16"]
+      trustedProxyCIDRs: []
       # Resource requests and limits for the Caddy sidecar
       resources:
         limits:

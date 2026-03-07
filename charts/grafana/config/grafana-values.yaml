@@ -233,12 +233,13 @@ grafana.ini:
     auto_sign_up: {{ .Values.grafana.authProxy.autoSignUp }}
     sync_ttl: {{ .Values.grafana.authProxy.syncTtl }}
     {{- if .Values.grafana.authProxy.caddy.enabled }}
-    whitelist: "127.0.0.1"
+    whitelist: "127.0.0.1,::1"
+    headers: Role:X-WEBAUTH-ROLE
     {{- else if .Values.grafana.authProxy.whitelist }}
     whitelist: {{ .Values.grafana.authProxy.whitelist }}
     {{- end }}
     enable_login_token: {{ .Values.grafana.authProxy.enableLoginToken }}
-    {{- if or .Values.grafana.authProxy.headersName .Values.grafana.authProxy.headersEmail .Values.grafana.authProxy.headersLogin .Values.grafana.authProxy.headersGroups .Values.grafana.authProxy.headersRole }}
+    {{- if and (not .Values.grafana.authProxy.caddy.enabled) (or .Values.grafana.authProxy.headersName .Values.grafana.authProxy.headersEmail .Values.grafana.authProxy.headersLogin .Values.grafana.authProxy.headersGroups .Values.grafana.authProxy.headersRole) }}
     headers: >-
       {{- if .Values.grafana.authProxy.headersName }}Name:{{ .Values.grafana.authProxy.headersName }}{{ end }}
       {{- if .Values.grafana.authProxy.headersEmail }}{{ if .Values.grafana.authProxy.headersName }} {{ end }}Email:{{ .Values.grafana.authProxy.headersEmail }}{{ end }}
