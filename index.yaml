@@ -2222,6 +2222,14 @@ entries:
     version: 0.37.0
   tempo-bootstrap:
   - apiVersion: v2
+    created: "2026-03-10T14:08:05.496877039Z"
+    description: A Helm chart for bootstrapping Tempo
+    digest: 091065019b5f785e49ac0ab91ee6b1cddd17fa456d24da36c7fc17c99482a4ad
+    name: tempo-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.40.0/tempo-bootstrap-0.40.0.tgz
+    version: 0.40.0
+  - apiVersion: v2
     created: "2026-03-10T14:02:28.407049066Z"
     description: A Helm chart for bootstrapping Tempo
     digest: 824d49596ddf7a9154e62e7ee1ef39a0e29fe9bb59d36b77094242f5a2ec2840
@@ -2269,4 +2277,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-03-10T14:02:28.407837189Z"
+generated: "2026-03-10T14:08:05.497637125Z"
