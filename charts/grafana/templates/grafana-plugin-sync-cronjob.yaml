@@ -68,6 +68,7 @@ spec:
                 - /bin/sh
                 - -c
                 - |
+                  echo "See: https://github.com/grafana/grafana/issues/109269"
                   set -e
                   NAMESPACE="{{ .Release.Namespace }}"
                   RELEASE_NAME="{{ .Values.grafanaChart.releaseName }}"
