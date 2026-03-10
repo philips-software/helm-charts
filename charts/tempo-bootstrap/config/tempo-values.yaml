@@ -1,6 +1,8 @@
 serviceAccount:
-  create: false
+  create: true
   name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.environmentConfig.accountId }}:role/{{ .Values.environmentConfig.resourcePrefix }}-tempo-irsa-role
 
 gateway:
   enabled: true
