@@ -14,7 +14,7 @@ spec:
   project: {{ .Values.argoProject }}
   source:
     chart: tempo-distributed
-    repoURL: https://grafana.github.io/helm-charts
+    repoURL: https://grafana-community.github.io/helm-charts
     targetRevision: {{ .Values.tempoChart.version }}
     helm:
       releaseName: tempo
