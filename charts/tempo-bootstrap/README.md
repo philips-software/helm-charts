@@ -1,6 +1,6 @@
 # tempo
 
-![Version: 0.39.0](https://img.shields.io/badge/Version-0.39.0-informational?style=flat-square)
+![Version: 0.40.0](https://img.shields.io/badge/Version-0.40.0-informational?style=flat-square)
 
 ## Values
 
@@ -16,6 +16,7 @@
 | initOverrides.package | string | `"busybox"` |  |
 | initOverrides.tag | string | `"1.36.1"` |  |
 | multitenancyEnabled | bool | `true` |  |
+| streamOverHTTPEnabled | bool | `true` |  |
 | tempoChart.version | string | `"2.6.0"` |  |
 
 ----------------------------------------------
