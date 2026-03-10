@@ -81,6 +81,12 @@ Validate required configuration values
 {{- if not (regexMatch "^[a-z]{2}-[a-z]+-[0-9]+$" .Values.environmentConfig.region) }}
 {{- fail "environmentConfig.region must be a valid AWS region format (e.g., us-east-1, eu-west-1)" }}
 {{- end }}
+{{- if not .Values.environmentConfig.accountId }}
+{{- fail "environmentConfig.accountId is required and cannot be empty" }}
+{{- end }}
+{{- if not (regexMatch "^[0-9]{12}$" (printf "%v" .Values.environmentConfig.accountId)) }}
+{{- fail "environmentConfig.accountId must be a 12-digit AWS account ID" }}
+{{- end }}
 {{- if not .Values.argoProject }}
 {{- fail "argoProject is required and cannot be empty" }}
 {{- end }}

@@ -15,6 +15,7 @@ initOverrides:
 environmentConfig:
   resourcePrefix: ""
   region: ""
+  accountId: ""
 
 # The name of an existing S3 bucket to use for Tempo storage.
 # This value is required and cannot be empty.

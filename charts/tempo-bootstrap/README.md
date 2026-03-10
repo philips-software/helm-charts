@@ -1,6 +1,6 @@
 # tempo
 
-![Version: 0.35.0](https://img.shields.io/badge/Version-0.35.0-informational?style=flat-square)
+![Version: 0.36.0](https://img.shields.io/badge/Version-0.36.0-informational?style=flat-square)
 
 ## Values
 
@@ -9,6 +9,7 @@
 | argoProject | string | `"default"` |  |
 | compactorOrgmapper.package | string | `"ghcr.io/loafoe/compactor-orgmapper"` |  |
 | compactorOrgmapper.tag | string | `"v0.0.1"` |  |
+| environmentConfig.accountId | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | existingBucketName | string | `""` |  |
