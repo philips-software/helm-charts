@@ -6,6 +6,7 @@ serviceAccount:
 
 gateway:
   enabled: true
+  replicas: 2
   resources:
     requests:
       cpu: "120m"
@@ -30,6 +31,7 @@ ingester:
           key: id
 
 distributor:
+  replicas: 2
   resources:
     requests:
       cpu: "30m"
@@ -46,6 +48,7 @@ distributor:
           key: id
 
 querier:
+  replicas: 2
   resources:
     requests:
       cpu: "120m"
@@ -62,6 +65,7 @@ querier:
           key: id
 
 queryFrontend:
+  replicas: 2
   resources:
     requests:
       cpu: "120m"
