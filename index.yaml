@@ -2213,4 +2213,13 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.37.0/otlp-gateway-bootstrap-0.37.0.tgz
     version: 0.37.0
-generated: "2026-03-07T15:05:02.842178439Z"
+  tempo-bootstrap:
+  - apiVersion: v2
+    created: "2026-03-10T08:41:35.631626457Z"
+    description: A Helm chart for bootstrapping Tempo
+    digest: 9d00d427d786f8ed8444bb3464fe0b0d6ca59146fe886b95afc4b0d9b711585f
+    name: tempo-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
+    version: 0.34.0
+generated: "2026-03-10T08:41:35.633162698Z"
