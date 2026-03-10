@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.62.0](https://img.shields.io/badge/Version-0.62.0-informational?style=flat-square)
+![Version: 0.63.0](https://img.shields.io/badge/Version-0.63.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -77,6 +77,8 @@ secret in the same namespace as the app. The secret should have the following fi
 | grafana.ingress.enabled | bool | `false` |  |
 | grafana.ingress.host | string | `"gf"` |  |
 | grafana.ingress.ingressClassName | string | `"nginx"` |  |
+| grafana.pluginSync.enabled | bool | `false` |  |
+| grafana.pluginSync.schedule | string | `"*/15 * * * *"` |  |
 | grafana.plugins | list | `[]` |  |
 | grafana.replicas | int | `2` |  |
 | grafana.resources.limits.memory | string | `"1Gi"` |  |

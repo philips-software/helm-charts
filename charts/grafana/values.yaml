@@ -99,6 +99,14 @@ grafana:
   extraInitContainers: []
   extraVolumes: []
   env: {}
+  # Plugin sync CronJob configuration
+  # Workaround for https://github.com/grafana/grafana/issues/109269
+  # Periodically syncs plugins across all Grafana pods in HA deployments
+  pluginSync:
+    # Enable/disable the plugin sync CronJob
+    enabled: false
+    # Cron schedule for plugin sync (default: every 15 minutes)
+    schedule: "*/15 * * * *"
 
 grafanaChart:
   # renovate: datasource=helm depName=grafana registryUrl=https://grafana-community.github.io/helm-charts
