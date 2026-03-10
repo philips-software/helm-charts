@@ -12,6 +12,15 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
 spec:
   project: {{ .Values.argoProject }}
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/replicas
   source:
     chart: tempo-distributed
     repoURL: https://grafana-community.github.io/helm-charts
