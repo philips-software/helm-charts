@@ -27,7 +27,7 @@ ingester:
       valueFrom:
         secretKeyRef:
           name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
-          key: bucketName
+          key: id
 
 distributor:
   resources:
@@ -43,7 +43,7 @@ distributor:
       valueFrom:
         secretKeyRef:
           name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
-          key: bucketName
+          key: id
 
 querier:
   resources:
@@ -59,7 +59,7 @@ querier:
       valueFrom:
         secretKeyRef:
           name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
-          key: bucketName
+          key: id
 
 queryFrontend:
   resources:
@@ -75,12 +75,9 @@ queryFrontend:
       valueFrom:
         secretKeyRef:
           name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
-          key: bucketName
+          key: id
 
 compactor:
-  image:
-    pullSecrets:
-      - ghcr
   persistentVolume:
     size: 50Gi
   replicas: 1
@@ -137,7 +134,7 @@ compactor:
       valueFrom:
         secretKeyRef:
           name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
-          key: bucketName
+          key: id
 
 
 tempo:
@@ -194,7 +191,7 @@ metricsGenerator:
       valueFrom:
         secretKeyRef:
           name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
-          key: bucketName
+          key: id
   config:
     processor:
       local_blocks:
