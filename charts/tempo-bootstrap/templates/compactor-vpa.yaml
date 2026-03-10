@@ -1,0 +1,25 @@
+apiVersion: "autoscaling.k8s.io/v1"
+kind: VerticalPodAutoscaler
+metadata:
+  name: tempo-compactor-vpa
+  namespace: tempo-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: Deployment
+    name: tempo-compactor
+  updatePolicy:
+    minReplicas: 1
+    updateMode: Auto
+  resourcePolicy:
+    containerPolicies:
+      - containerName: '*'
+        minAllowed:
+          cpu: 10m
+          memory: 720Mi
+        maxAllowed:
+          cpu: 1
+          memory: 12Gi
+        controlledResources: ["memory", "cpu"]

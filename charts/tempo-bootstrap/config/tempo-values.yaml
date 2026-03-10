@@ -1,0 +1,218 @@
+serviceAccount:
+  create: false
+  name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+
+gateway:
+  enabled: true
+  resources:
+    requests:
+      cpu: "120m"
+      memory: "120Mi"
+    limits:
+      memory: "150Mi"
+
+ingester:
+  resources:
+    requests:
+      cpu: "120m"
+      memory: "2400Mi"
+    limits:
+      memory: "2600Mi"
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: S3_BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          key: bucketName
+
+distributor:
+  resources:
+    requests:
+      cpu: "30m"
+      memory: "600Mi"
+    limits:
+      memory: "700Mi"
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: S3_BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          key: bucketName
+
+querier:
+  resources:
+    requests:
+      cpu: "120m"
+      memory: "120Mi"
+    limits:
+      memory: "150Mi"
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: S3_BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          key: bucketName
+
+queryFrontend:
+  resources:
+    requests:
+      cpu: "120m"
+      memory: "120Mi"
+    limits:
+      memory: "150Mi"
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: S3_BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          key: bucketName
+
+compactor:
+  image:
+    pullSecrets:
+      - ghcr
+  persistentVolume:
+    size: 50Gi
+  replicas: 1
+  persistence:
+    enabled: true
+  resources:
+    requests:
+      cpu: "15m"
+      memory: "864Mi"
+    limits:
+      memory: "1000Mi"
+  extraArgs:
+    - --config.expand-env=true
+    {{- if .Values.multitenancyEnabled }}
+    - --config.per-user-override-config=/tmp/overrides.yaml
+    {{- end }}
+  extraVolumeMounts:
+    - name: temp
+      mountPath: /tmp
+    {{- if .Values.multitenancyEnabled }}
+    - name: compactor-orgmapper-config
+      mountPath: /etc/compactor-orgmapper
+    {{- end }}
+  {{- if .Values.multitenancyEnabled }}
+  initContainers:
+    - name: init-overrides
+      image: {{ .Values.initOverrides.package }}:{{ .Values.initOverrides.tag }}
+      command: ["/bin/sh", "-c", "touch /tmp/overrides.yaml"]
+      volumeMounts:
+        - mountPath: /tmp
+          name: temp
+  extraContainers:
+    - name: compactor-orgmapper
+      image: {{ .Values.compactorOrgmapper.package }}:{{ .Values.compactorOrgmapper.tag }}
+      volumeMounts:
+        - mountPath: /tmp
+          name: temp
+        - name: compactor-orgmapper-config
+          mountPath: /etc/compactor-orgmapper
+      env:
+        - name: CONFIG_FILE
+          value: /etc/compactor-orgmapper/config.yaml
+  {{- end }}
+  extraVolumes:
+    {{- if .Values.multitenancyEnabled }}
+    - name: compactor-orgmapper-config
+      configMap:
+        name: compactor-orgmapper-cm
+    {{- end }}
+    - name: temp
+      emptyDir: {}
+  extraEnv:
+    - name: S3_BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          key: bucketName
+
+
+tempo:
+  structuredConfig:
+    memberlist:
+      cluster_label: tempo.tempo-system
+search:
+  enabled: true
+minio:
+  enabled: false
+
+memcached:
+  enabled: true
+  resources:
+    requests:
+      cpu: "120m"
+      memory: "120Mi"
+    limits:
+      memory: "150Mi"
+
+traces:
+  otlp:
+    grpc:
+      enabled: true
+      receiverConfig:
+        endpoint: "0.0.0.0:4317"
+    http:
+      enabled: true
+      receiverConfig:
+        endpoint: "0.0.0.0:4318"
+storage:
+  trace:
+    backend: s3
+    s3:
+      bucket: ${S3_BUCKET_NAME}
+      endpoint: "s3.{{ .Values.environmentConfig.region }}.amazonaws.com"
+      region: {{ .Values.environmentConfig.region | quote }}
+reportingEnabled : false
+
+multitenancyEnabled: {{ .Values.multitenancyEnabled }}
+
+metricsGenerator:
+  enabled: true
+  resources:
+    requests:
+      cpu: "120m"
+      memory: "120Mi"
+    limits:
+      memory: "150Mi"
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: S3_BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          key: bucketName
+  config:
+    processor:
+      local_blocks:
+        filter_server_spans: false
+        flush_to_storage: true
+    registry:
+      collection_interval: 15s
+      external_labels: {}
+      stale_duration: 15m
+    storage:
+      path: /var/tempo/wal
+      wal:
+      remote_write_flush_deadline: 1m
+      # Whether to add X-Scope-OrgID header in remote write requests
+      remote_write_add_org_id_header: true
+      remote_write:
+        - url: "http://mimir-gateway.mimir-system.svc/api/v1/push"
+global_overrides:
+  defaults:
+    ingestion:
+      max_traces_per_user: 100000
+      rate_limit_bytes: 32000000 # 32MB
+      burst_size_bytes: 48000000 # 48MB
