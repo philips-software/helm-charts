@@ -1,15 +1,15 @@
-{{- include "mimir-bootstrap.validateConfig" . -}}
+{{- include "tempo-bootstrap.validateConfig" . -}}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: mimir-helm
+  name: tempo-helm
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "mimir-bootstrap.labels" . | nindent 4 }}
+    {{- include "tempo-bootstrap.labels" . | nindent 4 }}
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   project: {{ .Values.argoProject }}
   ignoreDifferences:
@@ -22,16 +22,16 @@ spec:
       jsonPointers:
         - /spec/replicas
   source:
-    chart: mimir-distributed
-    repoURL: https://grafana.github.io/helm-charts
-    targetRevision: {{ .Values.mimirChart.version }}
+    chart: tempo-distributed
+    repoURL: https://grafana-community.github.io/helm-charts
+    targetRevision: {{ .Values.tempoChart.version }}
     helm:
-      releaseName: mimir
+      releaseName: tempo
       valuesObject:
-        {{- (tpl (.Files.Get "config/mimir-values.yaml.tmpl") .) | nindent 8 }}
+        {{- (tpl (.Files.Get "config/tempo-values.yaml") .) | nindent 8 }}
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: mimir-system
+    namespace: tempo-system
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
