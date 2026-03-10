@@ -19,5 +19,5 @@ maintainers:
 dependencies:
   - name: fluent-bit
     # renovate: datasource=helm depName=fluent-bit registryUrl=https://fluent.github.io/helm-charts
-    version: 0.55.0
+    version: 0.56.0
     repository: https://fluent.github.io/helm-charts
