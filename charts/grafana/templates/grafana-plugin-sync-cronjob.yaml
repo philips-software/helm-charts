@@ -1,0 +1,96 @@
+{{- if .Values.grafana.pluginSync.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-plugin-sync
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grafana-plugin-sync
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: grafana-plugin-sync
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: grafana-plugin-sync
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: grafana-plugin-sync
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: grafana-plugin-sync
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.grafana.pluginSync.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            {{- include "grafana.selectorLabels" . | nindent 12 }}
+        spec:
+          serviceAccountName: grafana-plugin-sync
+          restartPolicy: OnFailure
+          containers:
+            - name: plugin-sync
+              # renovate: datasource=docker depName=alpine/k8s
+              image: alpine/k8s:1.35.2
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "See: https://github.com/grafana/grafana/issues/109269"
+                  set -e
+                  NAMESPACE="{{ .Release.Namespace }}"
+                  RELEASE_NAME="{{ .Values.grafanaChart.releaseName }}"
+
+                  echo "Finding Grafana pods..."
+                  PODS=$(kubectl get pods -n "$NAMESPACE" -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=$RELEASE_NAME" -o jsonpath='{.items[*].metadata.name}')
+
+                  if [ -z "$PODS" ]; then
+                    echo "No Grafana pods found"
+                    exit 0
+                  fi
+
+                  echo "Found pods: $PODS"
+
+                  for POD in $PODS; do
+                    echo "Updating plugins on $POD..."
+                    if kubectl exec "$POD" -n "$NAMESPACE" -c grafana -- grafana cli plugins update-all; then
+                      echo "Successfully updated plugins on $POD"
+                    else
+                      echo "Warning: Failed to update plugins on $POD (may have no plugins installed)"
+                    fi
+                  done
+
+                  echo "Plugin sync complete"
+{{- end }}
