@@ -172,7 +172,10 @@ storage:
       bucket: ${S3_BUCKET_NAME}
       endpoint: "s3.{{ .Values.environmentConfig.region }}.amazonaws.com"
       region: {{ .Values.environmentConfig.region | quote }}
-reportingEnabled : false
+
+reportingEnabled: false
+
+streamOverHTTPEnabled: {{ .Values.streamOverHTTPEnabled }}
 
 multitenancyEnabled: {{ .Values.multitenancyEnabled }}
 

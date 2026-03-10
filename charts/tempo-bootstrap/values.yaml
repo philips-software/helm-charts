@@ -26,4 +26,6 @@ existingBucketName: ""
 
 argoProject: default
 
+streamOverHTTPEnabled: true
+
 multitenancyEnabled: true
