@@ -1,6 +1,6 @@
 serviceAccount:
   create: false
-  name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+  name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
 
 gateway:
   enabled: true
@@ -24,7 +24,7 @@ ingester:
     - name: S3_BUCKET_NAME
       valueFrom:
         secretKeyRef:
-          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
           key: bucketName
 
 distributor:
@@ -40,7 +40,7 @@ distributor:
     - name: S3_BUCKET_NAME
       valueFrom:
         secretKeyRef:
-          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
           key: bucketName
 
 querier:
@@ -56,7 +56,7 @@ querier:
     - name: S3_BUCKET_NAME
       valueFrom:
         secretKeyRef:
-          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
           key: bucketName
 
 queryFrontend:
@@ -72,7 +72,7 @@ queryFrontend:
     - name: S3_BUCKET_NAME
       valueFrom:
         secretKeyRef:
-          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
           key: bucketName
 
 compactor:
@@ -134,7 +134,7 @@ compactor:
     - name: S3_BUCKET_NAME
       valueFrom:
         secretKeyRef:
-          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
           key: bucketName
 
 
@@ -191,7 +191,7 @@ metricsGenerator:
     - name: S3_BUCKET_NAME
       valueFrom:
         secretKeyRef:
-          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo-s3
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
           key: bucketName
   config:
     processor:
