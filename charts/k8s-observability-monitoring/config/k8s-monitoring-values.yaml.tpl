@@ -72,21 +72,11 @@ applicationObservability:
 
 prometheusOperatorObjects:
   enabled: {{ .Values.features.prometheusOperatorObjects }}
+  {{- if .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules }}
   serviceMonitors:
-    # Filter duplicate jobs - keep only jobs without namespace prefix or with prometheus/ prefix
-    # This is a workaround for an Alloy bug creating duplicate scrape jobs
     extraMetricProcessingRules: |
-      rule {
-        source_labels = ["job"]
-        regex = "cert-manager/.*"
-        action = "drop"
-      }
-      rule {
-        source_labels = ["job"]
-        regex = "(.+)/kube-state-metrics"
-        target_label = "job"
-        replacement = "kube-state-metrics"
-      }
+{{ .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules | indent 6 }}
+  {{- end }}
 
 podLogs:
   enabled: true
