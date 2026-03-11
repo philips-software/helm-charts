@@ -74,8 +74,11 @@ prometheusOperatorObjects:
   enabled: {{ .Values.features.prometheusOperatorObjects }}
   {{- if .Values.prometheusOperatorObjects }}
   {{- with .Values.prometheusOperatorObjects.serviceMonitors }}
-  {{- if or .extraDiscoveryRules .extraMetricProcessingRules }}
   serviceMonitors:
+    {{- if .labelExpressions }}
+    labelExpressions:
+      {{- toYaml .labelExpressions | nindent 6 }}
+    {{- end }}
     {{- if .extraDiscoveryRules }}
     extraDiscoveryRules: |
 {{ .extraDiscoveryRules | indent 6 }}
@@ -85,6 +88,22 @@ prometheusOperatorObjects:
 {{ .extraMetricProcessingRules | indent 6 }}
     {{- end }}
   {{- end }}
+  {{- end }}
+
+# Cluster metrics - use built-in kube-state-metrics scraping to avoid ServiceMonitor duplicate bug
+clusterMetrics:
+  enabled: {{ .Values.features.clusterMetrics }}
+  {{- if .Values.clusterMetrics }}
+  {{- with .Values.clusterMetrics }}
+  kube-state-metrics:
+    enabled: {{ default true .kubeStateMetrics.enabled }}
+    {{- if .kubeStateMetrics.namespace }}
+    namespace: {{ .kubeStateMetrics.namespace }}
+    {{- end }}
+    {{- if .kubeStateMetrics.labelMatchers }}
+    labelMatchers:
+      {{- toYaml .kubeStateMetrics.labelMatchers | nindent 6 }}
+    {{- end }}
   {{- end }}
   {{- end }}
 
