@@ -11,12 +11,32 @@
     {
       customType: 'regex',
       managerFilePatterns: [
-        '/^charts/.*/Chart\\.yaml$/',
+        '/\\.github/workflows/.+\\.(yaml|yml)$/',
+        '/\\.github/actions/.+\\.(yaml|yml)$/',
+        '/charts/.+/values\\.yaml$/',
+        '/charts/.+/Chart\\.yaml$/',
+        '/.+/templates/.+\\.(yaml|yml)$/',
+        '/.+/config/.+\\.(yaml|yml)$/',
       ],
+      matchStringsStrategy: 'any',
       matchStrings: [
-        '#\\s*renovate:\\s*datasource=(?<datasource>.*?) depName=(?<depName>.*?)\\n.*?(?:appVersion|version):\\s*["\']?(?<currentValue>[^"\'\\s]+)["\']?',
+        // appVersion/version in Chart.yaml
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\n.*?(?:appVersion|version):\\s*["\']?(?<currentValue>[^"\'\\s]+)["\']?',
+        // targetRevision (ArgoCD style)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*targetRevision:\\s*"?(?<currentValue>[^"\\s]+)"?',
+        // targetRevision with registryUrl
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*targetRevision:\\s*"?(?<currentValue>[^"\\s]+)"?',
+        // image: field with tag inline
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*image:\\s*\\S+?:(?<currentValue>\\S+)',
+        // tag: field (separated repository/tag format)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*tag:\\s*"?(?<currentValue>[^"\\s]+?)"?\\s*$',
+        // version: field in values.yaml (registryUrl after depName)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s*\\n\\s*version:\\s*(?<currentValue>\\S+)',
+        // version: field in values.yaml (registryUrl before depName)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*version:\\s*"?(?<currentValue>[^"\\s]+)"?',
+        // version: field without registryUrl (for docker datasource)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*version:\\s*"?(?<currentValue>[^"\\s]+)"?',
       ],
-      versioningTemplate: 'docker',
     },
   ],
 }
