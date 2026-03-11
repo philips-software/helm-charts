@@ -18,9 +18,9 @@ ingester:
   resources:
     requests:
       cpu: "120m"
-      memory: "2400Mi"
+      memory: "800Mi"
     limits:
-      memory: "2600Mi"
+      memory: "1200Mi"
   extraArgs:
     - -config.expand-env=true
   extraEnv:
@@ -35,9 +35,9 @@ distributor:
   resources:
     requests:
       cpu: "30m"
-      memory: "600Mi"
+      memory: "50Mi"
     limits:
-      memory: "700Mi"
+      memory: "100Mi"
   extraArgs:
     - -config.expand-env=true
   extraEnv:
@@ -54,7 +54,7 @@ querier:
       cpu: "120m"
       memory: "120Mi"
     limits:
-      memory: "150Mi"
+      memory: "200Mi"
   extraArgs:
     - -config.expand-env=true
   extraEnv:
@@ -90,9 +90,9 @@ compactor:
   resources:
     requests:
       cpu: "15m"
-      memory: "864Mi"
+      memory: "600Mi"
     limits:
-      memory: "1000Mi"
+      memory: "850Mi"
   extraArgs:
     - --config.expand-env=true
     {{- if .Values.multitenancyEnabled }}
