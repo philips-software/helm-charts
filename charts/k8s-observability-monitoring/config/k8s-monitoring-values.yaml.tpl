@@ -72,6 +72,7 @@ applicationObservability:
 
 prometheusOperatorObjects:
   enabled: {{ .Values.features.prometheusOperatorObjects }}
+  {{- if .Values.prometheusOperatorObjects }}
   {{- with .Values.prometheusOperatorObjects.serviceMonitors }}
   {{- if or .extraDiscoveryRules .extraMetricProcessingRules }}
   serviceMonitors:
@@ -83,6 +84,7 @@ prometheusOperatorObjects:
     extraMetricProcessingRules: |
 {{ .extraMetricProcessingRules | indent 6 }}
     {{- end }}
+  {{- end }}
   {{- end }}
   {{- end }}
 
