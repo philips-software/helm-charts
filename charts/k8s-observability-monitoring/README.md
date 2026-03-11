@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.8.0](https://img.shields.io/badge/Version-0.8.0-informational?style=flat-square) ![AppVersion: 3.8.0](https://img.shields.io/badge/AppVersion-3.8.0-informational?style=flat-square)
+![Version: 0.9.0](https://img.shields.io/badge/Version-0.9.0-informational?style=flat-square) ![AppVersion: 3.8.0](https://img.shields.io/badge/AppVersion-3.8.0-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -10,8 +10,9 @@ Helm chart for k8s-observability-monitoring
 |-----|------|---------|-------------|
 | chart | object | `{"version":""}` | Override the upstream chart version (defaults to appVersion in Chart.yaml) |
 | clusterName | string | `"changeme"` |  |
-| features | object | `{"autoInstrumentation":false}` | Feature toggles |
+| features | object | `{"autoInstrumentation":false,"prometheusOperatorObjects":false}` | Feature toggles |
 | features.autoInstrumentation | bool | `false` | Enable auto-instrumentation for application telemetry |
+| features.prometheusOperatorObjects | bool | `false` | Enable scraping Prometheus Operator objects (ServiceMonitors, PodMonitors, Probes). Disable this if you already have kube-prometheus-stack or another collector scraping these. |
 | otlp | object | `{"destinations":[]}` | OTLP destination configuration for sending telemetry data (metrics, logs, traces) |
 | otlp.destinations | list | `[]` | List of OTLP destinations to send telemetry data to. Each destination requires a pre-created Kubernetes Secret with basic auth credentials.  Secret format:   The secret must contain the following keys:   - username: The username for basic authentication   - apiKey: The API key or password for basic authentication  Example secret creation:   kubectl create secret generic otlp-gateway-creds \     --from-literal=username=myuser \     --from-literal=apiKey=myapikey  Or via YAML:   apiVersion: v1   kind: Secret   metadata:     name: otlp-gateway-creds   type: Opaque   stringData:     username: "myuser"     apiKey: "myapikey"  |
 | project | object | `{"name":"default"}` | ArgoCD project name for the k8s-monitoring Application |

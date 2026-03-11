@@ -71,7 +71,7 @@ applicationObservability:
         port: 4318
 
 prometheusOperatorObjects:
-  enabled: true
+  enabled: {{ .Values.features.prometheusOperatorObjects }}
 
 podLogs:
   enabled: true
