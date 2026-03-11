@@ -1307,6 +1307,13 @@ entries:
     version: 0.0.14
   grafana:
   - apiVersion: v2
+    created: "2026-03-11T13:02:38.272167933Z"
+    digest: 9a3d782d6eb55cc6fa4b763eb4ee885ee434bafb29e01aef7e05586987582965
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.64.0/grafana-0.64.0.tgz
+    version: 0.64.0
+  - apiVersion: v2
     created: "2026-03-10T13:11:56.157473807Z"
     digest: 589f6243081da67c3123b6b318c3ed72a865d9be67f12090282896c1ea95bd1b
     name: grafana
@@ -2230,6 +2237,14 @@ entries:
     version: 0.37.0
   tempo-bootstrap:
   - apiVersion: v2
+    created: "2026-03-11T13:02:38.401845878Z"
+    description: A Helm chart for bootstrapping Tempo
+    digest: 780430b3ff7dfa4bda61a0ded58b96a3f0a18068b3a91f91d8798fa085c70887
+    name: tempo-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.42.0/tempo-bootstrap-0.42.0.tgz
+    version: 0.42.0
+  - apiVersion: v2
     created: "2026-03-10T15:04:30.624588112Z"
     description: A Helm chart for bootstrapping Tempo
     digest: 3b428f29a7c797e3ddc907ec8ea32ea10b4f5b524b8057c43e4adb547467eed8
@@ -2293,4 +2308,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-03-10T15:05:04.241375018Z"
+generated: "2026-03-11T13:02:38.402277169Z"
