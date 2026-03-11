@@ -56,19 +56,35 @@ features:
   autoInstrumentation: false
   # -- Enable scraping Prometheus Operator objects (ServiceMonitors, PodMonitors, Probes).
   prometheusOperatorObjects: true
+  # -- Enable cluster metrics collection (kube-state-metrics, kubelet, etc.)
+  # Use this instead of ServiceMonitor scraping for kube-state-metrics to avoid duplicate job bug.
+  clusterMetrics: true
 
 # -- Prometheus Operator Objects configuration
 prometheusOperatorObjects:
   serviceMonitors:
+    # -- Label expressions to filter which ServiceMonitors to scrape.
+    # Default excludes kube-state-metrics ServiceMonitor (scraped via clusterMetrics instead).
+    # This avoids duplicate scrape jobs bug in Alloy's prometheus.operator.servicemonitors.
+    labelExpressions:
+      - key: "app.kubernetes.io/name"
+        operator: "NotIn"
+        values:
+          - "kube-state-metrics"
     # -- Extra discovery rules for ServiceMonitors (Alloy relabel config syntax).
     # Applied before scraping to filter/transform targets.
-    # Default drops duplicate kube-state-metrics targets with cert-manager prefix.
-    extraDiscoveryRules: |
-      rule {
-        source_labels = ["__meta_kubernetes_service_name"]
-        regex = "kps-kube-state-metrics"
-        action = "keep"
-      }
+    extraDiscoveryRules: ""
     # -- Extra metric processing rules for ServiceMonitors (Alloy relabel config syntax).
     # Use this to filter/transform metrics after scraping.
     extraMetricProcessingRules: ""
+
+# -- Cluster metrics configuration (kube-state-metrics, kubelet, etc.)
+clusterMetrics:
+  kubeStateMetrics:
+    # -- Enable scraping kube-state-metrics
+    enabled: true
+    # -- Namespace where kube-state-metrics is deployed (auto-detected if empty)
+    namespace: ""
+    # -- Label matchers to find kube-state-metrics service
+    labelMatchers:
+      app.kubernetes.io/name: kube-state-metrics
