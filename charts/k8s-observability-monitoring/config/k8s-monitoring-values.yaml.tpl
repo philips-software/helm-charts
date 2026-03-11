@@ -72,20 +72,21 @@ applicationObservability:
 
 prometheusOperatorObjects:
   enabled: {{ .Values.features.prometheusOperatorObjects }}
-  {{- if .Values.prometheusOperatorObjects }}
-  {{- with .Values.prometheusOperatorObjects.serviceMonitors }}
+  {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors }}
+  {{- $sm := .Values.prometheusOperatorObjects.serviceMonitors }}
+  {{- if or $sm.labelExpressions $sm.extraDiscoveryRules $sm.extraMetricProcessingRules }}
   serviceMonitors:
-    {{- if .labelExpressions }}
+    {{- if $sm.labelExpressions }}
     labelExpressions:
-      {{- toYaml .labelExpressions | nindent 6 }}
+      {{- toYaml $sm.labelExpressions | nindent 6 }}
     {{- end }}
-    {{- if .extraDiscoveryRules }}
+    {{- if $sm.extraDiscoveryRules }}
     extraDiscoveryRules: |
-{{ .extraDiscoveryRules | indent 6 }}
+{{ $sm.extraDiscoveryRules | indent 6 }}
     {{- end }}
-    {{- if .extraMetricProcessingRules }}
+    {{- if $sm.extraMetricProcessingRules }}
     extraMetricProcessingRules: |
-{{ .extraMetricProcessingRules | indent 6 }}
+{{ $sm.extraMetricProcessingRules | indent 6 }}
     {{- end }}
   {{- end }}
   {{- end }}
