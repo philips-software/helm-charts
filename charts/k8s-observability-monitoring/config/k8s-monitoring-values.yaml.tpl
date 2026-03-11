@@ -73,9 +73,13 @@ applicationObservability:
 prometheusOperatorObjects:
   enabled: {{ .Values.features.prometheusOperatorObjects }}
   serviceMonitors:
-    # Exclude cert-manager namespace to avoid duplicate scraping bug
-    excludeNamespaces:
-      - cert-manager
+    # Drop duplicate kube-state-metrics job (Alloy bug workaround)
+    extraMetricProcessingRules: |
+      rule {
+        source_labels = ["job"]
+        regex = "cert-manager/.*"
+        action = "drop"
+      }
 
 podLogs:
   enabled: true
