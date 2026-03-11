@@ -1,15 +1,22 @@
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
-  labels: [
-    'dependencies',
-  ],
+  // Self-hosted settings
+  username: 'renovate[bot]',
+  gitAuthor: 'Renovate Bot <bot@renovateapp.com>',
+  onboarding: false,
+  platform: 'github',
+  forkProcessing: 'disabled',
+  // PR settings
+  labels: ['dependencies'],
   extends: [
     'config:best-practices',
     ':disableDependencyDashboard',
   ],
+  enabledManagers: ['custom.regex'],
   customManagers: [
     {
       customType: 'regex',
+      matchStringsStrategy: 'any',
       managerFilePatterns: [
         '/\\.github/workflows/.+\\.(yaml|yml)$/',
         '/\\.github/actions/.+\\.(yaml|yml)$/',
@@ -18,7 +25,6 @@
         '/.+/templates/.+\\.(yaml|yml)$/',
         '/.+/config/.+\\.(yaml|yml)$/',
       ],
-      matchStringsStrategy: 'any',
       matchStrings: [
         // appVersion/version in Chart.yaml
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\n.*?(?:appVersion|version):\\s*["\']?(?<currentValue>[^"\'\\s]+)["\']?',
@@ -29,13 +35,16 @@
         // image: field with tag inline
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*image:\\s*\\S+?:(?<currentValue>\\S+)',
         // tag: field (separated repository/tag format)
-        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*tag:\\s*"?(?<currentValue>[^"\\s]+?)"?',
-        // version: field in values.yaml (registryUrl after depName)
-        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s*\\n\\s*version:\\s*(?<currentValue>\\S+)',
-        // version: field in values.yaml (registryUrl before depName)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*tag:\\s*"?(?<currentValue>[^"\\s]+)"?',
+        // version: field with registryUrl (either order)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s*\\n\\s*version:\\s*"?(?<currentValue>[^"\\s]+)"?',
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*version:\\s*"?(?<currentValue>[^"\\s]+)"?',
-        // version: field without registryUrl (for docker datasource)
+        // version: field without registryUrl
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*version:\\s*"?(?<currentValue>[^"\\s]+)"?',
+        // chart_version: field
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s*\\n\\s*chart_version:\\s*"?(?<currentValue>[^"\\s]+)"?',
+        // GitHub workflow env vars (UPPER_CASE: value)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*[A-Z_]+:\\s*"?(?<currentValue>[^"\\s]+)"?',
       ],
     },
   ],

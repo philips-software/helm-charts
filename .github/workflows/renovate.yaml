@@ -3,13 +3,14 @@ on:
   pull_request:
     paths:
       - '.github/workflows/renovate.yaml'
-      - '.github/renovate-config.js'
+      - '.github/renovate.json5'
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
 
 env:
-  RENOVATE_VERSION: 41.141.0
+  # renovate: datasource=github-releases depName=renovatebot/renovate
+  RENOVATE_VERSION: 43.63.0
 
 jobs:
   renovate:
@@ -28,7 +29,7 @@ jobs:
         with:
           renovate-version: ${{ env.RENOVATE_VERSION }}
           token: '${{ secrets.GITHUB_TOKEN }}'
-          configurationFile: '.github/renovate-config.js'
+          configurationFile: '.github/renovate.json5'
         env:
           RENOVATE_ALLOW_SCRIPTS: true
           RENOVATE_SEPARATE_MAJOR_MINOR: false
