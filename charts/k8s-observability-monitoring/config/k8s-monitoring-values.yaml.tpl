@@ -97,6 +97,7 @@ clusterMetrics:
   {{- with .Values.clusterMetrics }}
   kube-state-metrics:
     enabled: {{ default true .kubeStateMetrics.enabled }}
+    deploy: {{ default false .kubeStateMetrics.deploy }}
     {{- if .kubeStateMetrics.namespace }}
     namespace: {{ .kubeStateMetrics.namespace }}
     {{- end }}
@@ -104,6 +105,9 @@ clusterMetrics:
     labelMatchers:
       {{- toYaml .kubeStateMetrics.labelMatchers | nindent 6 }}
     {{- end }}
+  node-exporter:
+    enabled: false
+    deploy: false
   {{- end }}
   {{- end }}
 

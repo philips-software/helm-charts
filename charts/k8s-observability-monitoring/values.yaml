@@ -83,6 +83,8 @@ clusterMetrics:
   kubeStateMetrics:
     # -- Enable scraping kube-state-metrics
     enabled: true
+    # -- Deploy kube-state-metrics (set to false if using existing deployment like kube-prometheus-stack)
+    deploy: false
     # -- Namespace where kube-state-metrics is deployed (auto-detected if empty)
     namespace: ""
     # -- Label matchers to find kube-state-metrics service
