@@ -29,7 +29,7 @@
         // image: field with tag inline
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*image:\\s*\\S+?:(?<currentValue>\\S+)',
         // tag: field (separated repository/tag format)
-        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*tag:\\s*"?(?<currentValue>[^"\\s]+?)"?\\s*$',
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*tag:\\s*"?(?<currentValue>[^"\\s]+?)"?',
         // version: field in values.yaml (registryUrl after depName)
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s*\\n\\s*version:\\s*(?<currentValue>\\S+)',
         // version: field in values.yaml (registryUrl before depName)
