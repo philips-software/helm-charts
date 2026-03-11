@@ -74,9 +74,10 @@ prometheusOperatorObjects:
   enabled: {{ .Values.features.prometheusOperatorObjects }}
   {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors }}
   {{- $sm := .Values.prometheusOperatorObjects.serviceMonitors }}
-  {{- if or $sm.labelExpressions $sm.extraDiscoveryRules $sm.extraMetricProcessingRules }}
+  {{- $hasLabelExpr := and $sm.labelExpressions (gt (len $sm.labelExpressions) 0) }}
+  {{- if or $hasLabelExpr $sm.extraDiscoveryRules $sm.extraMetricProcessingRules }}
   serviceMonitors:
-    {{- if $sm.labelExpressions }}
+    {{- if $hasLabelExpr }}
     labelExpressions:
       {{- toYaml $sm.labelExpressions | nindent 6 }}
     {{- end }}
