@@ -72,6 +72,10 @@ applicationObservability:
 
 prometheusOperatorObjects:
   enabled: {{ .Values.features.prometheusOperatorObjects }}
+  serviceMonitors:
+    # Exclude cert-manager namespace to avoid duplicate scraping bug
+    excludeNamespaces:
+      - cert-manager
 
 podLogs:
   enabled: true
