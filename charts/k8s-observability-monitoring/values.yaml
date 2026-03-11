@@ -32,6 +32,15 @@ otlp:
   #    secret:
   #      name: "otlp-gateway-creds"     # Name of the Kubernetes Secret
   #      namespace: ""                  # Optional: namespace of the secret (defaults to release namespace)
+  #    processors:
+  #      batch:
+  #        enabled: true                # Enable batch processing (default: true)
+  #        size: 2000                   # Items before flush (default: 8192, reduce for large payloads)
+  #        maxSize: 4000                # Max items per batch (default: 0 = unlimited)
+  #    sendingQueue:
+  #      enabled: true                  # Enable sending queue buffer (default: true)
+  #      queueSize: 100                 # Max unwritten batches in queue (default: 1000)
+  #      numConsumers: 4                # Parallel senders (default: 10)
 
 # -- ArgoCD project name for the k8s-monitoring Application
 project:

@@ -23,6 +23,29 @@ destinations:
       enabled: true
     traces:
       enabled: true
+    {{- if .processors }}
+    processors:
+      {{- if .processors.batch }}
+      batch:
+        enabled: {{ default true .processors.batch.enabled }}
+        {{- if .processors.batch.size }}
+        size: {{ .processors.batch.size }}
+        {{- end }}
+        {{- if .processors.batch.maxSize }}
+        maxSize: {{ .processors.batch.maxSize }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if .sendingQueue }}
+    sendingQueue:
+      enabled: {{ default true .sendingQueue.enabled }}
+      {{- if .sendingQueue.queueSize }}
+      queueSize: {{ .sendingQueue.queueSize }}
+      {{- end }}
+      {{- if .sendingQueue.numConsumers }}
+      numConsumers: {{ .sendingQueue.numConsumers }}
+      {{- end }}
+    {{- end }}
 {{- end }}
 {{- else }}
 destinations: []
