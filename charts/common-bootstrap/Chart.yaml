@@ -6,7 +6,7 @@ description: |
   and uses HelmApplication CRs to bootstrap platform components.
 type: application
 version: 1.2.3
-# renovate: datasource=github-releases depName=philips-software/crossplane-compositions
+# renovate: datasource=github-releases depName=dip-software/crossplane-compositions
 appVersion: "0.0.25"
 keywords:
   - crossplane
