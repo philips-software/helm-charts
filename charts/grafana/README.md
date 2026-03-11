@@ -21,7 +21,7 @@ secret in the same namespace as the app. The secret should have the following fi
 | crossplaneProviders.gf.datasources | list | `[]` |  |
 | crossplaneProviders.gf.debug | bool | `false` |  |
 | crossplaneProviders.gf.enabled | bool | `true` |  |
-| crossplaneProviders.gf.version | string | `"v0.7.0"` |  |
+| crossplaneProviders.gf.tag | string | `"v0.8.0"` |  |
 | crossplaneProviders.grafana.datasources | list | `[]` |  |
 | crossplaneProviders.grafana.debug | bool | `false` |  |
 | crossplaneProviders.grafana.enabled | bool | `true` |  |
