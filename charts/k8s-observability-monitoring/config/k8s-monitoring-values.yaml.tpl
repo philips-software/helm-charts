@@ -72,10 +72,18 @@ applicationObservability:
 
 prometheusOperatorObjects:
   enabled: {{ .Values.features.prometheusOperatorObjects }}
-  {{- if .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules }}
+  {{- with .Values.prometheusOperatorObjects.serviceMonitors }}
+  {{- if or .extraDiscoveryRules .extraMetricProcessingRules }}
   serviceMonitors:
+    {{- if .extraDiscoveryRules }}
+    extraDiscoveryRules: |
+{{ .extraDiscoveryRules | indent 6 }}
+    {{- end }}
+    {{- if .extraMetricProcessingRules }}
     extraMetricProcessingRules: |
-{{ .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules | indent 6 }}
+{{ .extraMetricProcessingRules | indent 6 }}
+    {{- end }}
+  {{- end }}
   {{- end }}
 
 podLogs:
