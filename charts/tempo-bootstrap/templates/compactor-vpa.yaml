@@ -18,7 +18,7 @@ spec:
       - containerName: '*'
         minAllowed:
           cpu: 10m
-          memory: 720Mi
+          memory: 600Mi
         maxAllowed:
           cpu: 1
           memory: 12Gi
