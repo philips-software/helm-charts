@@ -10,7 +10,7 @@ compactorOrgmapper:
 initOverrides:
   package: busybox
   # renovate: datasource=docker depName=busybox
-  tag: 1.36.1
+  tag: 1.37.0
 
 environmentConfig:
   resourcePrefix: ""
