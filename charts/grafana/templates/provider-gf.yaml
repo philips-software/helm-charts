@@ -17,7 +17,7 @@ spec:
       valuesObject:
         providers: [] # Disable default providers
         package:
-          version: "v0.7.0"
+          version: {{ .Values.crossplaneProviders.gf.version | quote }}
           registry: "xpkg.upbound.io/loafoe"
         extraProviders:
           - name: provider-gf
