@@ -41,7 +41,7 @@ functions:
   - name: function-environment-configs
     registry: ghcr.io/crossplane-contrib
     # renovate: datasource=docker depName=ghcr.io/crossplane-contrib/function-environment-configs
-    version: v0.4.0
+    version: v0.6.0
     critical: true
     
 # extraFunctions: Additional functions to install beyond the default set
