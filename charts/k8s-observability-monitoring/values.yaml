@@ -54,3 +54,6 @@ chart:
 features:
   # -- Enable auto-instrumentation for application telemetry
   autoInstrumentation: false
+  # -- Enable scraping Prometheus Operator objects (ServiceMonitors, PodMonitors, Probes).
+  # Disable this if you already have kube-prometheus-stack or another collector scraping these.
+  prometheusOperatorObjects: false
