@@ -56,3 +56,22 @@ features:
   autoInstrumentation: false
   # -- Enable scraping Prometheus Operator objects (ServiceMonitors, PodMonitors, Probes).
   prometheusOperatorObjects: true
+
+# -- Prometheus Operator Objects configuration
+prometheusOperatorObjects:
+  serviceMonitors:
+    # -- Extra metric processing rules for ServiceMonitors (Alloy relabel config syntax).
+    # Use this to filter/transform metrics after scraping.
+    # Default drops duplicate kube-state-metrics jobs as a workaround for Alloy bug.
+    extraMetricProcessingRules: |
+      rule {
+        source_labels = ["job"]
+        regex = "cert-manager/.*"
+        action = "drop"
+      }
+      rule {
+        source_labels = ["job"]
+        regex = "(.+)/kube-state-metrics"
+        target_label = "job"
+        replacement = "kube-state-metrics"
+      }
