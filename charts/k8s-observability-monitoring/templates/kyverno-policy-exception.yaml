@@ -1,0 +1,24 @@
+{{- if .Values.kyverno.policyException.enabled }}
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: {{ .Release.Name }}-alloy-exception
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  exceptions:
+  - policyName: {{ .Values.kyverno.policyException.policyName }}
+    ruleNames:
+    {{- toYaml .Values.kyverno.policyException.ruleNames | nindent 4 }}
+  match:
+    any:
+    - resources:
+        kinds:
+        - Pod
+        namespaces:
+        - {{ .Release.Namespace }}
+        names:
+        - k8s-monitoring-alloy-*
+{{- end }}

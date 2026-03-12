@@ -59,6 +59,27 @@ kubectl create secret generic otlp-gateway-creds \
   --from-literal=tenantId=anonymous
 ```
 
+## Installing on clusters with Kyverno
+
+If your cluster has [Kyverno](https://kyverno.io/) enforcing Pod Security Standards (baseline profile), Alloy pods may be blocked due to:
+- `NET_RAW` capability requirement
+- `hostPath` volumes for log collection (`/var/log`, `/var/lib/docker/containers`)
+
+### Enable Kyverno PolicyException
+
+Enable the built-in PolicyException to allow Alloy pods:
+
+```yaml
+kyverno:
+  policyException:
+    enabled: true
+    policyName: "enforce-baseline-pod-security-profile"  # Your policy name
+    ruleNames:
+      - "enforce-baseline-profile"  # Rules to exempt
+```
+
+This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` pods in the release namespace to bypass the specified policy rules.
+
 {{ template "chart.valuesSection" . }}
 
 {{ template "helm-docs.versionFooter" . }}
