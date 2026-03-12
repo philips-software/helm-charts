@@ -68,7 +68,7 @@ querier:
       cpu: 100m
       memory: 512Mi
     limits:
-      memory: 1Gi
+      memory: 1.5Gi
 
 karpenter:
   # If true, stateful components (ingester, store-gateway, etc.) will be annotated
