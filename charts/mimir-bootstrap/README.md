@@ -1,6 +1,6 @@
 # mimir
 
-![Version: 0.40.0](https://img.shields.io/badge/Version-0.40.0-informational?style=flat-square)
+![Version: 0.41.0](https://img.shields.io/badge/Version-0.41.0-informational?style=flat-square)
 
 # Deployment
 
@@ -25,7 +25,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | environmentConfig.resourcePrefix | string | `""` |  |
 | existingBucketName | string | `""` |  |
 | initOverrides.package | string | `"busybox"` |  |
-| initOverrides.tag | string | `"1.36.1"` |  |
+| initOverrides.tag | string | `"1.37.0"` |  |
 | kafkaNodePool.enabled | bool | `true` |  |
 | kafkaNodePool.expireAfter | string | `"3600h"` |  |
 | kafkaNodePool.labels.workload | string | `"kafka"` |  |
@@ -40,6 +40,12 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | mimirProvider.package | string | `"ghcr.io/loafoe/provider-mimir"` |  |
 | mimirProvider.tag | string | `"v0.9.0"` |  |
 | multitenancyEnabled | bool | `true` |  |
+| querier.resources.limits.memory | string | `"1Gi"` |  |
+| querier.resources.requests.cpu | string | `"100m"` |  |
+| querier.resources.requests.memory | string | `"512Mi"` |  |
+| queryFrontend.resources.limits.memory | string | `"1Gi"` |  |
+| queryFrontend.resources.requests.cpu | string | `"100m"` |  |
+| queryFrontend.resources.requests.memory | string | `"512Mi"` |  |
 | ruler.maxRulesPerRuleGroup | int | `800` |  |
 
 ----------------------------------------------
