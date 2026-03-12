@@ -129,18 +129,18 @@ query_frontend:
     query-frontend.max-cache-freshness: 30m
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
+      cpu: {{ .Values.queryFrontend.resources.requests.cpu }}
+      memory: {{ .Values.queryFrontend.resources.requests.memory }}
     limits:
-      memory: 512Mi
+      memory: {{ .Values.queryFrontend.resources.limits.memory }}
 
 querier:
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
+      cpu: {{ .Values.querier.resources.requests.cpu }}
+      memory: {{ .Values.querier.resources.requests.memory }}
     limits:
-      memory: 512Mi
+      memory: {{ .Values.querier.resources.limits.memory }}
 
 query_scheduler:
   resources:

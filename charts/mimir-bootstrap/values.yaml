@@ -52,6 +52,24 @@ ruler:
   # Maximum number of rules per rule group
   maxRulesPerRuleGroup: 800
 
+# Query frontend configuration
+queryFrontend:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+
+# Querier configuration
+querier:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+
 karpenter:
   # If true, stateful components (ingester, store-gateway, etc.) will be annotated
   # with karpenter.sh/do-not-disrupt: "true" to prevent consolidation.
