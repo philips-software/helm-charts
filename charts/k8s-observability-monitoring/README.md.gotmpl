@@ -1,0 +1,64 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.versionBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+{{ template "chart.description" . }}
+
+## Installing on clusters with kube-prometheus-stack (KPS)
+
+If your cluster already has [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) installed, you need additional configuration to avoid duplicate metrics.
+
+### The Problem
+
+Alloy's `prometheus.operator.servicemonitors` component has a [known bug](https://github.com/grafana/k8s-monitoring-helm/issues/1799) that creates duplicate scrape jobs from a single ServiceMonitor. For kube-state-metrics, this results in two jobs (e.g., `cert-manager/kube-state-metrics` and `prometheus/kube-state-metrics`) scraping the same data, causing double counts in dashboards.
+
+### The Solution
+
+Use `labelExpressions` to exclude kube-state-metrics from ServiceMonitor scraping, and enable `clusterMetrics` to scrape it directly instead:
+
+```yaml
+# values.yaml for clusters with KPS
+features:
+  clusterMetrics: true  # Enable direct kube-state-metrics scraping
+
+prometheusOperatorObjects:
+  serviceMonitors:
+    labelExpressions:
+      - key: "app.kubernetes.io/name"
+        operator: "NotIn"
+        values:
+          - "kube-state-metrics"
+
+clusterMetrics:
+  kubeStateMetrics:
+    enabled: true
+    deploy: false  # Use existing KPS deployment
+    labelMatchers:
+      app.kubernetes.io/name: kube-state-metrics
+  nodeExporter:
+    enabled: true
+    deploy: false  # Use existing KPS deployment
+```
+
+This configuration:
+1. Excludes the kube-state-metrics ServiceMonitor from being scraped by `prometheusOperatorObjects` (avoiding the duplicate bug)
+2. Uses the built-in `clusterMetrics` feature to scrape kube-state-metrics directly via `integrations/kubernetes/kube-state-metrics`
+3. Does not deploy new kube-state-metrics or node-exporter instances (uses existing KPS deployments)
+
+### OTLP Secret Requirements
+
+The OTLP destination secret must contain these keys:
+- `username`: Basic auth username
+- `apiKey`: Basic auth password/token
+- `tenantId`: The X-Scope-OrgID header value (e.g., `anonymous`)
+
+```bash
+kubectl create secret generic otlp-gateway-creds \
+  --from-literal=username=otlp \
+  --from-literal=apiKey=<your-token> \
+  --from-literal=tenantId=anonymous
+```
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}
