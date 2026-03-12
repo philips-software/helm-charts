@@ -56,21 +56,20 @@ features:
   autoInstrumentation: false
   # -- Enable scraping Prometheus Operator objects (ServiceMonitors, PodMonitors, Probes).
   prometheusOperatorObjects: true
-  # -- Enable cluster metrics collection (kube-state-metrics, kubelet, etc.)
-  # Use this instead of ServiceMonitor scraping for kube-state-metrics to avoid duplicate job bug.
-  clusterMetrics: true
+  # -- Enable cluster metrics collection (kube-state-metrics, node-exporter, kubelet, etc.)
+  # Set to false if using kube-prometheus-stack which provides these via ServiceMonitors.
+  clusterMetrics: false
 
 # -- Prometheus Operator Objects configuration
 prometheusOperatorObjects:
   serviceMonitors:
     # -- Label expressions to filter which ServiceMonitors to scrape.
-    # Default excludes kube-state-metrics ServiceMonitor (scraped via clusterMetrics instead).
-    # This avoids duplicate scrape jobs bug in Alloy's prometheus.operator.servicemonitors.
-    labelExpressions:
-      - key: "app.kubernetes.io/name"
-        operator: "NotIn"
-        values:
-          - "kube-state-metrics"
+    # Empty by default (scrape all). Example to exclude kube-state-metrics:
+    #   - key: "app.kubernetes.io/name"
+    #     operator: "NotIn"
+    #     values:
+    #       - "kube-state-metrics"
+    labelExpressions: []
     # -- Extra discovery rules for ServiceMonitors (Alloy relabel config syntax).
     # Applied before scraping to filter/transform targets.
     extraDiscoveryRules: ""
@@ -78,15 +77,21 @@ prometheusOperatorObjects:
     # Use this to filter/transform metrics after scraping.
     extraMetricProcessingRules: ""
 
-# -- Cluster metrics configuration (kube-state-metrics, kubelet, etc.)
+# -- Cluster metrics configuration (kube-state-metrics, node-exporter, kubelet, etc.)
+# Only used when features.clusterMetrics is true.
 clusterMetrics:
   kubeStateMetrics:
     # -- Enable scraping kube-state-metrics
     enabled: true
-    # -- Deploy kube-state-metrics (set to false if using existing deployment like kube-prometheus-stack)
+    # -- Deploy kube-state-metrics (set to false if using existing deployment)
     deploy: false
     # -- Namespace where kube-state-metrics is deployed (auto-detected if empty)
     namespace: ""
     # -- Label matchers to find kube-state-metrics service
     labelMatchers:
       app.kubernetes.io/name: kube-state-metrics
+  nodeExporter:
+    # -- Enable scraping node-exporter
+    enabled: true
+    # -- Deploy node-exporter (set to false if using existing deployment)
+    deploy: false

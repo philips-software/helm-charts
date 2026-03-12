@@ -72,30 +72,30 @@ applicationObservability:
 
 prometheusOperatorObjects:
   enabled: {{ .Values.features.prometheusOperatorObjects }}
-  {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors }}
-  {{- $sm := .Values.prometheusOperatorObjects.serviceMonitors }}
-  {{- $hasLabelExpr := and $sm.labelExpressions (gt (len $sm.labelExpressions) 0) }}
-  {{- if or $hasLabelExpr $sm.extraDiscoveryRules $sm.extraMetricProcessingRules }}
+  {{- if .Values.prometheusOperatorObjects }}
+  {{- with .Values.prometheusOperatorObjects.serviceMonitors }}
+  {{- if or (and .labelExpressions (gt (len .labelExpressions) 0)) .extraDiscoveryRules .extraMetricProcessingRules }}
   serviceMonitors:
-    {{- if $hasLabelExpr }}
+    {{- if and .labelExpressions (gt (len .labelExpressions) 0) }}
     labelExpressions:
-      {{- toYaml $sm.labelExpressions | nindent 6 }}
+      {{- toYaml .labelExpressions | nindent 6 }}
     {{- end }}
-    {{- if $sm.extraDiscoveryRules }}
+    {{- if .extraDiscoveryRules }}
     extraDiscoveryRules: |
-{{ $sm.extraDiscoveryRules | indent 6 }}
+{{ .extraDiscoveryRules | indent 6 }}
     {{- end }}
-    {{- if $sm.extraMetricProcessingRules }}
+    {{- if .extraMetricProcessingRules }}
     extraMetricProcessingRules: |
-{{ $sm.extraMetricProcessingRules | indent 6 }}
+{{ .extraMetricProcessingRules | indent 6 }}
     {{- end }}
+  {{- end }}
   {{- end }}
   {{- end }}
 
-# Cluster metrics - use built-in kube-state-metrics scraping to avoid ServiceMonitor duplicate bug
+# Cluster metrics - built-in kube-state-metrics and node-exporter scraping
 clusterMetrics:
   enabled: {{ .Values.features.clusterMetrics }}
-  {{- if .Values.clusterMetrics }}
+  {{- if and .Values.features.clusterMetrics .Values.clusterMetrics }}
   {{- with .Values.clusterMetrics }}
   kube-state-metrics:
     enabled: {{ default true .kubeStateMetrics.enabled }}
@@ -108,8 +108,8 @@ clusterMetrics:
       {{- toYaml .kubeStateMetrics.labelMatchers | nindent 6 }}
     {{- end }}
   node-exporter:
-    enabled: false
-    deploy: false
+    enabled: {{ default true .nodeExporter.enabled }}
+    deploy: {{ default false .nodeExporter.deploy }}
   {{- end }}
   {{- end }}
 
