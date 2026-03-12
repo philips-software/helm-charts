@@ -108,6 +108,29 @@ clusterMetrics:
     # -- Deploy node-exporter (set to false if using existing deployment)
     deploy: false
 
+# -- Custom Alloy deployment for kube-state-metrics scraping
+# This deploys a separate Alloy instance that scrapes kube-state-metrics without clustering,
+# avoiding the Alloy clustering bug that causes duplicate/prefixed job labels.
+customAlloy:
+  # -- Enable custom Alloy deployment for kube-state-metrics
+  enabled: false
+  # -- Clustering configuration
+  clustering:
+    # -- Enable clustering (set to false to avoid the job label prefix bug)
+    enabled: false
+  # -- kube-state-metrics scraping configuration
+  kubeStateMetrics:
+    # -- Extra metric processing rules (Alloy relabel config syntax)
+    extraMetricProcessingRules: ""
+  # -- Resource requests and limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
 # -- Kyverno PolicyException configuration
 # Creates a PolicyException to allow Alloy pods to run with required capabilities
 # (NET_RAW) and hostPath volumes (for log collection).
