@@ -93,6 +93,15 @@ clusterMetrics:
     # -- Use the default allowlist of metrics (true) or scrape all metrics (false).
     # Set to false to get all kube-state-metrics including kube_service_info, kube_endpoint_info, etc.
     useDefaultAllowList: false
+    # -- Extra metric processing rules for kube-state-metrics (Alloy relabel config syntax).
+    # Use this to filter/transform metrics after scraping.
+    # Example to drop duplicate scrape jobs caused by Alloy clustering bug:
+    #   rule {
+    #     source_labels = ["job"]
+    #     regex = "crossplane-system/integrations/kubernetes/kube-state-metrics"
+    #     action = "drop"
+    #   }
+    extraMetricProcessingRules: ""
   nodeExporter:
     # -- Enable scraping node-exporter
     enabled: true

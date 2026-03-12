@@ -109,6 +109,10 @@ clusterMetrics:
     {{- end }}
     metricsTuning:
       useDefaultAllowList: {{ default false .kubeStateMetrics.useDefaultAllowList }}
+    {{- if .kubeStateMetrics.extraMetricProcessingRules }}
+    extraMetricProcessingRules: |
+{{ .kubeStateMetrics.extraMetricProcessingRules | indent 6 }}
+    {{- end }}
   node-exporter:
     enabled: {{ default true .nodeExporter.enabled }}
     deploy: {{ default false .nodeExporter.deploy }}
