@@ -90,6 +90,9 @@ clusterMetrics:
     # -- Label matchers to find kube-state-metrics service
     labelMatchers:
       app.kubernetes.io/name: kube-state-metrics
+    # -- Use the default allowlist of metrics (true) or scrape all metrics (false).
+    # Set to false to get all kube-state-metrics including kube_service_info, kube_endpoint_info, etc.
+    useDefaultAllowList: false
   nodeExporter:
     # -- Enable scraping node-exporter
     enabled: true

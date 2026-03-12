@@ -107,6 +107,8 @@ clusterMetrics:
     labelMatchers:
       {{- toYaml .kubeStateMetrics.labelMatchers | nindent 6 }}
     {{- end }}
+    metricsTuning:
+      useDefaultAllowList: {{ default false .kubeStateMetrics.useDefaultAllowList }}
   node-exporter:
     enabled: {{ default true .nodeExporter.enabled }}
     deploy: {{ default false .nodeExporter.deploy }}
