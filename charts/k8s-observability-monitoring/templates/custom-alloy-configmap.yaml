@@ -1,0 +1,143 @@
+{{- if .Values.customAlloy.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-custom-alloy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: custom-alloy
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  config.alloy: |
+    {{- $otlpDest := index .Values.otlp.destinations 0 }}
+    // Kube State Metrics Discovery
+    discovery.kubernetes "kube_state_metrics" {
+      role = "endpoints"
+      selectors {
+        role = "endpoints"
+        label = "app.kubernetes.io/name=kube-state-metrics"
+      }
+    }
+
+    discovery.relabel "kube_state_metrics" {
+      targets = discovery.kubernetes.kube_state_metrics.targets
+
+      rule {
+        source_labels = ["__meta_kubernetes_endpoint_port_name"]
+        regex = "http"
+        action = "keep"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        target_label = "namespace"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_service_name"]
+        target_label = "service"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_name"]
+        target_label = "pod"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_node_name"]
+        target_label = "instance"
+      }
+    }
+
+    prometheus.scrape "kube_state_metrics" {
+      targets = discovery.relabel.kube_state_metrics.output
+      job_name = "integrations/kubernetes/kube-state-metrics"
+      scrape_interval = "60s"
+      scrape_timeout = "10s"
+      scheme = "http"
+
+      {{- if .Values.customAlloy.clustering.enabled }}
+      clustering {
+        enabled = true
+      }
+      {{- end }}
+
+      forward_to = [prometheus.relabel.kube_state_metrics.receiver]
+    }
+
+    prometheus.relabel "kube_state_metrics" {
+      max_cache_size = 100000
+      {{- if .Values.customAlloy.kubeStateMetrics.extraMetricProcessingRules }}
+      {{ .Values.customAlloy.kubeStateMetrics.extraMetricProcessingRules | nindent 6 }}
+      {{- end }}
+      forward_to = [otelcol.receiver.prometheus.default.receiver]
+    }
+
+    // OTEL Pipeline
+    otelcol.receiver.prometheus "default" {
+      output {
+        metrics = [otelcol.processor.transform.default.input]
+      }
+    }
+
+    otelcol.processor.transform "default" {
+      error_mode = "ignore"
+      metric_statements {
+        context = "resource"
+        statements = [
+          `set(attributes["cluster"], "{{ .Values.clusterName }}")`,
+          `set(attributes["k8s.cluster.name"], "{{ .Values.clusterName }}")`,
+        ]
+      }
+      metric_statements {
+        context = "datapoint"
+        statements = [
+          `set(attributes["cluster"], "{{ .Values.clusterName }}")`,
+          `set(attributes["k8s.cluster.name"], "{{ .Values.clusterName }}")`,
+        ]
+      }
+      output {
+        metrics = [otelcol.processor.batch.default.input]
+      }
+    }
+
+    otelcol.processor.batch "default" {
+      timeout = "2s"
+      send_batch_size = {{ default 2000 $otlpDest.processors.batch.size }}
+      send_batch_max_size = {{ default 4000 $otlpDest.processors.batch.maxSize }}
+      output {
+        metrics = [otelcol.exporter.otlphttp.default.input]
+      }
+    }
+
+    otelcol.auth.basic "default" {
+      username = convert.nonsensitive(remote.kubernetes.secret.otlp_creds.data["username"])
+      password = remote.kubernetes.secret.otlp_creds.data["apiKey"]
+    }
+
+    remote.kubernetes.secret "otlp_creds" {
+      name      = "{{ $otlpDest.secret.name }}"
+      namespace = "{{ default .Release.Namespace $otlpDest.secret.namespace }}"
+    }
+
+    otelcol.exporter.otlphttp "default" {
+      client {
+        endpoint = "{{ $otlpDest.url }}"
+        auth = otelcol.auth.basic.default.handler
+        tls {
+          insecure = false
+          insecure_skip_verify = false
+        }
+      }
+      retry_on_failure {
+        enabled = true
+        initial_interval = "5s"
+        max_interval = "30s"
+        max_elapsed_time = "5m"
+      }
+    }
+
+    logging {
+      level = "info"
+    }
+{{- end }}

@@ -72,24 +72,30 @@ applicationObservability:
 
 prometheusOperatorObjects:
   enabled: {{ .Values.features.prometheusOperatorObjects }}
-  {{- if .Values.prometheusOperatorObjects }}
-  {{- with .Values.prometheusOperatorObjects.serviceMonitors }}
-  {{- if or (and .labelExpressions (gt (len .labelExpressions) 0)) .extraDiscoveryRules .extraMetricProcessingRules }}
+  {{- if .Values.features.prometheusOperatorObjects }}
   serviceMonitors:
-    {{- if and .labelExpressions (gt (len .labelExpressions) 0) }}
+    {{- /* Collect all label expressions */ -}}
+    {{- $labelExpressions := list }}
+    {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
+    {{- $labelExpressions = .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
+    {{- end }}
+    {{- /* When customAlloy is enabled, exclude kube-state-metrics from ServiceMonitor scraping */ -}}
+    {{- if and .Values.customAlloy .Values.customAlloy.enabled }}
+    {{- $ksmExclusion := dict "key" "app.kubernetes.io/name" "operator" "NotIn" "values" (list "kube-state-metrics") }}
+    {{- $labelExpressions = append $labelExpressions $ksmExclusion }}
+    {{- end }}
+    {{- if gt (len $labelExpressions) 0 }}
     labelExpressions:
-      {{- toYaml .labelExpressions | nindent 6 }}
+      {{- toYaml $labelExpressions | nindent 6 }}
     {{- end }}
-    {{- if .extraDiscoveryRules }}
+    {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules }}
     extraDiscoveryRules: |
-{{ .extraDiscoveryRules | indent 6 }}
+{{ .Values.prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules | indent 6 }}
     {{- end }}
-    {{- if .extraMetricProcessingRules }}
+    {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules }}
     extraMetricProcessingRules: |
-{{ .extraMetricProcessingRules | indent 6 }}
+{{ .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules | indent 6 }}
     {{- end }}
-  {{- end }}
-  {{- end }}
   {{- end }}
 
 # Cluster metrics - built-in kube-state-metrics and node-exporter scraping
@@ -98,7 +104,12 @@ clusterMetrics:
   {{- if and .Values.features.clusterMetrics .Values.clusterMetrics }}
   {{- with .Values.clusterMetrics }}
   kube-state-metrics:
+    {{- /* Disable kube-state-metrics in k8s-monitoring when customAlloy is enabled */ -}}
+    {{- if and $.Values.customAlloy $.Values.customAlloy.enabled }}
+    enabled: false
+    {{- else }}
     enabled: {{ default true .kubeStateMetrics.enabled }}
+    {{- end }}
     deploy: {{ default false .kubeStateMetrics.deploy }}
     {{- if .kubeStateMetrics.namespace }}
     namespace: {{ .kubeStateMetrics.namespace }}
