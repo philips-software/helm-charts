@@ -1,4 +1,4 @@
-{{- if .Values.kyverno.policyException.enabled }}
+{{- if and .Values.kyverno .Values.kyverno.policyException .Values.kyverno.policyException.enabled }}
 apiVersion: kyverno.io/v2
 kind: PolicyException
 metadata:
