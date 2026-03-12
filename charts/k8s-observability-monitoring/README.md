@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.21.0](https://img.shields.io/badge/Version-0.21.0-informational?style=flat-square) ![AppVersion: 3.8.0](https://img.shields.io/badge/AppVersion-3.8.0-informational?style=flat-square)
+![Version: 0.22.0](https://img.shields.io/badge/Version-0.22.0-informational?style=flat-square) ![AppVersion: 3.8.0](https://img.shields.io/badge/AppVersion-3.8.0-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -59,6 +59,27 @@ kubectl create secret generic otlp-gateway-creds \
   --from-literal=tenantId=anonymous
 ```
 
+## Installing on clusters with Kyverno
+
+If your cluster has [Kyverno](https://kyverno.io/) enforcing Pod Security Standards (baseline profile), Alloy pods may be blocked due to:
+- `NET_RAW` capability requirement
+- `hostPath` volumes for log collection (`/var/log`, `/var/lib/docker/containers`)
+
+### Enable Kyverno PolicyException
+
+Enable the built-in PolicyException to allow Alloy pods:
+
+```yaml
+kyverno:
+  policyException:
+    enabled: true
+    policyName: "enforce-baseline-pod-security-profile"  # Your policy name
+    ruleNames:
+      - "enforce-baseline-profile"  # Rules to exempt
+```
+
+This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` pods in the release namespace to bypass the specified policy rules.
+
 ## Values
 
 | Key | Type | Default | Description |
@@ -76,6 +97,10 @@ kubectl create secret generic otlp-gateway-creds \
 | features.autoInstrumentation | bool | `false` | Enable auto-instrumentation for application telemetry |
 | features.clusterMetrics | bool | `false` | Enable cluster metrics collection (kube-state-metrics, node-exporter, kubelet, etc.) Set to false if using kube-prometheus-stack which provides these via ServiceMonitors. |
 | features.prometheusOperatorObjects | bool | `true` | Enable scraping Prometheus Operator objects (ServiceMonitors, PodMonitors, Probes). |
+| kyverno | object | `{"policyException":{"enabled":false,"policyName":"enforce-baseline-pod-security-profile","ruleNames":["enforce-baseline-profile"]}}` | Kyverno PolicyException configuration Creates a PolicyException to allow Alloy pods to run with required capabilities (NET_RAW) and hostPath volumes (for log collection). |
+| kyverno.policyException | object | `{"enabled":false,"policyName":"enforce-baseline-pod-security-profile","ruleNames":["enforce-baseline-profile"]}` | Create a Kyverno PolicyException for Alloy pods |
+| kyverno.policyException.policyName | string | `"enforce-baseline-pod-security-profile"` | Name of the Kyverno ClusterPolicy to exempt |
+| kyverno.policyException.ruleNames | list | `["enforce-baseline-profile"]` | Rule names within the policy to exempt |
 | otlp | object | `{"destinations":[]}` | OTLP destination configuration for sending telemetry data (metrics, logs, traces) |
 | otlp.destinations | list | `[]` | List of OTLP destinations to send telemetry data to. Each destination requires a pre-created Kubernetes Secret with basic auth credentials.  Secret format:   The secret must contain the following keys:   - username: The username for basic authentication   - apiKey: The API key or password for basic authentication  Example secret creation:   kubectl create secret generic otlp-gateway-creds \     --from-literal=username=myuser \     --from-literal=apiKey=myapikey  Or via YAML:   apiVersion: v1   kind: Secret   metadata:     name: otlp-gateway-creds   type: Opaque   stringData:     username: "myuser"     apiKey: "myapikey"  |
 | project | object | `{"name":"default"}` | ArgoCD project name for the k8s-monitoring Application |

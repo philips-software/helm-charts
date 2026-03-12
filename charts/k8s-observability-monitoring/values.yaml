@@ -95,3 +95,16 @@ clusterMetrics:
     enabled: true
     # -- Deploy node-exporter (set to false if using existing deployment)
     deploy: false
+
+# -- Kyverno PolicyException configuration
+# Creates a PolicyException to allow Alloy pods to run with required capabilities
+# (NET_RAW) and hostPath volumes (for log collection).
+kyverno:
+  # -- Create a Kyverno PolicyException for Alloy pods
+  policyException:
+    enabled: false
+    # -- Name of the Kyverno ClusterPolicy to exempt
+    policyName: "enforce-baseline-pod-security-profile"
+    # -- Rule names within the policy to exempt
+    ruleNames:
+      - "enforce-baseline-profile"
