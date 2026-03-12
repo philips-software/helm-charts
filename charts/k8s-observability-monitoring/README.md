@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.22.0](https://img.shields.io/badge/Version-0.22.0-informational?style=flat-square) ![AppVersion: 3.8.0](https://img.shields.io/badge/AppVersion-3.8.0-informational?style=flat-square)
+![Version: 0.22.0](https://img.shields.io/badge/Version-0.22.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -85,11 +85,13 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | chart | object | `{"version":""}` | Override the upstream chart version (defaults to appVersion in Chart.yaml) |
-| clusterMetrics | object | `{"kubeStateMetrics":{"deploy":false,"enabled":true,"labelMatchers":{"app.kubernetes.io/name":"kube-state-metrics"},"namespace":""},"nodeExporter":{"deploy":false,"enabled":true}}` | Cluster metrics configuration (kube-state-metrics, node-exporter, kubelet, etc.) Only used when features.clusterMetrics is true. |
+| clusterMetrics | object | `{"kubeStateMetrics":{"deploy":false,"enabled":true,"extraMetricProcessingRules":"","labelMatchers":{"app.kubernetes.io/name":"kube-state-metrics"},"namespace":"","useDefaultAllowList":false},"nodeExporter":{"deploy":false,"enabled":true}}` | Cluster metrics configuration (kube-state-metrics, node-exporter, kubelet, etc.) Only used when features.clusterMetrics is true. |
 | clusterMetrics.kubeStateMetrics.deploy | bool | `false` | Deploy kube-state-metrics (set to false if using existing deployment) |
 | clusterMetrics.kubeStateMetrics.enabled | bool | `true` | Enable scraping kube-state-metrics |
+| clusterMetrics.kubeStateMetrics.extraMetricProcessingRules | string | `""` | Extra metric processing rules for kube-state-metrics (Alloy relabel config syntax). Use this to filter/transform metrics after scraping. Example to drop duplicate scrape jobs caused by Alloy clustering bug:   rule {     source_labels = ["job"]     regex = "crossplane-system/integrations/kubernetes/kube-state-metrics"     action = "drop"   } |
 | clusterMetrics.kubeStateMetrics.labelMatchers | object | `{"app.kubernetes.io/name":"kube-state-metrics"}` | Label matchers to find kube-state-metrics service |
 | clusterMetrics.kubeStateMetrics.namespace | string | `""` | Namespace where kube-state-metrics is deployed (auto-detected if empty) |
+| clusterMetrics.kubeStateMetrics.useDefaultAllowList | bool | `false` | Use the default allowlist of metrics (true) or scrape all metrics (false). Set to false to get all kube-state-metrics including kube_service_info, kube_endpoint_info, etc. |
 | clusterMetrics.nodeExporter.deploy | bool | `false` | Deploy node-exporter (set to false if using existing deployment) |
 | clusterMetrics.nodeExporter.enabled | bool | `true` | Enable scraping node-exporter |
 | clusterName | string | `"changeme"` |  |

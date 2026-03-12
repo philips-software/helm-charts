@@ -4,4 +4,4 @@ version: 0.22.0
 description: Helm chart for k8s-observability-monitoring
 
 # renovate: datasource=helm depName=k8s-monitoring registryUrl=https://grafana.github.io/helm-charts
-appVersion: "3.8.0"
+appVersion: "3.8.3"
