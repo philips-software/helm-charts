@@ -28,21 +28,9 @@ data:
         action = "keep"
       }
 
-      rule {
-        source_labels = ["__meta_kubernetes_namespace"]
-        target_label = "namespace"
-      }
-
-      rule {
-        source_labels = ["__meta_kubernetes_service_name"]
-        target_label = "service"
-      }
-
-      rule {
-        source_labels = ["__meta_kubernetes_pod_name"]
-        target_label = "pod"
-      }
-
+      // Only set instance label for scrape target identification
+      // Do NOT set namespace/service/pod labels here as they would overwrite
+      // the actual resource labels provided by kube-state-metrics
       rule {
         source_labels = ["__meta_kubernetes_pod_node_name"]
         target_label = "instance"
