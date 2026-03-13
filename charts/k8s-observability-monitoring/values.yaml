@@ -63,6 +63,12 @@ features:
   # Set to false if you don't need to receive OTLP data from applications.
   applicationObservability: true
 
+# -- Pod logs configuration
+podLogs:
+  # -- Drop kube-probe logs (liveness/readiness probe requests).
+  # These are typically noisy and not useful for debugging.
+  dropKubeProbe: false
+
 # -- Prometheus Operator Objects configuration
 prometheusOperatorObjects:
   serviceMonitors:
