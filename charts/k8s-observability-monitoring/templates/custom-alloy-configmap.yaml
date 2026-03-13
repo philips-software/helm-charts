@@ -109,8 +109,8 @@ data:
           `delete_key(attributes, "deployment_environment_name") where attributes["deployment_environment_name"] == resource.attributes["deployment.environment.name"]`,
           `set(resource.attributes["service.name"], attributes["service_name"]) where resource.attributes["service.name"] == nil and attributes["service_name"] != nil`,
           `delete_key(attributes, "service_name") where attributes["service_name"] == resource.attributes["service.name"]`,
-          `set(resource.attributes["service.namespace"], attributes["service_namespace"]) where resource.attributes["service.namespace"] == nil and attributes["service_namespace"] != nil`,
-          `delete_key(attributes, "service_namespace") where attributes["service_namespace"] == resource.attributes["service.namespace"]`,
+          // NOTE: service.namespace promotion removed - it causes duplicate job labels
+          // when scraping kube-state-metrics. See: https://github.com/grafana/k8s-monitoring-helm/issues/2383
           {{- end }}
         ]
       }

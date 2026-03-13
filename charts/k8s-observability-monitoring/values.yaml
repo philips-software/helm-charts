@@ -133,8 +133,10 @@ customAlloy:
     enabled: true
   # -- Promote useful attributes from datapoint to resource level
   attributePromotion:
-    # -- Enable attribute promotion (service.name, service.namespace, etc.)
-    enabled: true
+    # -- Enable attribute promotion (service.name, deployment.environment, etc.)
+    # NOTE: service.namespace promotion is disabled as it causes duplicate job labels
+    # with kube-state-metrics. See: https://github.com/grafana/k8s-monitoring-helm/issues/2383
+    enabled: false
   # -- kube-state-metrics scraping configuration
   kubeStateMetrics:
     # -- Extra metric processing rules (Alloy relabel config syntax)
