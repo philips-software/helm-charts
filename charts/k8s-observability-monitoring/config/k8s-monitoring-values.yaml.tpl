@@ -21,11 +21,11 @@ destinations:
       name: {{ .secret.name }}
       namespace: {{ default $.Release.Namespace .secret.namespace }}
     logs:
-      enabled: true
+      enabled: {{ if .logs }}{{ default true .logs.enabled }}{{ else }}true{{ end }}
     metrics:
-      enabled: true
+      enabled: {{ if .metrics }}{{ default true .metrics.enabled }}{{ else }}true{{ end }}
     traces:
-      enabled: true
+      enabled: {{ if .traces }}{{ default true .traces.enabled }}{{ else }}true{{ end }}
     {{- if .processors }}
     processors:
       {{- if .processors.batch }}
