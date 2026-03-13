@@ -52,6 +52,11 @@ ruler:
   # Maximum number of rules per rule group
   maxRulesPerRuleGroup: 800
 
+# Mimir limits configuration
+limits:
+  # Accept out-of-order samples up to this duration in the past
+  outOfOrderTimeWindow: 30m
+
 # Query frontend configuration
 queryFrontend:
   resources:

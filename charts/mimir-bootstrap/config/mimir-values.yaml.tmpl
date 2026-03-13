@@ -298,7 +298,7 @@ mimir:
     limits:
       max_label_names_per_series: 34
       max_global_series_per_user: 4000000
-      out_of_order_time_window: 30m
+      out_of_order_time_window: {{ .Values.limits.outOfOrderTimeWindow }}
     blocks_storage:
       storage_prefix: blocks
       backend: s3
