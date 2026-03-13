@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.26.0](https://img.shields.io/badge/Version-0.26.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
+![Version: 0.29.0](https://img.shields.io/badge/Version-0.29.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -10,17 +10,30 @@ If your cluster already has [kube-prometheus-stack](https://github.com/prometheu
 
 ### The Problem
 
-Alloy's `prometheus.operator.servicemonitors` component has a [known bug](https://github.com/grafana/k8s-monitoring-helm/issues/1799) that creates duplicate scrape jobs from a single ServiceMonitor. For kube-state-metrics, this results in two jobs (e.g., `cert-manager/kube-state-metrics` and `prometheus/kube-state-metrics`) scraping the same data, causing double counts in dashboards.
+When using k8s-monitoring alongside kube-prometheus-stack, you may encounter duplicate kube-state-metrics with corrupted job labels like:
+- `crossplane-system/integrations/kubernetes/kube-state-metrics`
+- `cert-manager/integrations/kubernetes/kube-state-metrics`
+
+This is caused by a combination of:
+1. Alloy's clustering feature prefixing job labels with namespace information
+2. OTEL attribute promotion interfering with job label derivation
+
+See: https://github.com/grafana/k8s-monitoring-helm/issues/2383
 
 ### The Solution
 
-Use `labelExpressions` to exclude kube-state-metrics from ServiceMonitor scraping, and enable `clusterMetrics` to scrape it directly instead:
+Enable `customAlloy` which deploys a dedicated Alloy instance for kube-state-metrics scraping without the problematic features:
 
 ```yaml
 # values.yaml for clusters with KPS
-features:
-  clusterMetrics: true  # Enable direct kube-state-metrics scraping
+customAlloy:
+  enabled: true
+  clustering:
+    enabled: false  # Avoid job label prefix bug
+  attributePromotion:
+    enabled: false  # Avoid service.namespace promotion bug
 
+# Exclude kube-state-metrics from ServiceMonitor scraping (handled by customAlloy)
 prometheusOperatorObjects:
   serviceMonitors:
     labelExpressions:
@@ -28,22 +41,12 @@ prometheusOperatorObjects:
         operator: "NotIn"
         values:
           - "kube-state-metrics"
-
-clusterMetrics:
-  kubeStateMetrics:
-    enabled: true
-    deploy: false  # Use existing KPS deployment
-    labelMatchers:
-      app.kubernetes.io/name: kube-state-metrics
-  nodeExporter:
-    enabled: true
-    deploy: false  # Use existing KPS deployment
 ```
 
 This configuration:
-1. Excludes the kube-state-metrics ServiceMonitor from being scraped by `prometheusOperatorObjects` (avoiding the duplicate bug)
-2. Uses the built-in `clusterMetrics` feature to scrape kube-state-metrics directly via `integrations/kubernetes/kube-state-metrics`
-3. Does not deploy new kube-state-metrics or node-exporter instances (uses existing KPS deployments)
+1. Deploys a dedicated Alloy instance that scrapes kube-state-metrics directly with correct job labels
+2. Excludes the kube-state-metrics ServiceMonitor from `prometheusOperatorObjects` to avoid duplicates
+3. The customAlloy exclusion is automatically added when `customAlloy.enabled: true`
 
 ### OTLP Secret Requirements
 
@@ -95,6 +98,22 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 | clusterMetrics.nodeExporter.deploy | bool | `false` | Deploy node-exporter (set to false if using existing deployment) |
 | clusterMetrics.nodeExporter.enabled | bool | `true` | Enable scraping node-exporter |
 | clusterName | string | `"changeme"` |  |
+| customAlloy | object | `{"attributeCleanup":{"enabled":true},"attributePromotion":{"enabled":false},"clustering":{"enabled":false},"enabled":false,"kubeStateMetrics":{"extraMetricProcessingRules":""},"liveDebugging":{"enabled":true},"replicas":1,"resources":{"limits":{"memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}},"sendingQueue":{"enabled":true}}` | Custom Alloy deployment for kube-state-metrics scraping This deploys a separate Alloy instance that scrapes kube-state-metrics directly. |
+| customAlloy.attributeCleanup | object | `{"enabled":true}` | Remove high-cardinality attributes to reduce storage costs Matches k8s-monitoring attribute cleanup |
+| customAlloy.attributeCleanup.enabled | bool | `true` | Enable attribute cleanup |
+| customAlloy.attributePromotion | object | `{"enabled":false}` | Promote useful attributes from datapoint to resource level |
+| customAlloy.attributePromotion.enabled | bool | `false` | Enable attribute promotion (service.name, deployment.environment, etc.) NOTE: service.namespace promotion is disabled as it causes duplicate job labels with kube-state-metrics. See: https://github.com/grafana/k8s-monitoring-helm/issues/2383 |
+| customAlloy.clustering | object | `{"enabled":false}` | Clustering configuration (for HA with multiple replicas) |
+| customAlloy.clustering.enabled | bool | `false` | Enable clustering for multi-replica deployments NOTE: When enabled, job labels may get namespace prefixes due to Alloy bug |
+| customAlloy.enabled | bool | `false` | Enable custom Alloy deployment for kube-state-metrics |
+| customAlloy.kubeStateMetrics | object | `{"extraMetricProcessingRules":""}` | kube-state-metrics scraping configuration |
+| customAlloy.kubeStateMetrics.extraMetricProcessingRules | string | `""` | Extra metric processing rules (Alloy relabel config syntax) |
+| customAlloy.liveDebugging | object | `{"enabled":true}` | Live debugging via Alloy UI (port 12345) |
+| customAlloy.liveDebugging.enabled | bool | `true` | Enable live debugging |
+| customAlloy.replicas | int | `1` | Number of replicas |
+| customAlloy.resources | object | `{"limits":{"memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource requests and limits |
+| customAlloy.sendingQueue | object | `{"enabled":true}` | Sending queue configuration for resilience during destination outages |
+| customAlloy.sendingQueue.enabled | bool | `true` | Enable sending queue |
 | features | object | `{"autoInstrumentation":false,"clusterMetrics":false,"prometheusOperatorObjects":true}` | Feature toggles |
 | features.autoInstrumentation | bool | `false` | Enable auto-instrumentation for application telemetry |
 | features.clusterMetrics | bool | `false` | Enable cluster metrics collection (kube-state-metrics, node-exporter, kubelet, etc.) Set to false if using kube-prometheus-stack which provides these via ServiceMonitors. |

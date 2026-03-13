@@ -10,17 +10,30 @@ If your cluster already has [kube-prometheus-stack](https://github.com/prometheu
 
 ### The Problem
 
-Alloy's `prometheus.operator.servicemonitors` component has a [known bug](https://github.com/grafana/k8s-monitoring-helm/issues/1799) that creates duplicate scrape jobs from a single ServiceMonitor. For kube-state-metrics, this results in two jobs (e.g., `cert-manager/kube-state-metrics` and `prometheus/kube-state-metrics`) scraping the same data, causing double counts in dashboards.
+When using k8s-monitoring alongside kube-prometheus-stack, you may encounter duplicate kube-state-metrics with corrupted job labels like:
+- `crossplane-system/integrations/kubernetes/kube-state-metrics`
+- `cert-manager/integrations/kubernetes/kube-state-metrics`
+
+This is caused by a combination of:
+1. Alloy's clustering feature prefixing job labels with namespace information
+2. OTEL attribute promotion interfering with job label derivation
+
+See: https://github.com/grafana/k8s-monitoring-helm/issues/2383
 
 ### The Solution
 
-Use `labelExpressions` to exclude kube-state-metrics from ServiceMonitor scraping, and enable `clusterMetrics` to scrape it directly instead:
+Enable `customAlloy` which deploys a dedicated Alloy instance for kube-state-metrics scraping without the problematic features:
 
 ```yaml
 # values.yaml for clusters with KPS
-features:
-  clusterMetrics: true  # Enable direct kube-state-metrics scraping
+customAlloy:
+  enabled: true
+  clustering:
+    enabled: false  # Avoid job label prefix bug
+  attributePromotion:
+    enabled: false  # Avoid service.namespace promotion bug
 
+# Exclude kube-state-metrics from ServiceMonitor scraping (handled by customAlloy)
 prometheusOperatorObjects:
   serviceMonitors:
     labelExpressions:
@@ -28,22 +41,12 @@ prometheusOperatorObjects:
         operator: "NotIn"
         values:
           - "kube-state-metrics"
-
-clusterMetrics:
-  kubeStateMetrics:
-    enabled: true
-    deploy: false  # Use existing KPS deployment
-    labelMatchers:
-      app.kubernetes.io/name: kube-state-metrics
-  nodeExporter:
-    enabled: true
-    deploy: false  # Use existing KPS deployment
 ```
 
 This configuration:
-1. Excludes the kube-state-metrics ServiceMonitor from being scraped by `prometheusOperatorObjects` (avoiding the duplicate bug)
-2. Uses the built-in `clusterMetrics` feature to scrape kube-state-metrics directly via `integrations/kubernetes/kube-state-metrics`
-3. Does not deploy new kube-state-metrics or node-exporter instances (uses existing KPS deployments)
+1. Deploys a dedicated Alloy instance that scrapes kube-state-metrics directly with correct job labels
+2. Excludes the kube-state-metrics ServiceMonitor from `prometheusOperatorObjects` to avoid duplicates
+3. The customAlloy exclusion is automatically added when `customAlloy.enabled: true`
 
 ### OTLP Secret Requirements
 
