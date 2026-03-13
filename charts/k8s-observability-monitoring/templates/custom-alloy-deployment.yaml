@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: custom-alloy
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.customAlloy.replicas | default 1 }}
   selector:
     matchLabels:
       app.kubernetes.io/name: custom-alloy
@@ -25,12 +25,16 @@ spec:
       containers:
         - name: alloy
           # renovate: datasource=docker depName=grafana/alloy
-          image: docker.io/grafana/alloy:v1.12.2
+          image: docker.io/grafana/alloy:v1.13.2
           args:
             - run
             - /etc/alloy/config.alloy
             - --storage.path=/tmp/alloy
             - --server.http.listen-addr=0.0.0.0:12345
+            {{- if .Values.customAlloy.clustering.enabled }}
+            - --cluster.enabled=true
+            - --cluster.join-addresses={{ .Release.Name }}-custom-alloy-headless.{{ .Release.Namespace }}.svc.cluster.local:12345
+            {{- end }}
           ports:
             - name: http
               containerPort: 12345

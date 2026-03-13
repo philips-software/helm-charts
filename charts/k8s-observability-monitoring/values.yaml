@@ -109,14 +109,16 @@ clusterMetrics:
     deploy: false
 
 # -- Custom Alloy deployment for kube-state-metrics scraping
-# This deploys a separate Alloy instance that scrapes kube-state-metrics without clustering,
-# avoiding the Alloy clustering bug that causes duplicate/prefixed job labels.
+# This deploys a separate Alloy instance that scrapes kube-state-metrics directly.
 customAlloy:
   # -- Enable custom Alloy deployment for kube-state-metrics
   enabled: false
-  # -- Clustering configuration
+  # -- Number of replicas
+  replicas: 1
+  # -- Clustering configuration (for HA with multiple replicas)
   clustering:
-    # -- Enable clustering (set to false to avoid the job label prefix bug)
+    # -- Enable clustering for multi-replica deployments
+    # NOTE: When enabled, job labels may get namespace prefixes due to Alloy bug
     enabled: false
   # -- Live debugging via Alloy UI (port 12345)
   liveDebugging:
@@ -145,10 +147,9 @@ customAlloy:
   resources:
     requests:
       cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 200m
       memory: 256Mi
+    limits:
+      memory: 512Mi
 
 # -- Kyverno PolicyException configuration
 # Creates a PolicyException to allow Alloy pods to run with required capabilities
