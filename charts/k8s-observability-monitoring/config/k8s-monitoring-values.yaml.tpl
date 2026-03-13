@@ -138,7 +138,7 @@ clusterMetrics:
 podLogs:
   enabled: true
   {{- if and .Values.podLogs .Values.podLogs.dropKubeProbe }}
-  extraStageBlocks: |
+  extraLogProcessingStages: |
     stage.drop {
       source = ""
       expression = "kube-probe/"
