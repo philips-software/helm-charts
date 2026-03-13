@@ -75,8 +75,9 @@ applicationObservability:
         port: 4318
 
 prometheusOperatorObjects:
-  enabled: {{ .Values.features.prometheusOperatorObjects }}
-  {{- if .Values.features.prometheusOperatorObjects }}
+  # Disabled when customAlloy.replaceUpstreamCollector is true (customAlloy handles it)
+  enabled: {{ if and .Values.customAlloy .Values.customAlloy.enabled .Values.customAlloy.replaceUpstreamCollector }}false{{ else }}{{ .Values.features.prometheusOperatorObjects }}{{ end }}
+  {{- if and .Values.features.prometheusOperatorObjects (not (and .Values.customAlloy .Values.customAlloy.enabled .Values.customAlloy.replaceUpstreamCollector)) }}
   serviceMonitors:
     {{- /* Collect all label expressions */ -}}
     {{- $labelExpressions := list }}
