@@ -1,6 +1,10 @@
 {{- if .Values.customAlloy.enabled }}
 apiVersion: apps/v1
+{{- if .Values.customAlloy.clustering.enabled }}
+kind: StatefulSet
+{{- else }}
 kind: Deployment
+{{- end }}
 metadata:
   name: {{ .Release.Name }}-custom-alloy
   namespace: {{ .Release.Namespace }}
@@ -9,6 +13,10 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.customAlloy.replicas | default 1 }}
+  {{- if .Values.customAlloy.clustering.enabled }}
+  serviceName: {{ .Release.Name }}-custom-alloy-headless
+  podManagementPolicy: Parallel
+  {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/name: custom-alloy

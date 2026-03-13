@@ -122,8 +122,9 @@ customAlloy:
   replicas: 1
   # -- Clustering configuration (for HA with multiple replicas)
   clustering:
-    # -- Enable clustering for multi-replica deployments
-    # NOTE: When enabled, job labels may get namespace prefixes due to Alloy bug
+    # -- Enable clustering for multi-replica deployments.
+    # When enabled, uses StatefulSet instead of Deployment for stable pod identities.
+    # This provides better hash ring stability and ordered rolling updates.
     enabled: false
   # -- Live debugging via Alloy UI (port 12345)
   liveDebugging:
