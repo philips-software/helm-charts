@@ -41,6 +41,15 @@ rules:
     resources:
       - secrets
     verbs: ["get", "list", "watch"]
+  {{- if .Values.customAlloy.replaceUpstreamCollector }}
+  # Required for Prometheus Operator CRDs (when replacing upstream collector)
+  - apiGroups: ["monitoring.coreos.com"]
+    resources:
+      - servicemonitors
+      - podmonitors
+      - probes
+    verbs: ["get", "list", "watch"]
+  {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

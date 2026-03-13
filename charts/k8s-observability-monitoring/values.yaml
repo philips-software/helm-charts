@@ -108,11 +108,16 @@ clusterMetrics:
     # -- Deploy node-exporter (set to false if using existing deployment)
     deploy: false
 
-# -- Custom Alloy deployment for kube-state-metrics scraping
-# This deploys a separate Alloy instance that scrapes kube-state-metrics directly.
+# -- Custom Alloy deployment for metrics scraping
+# This deploys a separate Alloy instance that can scrape kube-state-metrics
+# and optionally replace the upstream alloy-metrics collector entirely.
 customAlloy:
-  # -- Enable custom Alloy deployment for kube-state-metrics
+  # -- Enable custom Alloy deployment
   enabled: false
+  # -- Replace upstream alloy-metrics collector entirely.
+  # When true, disables alloy-metrics and customAlloy handles all metrics collection
+  # including ServiceMonitors, PodMonitors, and Probes (if prometheusOperatorObjects is enabled).
+  replaceUpstreamCollector: false
   # -- Number of replicas
   replicas: 1
   # -- Clustering configuration (for HA with multiple replicas)
