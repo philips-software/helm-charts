@@ -21,11 +21,11 @@ destinations:
       name: {{ .secret.name }}
       namespace: {{ default $.Release.Namespace .secret.namespace }}
     logs:
-      enabled: {{ if .logs }}{{ default true .logs.enabled }}{{ else }}true{{ end }}
+      enabled: {{ if hasKey (default dict .logs) "enabled" }}{{ .logs.enabled }}{{ else }}true{{ end }}
     metrics:
-      enabled: {{ if .metrics }}{{ default true .metrics.enabled }}{{ else }}true{{ end }}
+      enabled: {{ if hasKey (default dict .metrics) "enabled" }}{{ .metrics.enabled }}{{ else }}true{{ end }}
     traces:
-      enabled: {{ if .traces }}{{ default true .traces.enabled }}{{ else }}true{{ end }}
+      enabled: {{ if hasKey (default dict .traces) "enabled" }}{{ .traces.enabled }}{{ else }}true{{ end }}
     {{- if .processors }}
     processors:
       {{- if .processors.batch }}
