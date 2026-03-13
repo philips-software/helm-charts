@@ -59,6 +59,9 @@ features:
   # -- Enable cluster metrics collection (kube-state-metrics, node-exporter, kubelet, etc.)
   # Set to false if using kube-prometheus-stack which provides these via ServiceMonitors.
   clusterMetrics: false
+  # -- Enable the OTLP receiver for application telemetry (traces, metrics, logs from apps).
+  # Set to false if you don't need to receive OTLP data from applications.
+  applicationObservability: true
 
 # -- Prometheus Operator Objects configuration
 prometheusOperatorObjects:

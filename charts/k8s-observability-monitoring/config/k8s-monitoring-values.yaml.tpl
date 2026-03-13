@@ -64,7 +64,7 @@ alloy-operator:
       kubernetes.io/os: linux
 
 applicationObservability:
-  enabled: true
+  enabled: {{ .Values.features.applicationObservability }}
   receivers:
     otlp:
       grpc:
@@ -184,7 +184,7 @@ alloy-logs:
 
 # Enable the receiver for application telemetry
 alloy-receiver:
-  enabled: true
+  enabled: {{ .Values.features.applicationObservability }}
   alloy:
     resources:
       requests:
