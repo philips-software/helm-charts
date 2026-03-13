@@ -118,6 +118,23 @@ customAlloy:
   clustering:
     # -- Enable clustering (set to false to avoid the job label prefix bug)
     enabled: false
+  # -- Live debugging via Alloy UI (port 12345)
+  liveDebugging:
+    # -- Enable live debugging
+    enabled: true
+  # -- Sending queue configuration for resilience during destination outages
+  sendingQueue:
+    # -- Enable sending queue
+    enabled: true
+  # -- Remove high-cardinality attributes to reduce storage costs
+  # Matches k8s-monitoring attribute cleanup
+  attributeCleanup:
+    # -- Enable attribute cleanup
+    enabled: true
+  # -- Promote useful attributes from datapoint to resource level
+  attributePromotion:
+    # -- Enable attribute promotion (service.name, service.namespace, etc.)
+    enabled: true
   # -- kube-state-metrics scraping configuration
   kubeStateMetrics:
     # -- Extra metric processing rules (Alloy relabel config syntax)
