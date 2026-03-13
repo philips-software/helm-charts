@@ -1,0 +1,42 @@
+{{- if .Values.customAlloy.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-custom-alloy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: custom-alloy
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 12345
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: custom-alloy
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+{{- if .Values.customAlloy.clustering.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-custom-alloy-headless
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: custom-alloy
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: http
+      port: 12345
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: custom-alloy
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+{{- end }}
