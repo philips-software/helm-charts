@@ -4,15 +4,18 @@ cluster:
 {{- if .Values.otlp.destinations }}
 destinations:
 {{- range .Values.otlp.destinations }}
+{{- if .secret }}
   # destination: {{ .name }}
   - name: {{ .name }}
     type: otlp
     url: {{ .url }}
     protocol: http
+    {{- if not .noAuth }}
     auth:
       type: basic
       usernameKey: "username"
       passwordKey: "apiKey"
+    {{- end }}
     secret:
       create: false
       name: {{ .secret.name }}
@@ -46,6 +49,7 @@ destinations:
       numConsumers: {{ .sendingQueue.numConsumers }}
       {{- end }}
     {{- end }}
+{{- end }}
 {{- end }}
 {{- else }}
 destinations: []

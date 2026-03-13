@@ -9,7 +9,6 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 data:
   config.alloy: |
-    {{- $otlpDest := index .Values.otlp.destinations 0 }}
     // Kube State Metrics Discovery
     discovery.kubernetes "kube_state_metrics" {
       role = "endpoints"
@@ -119,35 +118,65 @@ data:
       }
     }
 
+    {{- $batchSize := 2000 }}
+    {{- $batchMaxSize := 4000 }}
+    {{- range .Values.otlp.destinations }}
+    {{- if and .processors .processors.batch }}
+    {{- $batchSize = default 2000 .processors.batch.size }}
+    {{- $batchMaxSize = default 4000 .processors.batch.maxSize }}
+    {{- end }}
+    {{- end }}
+
     otelcol.processor.batch "default" {
       timeout = "2s"
-      send_batch_size = {{ default 2000 $otlpDest.processors.batch.size }}
-      send_batch_max_size = {{ default 4000 $otlpDest.processors.batch.maxSize }}
+      send_batch_size = {{ $batchSize }}
+      send_batch_max_size = {{ $batchMaxSize }}
       output {
-        metrics = [otelcol.exporter.otlphttp.default.input]
+        metrics = [
+          {{- range $i, $dest := .Values.otlp.destinations }}
+          otelcol.exporter.otlphttp.{{ $dest.name }}.input,
+          {{- end }}
+        ]
       }
     }
 
-    otelcol.auth.basic "default" {
-      username = convert.nonsensitive(remote.kubernetes.secret.otlp_creds.data["username"])
-      password = remote.kubernetes.secret.otlp_creds.data["apiKey"]
+    {{- range .Values.otlp.destinations }}
+
+    {{- if .secret }}
+    // Secret for {{ .name }}
+    remote.kubernetes.secret "{{ .name }}" {
+      name      = "{{ .secret.name }}"
+      namespace = "{{ default $.Release.Namespace .secret.namespace }}"
     }
 
-    remote.kubernetes.secret "otlp_creds" {
-      name      = "{{ $otlpDest.secret.name }}"
-      namespace = "{{ default .Release.Namespace $otlpDest.secret.namespace }}"
+    {{- if not .noAuth }}
+    // Auth for {{ .name }}
+    otelcol.auth.basic "{{ .name }}" {
+      username = convert.nonsensitive(remote.kubernetes.secret.{{ .name }}.data["username"])
+      password = remote.kubernetes.secret.{{ .name }}.data["apiKey"]
     }
+    {{- end }}
+    {{- end }}
 
-    otelcol.exporter.otlphttp "default" {
+    // Exporter for {{ .name }}
+    otelcol.exporter.otlphttp "{{ .name }}" {
       client {
-        endpoint = "{{ $otlpDest.url }}"
-        auth = otelcol.auth.basic.default.handler
+        endpoint = "{{ .url }}"
+        {{- if and .secret (not .noAuth) }}
+        auth = otelcol.auth.basic.{{ .name }}.handler
+        {{- end }}
+        {{- if and .secret (not .noAuth) }}
         headers = {
-          "X-Scope-OrgID" = convert.nonsensitive(remote.kubernetes.secret.otlp_creds.data["tenantId"]),
+          "X-Scope-OrgID" = convert.nonsensitive(remote.kubernetes.secret.{{ .name }}.data["tenantId"]),
         }
+        {{- else if .tenantId }}
+        headers = {
+          "X-Scope-OrgID" = "{{ .tenantId }}",
+        }
+        {{- end }}
         tls {
-          insecure = false
-          insecure_skip_verify = false
+          insecure = {{ if or (hasPrefix "http://" .url) .insecure }}true{{ else }}false{{ end }}
+          insecure_skip_verify = {{ if .insecureSkipVerify }}true{{ else }}false{{ end }}
         }
       }
       retry_on_failure {
@@ -156,12 +185,13 @@ data:
         max_interval = "30s"
         max_elapsed_time = "5m"
       }
-      {{- if .Values.customAlloy.sendingQueue.enabled }}
+      {{- if $.Values.customAlloy.sendingQueue.enabled }}
       sending_queue {
         enabled = true
       }
       {{- end }}
     }
+    {{- end }}
 
     logging {
       level = "info"
