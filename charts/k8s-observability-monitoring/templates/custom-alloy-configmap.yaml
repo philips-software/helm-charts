@@ -142,6 +142,9 @@ data:
       client {
         endpoint = "{{ $otlpDest.url }}"
         auth = otelcol.auth.basic.default.handler
+        headers = {
+          "X-Scope-OrgID" = convert.nonsensitive(remote.kubernetes.secret.otlp_creds.data["tenantId"]),
+        }
         tls {
           insecure = false
           insecure_skip_verify = false
