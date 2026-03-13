@@ -141,8 +141,9 @@ autoInstrumentation:
   enabled: {{ .Values.features.autoInstrumentation }}
 
 # Enable the metrics collector
+# Disabled when customAlloy.replaceUpstreamCollector is true
 alloy-metrics:
-  enabled: true
+  enabled: {{ if and .Values.customAlloy .Values.customAlloy.enabled .Values.customAlloy.replaceUpstreamCollector }}false{{ else }}true{{ end }}
   liveDebugging:
     enabled: true
   alloy:

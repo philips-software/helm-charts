@@ -9,6 +9,69 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 data:
   config.alloy: |
+    {{- if and .Values.customAlloy.replaceUpstreamCollector .Values.features.prometheusOperatorObjects }}
+    // Prometheus Operator ServiceMonitors Discovery
+    prometheus.operator.servicemonitors "service_monitors" {
+      {{- if .Values.customAlloy.clustering.enabled }}
+      clustering {
+        enabled = true
+      }
+      {{- end }}
+
+      // Exclude kube-state-metrics as it's handled separately below
+      selector {
+        match_expression {
+          key = "app.kubernetes.io/name"
+          operator = "NotIn"
+          values = ["kube-state-metrics"]
+        }
+      }
+
+      {{- /* Collect user-defined label expressions */ -}}
+      {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
+      {{- range .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
+      selector {
+        match_expression {
+          key = "{{ .key }}"
+          operator = "{{ .operator }}"
+          values = [{{ range $i, $v := .values }}{{ if $i }}, {{ end }}"{{ $v }}"{{ end }}]
+        }
+      }
+      {{- end }}
+      {{- end }}
+
+      forward_to = [prometheus.relabel.service_monitors.receiver]
+    }
+
+    prometheus.relabel "service_monitors" {
+      max_cache_size = 100000
+      {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules }}
+      {{ .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules | nindent 6 }}
+      {{- end }}
+      forward_to = [otelcol.receiver.prometheus.default.receiver]
+    }
+
+    // Prometheus Operator PodMonitors Discovery
+    prometheus.operator.podmonitors "pod_monitors" {
+      {{- if .Values.customAlloy.clustering.enabled }}
+      clustering {
+        enabled = true
+      }
+      {{- end }}
+      forward_to = [otelcol.receiver.prometheus.default.receiver]
+    }
+
+    // Prometheus Operator Probes Discovery
+    prometheus.operator.probes "probes" {
+      {{- if .Values.customAlloy.clustering.enabled }}
+      clustering {
+        enabled = true
+      }
+      {{- end }}
+      forward_to = [otelcol.receiver.prometheus.default.receiver]
+    }
+    {{- end }}
+
     // Kube State Metrics Discovery
     discovery.kubernetes "kube_state_metrics" {
       role = "endpoints"
