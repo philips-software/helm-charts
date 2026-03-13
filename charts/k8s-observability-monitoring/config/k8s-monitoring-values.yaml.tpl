@@ -137,6 +137,14 @@ clusterMetrics:
 
 podLogs:
   enabled: true
+  {{- if and .Values.podLogs .Values.podLogs.dropKubeProbe }}
+  extraStageBlocks: |
+    stage.drop {
+      source = ""
+      expression = "kube-probe/"
+      drop_counter_reason = "kube-probe"
+    }
+  {{- end }}
 
 autoInstrumentation:
   enabled: {{ .Values.features.autoInstrumentation }}
