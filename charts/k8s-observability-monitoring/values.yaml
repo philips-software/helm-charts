@@ -1,4 +1,5 @@
-clusterName: "changeme"
+# -- Cluster name for telemetry labeling. Must be set to a non-empty value at install time.
+clusterName: ""
 
 # -- OTLP destination configuration for sending telemetry data (metrics, logs, traces)
 otlp:

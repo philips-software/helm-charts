@@ -197,7 +197,13 @@ data:
       output {
         metrics = [
           {{- range $i, $dest := .Values.otlp.destinations }}
+          {{- $metricsEnabled := true }}
+          {{- if and $dest.metrics (hasKey $dest.metrics "enabled") }}
+          {{- $metricsEnabled = $dest.metrics.enabled }}
+          {{- end }}
+          {{- if $metricsEnabled }}
           otelcol.exporter.otlphttp.{{ $dest.name }}.input,
+          {{- end }}
           {{- end }}
         ]
       }
