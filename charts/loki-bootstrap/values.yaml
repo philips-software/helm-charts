@@ -1,6 +1,6 @@
 lokiChart:
   # renovate: datasource=helm depName=loki registryUrl=https://grafana.github.io/helm-charts
-  version: 6.52.0
+  version: 6.55.0
 
 compactorOrgmapper:
   package: ghcr.io/loafoe/compactor-orgmapper
