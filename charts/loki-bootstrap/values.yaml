@@ -1,0 +1,34 @@
+lokiChart:
+  # renovate: datasource=helm depName=loki registryUrl=https://grafana.github.io/helm-charts
+  version: 6.52.0
+
+compactorOrgmapper:
+  package: ghcr.io/loafoe/compactor-orgmapper
+  # renovate: datasource=docker depName=ghcr.io/loafoe/compactor-orgmapper
+  tag: v0.0.1
+
+initOverrides:
+  package: busybox
+  # renovate: datasource=docker depName=busybox
+  tag: 1.37.0
+
+environmentConfig:
+  resourcePrefix: ""
+  region: ""
+  accountId: ""
+
+# The name of an existing S3 bucket to use for Loki storage.
+# This value is required and cannot be empty.
+# You can use variables like ${resourcePrefix} and ${region} which will be replaced
+# with values from environmentConfig.
+# Example: "my-bucket-${resourcePrefix}-loki" will become "my-bucket-prod-loki"
+existingBucketName: ""
+
+argoProject: default
+
+multitenancyEnabled: true
+
+features:
+  # Enable the CloudWatch kill job that removes CloudWatch ClusterOutputs
+  # and ensures a null-output ClusterOutput exists
+  cloudwatchKillJob: false

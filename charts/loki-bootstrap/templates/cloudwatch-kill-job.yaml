@@ -1,0 +1,150 @@
+{{- if .Values.features.cloudwatchKillJob }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cloudwatch-kill-job
+  namespace: loki-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloudwatch-kill-job
+rules:
+  - apiGroups: ["fluentbit.fluent.io"]
+    resources: ["clusteroutputs"]
+    verbs: ["get", "list", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cloudwatch-kill-job
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cloudwatch-kill-job
+subjects:
+  - kind: ServiceAccount
+    name: cloudwatch-kill-job
+    namespace: loki-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudwatch-kill-job-script
+  namespace: loki-system
+data:
+  run.sh: |
+    #!/bin/sh
+    set -e
+
+    API_SERVER="https://kubernetes.default.svc"
+    TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+    CACERT="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+
+    # ClusterOutputs to delete
+    OUTPUTS_TO_DELETE="cloudwatch-k8s-events cloudwatch-systemd cloudwatchlogs"
+
+    echo "Starting cloudwatch-kill-job at $(date)"
+
+    # Delete CloudWatch ClusterOutputs if they exist
+    for name in $OUTPUTS_TO_DELETE; do
+      echo "Checking if ClusterOutput $name exists..."
+      STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+        --cacert "$CACERT" \
+        -H "Authorization: Bearer $TOKEN" \
+        "$API_SERVER/apis/fluentbit.fluent.io/v1alpha2/clusteroutputs/$name")
+
+      if [ "$STATUS" = "200" ]; then
+        echo "Deleting ClusterOutput $name..."
+        curl -s --cacert "$CACERT" \
+          -H "Authorization: Bearer $TOKEN" \
+          -X DELETE \
+          "$API_SERVER/apis/fluentbit.fluent.io/v1alpha2/clusteroutputs/$name"
+        echo "Deleted ClusterOutput $name"
+      else
+        echo "ClusterOutput $name does not exist (status: $STATUS)"
+      fi
+    done
+
+    # Create null-output if it doesn't exist
+    echo "Checking if ClusterOutput null-output exists..."
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+      --cacert "$CACERT" \
+      -H "Authorization: Bearer $TOKEN" \
+      "$API_SERVER/apis/fluentbit.fluent.io/v1alpha2/clusteroutputs/null-output")
+
+    if [ "$STATUS" != "200" ]; then
+      echo "Creating ClusterOutput null-output..."
+      curl -s --cacert "$CACERT" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -X POST \
+        -d '{
+          "apiVersion": "fluentbit.fluent.io/v1alpha2",
+          "kind": "ClusterOutput",
+          "metadata": {
+            "name": "null-output",
+            "labels": {
+              "fluentbit.fluent.io/enabled": "true"
+            }
+          },
+          "spec": {
+            "match": "*",
+            "null": {}
+          }
+        }' \
+        "$API_SERVER/apis/fluentbit.fluent.io/v1alpha2/clusteroutputs"
+      echo "Created ClusterOutput null-output"
+    else
+      echo "ClusterOutput null-output already exists"
+    fi
+
+    echo "cloudwatch-kill-job completed at $(date)"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cloudwatch-kill-job
+  namespace: loki-system
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: cloudwatch-kill-job
+          restartPolicy: OnFailure
+          containers:
+            - name: cloudwatch-kill-job
+              # renovate: datasource=docker depName=alpine/k8s
+              image: alpine/k8s:1.32.2
+              command: ["/bin/sh", "/scripts/run.sh"]
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 64Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                readOnlyRootFilesystem: true
+                seccompProfile:
+                  type: RuntimeDefault
+          volumes:
+            - name: script
+              configMap:
+                name: cloudwatch-kill-job-script
+                defaultMode: 0755
+{{- end }}

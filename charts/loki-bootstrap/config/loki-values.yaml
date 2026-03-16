@@ -1,0 +1,382 @@
+deploymentMode: Distributed
+
+imagePullSecrets:
+  - name: ghcr
+
+backend:
+  replicas: 0
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          key: id
+
+queryScheduler:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 10m
+      memory: 50Mi
+    limits:
+      memory: 100Mi
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          key: id
+
+ingester:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 120m
+      memory: 8Gi
+    limits:
+      memory: 10Gi
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          key: id
+
+indexGateway:
+  replicas: 3
+  maxUnavailable: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 60Mi
+    limits:
+      memory: 100Mi
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          key: id
+
+ruler:
+  replicas: 3
+  maxUnavailable: 1
+  resources:
+    requests:
+      cpu: 20m
+      memory: 120Mi
+    limits:
+      memory: 200Mi
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          key: id
+
+compactor:
+  replicas: 1
+  persistence:
+    enabled: true
+  resources:
+    requests:
+      cpu: 10m
+      memory: 80Mi
+    limits:
+      memory: 150Mi
+  extraArgs:
+    - -config.expand-env=true
+    {{- if .Values.multitenancyEnabled }}
+    - -runtime-config.file=/tmp/overrides.yaml
+    {{- end }}
+  {{- if .Values.multitenancyEnabled }}
+  initContainers:
+    - name: init-overrides
+      image: {{ .Values.initOverrides.package }}:{{ .Values.initOverrides.tag }}
+      command: ["/bin/sh", "-c", "touch /tmp/overrides.yaml"]
+      volumeMounts:
+        - mountPath: /tmp
+          name: temp
+  extraContainers:
+    - name: compactor-orgmapper
+      image: {{ .Values.compactorOrgmapper.package }}:{{ .Values.compactorOrgmapper.tag }}
+      volumeMounts:
+        - mountPath: /tmp
+          name: temp
+        - name: compactor-orgmapper-config
+          mountPath: /etc/compactor-orgmapper
+      env:
+        - name: CONFIG_FILE
+          value: /etc/compactor-orgmapper/config.yaml
+      resources:
+        requests:
+          cpu: 10m
+          memory: 50Mi
+        limits:
+          memory: 100Mi
+  {{- end }}
+  extraVolumes:
+    {{- if .Values.multitenancyEnabled }}
+    - name: compactor-orgmapper-config
+      configMap:
+        name: compactor-orgmapper-cm
+    {{- end }}
+    - name: temp
+      emptyDir: {}
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          key: id
+
+
+querier:
+  replicas: 6
+  maxUnavailable: 1
+  multi_tenant_queries_enabled: true
+  resources:
+    requests:
+      cpu: 20m
+      memory: 150Mi
+    limits:
+      memory: 250Mi
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          key: id
+
+queryFrontend:
+  replicas: 3
+  maxUnavailable: 1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 100Mi
+    limits:
+      memory: 150Mi
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          key: id
+
+distributor:
+  replicas: 3
+  maxUnavailable: 1
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          key: id
+read:
+  replicas: 0
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          key: id
+write:
+  replicas: 0
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          key: id
+
+gateway:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 10m
+      memory: 20Mi
+    limits:
+      memory: 50Mi
+
+minio:
+  enabled: false
+
+chunksCache:
+  annotations:
+    "policies.hsp.philips.com/exception": "require-pods-distributed-across-nodes"
+    "policies.hsp.philips.com/exception-reason": "Zonal Volume Requirements Break Topology Spread Constraints"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 9Gi
+    limits:
+      memory: 9Gi
+
+resultsCache:
+  annotations:
+    "policies.hsp.philips.com/exception": "require-pods-distributed-across-nodes"
+    "policies.hsp.philips.com/exception-reason": "Zonal Volume Requirements Break Topology Spread Constraints"
+  resources:
+    requests:
+      cpu: 10m
+      memory: 20Mi
+    limits:
+      memory: 50Mi
+
+memcachedExporter:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 20Mi
+    limits:
+      memory: 50Mi
+
+patternIngester:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 30m
+      memory: 160Mi
+    limits:
+      memory: 250Mi
+
+monitoring:
+  dashboards:
+    enabled: true
+  serviceMonitor:
+    enabled: true
+  rules:
+    enabled: true
+
+loki:
+  runtimeConfig:
+    overrides:
+      "homelab":
+        retention_period: 24h
+      "starlift":
+        retention_period: 168h
+
+  compactor:
+    retention_enabled: true
+    delete_request_store: "s3"
+
+  querier:
+    multi_tenant_queries_enabled: true
+  distributor:
+    otlp_config:
+      default_resource_attributes_as_index_labels:
+        - service.name
+        - service.namespace
+        - service.instance.id
+        - deployment.environment
+        - cloud.region
+        - cloud.availability_zone
+        - k8s.cluster.name
+        - cluster
+        - k8s.namespace.name
+        - namespace
+        - k8s.pod.name
+        - k8s.container.name
+        - container.name
+        - k8s.replicaset.name
+        - k8s.deployment.name
+        - k8s.statefulset.name
+        - k8s.daemonset.name
+        - k8s.cronjob.name
+        - k8s.job.name
+        - faas
+  limits_config:
+    allow_structured_metadata: true
+    volume_enabled: true
+    max_label_names_per_series: 18
+    reject_old_samples: true
+    reject_old_samples_max_age: 168h
+    max_cache_freshness_per_query: 10m
+    split_queries_by_interval: 15m
+    query_timeout: 300s
+    ingestion_burst_size_mb: 1000
+    ingestion_rate_mb: 500
+    per_stream_rate_limit: "100M"
+    per_stream_rate_limit_burst: "500M"
+    retention_period: 744h
+    deletion_mode: "filter-and-delete"
+  runtime_config:
+    period: 60s
+  tracing:
+    enabled: true
+  pattern_ingester:
+    enabled: true
+  storage:
+    type: "s3"
+    bucketNames:
+      chunks: ${bucketName}
+      ruler: ${bucketName}
+      admin: ${bucketName}
+    s3:
+      region: {{ .Values.environmentConfig.region }}
+      s3ForcePathStyle: true
+
+  annotations:
+    "policies.hsp.philips.com/exception": "require-pods-distributed-across-nodes"
+    "policies.hsp.philips.com/exception-reason": "Zonal Volume Requirements Break Topology Spread Constraints"
+  auth_enabled: true # Enable for multi-tenancy
+
+  server:
+    grpc_server_max_recv_msg_size: 83886080
+    grpc_server_max_send_msg_size: 83886080
+  schemaConfig:
+    configs:
+      - from: "2024-07-05"
+        store: "tsdb"
+        object_store: "s3"
+        schema: "v13"
+        index:
+          prefix: "index_"
+          period: "24h"
+test:
+  enabled: false
+lokiCanary:
+  enabled: false
+serviceAccount:
+  create: true
+  name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::{{ .Values.environmentConfig.accountId }}:role/{{ .Values.environmentConfig.resourcePrefix }}-loki-s3-irsa-role"
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  runAsUser: 3000
+  runAsGroup: 3000
+  readOnlyRootFilesystem: true
+  seccompProfile:
+    type: RuntimeDefault
