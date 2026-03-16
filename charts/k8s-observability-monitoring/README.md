@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.29.0](https://img.shields.io/badge/Version-0.29.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
+![Version: 0.32.0](https://img.shields.io/badge/Version-0.32.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -97,24 +97,26 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 | clusterMetrics.kubeStateMetrics.useDefaultAllowList | bool | `false` | Use the default allowlist of metrics (true) or scrape all metrics (false). Set to false to get all kube-state-metrics including kube_service_info, kube_endpoint_info, etc. |
 | clusterMetrics.nodeExporter.deploy | bool | `false` | Deploy node-exporter (set to false if using existing deployment) |
 | clusterMetrics.nodeExporter.enabled | bool | `true` | Enable scraping node-exporter |
-| clusterName | string | `"changeme"` |  |
-| customAlloy | object | `{"attributeCleanup":{"enabled":true},"attributePromotion":{"enabled":false},"clustering":{"enabled":false},"enabled":false,"kubeStateMetrics":{"extraMetricProcessingRules":""},"liveDebugging":{"enabled":true},"replicas":1,"resources":{"limits":{"memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}},"sendingQueue":{"enabled":true}}` | Custom Alloy deployment for kube-state-metrics scraping This deploys a separate Alloy instance that scrapes kube-state-metrics directly. |
+| clusterName | string | `""` | Cluster name for telemetry labeling. Must be set to a non-empty value at install time. |
+| customAlloy | object | `{"attributeCleanup":{"enabled":true},"attributePromotion":{"enabled":false},"clustering":{"enabled":false},"enabled":false,"kubeStateMetrics":{"extraMetricProcessingRules":""},"liveDebugging":{"enabled":true},"replaceUpstreamCollector":false,"replicas":1,"resources":{"limits":{"memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}},"sendingQueue":{"enabled":true}}` | Custom Alloy deployment for metrics scraping This deploys a separate Alloy instance that can scrape kube-state-metrics and optionally replace the upstream alloy-metrics collector entirely. |
 | customAlloy.attributeCleanup | object | `{"enabled":true}` | Remove high-cardinality attributes to reduce storage costs Matches k8s-monitoring attribute cleanup |
 | customAlloy.attributeCleanup.enabled | bool | `true` | Enable attribute cleanup |
 | customAlloy.attributePromotion | object | `{"enabled":false}` | Promote useful attributes from datapoint to resource level |
 | customAlloy.attributePromotion.enabled | bool | `false` | Enable attribute promotion (service.name, deployment.environment, etc.) NOTE: service.namespace promotion is disabled as it causes duplicate job labels with kube-state-metrics. See: https://github.com/grafana/k8s-monitoring-helm/issues/2383 |
 | customAlloy.clustering | object | `{"enabled":false}` | Clustering configuration (for HA with multiple replicas) |
-| customAlloy.clustering.enabled | bool | `false` | Enable clustering for multi-replica deployments NOTE: When enabled, job labels may get namespace prefixes due to Alloy bug |
-| customAlloy.enabled | bool | `false` | Enable custom Alloy deployment for kube-state-metrics |
+| customAlloy.clustering.enabled | bool | `false` | Enable clustering for multi-replica deployments. When enabled, uses StatefulSet instead of Deployment for stable pod identities. This provides better hash ring stability and ordered rolling updates. |
+| customAlloy.enabled | bool | `false` | Enable custom Alloy deployment |
 | customAlloy.kubeStateMetrics | object | `{"extraMetricProcessingRules":""}` | kube-state-metrics scraping configuration |
 | customAlloy.kubeStateMetrics.extraMetricProcessingRules | string | `""` | Extra metric processing rules (Alloy relabel config syntax) |
 | customAlloy.liveDebugging | object | `{"enabled":true}` | Live debugging via Alloy UI (port 12345) |
 | customAlloy.liveDebugging.enabled | bool | `true` | Enable live debugging |
+| customAlloy.replaceUpstreamCollector | bool | `false` | Replace upstream alloy-metrics collector entirely. When true, disables alloy-metrics and customAlloy handles all metrics collection including ServiceMonitors, PodMonitors, and Probes (if prometheusOperatorObjects is enabled). |
 | customAlloy.replicas | int | `1` | Number of replicas |
 | customAlloy.resources | object | `{"limits":{"memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource requests and limits |
 | customAlloy.sendingQueue | object | `{"enabled":true}` | Sending queue configuration for resilience during destination outages |
 | customAlloy.sendingQueue.enabled | bool | `true` | Enable sending queue |
-| features | object | `{"autoInstrumentation":false,"clusterMetrics":false,"prometheusOperatorObjects":true}` | Feature toggles |
+| features | object | `{"applicationObservability":true,"autoInstrumentation":false,"clusterMetrics":false,"prometheusOperatorObjects":true}` | Feature toggles |
+| features.applicationObservability | bool | `true` | Enable the OTLP receiver for application telemetry (traces, metrics, logs from apps). Set to false if you don't need to receive OTLP data from applications. |
 | features.autoInstrumentation | bool | `false` | Enable auto-instrumentation for application telemetry |
 | features.clusterMetrics | bool | `false` | Enable cluster metrics collection (kube-state-metrics, node-exporter, kubelet, etc.) Set to false if using kube-prometheus-stack which provides these via ServiceMonitors. |
 | features.prometheusOperatorObjects | bool | `true` | Enable scraping Prometheus Operator objects (ServiceMonitors, PodMonitors, Probes). |
@@ -124,6 +126,8 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 | kyverno.policyException.ruleNames | list | `["enforce-baseline-profile"]` | Rule names within the policy to exempt |
 | otlp | object | `{"destinations":[]}` | OTLP destination configuration for sending telemetry data (metrics, logs, traces) |
 | otlp.destinations | list | `[]` | List of OTLP destinations to send telemetry data to. Each destination requires a pre-created Kubernetes Secret with basic auth credentials.  Secret format:   The secret must contain the following keys:   - username: The username for basic authentication   - apiKey: The API key or password for basic authentication  Example secret creation:   kubectl create secret generic otlp-gateway-creds \     --from-literal=username=myuser \     --from-literal=apiKey=myapikey  Or via YAML:   apiVersion: v1   kind: Secret   metadata:     name: otlp-gateway-creds   type: Opaque   stringData:     username: "myuser"     apiKey: "myapikey"  |
+| podLogs | object | `{"dropKubeProbe":false}` | Pod logs configuration |
+| podLogs.dropKubeProbe | bool | `false` | Drop kube-probe logs (liveness/readiness probe requests). These are typically noisy and not useful for debugging. |
 | project | object | `{"name":"default"}` | ArgoCD project name for the k8s-monitoring Application |
 | prometheusOperatorObjects | object | `{"serviceMonitors":{"extraDiscoveryRules":"","extraMetricProcessingRules":"","labelExpressions":[]}}` | Prometheus Operator Objects configuration |
 | prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules | string | `""` | Extra discovery rules for ServiceMonitors (Alloy relabel config syntax). Applied before scraping to filter/transform targets. |
