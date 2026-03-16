@@ -2262,6 +2262,15 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-0.1.0/k8s-observability-monitoring-0.1.0.tgz
     version: 0.1.0
+  loki-bootstrap:
+  - apiVersion: v2
+    created: "2026-03-16T12:11:33.918772132Z"
+    description: A Helm chart for bootstrapping Loki
+    digest: eeb38e78a32213643d5540cff71fc42c331ffe29abd8684f8321b13a7349be37
+    name: loki-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.30.0/loki-bootstrap-0.30.0.tgz
+    version: 0.30.0
   masterdata-datasource:
   - apiVersion: v2
     created: "2026-02-26T17:48:43.032209068Z"
@@ -2539,4 +2548,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-03-16T11:02:36.865681923Z"
+generated: "2026-03-16T12:11:33.919480797Z"
