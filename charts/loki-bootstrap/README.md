@@ -1,6 +1,6 @@
 # loki-bootstrap
 
-![Version: 0.30.0](https://img.shields.io/badge/Version-0.30.0-informational?style=flat-square)
+![Version: 0.31.0](https://img.shields.io/badge/Version-0.31.0-informational?style=flat-square)
 
 ## Values
 
@@ -13,6 +13,7 @@
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | existingBucketName | string | `""` |  |
+| features.cloudwatchKillJob | bool | `false` |  |
 | initOverrides.package | string | `"busybox"` |  |
 | initOverrides.tag | string | `"1.37.0"` |  |
 | lokiChart.version | string | `"6.52.0"` |  |

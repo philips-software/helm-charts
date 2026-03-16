@@ -11,7 +11,7 @@ backend:
     - name: bucketName
       valueFrom:
         secretKeyRef:
-          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
           key: id
 
 queryScheduler:
@@ -28,7 +28,7 @@ queryScheduler:
     - name: bucketName
       valueFrom:
         secretKeyRef:
-          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
           key: id
 
 ingester:
@@ -45,7 +45,7 @@ ingester:
     - name: bucketName
       valueFrom:
         secretKeyRef:
-          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
           key: id
 
 indexGateway:
@@ -63,7 +63,7 @@ indexGateway:
     - name: bucketName
       valueFrom:
         secretKeyRef:
-          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
           key: id
 
 ruler:
@@ -81,7 +81,7 @@ ruler:
     - name: bucketName
       valueFrom:
         secretKeyRef:
-          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
           key: id
 
 compactor:
@@ -137,7 +137,7 @@ compactor:
     - name: bucketName
       valueFrom:
         secretKeyRef:
-          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
           key: id
 
 
@@ -157,7 +157,7 @@ querier:
     - name: bucketName
       valueFrom:
         secretKeyRef:
-          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
           key: id
 
 queryFrontend:
@@ -175,7 +175,7 @@ queryFrontend:
     - name: bucketName
       valueFrom:
         secretKeyRef:
-          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
           key: id
 
 distributor:
@@ -193,7 +193,7 @@ distributor:
     - name: bucketName
       valueFrom:
         secretKeyRef:
-          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
           key: id
 read:
   replicas: 0
@@ -203,7 +203,7 @@ read:
     - name: bucketName
       valueFrom:
         secretKeyRef:
-          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
           key: id
 write:
   replicas: 0
@@ -213,7 +213,7 @@ write:
     - name: bucketName
       valueFrom:
         secretKeyRef:
-          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
           key: id
 
 gateway:
@@ -366,9 +366,9 @@ lokiCanary:
   enabled: false
 serviceAccount:
   create: true
-  name: "{{ .Values.environmentConfig.resourcePrefix }}-loki-s3"
+  name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
   annotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::{{ .Values.environmentConfig.accountId }}:role/{{ .Values.environmentConfig.resourcePrefix }}-loki-s3-irsa-role"
+    eks.amazonaws.com/role-arn: "arn:aws:iam::{{ .Values.environmentConfig.accountId }}:role/{{ .Values.environmentConfig.resourcePrefix }}-loki-irsa-role"
 securityContext:
   allowPrivilegeEscalation: false
   capabilities:
