@@ -1,6 +1,6 @@
 # mimir
 
-![Version: 0.42.0](https://img.shields.io/badge/Version-0.42.0-informational?style=flat-square)
+![Version: 0.43.0](https://img.shields.io/badge/Version-0.43.0-informational?style=flat-square)
 
 # Deployment
 
@@ -33,6 +33,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | kafkaNodePool.resources.limits.cpu | int | `4` |  |
 | kafkaNodePool.resources.limits.memory | string | `"16Gi"` |  |
 | karpenter.doNotDisrupt | bool | `false` |  |
+| limits.outOfOrderTimeWindow | string | `"30m"` |  |
 | mimirChart.version | string | `"6.0.5"` |  |
 | mimirProvider.credentials.secretKey | string | `"credentials"` |  |
 | mimirProvider.credentials.secretName | string | `"mimir-credentials"` |  |
