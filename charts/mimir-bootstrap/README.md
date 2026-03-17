@@ -1,6 +1,6 @@
 # mimir
 
-![Version: 0.44.0](https://img.shields.io/badge/Version-0.44.0-informational?style=flat-square)
+![Version: 0.45.0](https://img.shields.io/badge/Version-0.45.0-informational?style=flat-square)
 
 # Deployment
 
@@ -24,6 +24,9 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | existingBucketName | string | `""` |  |
+| ingester.resources.limits.memory | string | `"8Gi"` |  |
+| ingester.resources.requests.cpu | string | `"200m"` |  |
+| ingester.resources.requests.memory | string | `"4Gi"` |  |
 | initOverrides.package | string | `"busybox"` |  |
 | initOverrides.tag | string | `"1.37.0"` |  |
 | kafka.persistence.size | string | `"100Gi"` |  |
