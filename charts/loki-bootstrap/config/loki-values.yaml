@@ -5,6 +5,12 @@ imagePullSecrets:
 
 backend:
   replicas: 0
+  resources:
+    requests:
+      cpu: 25m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
   extraArgs:
     - -config.expand-env=true
   extraEnv:
@@ -197,6 +203,12 @@ distributor:
           key: id
 read:
   replicas: 0
+  resources:
+    requests:
+      cpu: 25m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
   extraArgs:
     - -config.expand-env=true
   extraEnv:
@@ -207,6 +219,12 @@ read:
           key: id
 write:
   replicas: 0
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
   extraArgs:
     - -config.expand-env=true
   extraEnv:
