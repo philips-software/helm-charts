@@ -27,6 +27,10 @@ mimirProvider:
 
 argoProject: default
 
+kafka:
+  persistence:
+    size: 100Gi
+
 kafkaNodePool:
   enabled: true
   labels:
