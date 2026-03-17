@@ -1,6 +1,6 @@
 # loki-bootstrap
 
-![Version: 0.31.0](https://img.shields.io/badge/Version-0.31.0-informational?style=flat-square)
+![Version: 0.32.0](https://img.shields.io/badge/Version-0.32.0-informational?style=flat-square)
 
 ## Values
 
@@ -16,7 +16,7 @@
 | features.cloudwatchKillJob | bool | `false` |  |
 | initOverrides.package | string | `"busybox"` |  |
 | initOverrides.tag | string | `"1.37.0"` |  |
-| lokiChart.version | string | `"6.52.0"` |  |
+| lokiChart.version | string | `"6.55.0"` |  |
 | multitenancyEnabled | bool | `true` |  |
 
 ----------------------------------------------
