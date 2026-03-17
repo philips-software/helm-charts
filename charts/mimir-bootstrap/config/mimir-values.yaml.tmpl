@@ -179,10 +179,10 @@ ingester:
   replicas: 9 # large.yaml says 27
   resources:
     requests:
-      cpu: 200m
-      memory: 1.5Gi
+      cpu: {{ .Values.ingester.resources.requests.cpu }}
+      memory: {{ .Values.ingester.resources.requests.memory }}
     limits:
-      memory: 3Gi
+      memory: {{ .Values.ingester.resources.limits.memory }}
 
   topologySpreadConstraints: {}
   zoneAwareReplication:
