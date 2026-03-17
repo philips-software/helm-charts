@@ -1,6 +1,6 @@
 # mimir
 
-![Version: 0.43.0](https://img.shields.io/badge/Version-0.43.0-informational?style=flat-square)
+![Version: 0.44.0](https://img.shields.io/badge/Version-0.44.0-informational?style=flat-square)
 
 # Deployment
 
@@ -26,6 +26,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | existingBucketName | string | `""` |  |
 | initOverrides.package | string | `"busybox"` |  |
 | initOverrides.tag | string | `"1.37.0"` |  |
+| kafka.persistence.size | string | `"100Gi"` |  |
 | kafkaNodePool.enabled | bool | `true` |  |
 | kafkaNodePool.expireAfter | string | `"3600h"` |  |
 | kafkaNodePool.labels.workload | string | `"kafka"` |  |
