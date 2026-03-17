@@ -70,6 +70,15 @@ queryFrontend:
     limits:
       memory: 1Gi
 
+# Ingester configuration
+ingester:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 4Gi
+    limits:
+      memory: 8Gi
+
 # Querier configuration
 querier:
   resources:
