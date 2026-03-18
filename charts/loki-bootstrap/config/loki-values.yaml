@@ -150,7 +150,7 @@ compactor:
 querier:
   replicas: 6
   maxUnavailable: 1
-  multi_tenant_queries_enabled: true
+  multi_tenant_queries_enabled: {{ .Values.multitenancyEnabled }}
   resources:
     requests:
       cpu: 20m
@@ -306,7 +306,7 @@ loki:
     delete_request_store: "s3"
 
   querier:
-    multi_tenant_queries_enabled: true
+    multi_tenant_queries_enabled: {{ .Values.multitenancyEnabled }}
   distributor:
     otlp_config:
       default_resource_attributes_as_index_labels:
@@ -364,7 +364,7 @@ loki:
   annotations:
     "policies.hsp.philips.com/exception": "require-pods-distributed-across-nodes"
     "policies.hsp.philips.com/exception-reason": "Zonal Volume Requirements Break Topology Spread Constraints"
-  auth_enabled: true # Enable for multi-tenancy
+  auth_enabled: {{ .Values.multitenancyEnabled }}
 
   server:
     grpc_server_max_recv_msg_size: 83886080
