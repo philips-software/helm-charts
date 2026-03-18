@@ -5,7 +5,7 @@ description: |
   Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
   and uses HelmApplication CRs to bootstrap platform components.
 type: application
-version: 1.2.3
+version: 1.2.4
 # renovate: datasource=github-releases depName=dip-software/crossplane-compositions
 appVersion: "0.0.25"
 keywords:

@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 1.2.3](https://img.shields.io/badge/Version-1.2.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.25](https://img.shields.io/badge/AppVersion-0.0.25-informational?style=flat-square)
+![Version: 1.2.4](https://img.shields.io/badge/Version-1.2.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.25](https://img.shields.io/badge/AppVersion-0.0.25-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -20,6 +20,7 @@ and uses HelmApplication CRs to bootstrap platform components.
 | argocd.project.sourceNamespaces[3] | string | `"monitoring"` |  |
 | argocd.project.sourceNamespaces[4] | string | `"otlp-gateway"` |  |
 | argocd.project.sourceNamespaces[5] | string | `"cnpg-system"` |  |
+| argocd.project.sourceNamespaces[6] | string | `"k8s-observability-monitoring"` |  |
 | argocd.project.sourceRepos[0] | string | `"https://github.com/philips-software/helm-charts"` |  |
 | argocd.project.sourceRepos[1] | string | `"https://github.com/dip-software/crossplane-compositions"` |  |
 | argocd.project.sourceRepos[2] | string | `"https://cloudnative-pg.io/charts/"` |  |
@@ -37,7 +38,7 @@ and uses HelmApplication CRs to bootstrap platform components.
 | harvester.enabled | bool | `true` |  |
 | harvester.image.pullPolicy | string | `"IfNotPresent"` |  |
 | harvester.image.repository | string | `"docker.io/alpine/k8s"` |  |
-| harvester.image.tag | string | `"1.28.4"` |  |
+| harvester.image.tag | string | `"1.35.2"` |  |
 | harvester.serviceAccount.name | string | `"hsp-addons-harvester"` |  |
 | harvester.ttlSecondsAfterFinished | int | `600` |  |
 | helmApplications | object | `{}` |  |
