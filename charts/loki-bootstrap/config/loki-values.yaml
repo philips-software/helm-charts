@@ -172,9 +172,9 @@ queryFrontend:
   resources:
     requests:
       cpu: 10m
-      memory: 100Mi
+      memory: 256Mi
     limits:
-      memory: 150Mi
+      memory: 512Mi
   extraArgs:
     - -config.expand-env=true
   extraEnv:
