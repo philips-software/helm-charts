@@ -62,7 +62,7 @@ features:
   clusterMetrics: false
   # -- Enable the OTLP receiver for application telemetry (traces, metrics, logs from apps).
   # Set to false if you don't need to receive OTLP data from applications.
-  applicationObservability: true
+  applicationObservability: false
 
 # -- Pod logs configuration
 podLogs:

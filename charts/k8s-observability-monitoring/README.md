@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.32.0](https://img.shields.io/badge/Version-0.32.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
+![Version: 0.34.0](https://img.shields.io/badge/Version-0.34.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -120,8 +120,8 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 | customAlloy.resources | object | `{"limits":{"memory":"1Gi"},"requests":{"cpu":"100m","memory":"512Mi"}}` | Resource requests and limits |
 | customAlloy.sendingQueue | object | `{"enabled":true}` | Sending queue configuration for resilience during destination outages |
 | customAlloy.sendingQueue.enabled | bool | `true` | Enable sending queue |
-| features | object | `{"applicationObservability":true,"autoInstrumentation":false,"clusterMetrics":false,"prometheusOperatorObjects":true}` | Feature toggles |
-| features.applicationObservability | bool | `true` | Enable the OTLP receiver for application telemetry (traces, metrics, logs from apps). Set to false if you don't need to receive OTLP data from applications. |
+| features | object | `{"applicationObservability":false,"autoInstrumentation":false,"clusterMetrics":false,"prometheusOperatorObjects":true}` | Feature toggles |
+| features.applicationObservability | bool | `false` | Enable the OTLP receiver for application telemetry (traces, metrics, logs from apps). Set to false if you don't need to receive OTLP data from applications. |
 | features.autoInstrumentation | bool | `false` | Enable auto-instrumentation for application telemetry |
 | features.clusterMetrics | bool | `false` | Enable cluster metrics collection (kube-state-metrics, node-exporter, kubelet, etc.) Set to false if using kube-prometheus-stack which provides these via ServiceMonitors. |
 | features.prometheusOperatorObjects | bool | `true` | Enable scraping Prometheus Operator objects (ServiceMonitors, PodMonitors, Probes). |
