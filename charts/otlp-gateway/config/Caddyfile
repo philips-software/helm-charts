@@ -127,7 +127,7 @@
 }
 
 {{- if .Values.loadbalancer.enabled }}
-# HTTP server - redirect to HTTPS for LoadBalancer mode
+# HTTP server - redirect external clients to HTTPS, but allow cluster-local access
 :8080 {
   log {
     output stdout
@@ -141,7 +141,12 @@
     }
   }
 
-  redir https://{{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}{uri} permanent
+  # Match external requests (Host header matches external FQDN)
+  @external host {{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}
+  redir @external https://{{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}{uri} 307
+
+  # Handle cluster-local requests directly (service name, service.namespace, etc.)
+  import app_logic
 }
 {{- else }}
 # HTTP server - direct handling for non-LoadBalancer mode
