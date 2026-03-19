@@ -163,9 +163,9 @@ customAlloy:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
-    limits:
       memory: 512Mi
+    limits:
+      memory: 1Gi
 
 # -- Kyverno PolicyException configuration
 # Creates a PolicyException to allow Alloy pods to run with required capabilities
