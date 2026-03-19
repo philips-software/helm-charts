@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.34.0](https://img.shields.io/badge/Version-0.34.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
+![Version: 0.35.0](https://img.shields.io/badge/Version-0.35.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -87,6 +87,8 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| alloyLogs | object | `{"resources":{"limits":{"memory":"200Mi"},"requests":{"cpu":"50m","memory":"100Mi"}}}` | Alloy Logs resource configuration |
+| alloyMetrics | object | `{"resources":{"limits":{"memory":"3Gi"},"requests":{"cpu":"300m","memory":"1536Mi"}}}` | Alloy Metrics resource configuration |
 | chart | object | `{"version":""}` | Override the upstream chart version (defaults to appVersion in Chart.yaml) |
 | clusterMetrics | object | `{"kubeStateMetrics":{"deploy":false,"enabled":true,"extraMetricProcessingRules":"","labelMatchers":{"app.kubernetes.io/name":"kube-state-metrics"},"namespace":"","useDefaultAllowList":false},"kubelet":{"enabled":true,"nodeAddressFormat":"direct","useDefaultAllowList":true},"kubeletResource":{"enabled":true,"nodeAddressFormat":"direct"},"nodeExporter":{"deploy":false,"enabled":true}}` | Cluster metrics configuration (kube-state-metrics, node-exporter, kubelet, etc.) Only used when features.clusterMetrics is true. |
 | clusterMetrics.kubeStateMetrics.deploy | bool | `false` | Deploy kube-state-metrics (set to false if using existing deployment) |
