@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 1.2.4](https://img.shields.io/badge/Version-1.2.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.25](https://img.shields.io/badge/AppVersion-0.0.25-informational?style=flat-square)
+![Version: 1.2.5](https://img.shields.io/badge/Version-1.2.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.25](https://img.shields.io/badge/AppVersion-0.0.25-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -25,11 +25,12 @@ and uses HelmApplication CRs to bootstrap platform components.
 | argocd.project.sourceRepos[1] | string | `"https://github.com/dip-software/crossplane-compositions"` |  |
 | argocd.project.sourceRepos[2] | string | `"https://cloudnative-pg.io/charts/"` |  |
 | argocd.project.sourceRepos[3] | string | `"https://grafana-community.github.io/helm-charts"` |  |
-| argocd.project.sourceRepos[4] | string | `"oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator"` |  |
-| argocd.project.sourceRepos[5] | string | `"oci://ghcr.io/philips-software/helm-charts/otlp-gateway"` |  |
-| argocd.project.sourceRepos[6] | string | `"oci://ghcr.io/philips-software/helm-charts/grafana"` |  |
-| argocd.project.sourceRepos[7] | string | `"oci://ghcr.io/philips-software/helm-charts/*"` |  |
-| argocd.project.sourceRepos[8] | string | `"ghcr.io/philips-software"` |  |
+| argocd.project.sourceRepos[4] | string | `"https://grafana.github.io/helm-charts"` |  |
+| argocd.project.sourceRepos[5] | string | `"oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator"` |  |
+| argocd.project.sourceRepos[6] | string | `"oci://ghcr.io/philips-software/helm-charts/otlp-gateway"` |  |
+| argocd.project.sourceRepos[7] | string | `"oci://ghcr.io/philips-software/helm-charts/grafana"` |  |
+| argocd.project.sourceRepos[8] | string | `"oci://ghcr.io/philips-software/helm-charts/*"` |  |
+| argocd.project.sourceRepos[9] | string | `"ghcr.io/philips-software"` |  |
 | crossplaneCompositions.enabled | bool | `true` |  |
 | crossplaneCompositions.path | string | `"kustomize"` |  |
 | crossplaneCompositions.repoURL | string | `"https://github.com/dip-software/crossplane-compositions"` |  |
