@@ -296,7 +296,7 @@ mimir:
       tenant_federation:
         enabled: true
     limits:
-      max_label_names_per_series: 34
+      max_label_names_per_series: {{ .Values.limits.maxLabelNamesPerSeries }}
       max_global_series_per_user: 4000000
       out_of_order_time_window: {{ .Values.limits.outOfOrderTimeWindow }}
     blocks_storage:

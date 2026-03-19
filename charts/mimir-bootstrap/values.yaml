@@ -60,6 +60,8 @@ ruler:
 limits:
   # Accept out-of-order samples up to this duration in the past
   outOfOrderTimeWindow: 30m
+  # Maximum number of label names per series
+  maxLabelNamesPerSeries: 35
 
 # Query frontend configuration
 queryFrontend:
