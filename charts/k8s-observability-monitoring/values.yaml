@@ -171,6 +171,11 @@ customAlloy:
   kubeStateMetrics:
     # -- Extra metric processing rules (Alloy relabel config syntax)
     extraMetricProcessingRules: ""
+  # -- Kubelet metrics scraping configuration (includes PVC volume stats)
+  kubelet:
+    # -- Enable kubelet and cAdvisor metrics scraping.
+    # Provides kubelet_volume_stats_* metrics for PVC capacity monitoring.
+    enabled: false
   # -- Resource requests and limits
   resources:
     requests:
