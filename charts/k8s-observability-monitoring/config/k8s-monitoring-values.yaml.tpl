@@ -113,7 +113,7 @@ clusterMetrics:
     {{- if and $.Values.customAlloy $.Values.customAlloy.enabled }}
     enabled: false
     {{- else }}
-    enabled: {{ default true .kubeStateMetrics.enabled }}
+    enabled: {{ .kubeStateMetrics.enabled }}
     {{- end }}
     deploy: {{ default false .kubeStateMetrics.deploy }}
     {{- if .kubeStateMetrics.namespace }}
@@ -130,11 +130,11 @@ clusterMetrics:
 {{ .kubeStateMetrics.extraMetricProcessingRules | indent 6 }}
     {{- end }}
   node-exporter:
-    enabled: {{ default true .nodeExporter.enabled }}
+    enabled: {{ .nodeExporter.enabled }}
     deploy: {{ default false .nodeExporter.deploy }}
   {{- if .kubelet }}
   kubelet:
-    enabled: {{ default true .kubelet.enabled }}
+    enabled: {{ .kubelet.enabled }}
     {{- if .kubelet.nodeAddressFormat }}
     nodeAddressFormat: {{ .kubelet.nodeAddressFormat }}
     {{- end }}
@@ -143,7 +143,7 @@ clusterMetrics:
   {{- end }}
   {{- if .kubeletResource }}
   kubeletResource:
-    enabled: {{ default true .kubeletResource.enabled }}
+    enabled: {{ .kubeletResource.enabled }}
     {{- if .kubeletResource.nodeAddressFormat }}
     nodeAddressFormat: {{ .kubeletResource.nodeAddressFormat }}
     {{- end }}
