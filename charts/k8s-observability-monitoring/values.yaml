@@ -69,6 +69,9 @@ podLogs:
   # -- Drop kube-probe logs (liveness/readiness probe requests).
   # These are typically noisy and not useful for debugging.
   dropKubeProbe: false
+  # -- Namespaces to exclude from log collection.
+  # Useful for filtering out noisy infrastructure namespaces like mimir-system, loki-system.
+  excludeNamespaces: []
 
 # -- Prometheus Operator Objects configuration
 prometheusOperatorObjects:

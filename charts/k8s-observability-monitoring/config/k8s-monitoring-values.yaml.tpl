@@ -153,13 +153,26 @@ clusterMetrics:
 
 podLogs:
   enabled: true
-  {{- if and .Values.podLogs .Values.podLogs.dropKubeProbe }}
+  {{- $hasDropKubeProbe := and .Values.podLogs .Values.podLogs.dropKubeProbe }}
+  {{- $hasExcludeNamespaces := and .Values.podLogs .Values.podLogs.excludeNamespaces (gt (len .Values.podLogs.excludeNamespaces) 0) }}
+  {{- if or $hasDropKubeProbe $hasExcludeNamespaces }}
   extraLogProcessingStages: |
+    {{- if $hasDropKubeProbe }}
     stage.drop {
       source = ""
       expression = "kube-probe/"
       drop_counter_reason = "kube-probe"
     }
+    {{- end }}
+    {{- if $hasExcludeNamespaces }}
+    {{- range .Values.podLogs.excludeNamespaces }}
+    stage.match {
+      selector = "{k8s_namespace_name=\"{{ . }}\"}"
+      action = "drop"
+      drop_counter_reason = "excluded-namespace"
+    }
+    {{- end }}
+    {{- end }}
   {{- end }}
 
 autoInstrumentation:

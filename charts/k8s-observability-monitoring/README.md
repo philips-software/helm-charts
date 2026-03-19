@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.36.0](https://img.shields.io/badge/Version-0.36.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
+![Version: 0.37.0](https://img.shields.io/badge/Version-0.37.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -135,8 +135,9 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 | kyverno.policyException.ruleNames | list | `["enforce-baseline-profile"]` | Rule names within the policy to exempt |
 | otlp | object | `{"destinations":[]}` | OTLP destination configuration for sending telemetry data (metrics, logs, traces) |
 | otlp.destinations | list | `[]` | List of OTLP destinations to send telemetry data to. Each destination requires a pre-created Kubernetes Secret with basic auth credentials.  Secret format:   The secret must contain the following keys:   - username: The username for basic authentication   - apiKey: The API key or password for basic authentication  Example secret creation:   kubectl create secret generic otlp-gateway-creds \     --from-literal=username=myuser \     --from-literal=apiKey=myapikey  Or via YAML:   apiVersion: v1   kind: Secret   metadata:     name: otlp-gateway-creds   type: Opaque   stringData:     username: "myuser"     apiKey: "myapikey"  |
-| podLogs | object | `{"dropKubeProbe":false}` | Pod logs configuration |
+| podLogs | object | `{"dropKubeProbe":false,"excludeNamespaces":[]}` | Pod logs configuration |
 | podLogs.dropKubeProbe | bool | `false` | Drop kube-probe logs (liveness/readiness probe requests). These are typically noisy and not useful for debugging. |
+| podLogs.excludeNamespaces | list | `[]` | Namespaces to exclude from log collection. Useful for filtering out noisy infrastructure namespaces like mimir-system, loki-system. |
 | project | object | `{"name":"default"}` | ArgoCD project name for the k8s-monitoring Application |
 | prometheusOperatorObjects | object | `{"serviceMonitors":{"extraDiscoveryRules":"","extraMetricProcessingRules":"","labelExpressions":[]}}` | Prometheus Operator Objects configuration |
 | prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules | string | `""` | Extra discovery rules for ServiceMonitors (Alloy relabel config syntax). Applied before scraping to filter/transform targets. |
