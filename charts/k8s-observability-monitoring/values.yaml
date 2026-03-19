@@ -179,6 +179,24 @@ customAlloy:
     limits:
       memory: 1Gi
 
+# -- Alloy Logs resource configuration
+alloyLogs:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 100Mi
+    limits:
+      memory: 200Mi
+
+# -- Alloy Metrics resource configuration
+alloyMetrics:
+  resources:
+    requests:
+      cpu: 300m
+      memory: 1536Mi
+    limits:
+      memory: 3Gi
+
 # -- Kyverno PolicyException configuration
 # Creates a PolicyException to allow Alloy pods to run with required capabilities
 # (NET_RAW) and hostPath volumes (for log collection).

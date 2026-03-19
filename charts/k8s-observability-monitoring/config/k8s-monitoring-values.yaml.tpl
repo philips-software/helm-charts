@@ -175,11 +175,10 @@ alloy-metrics:
     stabilityLevel: experimental
     resources:
       requests:
-        memory: 1536Mi
-        cpu: 300m
+        memory: {{ dig "alloyMetrics" "resources" "requests" "memory" "1536Mi" .Values }}
+        cpu: {{ dig "alloyMetrics" "resources" "requests" "cpu" "300m" .Values }}
       limits:
-        memory: 3Gi
-        cpu: 600m
+        memory: {{ dig "alloyMetrics" "resources" "limits" "memory" "3Gi" .Values }}
 
 # Enable the logs collector
 alloy-logs:
@@ -190,11 +189,10 @@ alloy-logs:
     stabilityLevel: experimental
     resources:
       requests:
-        memory: 100Mi
-        cpu: 100m
+        memory: {{ dig "alloyLogs" "resources" "requests" "memory" "100Mi" .Values }}
+        cpu: {{ dig "alloyLogs" "resources" "requests" "cpu" "50m" .Values }}
       limits:
-        memory: 200Mi
-        cpu: 200m
+        memory: {{ dig "alloyLogs" "resources" "limits" "memory" "200Mi" .Values }}
   controller:
     affinity:
       nodeAffinity:
