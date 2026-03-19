@@ -123,6 +123,159 @@ data:
       forward_to = [otelcol.receiver.prometheus.default.receiver]
     }
 
+    {{- if .Values.customAlloy.kubelet.enabled }}
+    // Kubelet Metrics Discovery
+    discovery.kubernetes "kubelet" {
+      role = "node"
+    }
+
+    discovery.relabel "kubelet" {
+      targets = discovery.kubernetes.kubelet.targets
+
+      rule {
+        target_label = "__address__"
+        replacement  = "kubernetes.default.svc.cluster.local:443"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_node_name"]
+        regex         = "(.+)"
+        target_label  = "__metrics_path__"
+        replacement   = "/api/v1/nodes/$1/proxy/metrics"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_node_name"]
+        target_label  = "node"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_node_name"]
+        target_label  = "instance"
+      }
+    }
+
+    prometheus.scrape "kubelet" {
+      targets = discovery.relabel.kubelet.output
+      job_name = "integrations/kubernetes/kubelet"
+      scrape_interval = "60s"
+      scrape_timeout = "10s"
+      scheme = "https"
+
+      authorization {
+        type             = "Bearer"
+        credentials_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      }
+
+      tls_config {
+        ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+        insecure_skip_verify = true
+      }
+
+      {{- if .Values.customAlloy.clustering.enabled }}
+      clustering {
+        enabled = true
+      }
+      {{- end }}
+
+      forward_to = [prometheus.relabel.kubelet.receiver]
+    }
+
+    // Kubelet cAdvisor Metrics
+    discovery.relabel "cadvisor" {
+      targets = discovery.kubernetes.kubelet.targets
+
+      rule {
+        target_label = "__address__"
+        replacement  = "kubernetes.default.svc.cluster.local:443"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_node_name"]
+        regex         = "(.+)"
+        target_label  = "__metrics_path__"
+        replacement   = "/api/v1/nodes/$1/proxy/metrics/cadvisor"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_node_name"]
+        target_label  = "node"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_node_name"]
+        target_label  = "instance"
+      }
+    }
+
+    prometheus.scrape "cadvisor" {
+      targets = discovery.relabel.cadvisor.output
+      job_name = "integrations/kubernetes/cadvisor"
+      scrape_interval = "60s"
+      scrape_timeout = "10s"
+      scheme = "https"
+
+      authorization {
+        type             = "Bearer"
+        credentials_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      }
+
+      tls_config {
+        ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+        insecure_skip_verify = true
+      }
+
+      {{- if .Values.customAlloy.clustering.enabled }}
+      clustering {
+        enabled = true
+      }
+      {{- end }}
+
+      forward_to = [prometheus.relabel.cadvisor.receiver]
+    }
+
+    prometheus.relabel "kubelet" {
+      max_cache_size = 100000
+      forward_to = [otelcol.receiver.prometheus.default.receiver]
+    }
+
+    prometheus.relabel "cadvisor" {
+      max_cache_size = 100000
+      // Drop high-cardinality container metrics
+      rule {
+        source_labels = ["__name__"]
+        regex = "container_cpu_(cfs_throttled_seconds_total|load_average_10s|system_seconds_total|user_seconds_total)"
+        action = "drop"
+      }
+      rule {
+        source_labels = ["__name__"]
+        regex = "container_fs_(io_current|io_time_seconds_total|io_time_weighted_seconds_total|reads_merged_total|sector_reads_total|sector_writes_total|writes_merged_total)"
+        action = "drop"
+      }
+      rule {
+        source_labels = ["__name__"]
+        regex = "container_memory_(mapped_file|swap)"
+        action = "drop"
+      }
+      rule {
+        source_labels = ["__name__"]
+        regex = "container_(file_descriptors|tasks_state|threads_max)"
+        action = "drop"
+      }
+      rule {
+        source_labels = ["__name__", "interface"]
+        regex = "container_network_.*;(cali|cilium|cni|lxc|nodelocaldns|tunl).*"
+        action = "drop"
+      }
+      rule {
+        source_labels = ["__name__"]
+        regex = "container_spec.*"
+        action = "drop"
+      }
+      forward_to = [otelcol.receiver.prometheus.default.receiver]
+    }
+    {{- end }}
+
     // OTEL Pipeline
     otelcol.receiver.prometheus "default" {
       output {

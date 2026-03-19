@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 0.35.2](https://img.shields.io/badge/Version-0.35.2-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
+![Version: 0.36.0](https://img.shields.io/badge/Version-0.36.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -105,7 +105,7 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 | clusterMetrics.nodeExporter.deploy | bool | `false` | Deploy node-exporter (set to false if using existing deployment) |
 | clusterMetrics.nodeExporter.enabled | bool | `true` | Enable scraping node-exporter |
 | clusterName | string | `""` | Cluster name for telemetry labeling. Must be set to a non-empty value at install time. |
-| customAlloy | object | `{"attributeCleanup":{"enabled":true},"attributePromotion":{"enabled":false},"clustering":{"enabled":false},"enabled":false,"kubeStateMetrics":{"extraMetricProcessingRules":""},"liveDebugging":{"enabled":true},"replaceUpstreamCollector":false,"replicas":1,"resources":{"limits":{"memory":"1Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"sendingQueue":{"enabled":true}}` | Custom Alloy deployment for metrics scraping This deploys a separate Alloy instance that can scrape kube-state-metrics and optionally replace the upstream alloy-metrics collector entirely. |
+| customAlloy | object | `{"attributeCleanup":{"enabled":true},"attributePromotion":{"enabled":false},"clustering":{"enabled":false},"enabled":false,"kubeStateMetrics":{"extraMetricProcessingRules":""},"kubelet":{"enabled":false},"liveDebugging":{"enabled":true},"replaceUpstreamCollector":false,"replicas":1,"resources":{"limits":{"memory":"1Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"sendingQueue":{"enabled":true}}` | Custom Alloy deployment for metrics scraping This deploys a separate Alloy instance that can scrape kube-state-metrics and optionally replace the upstream alloy-metrics collector entirely. |
 | customAlloy.attributeCleanup | object | `{"enabled":true}` | Remove high-cardinality attributes to reduce storage costs Matches k8s-monitoring attribute cleanup |
 | customAlloy.attributeCleanup.enabled | bool | `true` | Enable attribute cleanup |
 | customAlloy.attributePromotion | object | `{"enabled":false}` | Promote useful attributes from datapoint to resource level |
@@ -115,6 +115,8 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 | customAlloy.enabled | bool | `false` | Enable custom Alloy deployment |
 | customAlloy.kubeStateMetrics | object | `{"extraMetricProcessingRules":""}` | kube-state-metrics scraping configuration |
 | customAlloy.kubeStateMetrics.extraMetricProcessingRules | string | `""` | Extra metric processing rules (Alloy relabel config syntax) |
+| customAlloy.kubelet | object | `{"enabled":false}` | Kubelet metrics scraping configuration (includes PVC volume stats) |
+| customAlloy.kubelet.enabled | bool | `false` | Enable kubelet and cAdvisor metrics scraping. Provides kubelet_volume_stats_* metrics for PVC capacity monitoring. |
 | customAlloy.liveDebugging | object | `{"enabled":true}` | Live debugging via Alloy UI (port 12345) |
 | customAlloy.liveDebugging.enabled | bool | `true` | Enable live debugging |
 | customAlloy.replaceUpstreamCollector | bool | `false` | Replace upstream alloy-metrics collector entirely. When true, disables alloy-metrics and customAlloy handles all metrics collection including ServiceMonitors, PodMonitors, and Probes (if prometheusOperatorObjects is enabled). |
