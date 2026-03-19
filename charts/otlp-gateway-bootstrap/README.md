@@ -9,7 +9,7 @@ Bootstrap chart for deploying otlp-gateway via HelmApplication
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argoProject | string | `"common-bootstrap"` |  |
-| chartRepo.targetRevision | string | `"0.41.0"` |  |
+| chartRepo.targetRevision | string | `"0.42.0"` |  |
 | chartRepo.url | string | `"oci://ghcr.io/philips-software/helm-charts/otlp-gateway"` |  |
 | otlpGateway | object | `{}` |  |
 
