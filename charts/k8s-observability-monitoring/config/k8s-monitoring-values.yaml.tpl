@@ -167,7 +167,7 @@ podLogs:
     {{- if $hasExcludeNamespaces }}
     {{- range .Values.podLogs.excludeNamespaces }}
     stage.match {
-      selector = "{k8s_namespace_name=\"{{ . }}\"}"
+      selector = "{namespace=\"{{ . }}\"}"
       action = "drop"
       drop_counter_reason = "excluded-namespace"
     }
