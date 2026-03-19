@@ -88,17 +88,22 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | chart | object | `{"version":""}` | Override the upstream chart version (defaults to appVersion in Chart.yaml) |
-| clusterMetrics | object | `{"kubeStateMetrics":{"deploy":false,"enabled":true,"extraMetricProcessingRules":"","labelMatchers":{"app.kubernetes.io/name":"kube-state-metrics"},"namespace":"","useDefaultAllowList":false},"nodeExporter":{"deploy":false,"enabled":true}}` | Cluster metrics configuration (kube-state-metrics, node-exporter, kubelet, etc.) Only used when features.clusterMetrics is true. |
+| clusterMetrics | object | `{"kubeStateMetrics":{"deploy":false,"enabled":true,"extraMetricProcessingRules":"","labelMatchers":{"app.kubernetes.io/name":"kube-state-metrics"},"namespace":"","useDefaultAllowList":false},"kubelet":{"enabled":true,"nodeAddressFormat":"direct","useDefaultAllowList":true},"kubeletResource":{"enabled":true,"nodeAddressFormat":"direct"},"nodeExporter":{"deploy":false,"enabled":true}}` | Cluster metrics configuration (kube-state-metrics, node-exporter, kubelet, etc.) Only used when features.clusterMetrics is true. |
 | clusterMetrics.kubeStateMetrics.deploy | bool | `false` | Deploy kube-state-metrics (set to false if using existing deployment) |
 | clusterMetrics.kubeStateMetrics.enabled | bool | `true` | Enable scraping kube-state-metrics |
 | clusterMetrics.kubeStateMetrics.extraMetricProcessingRules | string | `""` | Extra metric processing rules for kube-state-metrics (Alloy relabel config syntax). Use this to filter/transform metrics after scraping. Example to drop duplicate scrape jobs caused by Alloy clustering bug:   rule {     source_labels = ["job"]     regex = "crossplane-system/integrations/kubernetes/kube-state-metrics"     action = "drop"   } |
 | clusterMetrics.kubeStateMetrics.labelMatchers | object | `{"app.kubernetes.io/name":"kube-state-metrics"}` | Label matchers to find kube-state-metrics service |
 | clusterMetrics.kubeStateMetrics.namespace | string | `""` | Namespace where kube-state-metrics is deployed (auto-detected if empty) |
 | clusterMetrics.kubeStateMetrics.useDefaultAllowList | bool | `false` | Use the default allowlist of metrics (true) or scrape all metrics (false). Set to false to get all kube-state-metrics including kube_service_info, kube_endpoint_info, etc. |
+| clusterMetrics.kubelet.enabled | bool | `true` | Enable scraping kubelet metrics (includes volume stats for PVC monitoring) |
+| clusterMetrics.kubelet.nodeAddressFormat | string | `"direct"` | How to access the Kubelet: "direct" (use node IP) or "proxy" (use API Server) |
+| clusterMetrics.kubelet.useDefaultAllowList | bool | `true` | Use the default allowlist of metrics (true) or scrape all metrics (false) |
+| clusterMetrics.kubeletResource.enabled | bool | `true` | Enable scraping kubelet resource metrics (CPU, memory per pod/container) |
+| clusterMetrics.kubeletResource.nodeAddressFormat | string | `"direct"` | How to access the Kubelet: "direct" (use node IP) or "proxy" (use API Server) |
 | clusterMetrics.nodeExporter.deploy | bool | `false` | Deploy node-exporter (set to false if using existing deployment) |
 | clusterMetrics.nodeExporter.enabled | bool | `true` | Enable scraping node-exporter |
 | clusterName | string | `""` | Cluster name for telemetry labeling. Must be set to a non-empty value at install time. |
-| customAlloy | object | `{"attributeCleanup":{"enabled":true},"attributePromotion":{"enabled":false},"clustering":{"enabled":false},"enabled":false,"kubeStateMetrics":{"extraMetricProcessingRules":""},"liveDebugging":{"enabled":true},"replaceUpstreamCollector":false,"replicas":1,"resources":{"limits":{"memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}},"sendingQueue":{"enabled":true}}` | Custom Alloy deployment for metrics scraping This deploys a separate Alloy instance that can scrape kube-state-metrics and optionally replace the upstream alloy-metrics collector entirely. |
+| customAlloy | object | `{"attributeCleanup":{"enabled":true},"attributePromotion":{"enabled":false},"clustering":{"enabled":false},"enabled":false,"kubeStateMetrics":{"extraMetricProcessingRules":""},"liveDebugging":{"enabled":true},"replaceUpstreamCollector":false,"replicas":1,"resources":{"limits":{"memory":"1Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"sendingQueue":{"enabled":true}}` | Custom Alloy deployment for metrics scraping This deploys a separate Alloy instance that can scrape kube-state-metrics and optionally replace the upstream alloy-metrics collector entirely. |
 | customAlloy.attributeCleanup | object | `{"enabled":true}` | Remove high-cardinality attributes to reduce storage costs Matches k8s-monitoring attribute cleanup |
 | customAlloy.attributeCleanup.enabled | bool | `true` | Enable attribute cleanup |
 | customAlloy.attributePromotion | object | `{"enabled":false}` | Promote useful attributes from datapoint to resource level |
@@ -112,7 +117,7 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 | customAlloy.liveDebugging.enabled | bool | `true` | Enable live debugging |
 | customAlloy.replaceUpstreamCollector | bool | `false` | Replace upstream alloy-metrics collector entirely. When true, disables alloy-metrics and customAlloy handles all metrics collection including ServiceMonitors, PodMonitors, and Probes (if prometheusOperatorObjects is enabled). |
 | customAlloy.replicas | int | `1` | Number of replicas |
-| customAlloy.resources | object | `{"limits":{"memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}` | Resource requests and limits |
+| customAlloy.resources | object | `{"limits":{"memory":"1Gi"},"requests":{"cpu":"100m","memory":"512Mi"}}` | Resource requests and limits |
 | customAlloy.sendingQueue | object | `{"enabled":true}` | Sending queue configuration for resilience during destination outages |
 | customAlloy.sendingQueue.enabled | bool | `true` | Enable sending queue |
 | features | object | `{"applicationObservability":true,"autoInstrumentation":false,"clusterMetrics":false,"prometheusOperatorObjects":true}` | Feature toggles |

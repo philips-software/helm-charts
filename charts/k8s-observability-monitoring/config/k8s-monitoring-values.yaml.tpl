@@ -132,6 +132,22 @@ clusterMetrics:
   node-exporter:
     enabled: {{ default true .nodeExporter.enabled }}
     deploy: {{ default false .nodeExporter.deploy }}
+  {{- if .kubelet }}
+  kubelet:
+    enabled: {{ default true .kubelet.enabled }}
+    {{- if .kubelet.nodeAddressFormat }}
+    nodeAddressFormat: {{ .kubelet.nodeAddressFormat }}
+    {{- end }}
+    metricsTuning:
+      useDefaultAllowList: {{ default true .kubelet.useDefaultAllowList }}
+  {{- end }}
+  {{- if .kubeletResource }}
+  kubeletResource:
+    enabled: {{ default true .kubeletResource.enabled }}
+    {{- if .kubeletResource.nodeAddressFormat }}
+    nodeAddressFormat: {{ .kubeletResource.nodeAddressFormat }}
+    {{- end }}
+  {{- end }}
   {{- end }}
   {{- end }}
 

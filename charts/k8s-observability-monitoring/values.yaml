@@ -117,6 +117,18 @@ clusterMetrics:
     enabled: true
     # -- Deploy node-exporter (set to false if using existing deployment)
     deploy: false
+  kubelet:
+    # -- Enable scraping kubelet metrics (includes volume stats for PVC monitoring)
+    enabled: true
+    # -- How to access the Kubelet: "direct" (use node IP) or "proxy" (use API Server)
+    nodeAddressFormat: direct
+    # -- Use the default allowlist of metrics (true) or scrape all metrics (false)
+    useDefaultAllowList: true
+  kubeletResource:
+    # -- Enable scraping kubelet resource metrics (CPU, memory per pod/container)
+    enabled: true
+    # -- How to access the Kubelet: "direct" (use node IP) or "proxy" (use API Server)
+    nodeAddressFormat: direct
 
 # -- Custom Alloy deployment for metrics scraping
 # This deploys a separate Alloy instance that can scrape kube-state-metrics
