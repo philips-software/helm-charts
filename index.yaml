@@ -2370,6 +2370,14 @@ entries:
     version: 0.1.0
   loki-bootstrap:
   - apiVersion: v2
+    created: "2026-03-20T07:56:31.739911347Z"
+    description: A Helm chart for bootstrapping Loki
+    digest: 363b8b2407dc12002993a2e2c9594c67ae53c67be6426fa03189f9a800d943a9
+    name: loki-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.36.0/loki-bootstrap-0.36.0.tgz
+    version: 0.36.0
+  - apiVersion: v2
     created: "2026-03-20T07:07:17.49526327Z"
     description: A Helm chart for bootstrapping Loki
     digest: 64d164ec53f0f99176865f899905952069b0a73cc54906bfefe9ffce6068dbba
@@ -2728,4 +2736,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-03-20T07:07:17.495767076Z"
+generated: "2026-03-20T07:56:31.740328415Z"
