@@ -410,6 +410,12 @@ data:
       {{- if $.Values.customAlloy.sendingQueue.enabled }}
       sending_queue {
         enabled = true
+        {{- if $.Values.customAlloy.sendingQueue.queueSize }}
+        queue_size = {{ $.Values.customAlloy.sendingQueue.queueSize }}
+        {{- end }}
+        {{- if $.Values.customAlloy.sendingQueue.numConsumers }}
+        num_consumers = {{ $.Values.customAlloy.sendingQueue.numConsumers }}
+        {{- end }}
       }
       {{- end }}
     }

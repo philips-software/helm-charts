@@ -155,10 +155,17 @@ customAlloy:
   liveDebugging:
     # -- Enable live debugging
     enabled: true
-  # -- Sending queue configuration for resilience during destination outages
+  # -- Sending queue configuration for resilience during destination outages.
+  # The queue buffers batches when the destination is unavailable.
+  # Without queue_size limit, memory can grow unbounded during outages causing OOM.
   sendingQueue:
     # -- Enable sending queue
     enabled: true
+    # -- Maximum number of batches kept in memory (default: 1000 if unset).
+    # Lower values prevent OOM during extended outages. Recommended: 100-500.
+    queueSize: 500
+    # -- Number of parallel consumers sending batches (default: 10 if unset)
+    numConsumers: 10
   # -- Remove high-cardinality attributes to reduce storage costs
   # Matches k8s-monitoring attribute cleanup
   attributeCleanup:
