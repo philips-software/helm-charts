@@ -280,10 +280,10 @@ patternIngester:
   replicas: 3
   resources:
     requests:
-      cpu: 30m
-      memory: 160Mi
+      cpu: 50m
+      memory: 512Mi
     limits:
-      memory: 250Mi
+      memory: 1Gi
 
 monitoring:
   dashboards:
