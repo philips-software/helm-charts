@@ -284,6 +284,14 @@ patternIngester:
       memory: 512Mi
     limits:
       memory: 1Gi
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: bucketName
+      valueFrom:
+        secretKeyRef:
+          name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
+          key: id
 
 monitoring:
   dashboards:
