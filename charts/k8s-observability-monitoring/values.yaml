@@ -157,7 +157,7 @@ customAlloy:
     enabled: true
   # -- Sending queue configuration for resilience during destination outages.
   # The queue buffers batches when the destination is unavailable.
-  # Without queue_size limit, memory can grow unbounded during outages causing OOM.
+  # Without queueSize limit, memory can grow unbounded during outages causing OOM.
   sendingQueue:
     # -- Enable sending queue
     enabled: true
