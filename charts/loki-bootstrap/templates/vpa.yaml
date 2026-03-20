@@ -1,0 +1,147 @@
+{{- if .Values.vpa.enabled }}
+{{- $updateMode := .Values.vpa.updateMode | default "Auto" }}
+
+{{- if .Values.vpa.components.patternIngester.enabled }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: loki-pattern-ingester
+  namespace: loki-system
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: loki-pattern-ingester
+  updatePolicy:
+    updateMode: {{ $updateMode }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: pattern-ingester
+        minAllowed:
+          {{- with .Values.vpa.components.patternIngester.minAllowed }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        maxAllowed:
+          {{- with .Values.vpa.components.patternIngester.maxAllowed }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        controlledResources: ["memory"]
+---
+{{- end }}
+
+{{- if .Values.vpa.components.ingester.enabled }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: loki-ingester
+  namespace: loki-system
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: loki-ingester-zone-a
+  updatePolicy:
+    updateMode: {{ $updateMode }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: ingester
+        minAllowed:
+          {{- with .Values.vpa.components.ingester.minAllowed }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        maxAllowed:
+          {{- with .Values.vpa.components.ingester.maxAllowed }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        controlledResources: ["memory"]
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: loki-ingester-zone-b
+  namespace: loki-system
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: loki-ingester-zone-b
+  updatePolicy:
+    updateMode: {{ $updateMode }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: ingester
+        minAllowed:
+          {{- with .Values.vpa.components.ingester.minAllowed }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        maxAllowed:
+          {{- with .Values.vpa.components.ingester.maxAllowed }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        controlledResources: ["memory"]
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: loki-ingester-zone-c
+  namespace: loki-system
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: loki-ingester-zone-c
+  updatePolicy:
+    updateMode: {{ $updateMode }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: ingester
+        minAllowed:
+          {{- with .Values.vpa.components.ingester.minAllowed }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        maxAllowed:
+          {{- with .Values.vpa.components.ingester.maxAllowed }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        controlledResources: ["memory"]
+---
+{{- end }}
+
+{{- if .Values.vpa.components.distributor.enabled }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: loki-distributor
+  namespace: loki-system
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: loki-distributor
+  updatePolicy:
+    updateMode: {{ $updateMode }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: distributor
+        minAllowed:
+          {{- with .Values.vpa.components.distributor.minAllowed }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        maxAllowed:
+          {{- with .Values.vpa.components.distributor.maxAllowed }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        controlledResources: ["memory"]
+{{- end }}
+
+{{- end }}

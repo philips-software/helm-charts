@@ -32,3 +32,34 @@ features:
   # Enable the CloudWatch kill job that removes CloudWatch ClusterOutputs
   # and ensures a null-output ClusterOutput exists
   cloudwatchKillJob: false
+
+# Vertical Pod Autoscaler configuration
+# Requires VPA to be installed in the cluster
+vpa:
+  # Enable VPA resources for Loki components
+  enabled: false
+  # Update mode: Auto, Off, Initial, or InPlace (requires K8s 1.27+ with feature gate)
+  # - Auto: VPA will update pods by evicting and recreating them
+  # - InPlace: VPA will resize pods without restart (requires InPlacePodVerticalScaling feature)
+  # Use InPlace on K8s 1.27+ for zero-downtime scaling
+  updateMode: InPlace
+  # Components to create VPA resources for
+  components:
+    patternIngester:
+      enabled: true
+      minAllowed:
+        memory: 256Mi
+      maxAllowed:
+        memory: 4Gi
+    ingester:
+      enabled: true
+      minAllowed:
+        memory: 4Gi
+      maxAllowed:
+        memory: 16Gi
+    distributor:
+      enabled: true
+      minAllowed:
+        memory: 512Mi
+      maxAllowed:
+        memory: 4Gi
