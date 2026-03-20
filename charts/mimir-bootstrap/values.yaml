@@ -1,6 +1,6 @@
 mimirChart:
   # renovate: datasource=helm depName=mimir-distributed registryUrl=https://grafana.github.io/helm-charts
-  version: 6.0.5
+  version: 6.0.6
 
 compactorOrgmapper:
   package: ghcr.io/loafoe/compactor-orgmapper
