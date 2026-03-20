@@ -99,6 +99,9 @@ grafana:
   extraInitContainers: []
   extraVolumes: []
   env: {}
+  # Log level for Grafana (debug, info, warn, error, critical)
+  # Set to "warn" or "error" to reduce log volume
+  logLevel: info
   # Plugin sync CronJob configuration
   # Workaround for https://github.com/grafana/grafana/issues/109269
   # Periodically syncs plugins across all Grafana pods in HA deployments

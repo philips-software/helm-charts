@@ -188,6 +188,7 @@ grafana.ini:
   unified_alerting.screenshots:
     capture: true
   log:
+    level: {{ .Values.grafana.logLevel }}
     filters: rendering:debug
   database:
     type: "postgres"
