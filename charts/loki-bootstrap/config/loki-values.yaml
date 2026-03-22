@@ -60,9 +60,9 @@ indexGateway:
   resources:
     requests:
       cpu: 10m
-      memory: 60Mi
+      memory: 128Mi
     limits:
-      memory: 100Mi
+      memory: 256Mi
   extraArgs:
     - -config.expand-env=true
   extraEnv:
