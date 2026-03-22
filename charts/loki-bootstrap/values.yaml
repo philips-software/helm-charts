@@ -69,3 +69,9 @@ vpa:
         memory: 512Mi
       maxAllowed:
         memory: 8Gi
+    indexGateway:
+      enabled: true
+      minAllowed:
+        memory: 128Mi
+      maxAllowed:
+        memory: 1Gi
