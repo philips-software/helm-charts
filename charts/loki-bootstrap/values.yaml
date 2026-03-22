@@ -63,3 +63,9 @@ vpa:
         memory: 512Mi
       maxAllowed:
         memory: 4Gi
+    querier:
+      enabled: true
+      minAllowed:
+        memory: 512Mi
+      maxAllowed:
+        memory: 8Gi
