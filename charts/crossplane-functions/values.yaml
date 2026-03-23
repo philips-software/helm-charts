@@ -27,7 +27,7 @@ functions:
   - name: function-go-templating
     registry: ghcr.io/crossplane-contrib
     # renovate: datasource=docker depName=ghcr.io/crossplane-contrib/function-go-templating
-    version: v0.11.5
+    version: v0.12.0
     critical: true
 
   # Core function for patching and transforming resources in compositions
