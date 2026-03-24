@@ -20,7 +20,7 @@ functions:
   - name: function-auto-ready
     registry: ghcr.io/crossplane-contrib
     # renovate: datasource=docker depName=ghcr.io/crossplane-contrib/function-auto-ready
-    version: v0.6.2
+    version: v0.6.3
     critical: true
 
   # Enables Go templating in Crossplane compositions
