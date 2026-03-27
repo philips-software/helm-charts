@@ -1,0 +1,4 @@
+apiVersion: v2
+name: k8sgpt-bootstrap
+version: 0.1.0
+description: Bootstrap chart for K8sGPT with AWS Bedrock integration

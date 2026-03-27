@@ -1,0 +1,45 @@
+{{- if .Values.k8sgpt.enabled }}
+apiVersion: core.k8sgpt.ai/v1alpha1
+kind: K8sGPT
+metadata:
+  name: k8sgpt
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "k8sgpt-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  ai:
+    enabled: true
+    backend: {{ .Values.k8sgpt.ai.backend }}
+    model: {{ .Values.k8sgpt.ai.model }}
+    region: {{ include "k8sgpt-bootstrap.bedrockRegion" . }}
+  {{- if .Values.k8sgpt.version }}
+  version: {{ .Values.k8sgpt.version | quote }}
+  {{- end }}
+  {{- if .Values.k8sgpt.analyzers }}
+  analyzers:
+    {{- toYaml .Values.k8sgpt.analyzers | nindent 4 }}
+  {{- end }}
+  {{- if .Values.k8sgpt.filters }}
+  filters:
+    {{- toYaml .Values.k8sgpt.filters | nindent 4 }}
+  {{- end }}
+  {{- if .Values.k8sgpt.extraOptions.backstage.enabled }}
+  extraOptions:
+    backstage:
+      enabled: {{ .Values.k8sgpt.extraOptions.backstage.enabled }}
+  {{- end }}
+  {{- if .Values.k8sgpt.sink }}
+  sink:
+    {{- toYaml .Values.k8sgpt.sink | nindent 4 }}
+  {{- end }}
+  {{- if .Values.k8sgpt.nodeSelector }}
+  nodeSelector:
+    {{- toYaml .Values.k8sgpt.nodeSelector | nindent 4 }}
+  {{- end }}
+  {{- if .Values.k8sgpt.tolerations }}
+  tolerations:
+    {{- toYaml .Values.k8sgpt.tolerations | nindent 4 }}
+  {{- end }}
+{{- end }}

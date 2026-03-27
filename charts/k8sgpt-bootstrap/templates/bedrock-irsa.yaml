@@ -1,0 +1,97 @@
+{{- if .Values.irsa.enabled }}
+{{- if not .Values.irsa.roleArn }}
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: Role
+metadata:
+  name: {{ .Values.environmentConfig.resourcePrefix }}-k8sgpt-bedrock-irsa-role
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "k8sgpt-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  forProvider:
+    assumeRolePolicy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Federated": "arn:aws:iam::{{ .Values.environmentConfig.accountId }}:oidc-provider/{{ .Values.environmentConfig.oidcProvider }}"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+              "StringEquals": {
+                "{{ .Values.environmentConfig.oidcProvider }}:sub": "system:serviceaccount:{{ .Values.namespace }}:{{ .Values.irsa.serviceAccountName }}",
+                "{{ .Values.environmentConfig.oidcProvider }}:aud": "sts.amazonaws.com"
+              }
+            }
+          }
+        ]
+      }
+    tags:
+      Name: {{ .Values.environmentConfig.resourcePrefix }}-k8sgpt-bedrock-irsa-role
+      Environment: {{ .Values.environmentConfig.resourcePrefix }}
+      ManagedBy: crossplane
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: Policy
+metadata:
+  name: {{ .Values.environmentConfig.resourcePrefix }}-k8sgpt-bedrock-policy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "k8sgpt-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  forProvider:
+    policy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "BedrockInvoke",
+            "Effect": "Allow",
+            "Action": [
+              "bedrock:InvokeModel",
+              "bedrock:InvokeModelWithResponseStream"
+            ],
+            "Resource": [
+              "arn:aws:bedrock:{{ include "k8sgpt-bootstrap.bedrockRegion" . }}::foundation-model/*"
+            ]
+          },
+          {
+            "Sid": "MarketplaceModelAccess",
+            "Effect": "Allow",
+            "Action": [
+              "aws-marketplace:ViewSubscriptions",
+              "aws-marketplace:Subscribe"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+    tags:
+      Name: {{ .Values.environmentConfig.resourcePrefix }}-k8sgpt-bedrock-policy
+      Environment: {{ .Values.environmentConfig.resourcePrefix }}
+      ManagedBy: crossplane
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: RolePolicyAttachment
+metadata:
+  name: {{ .Values.environmentConfig.resourcePrefix }}-k8sgpt-bedrock-attachment
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "k8sgpt-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  forProvider:
+    policyArnRef:
+      name: {{ .Values.environmentConfig.resourcePrefix }}-k8sgpt-bedrock-policy
+    roleRef:
+      name: {{ .Values.environmentConfig.resourcePrefix }}-k8sgpt-bedrock-irsa-role
+{{- end }}
+{{- end }}
