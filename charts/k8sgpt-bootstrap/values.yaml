@@ -35,11 +35,25 @@ k8sgpt:
   # K8sGPT image version/tag (required to work with ECR pull-through cache)
   # renovate: datasource=docker depName=ghcr.io/k8sgpt-ai/k8sgpt
   version: v0.4.31
-  # Analyzers to enable (empty = all)
-  # Available: Pod, Deployment, ReplicaSet, Service, Ingress, StatefulSet, Node, etc.
-  analyzers: []
-  # Filters for analysis
-  filters: []
+  # Filters to specify which analyzers to run (empty = all, but very noisy)
+  # Excluding ConfigMap analyzer as it flags all kube-root-ca.crt as unused
+  # Available: Pod, Deployment, ReplicaSet, Service, Ingress, StatefulSet, Node,
+  # PersistentVolumeClaim, CronJob, NetworkPolicy, HorizontalPodAutoscaler, etc.
+  filters:
+    - Pod
+    - Deployment
+    - ReplicaSet
+    - Service
+    - Ingress
+    - StatefulSet
+    - DaemonSet
+    - Job
+    - CronJob
+    - Node
+    - PersistentVolumeClaim
+    - HorizontalPodAutoscaler
+    - PodDisruptionBudget
+    - NetworkPolicy
   # Extra options
   extraOptions:
     # Backstage integration
