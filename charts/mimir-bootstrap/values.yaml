@@ -62,6 +62,8 @@ limits:
   outOfOrderTimeWindow: 30m
   # Maximum number of label names per series
   maxLabelNamesPerSeries: 35
+  # Maximum number of exemplars stored per user (0 = disabled)
+  maxGlobalExemplarsPerUser: 0
 
 # Query frontend configuration
 queryFrontend:
