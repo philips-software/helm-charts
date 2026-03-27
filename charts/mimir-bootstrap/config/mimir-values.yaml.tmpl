@@ -290,6 +290,9 @@ memcachedExporter:
   
 mimir:
   structuredConfig:
+    ingester:
+      ring:
+        replication_factor: {{ .Values.ingester.replicationFactor }}
     tenant_federation:
       enabled: true
     ruler:
