@@ -2375,6 +2375,15 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-0.1.0/k8s-observability-monitoring-0.1.0.tgz
     version: 0.1.0
+  k8sgpt-bootstrap:
+  - apiVersion: v2
+    created: "2026-03-27T14:21:40.020779488Z"
+    description: Bootstrap chart for K8sGPT with AWS Bedrock integration
+    digest: f1ce14b5082cbab1d874e4b28cd9fc6f484622d18553336d121875f06eb5db13
+    name: k8sgpt-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8sgpt-bootstrap-0.1.0/k8sgpt-bootstrap-0.1.0.tgz
+    version: 0.1.0
   loki-bootstrap:
   - apiVersion: v2
     created: "2026-03-22T19:53:40.593386193Z"
@@ -2767,4 +2776,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-03-27T12:19:27.952426977Z"
+generated: "2026-03-27T14:21:40.201494856Z"
