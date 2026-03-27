@@ -5,3 +5,12 @@ remote: origin
 target-branch: main
 chart-repos:
   - fluent=https://fluent.github.io/helm-charts
+excluded-charts:
+  - cloudnative-pg-bootstrap
+  - cloudnative-pg-operator
+  - crossplane-providers
+  - grafana
+  - loki-bootstrap
+  - mimir-bootstrap
+  - otlp-gateway-bootstrap
+  - tempo-bootstrap
