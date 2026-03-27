@@ -1,0 +1,36 @@
+{{- include "k8sgpt-bootstrap.validateConfig" . -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8sgpt-operator
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "k8sgpt-bootstrap.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: {{ .Values.argoProject }}
+  source:
+    chart: k8sgpt-operator
+    repoURL: https://charts.k8sgpt.ai
+    targetRevision: {{ .Values.k8sgptOperator.version }}
+    helm:
+      releaseName: k8sgpt-operator
+      valuesObject:
+        controllerManager:
+          manager:
+            resources:
+              requests:
+                memory: 64Mi
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: {{ .Values.namespace }}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true

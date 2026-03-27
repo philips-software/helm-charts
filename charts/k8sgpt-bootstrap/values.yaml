@@ -1,0 +1,66 @@
+# K8sGPT Operator chart configuration
+k8sgptOperator:
+  # renovate: datasource=helm depName=k8sgpt-operator registryUrl=https://charts.k8sgpt.ai
+  version: 0.2.26
+
+# Environment configuration for IRSA
+environmentConfig:
+  resourcePrefix: ""
+  region: ""
+  accountId: ""
+  # OIDC provider for IRSA (e.g., oidc.eks.us-east-1.amazonaws.com/id/XXXX)
+  oidcProvider: ""
+
+# ArgoCD project to use
+argoProject: default
+
+# Namespace for k8sgpt deployment
+namespace: k8sgpt
+
+# K8sGPT CR configuration
+k8sgpt:
+  # Create the K8sGPT CR
+  enabled: true
+  # AI backend configuration
+  ai:
+    # Backend to use (amazonbedrock for AWS Bedrock)
+    backend: amazonbedrock
+    # Model to use (Claude Sonnet 4 on Bedrock)
+    # See: https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
+    # Supported: us.anthropic.claude-sonnet-4-20250514-v1:0, anthropic.claude-3-5-sonnet-20240620-v1:0
+    model: us.anthropic.claude-sonnet-4-20250514-v1:0
+    # AWS region for Bedrock API
+    # If empty, uses environmentConfig.region
+    region: ""
+  # K8sGPT image version/tag (required to work with ECR pull-through cache)
+  # renovate: datasource=docker depName=ghcr.io/k8sgpt-ai/k8sgpt
+  version: v0.4.31
+  # Analyzers to enable (empty = all)
+  # Available: Pod, Deployment, ReplicaSet, Service, Ingress, StatefulSet, Node, etc.
+  analyzers: []
+  # Filters for analysis
+  filters: []
+  # Extra options
+  extraOptions:
+    # Backstage integration
+    backstage:
+      enabled: false
+  # Sink for results (optional)
+  sink: {}
+  # Node selector for k8sgpt pods
+  nodeSelector: {}
+  # Tolerations for k8sgpt pods
+  tolerations: []
+
+# IRSA configuration
+# Note: The k8sgpt-operator creates a ServiceAccount named 'k8sgpt-k8sgpt'
+# for the k8sgpt deployment. We configure IRSA for this SA.
+irsa:
+  # Enable IRSA setup (IAM Role and Policy via Crossplane)
+  enabled: true
+  # Name of the ServiceAccount used by k8sgpt (created by operator)
+  # This should match what the k8sgpt-operator creates (k8sgpt-<name>)
+  serviceAccountName: k8sgpt-k8sgpt
+  # Custom role ARN (if empty, uses default naming convention)
+  # Default: arn:aws:iam::{accountId}:role/{resourcePrefix}-k8sgpt-bedrock-irsa-role
+  roleArn: ""
