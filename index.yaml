@@ -1937,6 +1937,15 @@ entries:
   k8s-observability-monitoring:
   - apiVersion: v2
     appVersion: 3.8.3
+    created: "2026-03-27T17:13:54.185212837Z"
+    description: Helm chart for k8s-observability-monitoring
+    digest: 4e5938f4ff9cda56a37f38498fedf3a4e6bccaf6b34a31dad35c7a8ae9a55889
+    name: k8s-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-0.39.0/k8s-observability-monitoring-0.39.0.tgz
+    version: 0.39.0
+  - apiVersion: v2
+    appVersion: 3.8.3
     created: "2026-03-20T06:56:20.274370947Z"
     description: Helm chart for k8s-observability-monitoring
     digest: 8efc132d2afdaa65aab5ade9c392b2702386d37efff111f20cf2c4b42adbc9cc
@@ -2528,6 +2537,14 @@ entries:
     version: 0.8.0
   mimir-bootstrap:
   - apiVersion: v2
+    created: "2026-03-27T17:13:54.337241004Z"
+    description: A Helm chart for bootstrapping Mimir
+    digest: c0d0c439462a368a1051d0ecd4e42167d818e18c1be78c5f374fa8232ad61540
+    name: mimir-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/mimir-bootstrap-0.48.0/mimir-bootstrap-0.48.0.tgz
+    version: 0.48.0
+  - apiVersion: v2
     created: "2026-03-27T12:19:27.773935431Z"
     description: A Helm chart for bootstrapping Mimir
     digest: f9f70534f62fca255c2a19dedd1f0f96237414a68c122f74f25b83dec7d8daf3
@@ -2784,4 +2801,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-03-27T16:18:16.690406431Z"
+generated: "2026-03-27T17:13:54.337748838Z"
