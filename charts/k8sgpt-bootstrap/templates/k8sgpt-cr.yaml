@@ -17,10 +17,6 @@ spec:
   {{- if .Values.k8sgpt.version }}
   version: {{ .Values.k8sgpt.version | quote }}
   {{- end }}
-  {{- if .Values.k8sgpt.analyzers }}
-  analyzers:
-    {{- toYaml .Values.k8sgpt.analyzers | nindent 4 }}
-  {{- end }}
   {{- if .Values.k8sgpt.filters }}
   filters:
     {{- toYaml .Values.k8sgpt.filters | nindent 4 }}

@@ -59,7 +59,8 @@ spec:
               "bedrock:InvokeModelWithResponseStream"
             ],
             "Resource": [
-              "arn:aws:bedrock:{{ include "k8sgpt-bootstrap.bedrockRegion" . }}::foundation-model/*"
+              "arn:aws:bedrock:*::foundation-model/*",
+              "arn:aws:bedrock:*:{{ .Values.environmentConfig.accountId }}:inference-profile/*"
             ]
           },
           {
