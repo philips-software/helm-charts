@@ -1,6 +1,6 @@
 tempoChart:
   # renovate: datasource=helm depName=tempo-distributed registryUrl=https://grafana-community.github.io/helm-charts
-  version: 2.6.5
+  version: 2.7.0
 
 compactorOrgmapper:
   package: ghcr.io/loafoe/compactor-orgmapper
