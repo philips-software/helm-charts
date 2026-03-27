@@ -45,6 +45,31 @@ data:
 
     prometheus.relabel "service_monitors" {
       max_cache_size = 100000
+      {{- $dropHighCardinality := and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics }}
+      {{- if and $dropHighCardinality .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.apiserverRequestDurationBuckets }}
+      // Drop apiserver_request_duration_seconds_bucket to reduce cardinality (~200K series)
+      rule {
+        source_labels = ["__name__"]
+        regex = "apiserver_request_duration_seconds_bucket"
+        action = "drop"
+      }
+      {{- end }}
+      {{- if and $dropHighCardinality .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.etcdRequestDurationBuckets }}
+      // Drop etcd_request_duration_seconds_bucket to reduce cardinality (~150K series)
+      rule {
+        source_labels = ["__name__"]
+        regex = "etcd_request_duration_seconds_bucket"
+        action = "drop"
+      }
+      {{- end }}
+      {{- if and $dropHighCardinality .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.apiserverRequestSliDurationBuckets }}
+      // Drop apiserver_request_sli_duration_seconds_bucket to reduce cardinality (~145K series)
+      rule {
+        source_labels = ["__name__"]
+        regex = "apiserver_request_sli_duration_seconds_bucket"
+        action = "drop"
+      }
+      {{- end }}
       {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules }}
       {{ .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules | nindent 6 }}
       {{- end }}

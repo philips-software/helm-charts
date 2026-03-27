@@ -89,6 +89,18 @@ prometheusOperatorObjects:
     # -- Extra metric processing rules for ServiceMonitors (Alloy relabel config syntax).
     # Use this to filter/transform metrics after scraping.
     extraMetricProcessingRules: ""
+    # -- Drop high-cardinality histogram bucket metrics to reduce storage costs.
+    # These metrics have many buckets (le labels) and often account for 300K+ series.
+    dropHighCardinalityMetrics:
+      # -- Drop apiserver_request_duration_seconds_bucket (~200K series).
+      # Keeps _sum and _count for calculating averages; drops individual buckets.
+      apiserverRequestDurationBuckets: false
+      # -- Drop etcd_request_duration_seconds_bucket (~150K series).
+      # Keeps _sum and _count for calculating averages; drops individual buckets.
+      etcdRequestDurationBuckets: false
+      # -- Drop apiserver_request_sli_duration_seconds_bucket (~145K series).
+      # SLI variant of request duration; often redundant with apiserver_request_duration.
+      apiserverRequestSliDurationBuckets: false
 
 # -- Cluster metrics configuration (kube-state-metrics, node-exporter, kubelet, etc.)
 # Only used when features.clusterMetrics is true.

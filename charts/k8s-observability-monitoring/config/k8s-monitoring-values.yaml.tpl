@@ -97,9 +97,40 @@ prometheusOperatorObjects:
     extraDiscoveryRules: |
 {{ .Values.prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules | indent 6 }}
     {{- end }}
-    {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules }}
+    {{- $dropHighCardinality := and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics }}
+    {{- $dropApiserver := and $dropHighCardinality .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.apiserverRequestDurationBuckets }}
+    {{- $dropEtcd := and $dropHighCardinality .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.etcdRequestDurationBuckets }}
+    {{- $dropApiserverSli := and $dropHighCardinality .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.apiserverRequestSliDurationBuckets }}
+    {{- $hasExtraRules := and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules }}
+    {{- if or $dropApiserver $dropEtcd $dropApiserverSli $hasExtraRules }}
     extraMetricProcessingRules: |
+      {{- if $dropApiserver }}
+      // Drop apiserver_request_duration_seconds_bucket to reduce cardinality (~200K series)
+      rule {
+        source_labels = ["__name__"]
+        regex = "apiserver_request_duration_seconds_bucket"
+        action = "drop"
+      }
+      {{- end }}
+      {{- if $dropEtcd }}
+      // Drop etcd_request_duration_seconds_bucket to reduce cardinality (~150K series)
+      rule {
+        source_labels = ["__name__"]
+        regex = "etcd_request_duration_seconds_bucket"
+        action = "drop"
+      }
+      {{- end }}
+      {{- if $dropApiserverSli }}
+      // Drop apiserver_request_sli_duration_seconds_bucket to reduce cardinality (~145K series)
+      rule {
+        source_labels = ["__name__"]
+        regex = "apiserver_request_sli_duration_seconds_bucket"
+        action = "drop"
+      }
+      {{- end }}
+      {{- if $hasExtraRules }}
 {{ .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules | indent 6 }}
+      {{- end }}
     {{- end }}
   {{- end }}
 

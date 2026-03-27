@@ -76,6 +76,10 @@ queryFrontend:
 
 # Ingester configuration
 ingester:
+  # -- Replication factor for ingested data.
+  # RF=3 (default): Data replicated to 3 zones, can survive 2 zone failures.
+  # RF=2: Data replicated to 2 zones, saves ~33% ingester memory but less durable.
+  replicationFactor: 3
   resources:
     requests:
       cpu: 200m
