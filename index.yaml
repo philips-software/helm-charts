@@ -2377,6 +2377,14 @@ entries:
     version: 0.1.0
   k8sgpt-bootstrap:
   - apiVersion: v2
+    created: "2026-03-27T16:18:16.689374181Z"
+    description: Bootstrap chart for K8sGPT with AWS Bedrock integration
+    digest: da8e7d6074e27e2bf8991b9cf1014f9845c29fde879ee70fc30329f7a598e9e9
+    name: k8sgpt-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8sgpt-bootstrap-0.2.0/k8sgpt-bootstrap-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
     created: "2026-03-27T14:21:40.020779488Z"
     description: Bootstrap chart for K8sGPT with AWS Bedrock integration
     digest: f1ce14b5082cbab1d874e4b28cd9fc6f484622d18553336d121875f06eb5db13
@@ -2776,4 +2784,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-03-27T14:21:40.201494856Z"
+generated: "2026-03-27T16:18:16.690406431Z"
