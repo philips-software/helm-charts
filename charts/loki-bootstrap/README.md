@@ -1,6 +1,6 @@
 # loki-bootstrap
 
-![Version: 0.37.0](https://img.shields.io/badge/Version-0.37.0-informational?style=flat-square)
+![Version: 0.39.0](https://img.shields.io/badge/Version-0.39.0-informational?style=flat-square)
 
 ## Values
 
@@ -21,6 +21,9 @@
 | vpa.components.distributor.enabled | bool | `true` |  |
 | vpa.components.distributor.maxAllowed.memory | string | `"4Gi"` |  |
 | vpa.components.distributor.minAllowed.memory | string | `"512Mi"` |  |
+| vpa.components.indexGateway.enabled | bool | `true` |  |
+| vpa.components.indexGateway.maxAllowed.memory | string | `"1Gi"` |  |
+| vpa.components.indexGateway.minAllowed.memory | string | `"128Mi"` |  |
 | vpa.components.ingester.enabled | bool | `true` |  |
 | vpa.components.ingester.maxAllowed.memory | string | `"16Gi"` |  |
 | vpa.components.ingester.minAllowed.memory | string | `"4Gi"` |  |

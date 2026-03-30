@@ -302,6 +302,8 @@ monitoring:
     enabled: true
 
 loki:
+  commonConfig:
+    replication_factor: 2
   runtimeConfig:
     overrides:
       "homelab":
