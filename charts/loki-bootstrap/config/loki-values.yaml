@@ -96,7 +96,7 @@ compactor:
     enabled: true
   resources:
     requests:
-      cpu: 10m
+      cpu: 20m
       memory: 80Mi
     limits:
       memory: 150Mi
