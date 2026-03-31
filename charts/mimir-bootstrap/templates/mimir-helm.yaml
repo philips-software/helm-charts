@@ -21,6 +21,7 @@ spec:
       kind: StatefulSet
       jsonPointers:
         - /spec/replicas
+        - /spec/volumeClaimTemplates
   source:
     chart: mimir-distributed
     repoURL: https://grafana.github.io/helm-charts
