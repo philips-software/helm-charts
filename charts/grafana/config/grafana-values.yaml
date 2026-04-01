@@ -65,6 +65,11 @@ datasources:
           prometheusType: "Mimir"
           timeInterval: "30s"
           oauthPassThru: true
+          {{- if .Values.datasources.tempo.enabled }}
+          exemplarTraceIdDestinations:
+            - name: trace_id
+              datasourceUid: tempo
+          {{- end }}
       {{- end }}
       {{- if .Values.datasources.loki.enabled }}
       - name: Loki
@@ -77,6 +82,15 @@ datasources:
         isDefault: false
         jsonData:
           oauthPassThru: true
+          {{- if .Values.datasources.tempo.enabled }}
+          derivedFields:
+            - datasourceUid: tempo
+              matcherType: label
+              matcherRegex: traceID
+              name: TraceID
+              url: "$${__value.raw}"
+              urlDisplayLabel: View Trace
+          {{- end }}
       {{- end }}
       {{- if .Values.datasources.tempo.enabled }}
       - name: Tempo
@@ -89,6 +103,25 @@ datasources:
         isDefault: false
         jsonData:
           oauthPassThru: true
+          nodeGraph:
+            enabled: true
+          {{- if .Values.datasources.loki.enabled }}
+          tracesToLogsV2:
+            datasourceUid: loki
+            filterByTraceID: true
+            filterBySpanID: false
+            spanStartTimeShift: "-5m"
+            spanEndTimeShift: "5m"
+          {{- end }}
+          {{- if .Values.datasources.mimir.enabled }}
+          tracesToMetrics:
+            datasourceUid: mimir
+            spanStartTimeShift: "-5m"
+            spanEndTimeShift: "5m"
+            tags:
+              - key: service.name
+                value: service
+          {{- end }}
       {{- end }}
 {{- end }}
 
