@@ -205,6 +205,19 @@ customAlloy:
       memory: 512Mi
     limits:
       memory: 1Gi
+  # -- Vertical Pod Autoscaler configuration
+  vpa:
+    # -- Enable VPA for automatic memory scaling
+    enabled: false
+    # -- Update mode: "Off" (recommendations only), "Initial" (set on pod creation),
+    # "Recreate" (recreate pods), "InPlaceOrRecreate" (resize in-place if possible, else recreate)
+    updateMode: "InPlaceOrRecreate"
+    # -- Minimum allowed resources
+    minAllowed:
+      memory: 512Mi
+    # -- Maximum allowed resources
+    maxAllowed:
+      memory: 8Gi
 
 # -- Alloy Logs resource configuration
 alloyLogs:
