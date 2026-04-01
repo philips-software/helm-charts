@@ -33,7 +33,7 @@ imageRenderer:
   enabled: true
   image:
     # renovate: datasource=docker depName=grafana/grafana-image-renderer
-    tag: v5.7.2
+    tag: v5.7.3
   env:
     BROWSER_TZ: "Europe/Amsterdam"
 
