@@ -2746,6 +2746,14 @@ entries:
     version: 0.35.0
   otlp-gateway-bootstrap:
   - apiVersion: v2
+    created: "2026-04-07T14:48:56.481698148Z"
+    description: Bootstrap chart for deploying otlp-gateway via HelmApplication
+    digest: 3b6a265636acdd71690654b10dda3831c9288f2079c878aefb311c0e42a1bc5b
+    name: otlp-gateway-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.43.0/otlp-gateway-bootstrap-0.43.0.tgz
+    version: 0.43.0
+  - apiVersion: v2
     created: "2026-03-19T16:37:07.88820198Z"
     description: Bootstrap chart for deploying otlp-gateway via HelmApplication
     digest: 03a5b6b963aef4e17877abb4055f7201767c9873186a27938434dd02ca773566
@@ -2850,4 +2858,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-04-07T14:44:52.367321047Z"
+generated: "2026-04-07T14:48:56.482270697Z"
