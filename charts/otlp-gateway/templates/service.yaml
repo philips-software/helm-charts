@@ -53,3 +53,7 @@ spec:
       targetPort: 8443
       name: https
     {{- end }}
+    - protocol: TCP
+      port: 2020
+      targetPort: 2020
+      name: metrics
