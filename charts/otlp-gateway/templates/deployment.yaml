@@ -46,17 +46,18 @@ spec:
         {{- if .Values.loadbalancer.enabled }}
         - containerPort: 8443
         {{- end }}
-        - containerPort: 2019
+        - containerPort: 2020
+          name: metrics
         readinessProbe:
           httpGet:
             path: /metrics
-            port: 2019
+            port: 2020
           initialDelaySeconds: 5
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /metrics
-            port: 2019
+            port: 2020
           initialDelaySeconds: 15
           periodSeconds: 20
         resources:
