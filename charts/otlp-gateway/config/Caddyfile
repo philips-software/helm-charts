@@ -11,7 +11,12 @@
 
   storage file_system {
     root /data
+  }
 }
+
+# Metrics-only server (separate from admin API)
+:2020 {
+  metrics /metrics
 }
 
 
