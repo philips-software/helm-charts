@@ -22,8 +22,8 @@ authn:
     debug: false
   spiffe:
     enabled: false
-    # Path to the SPIFFE Workload API socket (typically provided by SPIRE agent)
-    workloadSocket: unix:///run/spire/sockets/agent.sock
+    # Path to the SPIFFE Workload API socket (provided by SPIFFE CSI driver)
+    workloadSocket: unix:///run/spire/sockets/spiffe-workload-api.sock
     # SPIFFE trust domains for validation (list)
     trustDomains: []
     # Example:
