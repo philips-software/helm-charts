@@ -103,6 +103,11 @@ spec:
           subPath: client_ca.pem
           readOnly: true
         {{- end }}
+        {{- if .Values.authn.spiffe.enabled }}
+        - name: spiffe-workload-api
+          mountPath: {{ dir .Values.authn.spiffe.socketPath }}
+          readOnly: true
+        {{- end }}
       volumes:
       - name: caddy-config-volume
         configMap:
@@ -123,4 +128,10 @@ spec:
       - name: client-ca-cert
         secret:
           secretName: {{ include "otlp-gateway.clientCaSecretName" . }}
+      {{- end }}
+      {{- if .Values.authn.spiffe.enabled }}
+      - name: spiffe-workload-api
+        csi:
+          driver: "csi.spiffe.io"
+          readOnly: true
       {{- end }}

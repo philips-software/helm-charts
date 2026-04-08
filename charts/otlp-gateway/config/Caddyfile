@@ -51,6 +51,18 @@
           default_org "anonymous"
         }
         {{- end }}
+        {{- if .Values.authn.spiffe.enabled }}
+        spiffe {
+          socket_path {{ .Values.authn.spiffe.socketPath }}
+          {{- range .Values.authn.spiffe.trustDomains }}
+          trust_domain {{ . }}
+          {{- end }}
+          {{- range .Values.authn.spiffe.allowedIds }}
+          allowed_ids {{ . }}
+          {{- end }}
+          debug {{ .Values.authn.spiffe.debug }}
+        }
+        {{- end }}
       }
 
       {{- if .Values.caddy.payloadsize.enabled }}
