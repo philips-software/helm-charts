@@ -43,6 +43,13 @@ serviceAccount:
 gateway:
   replicas: 3
   enabledNonEnterprise: true
+  nginx:
+    config:
+      # Align keepalive_timeout with AWS NLB idle timeout (350s)
+      # Default nginx keepalive_timeout is 75s which causes connection reuse failures
+      # for clients with intervals > 75s (e.g. Prometheus scrape intervals)
+      httpSnippet: |
+        keepalive_timeout 350s;
   resources:
     requests:
       cpu: 50m
