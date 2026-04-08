@@ -2691,6 +2691,16 @@ entries:
     version: 0.37.0
   otlp-gateway:
   - apiVersion: v2
+    created: "2026-04-08T20:40:38.761603226Z"
+    description: A Helm chart for Kubernetes to deploy an OTLP gateway with authentication
+      and authorization
+    digest: 986fbafdd97147c84028ebd1fa600297a305e86d8fb1e6f406cd9cbdc7ebc9ae
+    name: otlp-gateway
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-0.46.0/otlp-gateway-0.46.0.tgz
+    version: 0.46.0
+  - apiVersion: v2
     created: "2026-04-08T19:20:34.64737886Z"
     description: A Helm chart for Kubernetes to deploy an OTLP gateway with authentication
       and authorization
@@ -2954,4 +2964,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-04-08T20:32:42.31971308Z"
+generated: "2026-04-08T20:40:38.762114432Z"
