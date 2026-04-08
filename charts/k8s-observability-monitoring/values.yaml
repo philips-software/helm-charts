@@ -1,6 +1,29 @@
 # -- Cluster name for telemetry labeling. Must be set to a non-empty value at install time.
 clusterName: ""
 
+# -- SPIFFE authentication configuration for OTLP destinations
+# When enabled, uses SPIFFE JWT SVIDs for authentication instead of basic auth
+spiffe:
+  # -- Enable SPIFFE authentication (requires SPIRE infrastructure)
+  enabled: false
+  # -- SPIFFE trust domain
+  trustDomain: ""
+  # -- Audience for the JWT SVID (typically the OTLP gateway URL)
+  audience: ""
+  # -- Path where the JWT token will be written (inside the shared volume)
+  jwtPath: /var/run/secrets/spiffe/jwt/token
+  # -- spiffe-helper image configuration
+  helper:
+    # -- spiffe-helper image
+    image: ghcr.io/spiffe/spiffe-helper:0.10.0
+    # -- Resource requests and limits
+    resources:
+      requests:
+        cpu: 1m
+        memory: 16Mi
+      limits:
+        memory: 32Mi
+
 # -- OTLP destination configuration for sending telemetry data (metrics, logs, traces)
 otlp:
   # -- List of OTLP destinations to send telemetry data to.

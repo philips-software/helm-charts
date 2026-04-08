@@ -387,9 +387,22 @@ data:
       }
     }
 
+    {{- if $.Values.spiffe.enabled }}
+    // SPIFFE JWT token for authentication
+    local.file "spiffe_jwt" {
+      filename = "{{ $.Values.spiffe.jwtPath }}"
+      is_secret = true
+    }
+
+    // SPIFFE Bearer auth
+    otelcol.auth.bearer "spiffe" {
+      token = local.file.spiffe_jwt.content
+    }
+    {{- end }}
+
     {{- range .Values.otlp.destinations }}
 
-    {{- if .secret }}
+    {{- if and .secret (not $.Values.spiffe.enabled) }}
     // Secret for {{ .name }}
     remote.kubernetes.secret "{{ .name }}" {
       name      = "{{ .secret.name }}"
@@ -409,10 +422,12 @@ data:
     otelcol.exporter.otlphttp "{{ .name }}" {
       client {
         endpoint = "{{ .url }}"
-        {{- if and .secret (not .noAuth) }}
+        {{- if $.Values.spiffe.enabled }}
+        auth = otelcol.auth.bearer.spiffe.handler
+        {{- else if and .secret (not .noAuth) }}
         auth = otelcol.auth.basic.{{ .name }}.handler
         {{- end }}
-        {{- if and .secret (not .noAuth) }}
+        {{- if and .secret (not .noAuth) (not $.Values.spiffe.enabled) }}
         headers = {
           "X-Scope-OrgID" = convert.nonsensitive(remote.kubernetes.secret.{{ .name }}.data["tenantId"]),
         }
