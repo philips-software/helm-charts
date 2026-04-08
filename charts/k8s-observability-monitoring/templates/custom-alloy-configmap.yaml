@@ -402,7 +402,7 @@ data:
 
     {{- range .Values.otlp.destinations }}
 
-    {{- if and .secret (not $.Values.spiffe.enabled) }}
+    {{- if .secret }}
     // Secret for {{ .name }}
     remote.kubernetes.secret "{{ .name }}" {
       name      = "{{ .secret.name }}"
@@ -422,12 +422,14 @@ data:
     otelcol.exporter.otlphttp "{{ .name }}" {
       client {
         endpoint = "{{ .url }}"
-        {{- if $.Values.spiffe.enabled }}
-        auth = otelcol.auth.bearer.spiffe.handler
-        {{- else if and .secret (not .noAuth) }}
+        {{- if .noAuth }}
+        {{- /* No auth */ -}}
+        {{- else if .secret }}
         auth = otelcol.auth.basic.{{ .name }}.handler
+        {{- else if $.Values.spiffe.enabled }}
+        auth = otelcol.auth.bearer.spiffe.handler
         {{- end }}
-        {{- if and .secret (not .noAuth) (not $.Values.spiffe.enabled) }}
+        {{- if and .secret (not .noAuth) }}
         headers = {
           "X-Scope-OrgID" = convert.nonsensitive(remote.kubernetes.secret.{{ .name }}.data["tenantId"]),
         }
