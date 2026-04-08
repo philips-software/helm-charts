@@ -1,6 +1,6 @@
 # otlp-gateway
 
-![Version: 0.45.3](https://img.shields.io/badge/Version-0.45.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.45.4](https://img.shields.io/badge/Version-0.45.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 OTLP gateway is a reference implementation which creates a single otlphttp endpoint that proxies Loki, Tempo and Mimir OTLP endpoints
 It supports authentication and authorization using both static and JWT tokens and tokens through the [caddy-token](https://github.com/loafoe/caddy-token) plugin.
@@ -67,7 +67,7 @@ authn:
 | authn.spiffe.defaultOrg | string | `"anonymous"` |  |
 | authn.spiffe.enabled | bool | `false` |  |
 | authn.spiffe.trustDomains | list | `[]` |  |
-| authn.spiffe.workloadSocket | string | `"unix:///run/spire/sockets/spiffe-workload-api.sock"` |  |
+| authn.spiffe.workloadSocket | string | `"unix:///run/spire/sockets/spire-agent.sock"` |  |
 | authn.staticTokens.enabled | bool | `false` |  |
 | authn.staticTokens.secret | string | `"otlp-gateway-static-tokens"` |  |
 | autoscaling.enabled | bool | `false` |  |
