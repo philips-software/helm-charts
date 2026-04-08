@@ -23,7 +23,7 @@ authn:
   spiffe:
     enabled: false
     # Path to the SPIFFE Workload API socket (typically provided by SPIRE agent)
-    socketPath: /run/spire/sockets/agent.sock
+    workloadSocket: unix:///run/spire/sockets/agent.sock
     # SPIFFE trust domains for validation (list)
     trustDomains: []
     # Example:

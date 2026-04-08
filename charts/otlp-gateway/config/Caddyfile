@@ -53,7 +53,7 @@
         {{- end }}
         {{- if .Values.authn.spiffe.enabled }}
         spiffe {
-          socket_path {{ .Values.authn.spiffe.socketPath }}
+          workload_socket {{ .Values.authn.spiffe.workloadSocket }}
           {{- range .Values.authn.spiffe.trustDomains }}
           trust_domain {{ . }}
           {{- end }}
