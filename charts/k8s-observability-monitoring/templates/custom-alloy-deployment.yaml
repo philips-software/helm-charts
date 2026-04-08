@@ -28,8 +28,31 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/custom-alloy-configmap.yaml") . | sha256sum }}
+        {{- if .Values.spiffe.enabled }}
+        checksum/spiffe-helper: {{ include (print $.Template.BasePath "/custom-alloy-spiffe-helper-configmap.yaml") . | sha256sum }}
+        {{- end }}
     spec:
       serviceAccountName: {{ .Release.Name }}-custom-alloy
+      {{- if .Values.spiffe.enabled }}
+      initContainers:
+        - name: spiffe-helper-init
+          image: {{ .Values.spiffe.helper.image }}
+          args:
+            - -config
+            - /etc/spiffe-helper/spiffe-helper.conf
+            - -daemon-mode=false
+          resources:
+            {{- toYaml .Values.spiffe.helper.resources | nindent 12 }}
+          volumeMounts:
+            - name: spiffe-workload-api
+              mountPath: /spiffe-workload-api
+              readOnly: true
+            - name: spiffe-helper-config
+              mountPath: /etc/spiffe-helper
+              readOnly: true
+            - name: spiffe-jwt
+              mountPath: {{ dir .Values.spiffe.jwtPath }}
+      {{- end }}
       containers:
         - name: alloy
           # renovate: datasource=docker depName=grafana/alloy
@@ -64,8 +87,42 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/alloy
+            {{- if .Values.spiffe.enabled }}
+            - name: spiffe-jwt
+              mountPath: {{ dir .Values.spiffe.jwtPath }}
+              readOnly: true
+            {{- end }}
+        {{- if .Values.spiffe.enabled }}
+        - name: spiffe-helper
+          image: {{ .Values.spiffe.helper.image }}
+          args:
+            - -config
+            - /etc/spiffe-helper/spiffe-helper.conf
+          resources:
+            {{- toYaml .Values.spiffe.helper.resources | nindent 12 }}
+          volumeMounts:
+            - name: spiffe-workload-api
+              mountPath: /spiffe-workload-api
+              readOnly: true
+            - name: spiffe-helper-config
+              mountPath: /etc/spiffe-helper
+              readOnly: true
+            - name: spiffe-jwt
+              mountPath: {{ dir .Values.spiffe.jwtPath }}
+        {{- end }}
       volumes:
         - name: config
           configMap:
             name: {{ .Release.Name }}-custom-alloy
+        {{- if .Values.spiffe.enabled }}
+        - name: spiffe-workload-api
+          csi:
+            driver: csi.spiffe.io
+            readOnly: true
+        - name: spiffe-helper-config
+          configMap:
+            name: {{ .Release.Name }}-custom-alloy-spiffe-helper
+        - name: spiffe-jwt
+          emptyDir: {}
+        {{- end }}
 {{- end }}
