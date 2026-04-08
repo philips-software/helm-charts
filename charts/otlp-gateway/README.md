@@ -1,6 +1,6 @@
 # otlp-gateway
 
-![Version: 0.43.1](https://img.shields.io/badge/Version-0.43.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.44.0](https://img.shields.io/badge/Version-0.44.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 OTLP gateway is a reference implementation which creates a single otlphttp endpoint that proxies Loki, Tempo and Mimir OTLP endpoints
 It supports authentication and authorization using both static and JWT tokens and tokens through the [caddy-token](https://github.com/loafoe/caddy-token) plugin.
@@ -62,6 +62,11 @@ authn:
 | authn.oidc.issuer | string | `"https://issuer.obs-us-east-ct.hsp.philips.com"` |  |
 | authn.signedTokens.enabled | bool | `true` |  |
 | authn.signedTokens.secret | string | `"otlp-gateway-signing-key"` |  |
+| authn.spiffe.allowedIds | list | `[]` |  |
+| authn.spiffe.debug | bool | `false` |  |
+| authn.spiffe.enabled | bool | `false` |  |
+| authn.spiffe.socketPath | string | `"/run/spire/sockets/agent.sock"` |  |
+| authn.spiffe.trustDomains | list | `[]` |  |
 | authn.staticTokens.enabled | bool | `false` |  |
 | authn.staticTokens.secret | string | `"otlp-gateway-static-tokens"` |  |
 | autoscaling.enabled | bool | `false` |  |
@@ -71,7 +76,7 @@ authn:
 | autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | billing.enabled | bool | `false` |  |
 | billing.tenantMapperUrl | string | `"http://tenant-mapper.starlift-observability.svc.cluster.local"` |  |
-| caddy.container.image | string | `"ghcr.io/loafoe/caddy-token:v0.80.0"` |  |
+| caddy.container.image | string | `"ghcr.io/loafoe/caddy-token:v0.81.1"` |  |
 | caddy.payloadsize.enabled | bool | `false` |  |
 | environmentConfig.clusterFqdn | string | `""` |  |
 | environmentConfig.host | string | `"otlp-gateway"` |  |

@@ -20,6 +20,24 @@ authn:
     mode: verify_if_given
     # Enable debug logging for client certificate authentication
     debug: false
+  spiffe:
+    enabled: false
+    # Path to the SPIFFE Workload API socket (typically provided by SPIRE agent)
+    socketPath: /run/spire/sockets/agent.sock
+    # SPIFFE trust domains for validation (list)
+    trustDomains: []
+    # Example:
+    # trustDomains:
+    #   - example.org
+    #   - other.example.com
+    # Allowed SPIFFE IDs (list)
+    allowedIds: []
+    # Example:
+    # allowedIds:
+    #   - spiffe://example.org/workload1
+    #   - spiffe://example.org/workload2
+    # Enable debug logging for SPIFFE authentication
+    debug: false
     
 environmentConfig:
   region: ""  # AWS region for external secrets
@@ -58,7 +76,7 @@ autoscaling:
 caddy:
   container:
     # renovate: datasource=docker depName=ghcr.io/loafoe/caddy-token
-    image: ghcr.io/loafoe/caddy-token:v0.80.0
+    image: ghcr.io/loafoe/caddy-token:v0.81.1
   payloadsize:
     # important: the payloadsize requires an image which includes the payloadsize plugin
     enabled: false
