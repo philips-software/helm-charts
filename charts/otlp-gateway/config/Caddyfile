@@ -60,6 +60,7 @@
           {{- range .Values.authn.spiffe.allowedIds }}
           allowed_ids {{ . }}
           {{- end }}
+          default_org "{{ .Values.authn.spiffe.defaultOrg }}"
           debug {{ .Values.authn.spiffe.debug }}
         }
         {{- end }}

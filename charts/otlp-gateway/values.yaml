@@ -36,6 +36,8 @@ authn:
     # allowedIds:
     #   - spiffe://example.org/workload1
     #   - spiffe://example.org/workload2
+    # Default organization for authenticated SPIFFE workloads
+    defaultOrg: anonymous
     # Enable debug logging for SPIFFE authentication
     debug: false
     
