@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 data:
   spiffe-helper.conf: |
-    agent_address = "unix:///spiffe-workload-api/spire-agent.sock"
+    agent_address = "/spiffe-workload-api/spire-agent.sock"
     jwt_svids = [
       {
         jwt_audience = "{{ .Values.spiffe.audience }}"

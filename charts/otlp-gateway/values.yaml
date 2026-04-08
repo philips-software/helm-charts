@@ -24,12 +24,16 @@ authn:
     enabled: false
     # Path to the SPIFFE Workload API socket (provided by SPIFFE CSI driver)
     workloadSocket: unix:///run/spire/sockets/spire-agent.sock
-    # SPIFFE trust domains for validation (list)
+    # SPIFFE trust domains for validation
+    # Simple format (uses Workload API for key validation):
+    #   trustDomains:
+    #     - example.org
+    # Extended format (uses JWKS URL for cross-cluster validation):
+    #   trustDomains:
+    #     - domain: example.org
+    #       jwksUrl: https://oidc-discovery.example.org/keys
+    #       audience: otlp-gateway  # optional
     trustDomains: []
-    # Example:
-    # trustDomains:
-    #   - example.org
-    #   - other.example.com
     # Allowed SPIFFE IDs (list)
     allowedIds: []
     # Example:

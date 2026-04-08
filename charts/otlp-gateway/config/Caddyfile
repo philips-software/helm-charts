@@ -55,7 +55,18 @@
         spiffe {
           workload_socket {{ .Values.authn.spiffe.workloadSocket }}
           {{- range .Values.authn.spiffe.trustDomains }}
+          {{- if kindIs "string" . }}
           trust_domain {{ . }}
+          {{- else }}
+          trust_domain {{ .domain }} {
+            {{- if .jwksUrl }}
+            jwks_url {{ .jwksUrl }}
+            {{- end }}
+            {{- if .audience }}
+            audience {{ .audience }}
+            {{- end }}
+          }
+          {{- end }}
           {{- end }}
           {{- range .Values.authn.spiffe.allowedIds }}
           allowed_ids {{ . }}
