@@ -105,7 +105,7 @@ spec:
         {{- end }}
         {{- if .Values.authn.spiffe.enabled }}
         - name: spiffe-workload-api
-          mountPath: {{ dir .Values.authn.spiffe.socketPath }}
+          mountPath: {{ dir (trimPrefix "unix://" .Values.authn.spiffe.workloadSocket) }}
           readOnly: true
         {{- end }}
       volumes:
