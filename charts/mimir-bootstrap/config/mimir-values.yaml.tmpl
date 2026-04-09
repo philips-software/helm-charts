@@ -48,8 +48,10 @@ gateway:
       # Align keepalive_timeout with AWS NLB idle timeout (350s)
       # Default nginx keepalive_timeout is 75s which causes connection reuse failures
       # for clients with intervals > 75s (e.g. Prometheus scrape intervals)
+      # Set proxy_send_timeout to match proxy_read_timeout (300s) for consistent timeout handling
       httpSnippet: |
         keepalive_timeout 350s;
+        proxy_send_timeout 300s;
   resources:
     requests:
       cpu: 50m
