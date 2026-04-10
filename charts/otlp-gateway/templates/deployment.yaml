@@ -21,6 +21,15 @@ spec:
         app.kubernetes.io/instance: otlp-gateway
         app.kubernetes.io/name: otlp-gateway
     spec:
+      {{- if .Values.topologySpreadConstraints.enabled }}
+      topologySpreadConstraints:
+        - maxSkew: {{ .Values.topologySpreadConstraints.maxSkew }}
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: {{ .Values.topologySpreadConstraints.whenUnsatisfiable }}
+          labelSelector:
+            matchLabels:
+              app: otlp-gateway
+      {{- end }}
       containers:
       - name: caddy
         image: {{ .Values.caddy.container.image }}
