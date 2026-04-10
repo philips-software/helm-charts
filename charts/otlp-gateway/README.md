@@ -1,6 +1,6 @@
 # otlp-gateway
 
-![Version: 0.47.0](https://img.shields.io/badge/Version-0.47.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.48.0](https://img.shields.io/badge/Version-0.48.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 OTLP gateway is a reference implementation which creates a single otlphttp endpoint that proxies Loki, Tempo and Mimir OTLP endpoints
 It supports authentication and authorization using both static and JWT tokens and tokens through the [caddy-token](https://github.com/loafoe/caddy-token) plugin.
@@ -94,6 +94,7 @@ authn:
 | mimir.enabled | bool | `true` |  |
 | mimir.pathPrefix | string | `"/v1/metrics"` |  |
 | mimir.service | string | `"mimir-gateway.mimir-system.svc.cluster.local:80"` |  |
+| podDisruptionBudget.enabled | bool | `false` |  |
 | prometheus.enabled | bool | `false` |  |
 | prometheus.pathPrefix | string | `"/prometheus/v1/metrics"` |  |
 | prometheus.service | string | `"kps-prometheus.prometheus.svc.cluster.local:9090"` |  |
