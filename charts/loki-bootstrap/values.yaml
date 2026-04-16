@@ -28,6 +28,18 @@ argoProject: default
 
 multitenancyEnabled: true
 
+# Loki configuration
+loki:
+  # Replication factor for ingester data (default: 2)
+  # For zone-aware HA, ensure ingester.replicas >= replicationFactor * number_of_zones
+  replicationFactor: 2
+
+# Ingester configuration
+ingester:
+  # Number of ingester replicas
+  # For zone-aware HA with 3 AZs, use at least replicationFactor * 3
+  replicas: 3
+
 features:
   # Enable the CloudWatch kill job that removes CloudWatch ClusterOutputs
   # and ensures a null-output ClusterOutput exists

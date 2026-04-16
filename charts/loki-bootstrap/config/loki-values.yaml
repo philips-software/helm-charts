@@ -38,7 +38,7 @@ queryScheduler:
           key: id
 
 ingester:
-  replicas: 3
+  replicas: {{ .Values.ingester.replicas }}
   resources:
     requests:
       cpu: 120m
@@ -303,7 +303,7 @@ monitoring:
 
 loki:
   commonConfig:
-    replication_factor: 2
+    replication_factor: {{ .Values.loki.replicationFactor }}
   runtimeConfig:
     overrides:
       "homelab":
