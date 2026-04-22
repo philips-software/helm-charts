@@ -1,4 +1,6 @@
 authn:
+  # Inject X-Scope-OrgID header with authenticated org value
+  injectOrgHeader: true
   oidc:
     enabled: false
     issuer: https://issuer.obs-us-east-ct.hsp.philips.com
