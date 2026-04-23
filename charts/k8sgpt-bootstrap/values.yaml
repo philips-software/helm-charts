@@ -34,7 +34,7 @@ k8sgpt:
     region: ""
   # K8sGPT image version/tag (required to work with ECR pull-through cache)
   # renovate: datasource=docker depName=ghcr.io/k8sgpt-ai/k8sgpt
-  version: v0.4.31
+  version: v0.4.32
   # Filters to specify which analyzers to run (empty = all, but very noisy)
   # Excluding ConfigMap analyzer as it flags all kube-root-ca.crt as unused
   # Available: Pod, Deployment, ReplicaSet, Service, Ingress, StatefulSet, Node,
