@@ -56,7 +56,7 @@ spec:
       containers:
         - name: alloy
           # renovate: datasource=docker depName=grafana/alloy
-          image: docker.io/grafana/alloy:v1.15.1
+          image: docker.io/grafana/alloy:v1.16.0
           args:
             - run
             - /etc/alloy/config.alloy
