@@ -113,7 +113,7 @@ grafana:
 
 grafanaChart:
   # renovate: datasource=helm depName=grafana registryUrl=https://grafana-community.github.io/helm-charts
-  version: 12.1.3
+  version: 12.2.1
   # Helm release name for Grafana
   releaseName: gf
 
