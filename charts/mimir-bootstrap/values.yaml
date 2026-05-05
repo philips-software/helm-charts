@@ -72,7 +72,7 @@ queryFrontend:
       cpu: 100m
       memory: 512Mi
     limits:
-      memory: 1Gi
+      memory: 3Gi
 
 # Ingester configuration
 ingester:
@@ -96,6 +96,14 @@ querier:
     limits:
       memory: 1.5Gi
 
+store_gateway:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 3Gi 
+      
 karpenter:
   # If true, stateful components (ingester, store-gateway, etc.) will be annotated
   # with karpenter.sh/do-not-disrupt: "true" to prevent consolidation.
