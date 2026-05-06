@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 1.2.5](https://img.shields.io/badge/Version-1.2.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.25](https://img.shields.io/badge/AppVersion-0.0.25-informational?style=flat-square)
+![Version: 1.2.6](https://img.shields.io/badge/Version-1.2.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.27](https://img.shields.io/badge/AppVersion-0.0.27-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -39,7 +39,7 @@ and uses HelmApplication CRs to bootstrap platform components.
 | harvester.enabled | bool | `true` |  |
 | harvester.image.pullPolicy | string | `"IfNotPresent"` |  |
 | harvester.image.repository | string | `"docker.io/alpine/k8s"` |  |
-| harvester.image.tag | string | `"1.35.2"` |  |
+| harvester.image.tag | string | `"1.36.0"` |  |
 | harvester.serviceAccount.name | string | `"hsp-addons-harvester"` |  |
 | harvester.ttlSecondsAfterFinished | int | `600` |  |
 | helmApplications | object | `{}` |  |
