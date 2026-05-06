@@ -168,10 +168,10 @@ store_gateway:
     size: 10Gi
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
+      cpu: {{ .Values.store_gateway.resources.requests.cpu }}
+      memory: {{ .Values.store_gateway.resources.requests.memory }}
     limits:
-      memory: 512Mi
+      memory: {{ .Values.store_gateway.resources.limits.memory }}
   # Override topology spread constraints for StatefulSet with PVC
   topologySpreadConstraints:
     maxSkew: 1
