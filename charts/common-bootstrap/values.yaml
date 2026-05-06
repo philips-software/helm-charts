@@ -80,7 +80,7 @@ harvester:
   image:
     repository: docker.io/alpine/k8s
     # renovate: datasource=docker depName=alpine/k8s
-    tag: "1.35.4"
+    tag: "1.36.0"
     pullPolicy: IfNotPresent
   serviceAccount:
     name: hsp-addons-harvester
