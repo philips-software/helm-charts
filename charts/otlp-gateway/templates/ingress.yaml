@@ -10,10 +10,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - {{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}
+        - {{ include "otlp-gateway.fqdn" . }}
       secretName: otlp-gateway-tls
   rules:
-    - host: {{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}
+    - host: {{ include "otlp-gateway.fqdn" . }}
       http:
         paths:
           - pathType: Prefix

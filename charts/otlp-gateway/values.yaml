@@ -47,9 +47,12 @@ authn:
     # Enable debug logging for SPIFFE authentication
     debug: false
 
+useCustomFqdn: true  # Use environmentConfig.customFqdn instead of host.clusterFqdn (falls back to clusterFqdn if empty)
+
 environmentConfig:
   region: ""  # AWS region for external secrets
   clusterFqdn: ""  # Required when loadbalancer.enabled is true
+  customFqdn: ""  # Custom FQDN (full hostname, used when useCustomFqdn is true)
   host: otlp-gateway
 
 httpRoute:

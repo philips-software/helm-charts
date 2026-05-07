@@ -1,6 +1,6 @@
 {{- if or .Values.loadbalancer.enabled .Values.ingress.enabled }}
 {{/*
-Validation: Ensure environmentConfig.clusterFqdn is provided (required for TLS certificates when LB or Ingress is enabled)
+Validation: Ensure clusterFqdn is provided (required as fallback for TLS certificates)
 */}}
 {{- if not .Values.environmentConfig.clusterFqdn }}
 {{- fail "ERROR: environmentConfig.clusterFqdn must be provided for TLS certificate generation." }}
@@ -17,5 +17,5 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-    - {{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}
+    - {{ include "otlp-gateway.fqdn" . }}
 {{- end }}
