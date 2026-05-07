@@ -11,7 +11,7 @@ spec:
     - name: {{ .Values.grafana.httpRoute.sharedGatewayName }}
       namespace: {{ .Values.grafana.httpRoute.sharedGatewayNamespace }}
   hostnames:
-    - {{ .Values.grafana.httpRoute.host }}.{{ .Values.environmentConfig.clusterFqdn }}
+    - {{ include "grafana.host" . }}
   rules:
     - matches:
         - path:

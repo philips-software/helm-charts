@@ -51,13 +51,25 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Get the FQDN to use for Grafana.
+Uses customFqdn when useCustomFqdn is true, otherwise uses clusterFqdn.
+*/}}
+{{- define "grafana.fqdn" -}}
+{{- if and .Values.useCustomFqdn .Values.environmentConfig.customFqdn }}
+{{- .Values.environmentConfig.customFqdn }}
+{{- else }}
+{{- .Values.environmentConfig.clusterFqdn }}
+{{- end }}
+{{- end }}
+
+{{/*
 Generate the Grafana host (without protocol)
 */}}
 {{- define "grafana.host" -}}
 {{- if .Values.grafana.httpRoute.enabled }}
-{{- printf "%s.%s" .Values.grafana.httpRoute.host .Values.environmentConfig.clusterFqdn }}
+{{- printf "%s.%s" .Values.grafana.httpRoute.host (include "grafana.fqdn" .) }}
 {{- else }}
-{{- printf "%s.%s" .Values.grafana.ingress.host .Values.environmentConfig.clusterFqdn }}
+{{- printf "%s.%s" .Values.grafana.ingress.host (include "grafana.fqdn" .) }}
 {{- end }}
 {{- end }}
 
