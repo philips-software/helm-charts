@@ -6,7 +6,7 @@ Validation: Ensure ingress.enabled and loadbalancer.enabled are not both true
 {{- end }}
 
 {{/*
-Validation: Ensure environmentConfig.clusterFqdn is provided when TLS is needed (LoadBalancer or Ingress)
+Validation: Ensure clusterFqdn is provided when TLS is needed (LoadBalancer or Ingress)
 */}}
 {{- if or .Values.loadbalancer.enabled .Values.ingress.enabled }}
 {{- if not .Values.environmentConfig.clusterFqdn }}
@@ -36,7 +36,7 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
     service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: "preserve_client_ip.enabled=true"
-    external-dns.alpha.kubernetes.io/hostname: "{{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}"
+    external-dns.alpha.kubernetes.io/hostname: "{{ include "otlp-gateway.fqdn" . }}"
   {{- end }}
 spec:
   type: {{ if .Values.loadbalancer.enabled }}LoadBalancer{{ else }}ClusterIP{{ end }}

@@ -14,7 +14,7 @@ Validation: Ensure httpRoute.enabled and loadbalancer.enabled are not both true
 {{- end }}
 
 {{/*
-Validation: Ensure environmentConfig.clusterFqdn is provided when HTTPRoute is enabled
+Validation: Ensure clusterFqdn is provided (required as fallback when HTTPRoute is enabled)
 */}}
 {{- if not .Values.environmentConfig.clusterFqdn }}
 {{- fail "ERROR: environmentConfig.clusterFqdn must be provided when httpRoute.enabled is true." }}
@@ -35,7 +35,7 @@ spec:
       sectionName: {{ .Values.httpRoute.sectionName }}
       {{- end }}
   hostnames:
-    - {{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}
+    - {{ include "otlp-gateway.fqdn" . }}
     {{- range .Values.httpRoute.additionalHostnames }}
     - {{ . }}
     {{- end }}

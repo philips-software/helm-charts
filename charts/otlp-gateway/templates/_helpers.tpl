@@ -88,6 +88,18 @@ If name is provided in values, use it. Otherwise, generate a consistent name.
 {{- end }}
 
 {{/*
+Get the FQDN for the gateway.
+Uses customFqdn when useCustomFqdn is true, otherwise constructs from host.clusterFqdn
+*/}}
+{{- define "otlp-gateway.fqdn" -}}
+{{- if and .Values.useCustomFqdn .Values.environmentConfig.customFqdn }}
+{{- printf "%s.%s" .Values.environmentConfig.host .Values.environmentConfig.customFqdn }}
+{{- else }}
+{{- printf "%s.%s" .Values.environmentConfig.host .Values.environmentConfig.clusterFqdn }}
+{{- end }}
+{{- end }}
+
+{{/*
 Validate required configuration values
 */}}
 {{- define "otlp-gateway.validateConfig" -}}
