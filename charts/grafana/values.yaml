@@ -188,9 +188,14 @@ datasources:
   tempo:
     enabled: false
 
+# Use custom FQDN instead of clusterFqdn (falls back to clusterFqdn if customFqdn is empty)
+useCustomFqdn: true
+
 # Environment configuration
 environmentConfig:
   # Fully qualified domain name for the cluster (required, must be valid domain format)
   clusterFqdn: ""
+  # Custom FQDN for Grafana (used when useCustomFqdn is true)
+  customFqdn: ""
   # Resource prefix for the cluster (alphanumeric characters and hyphens only)
   resourcePrefix: ""
