@@ -23,13 +23,13 @@ runtimeConfig:
     "*":
       ruler_max_rules_per_rule_group: {{ .Values.ruler.maxRulesPerRuleGroup }}
   ingester_limits: # limits that each ingester replica enforces
-    max_ingestion_rate: 80000
+    max_ingestion_rate: {{ .Values.runtimeConfig.ingester_limits.max_ingestion_rate | default 80000 }}
     max_tenants: 1000
     max_inflight_push_requests: 60000
-  distributor_limits: # limits that each distributor replica enforces
-    max_ingestion_rate: 80000
-    max_inflight_push_requests: 60000
-    max_inflight_push_requests_bytes: 50000000
+  distributor_limits:
+    max_ingestion_rate: {{ .Values.runtimeConfig.distributor_limits.max_ingestion_rate | default 80000 }}
+    max_inflight_push_requests: {{ .Values.runtimeConfig.distributor_limits.max_inflight_push_requests | default 60000 }}
+    max_inflight_push_requests_bytes: {{ .Values.runtimeConfig.distributor_limits.max_inflight_push_requests_bytes | default 50000000 }}
 
 minio:
   enabled: false
