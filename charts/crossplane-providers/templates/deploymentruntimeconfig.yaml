@@ -17,12 +17,21 @@ spec:
       selector: {}
       template:
         spec:
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: package-runtime
               {{- if .debug }}
               args:
                 - --debug
               {{- end }}
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                runAsNonRoot: true
               resources:
                 {{- if .resources }}
                 {{- toYaml .resources | nindent 16 }}
