@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.68.0](https://img.shields.io/badge/Version-0.68.0-informational?style=flat-square)
+![Version: 0.69.0](https://img.shields.io/badge/Version-0.69.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -22,9 +22,6 @@ secret in the same namespace as the app. The secret should have the following fi
 | crossplaneProviders.gf.debug | bool | `false` |  |
 | crossplaneProviders.gf.enabled | bool | `true` |  |
 | crossplaneProviders.gf.tag | string | `"v0.9.2"` |  |
-| crossplaneProviders.grafana.datasources | list | `[]` |  |
-| crossplaneProviders.grafana.debug | bool | `false` |  |
-| crossplaneProviders.grafana.enabled | bool | `true` |  |
 | crossplaneProviders.orgmapper.debug | bool | `false` |  |
 | crossplaneProviders.orgmapper.enabled | bool | `true` |  |
 | database.cnpg | bool | `true` |  |
