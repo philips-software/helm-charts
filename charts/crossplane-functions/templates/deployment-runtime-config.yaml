@@ -6,7 +6,6 @@ kind: DeploymentRuntimeConfig
 metadata:
   name: {{ .name }}
 spec:
-  # Schedule critical functions on system nodes like other core components
   deploymentTemplate:
     metadata:
       name: {{ .name }}
@@ -14,8 +13,17 @@ spec:
       selector: {}
       template:
         spec:
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: package-runtime
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
               resources:
                 {{- .resources | default $.Values.resources | toYaml | nindent 16 }}
           {{- if .critical }}
