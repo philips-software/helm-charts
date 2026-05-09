@@ -2,7 +2,7 @@ apiVersion: v2
 name: crossplane-functions
 description: A Helm chart for deploying Crossplane functions
 type: application
-version: 0.0.12
+version: 0.0.13
 maintainers:
   - name: Philips Software
 keywords:
