@@ -595,6 +595,22 @@ entries:
     version: 0.0.2
   crossplane-functions:
   - apiVersion: v2
+    created: "2026-05-09T11:44:44.332878663Z"
+    description: A Helm chart for deploying Crossplane functions
+    digest: e0989600cb0aff8d1a30c83cd613aae383375811b50a93e164df07d0583c17d9
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    maintainers:
+    - name: Philips Software
+    name: crossplane-functions
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-functions-0.0.12/crossplane-functions-0.0.12.tgz
+    version: 0.0.12
+  - apiVersion: v2
     created: "2026-01-08T09:20:39.462964999Z"
     description: A Helm chart for deploying Crossplane functions
     digest: a38b0f876969722631e45b0eff36aec4863b0772e0ae601fd2689f3dbf905358
@@ -3114,4 +3130,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-05-08T15:11:37.164928383Z"
+generated: "2026-05-09T11:44:44.333234056Z"
