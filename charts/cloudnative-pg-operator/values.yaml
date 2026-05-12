@@ -1,6 +1,6 @@
 cnpgChart:
   # renovate: datasource=helm depName=cloudnative-pg registryUrl=https://cloudnative-pg.io/charts
-  version: 0.28.0
+  version: 0.28.1
 
 # These values are injected by the HelmApplication
 environmentConfig:
