@@ -119,6 +119,8 @@ grafanaChart:
 
 # ArgoCD configuration
 argocd:
+  # ArgoCD namespace (where Application CRs are created)
+  namespace: argocd
   # ArgoCD project name for deployment (required, cannot be empty)
   project: default
 

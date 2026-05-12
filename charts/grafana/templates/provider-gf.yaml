@@ -1,11 +1,13 @@
 {{- if .Values.crossplaneProviders.gf.enabled }}
-apiVersion: dip.io/v1alpha1
-kind: HelmApplication
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
   name: provider-gf
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.argocd.namespace | default "argocd" }}
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: {{ .Values.argocd.project }}
   source:
@@ -24,6 +26,7 @@ spec:
             enabled: true
             debug: {{ .Values.crossplaneProviders.gf.debug }}
   destination:
+    server: https://kubernetes.default.svc
     namespace: crossplane-system
   ignoreDifferences:
     - group: pkg.crossplane.io
