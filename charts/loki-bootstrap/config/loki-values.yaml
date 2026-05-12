@@ -340,6 +340,9 @@ loki:
         - k8s.cronjob.name
         - k8s.job.name
         - faas
+        {{- range .Values.extraResourceAttributesAsIndexLabels }}
+        - {{ . }}
+        {{- end }}
   limits_config:
     allow_structured_metadata: true
     volume_enabled: true

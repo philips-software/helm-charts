@@ -28,6 +28,10 @@ argoProject: default
 
 multitenancyEnabled: true
 
+# Additional resource attributes to index as labels in the OTLP config.
+# These are appended to the default list (service.name, k8s.namespace.name, etc.)
+extraResourceAttributesAsIndexLabels: []
+
 # Loki configuration
 loki:
   # Replication factor for ingester data (default: 2)
