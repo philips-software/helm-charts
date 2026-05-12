@@ -1,13 +1,15 @@
 {{- include "grafana.validateConfig" . -}}
-apiVersion: dip.io/v1alpha1
-kind: HelmApplication
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
   name: grafana-helm
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.argocd.namespace | default "argocd" }}
   labels:
     {{- include "grafana.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: {{ .Values.argocd.project | quote }}
   source:
@@ -19,6 +21,7 @@ spec:
       valuesObject:
         {{- (tpl (.Files.Get "config/grafana-values.yaml") .) | trim | nindent 8 }}
   destination:
+    server: https://kubernetes.default.svc
     namespace: {{ .Release.Namespace | quote }}
   syncPolicy:
     automated:
