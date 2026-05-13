@@ -61,7 +61,7 @@ limits:
   # Accept out-of-order samples up to this duration in the past
   outOfOrderTimeWindow: 30m
   # Maximum number of label names per series
-  maxLabelNamesPerSeries: 60
+  maxLabelNamesPerSeries: 35
   # Maximum number of exemplars stored per user (0 = disabled)
   maxGlobalExemplarsPerUser: 0
 
