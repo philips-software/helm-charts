@@ -33,3 +33,8 @@ imageCatalog:
 kyvernoPolicy:
   enabled: true
   operatorImage: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.28.0"
+
+barmanCloudPlugin:
+  enabled: true
+  # renovate: datasource=helm depName=plugin-barman-cloud registryUrl=https://cloudnative-pg.io/charts
+  version: 0.6.0
