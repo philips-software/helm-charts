@@ -8,13 +8,6 @@ A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 
 The chart can optionally deploy the [barman-cloud plugin](https://cloudnative-pg.io/plugin-barman-cloud/) for CloudNativePG. This plugin provides the new backup architecture that will replace the deprecated native barman support in CNPG 1.30.
 
-### Plugin Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `barmanCloudPlugin.enabled` | Enable barman-cloud plugin deployment | `true` |
-| `barmanCloudPlugin.version` | Helm chart version to deploy | `0.6.0` |
-
 The plugin is deployed as an ArgoCD Application with sync-wave `1`, ensuring it deploys after the CNPG operator (sync-wave `0`).
 
 ## Values
@@ -22,7 +15,9 @@ The plugin is deployed as an ArgoCD Application with sync-wave `1`, ensuring it 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argoProject | string | `"common-bootstrap"` |  |
-| cnpgChart.version | string | `"0.27.1"` |  |
+| barmanCloudPlugin.enabled | bool | `true` |  |
+| barmanCloudPlugin.version | string | `"0.6.0"` |  |
+| cnpgChart.version | string | `"0.28.0"` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | environmentConfig.sharedServicesAccountId | string | `""` |  |
