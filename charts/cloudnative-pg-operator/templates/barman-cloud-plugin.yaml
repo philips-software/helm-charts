@@ -1,0 +1,37 @@
+{{- if .Values.barmanCloudPlugin.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: plugin-barman-cloud
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cloudnative-pg-operator.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: {{ .Values.argoProject }}
+  source:
+    chart: plugin-barman-cloud
+    repoURL: https://cloudnative-pg.io/charts/
+    targetRevision: {{ .Values.barmanCloudPlugin.version }}
+    helm:
+      releaseName: plugin-barman-cloud
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.operator.namespace }}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}
