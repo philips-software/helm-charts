@@ -1,6 +1,6 @@
 # mimir
 
-![Version: 0.52.0](https://img.shields.io/badge/Version-0.52.0-informational?style=flat-square)
+![Version: 0.57.0](https://img.shields.io/badge/Version-0.57.0-informational?style=flat-square)
 
 # Deployment
 
