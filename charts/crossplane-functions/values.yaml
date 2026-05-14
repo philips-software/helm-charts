@@ -34,7 +34,7 @@ functions:
   - name: function-patch-and-transform
     registry: ghcr.io/crossplane-contrib
     # renovate: datasource=docker depName=ghcr.io/crossplane-contrib/function-patch-and-transform
-    version: v0.10.4
+    version: v0.10.5
     critical: true
     
   # Manages environment-specific configurations in compositions
