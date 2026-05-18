@@ -22,6 +22,12 @@ operator:
     requests:
       cpu: 5m
       memory: 64Mi
+  tolerations: []
+  # Example:
+  # tolerations:
+  #   - key: "CriticalAddonsOnly"
+  #     operator: "Exists"
+  #     effect: "NoSchedule"
 
 imageCatalog:
   enabled: true

@@ -23,6 +23,10 @@ spec:
         hostNetwork: {{ .Values.operator.hostNetwork }}
         resources:
           {{- toYaml .Values.operator.resources | nindent 10 }}
+        {{- with .Values.operator.tolerations }}
+        tolerations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.operator.namespace }}
