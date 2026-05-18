@@ -1,6 +1,6 @@
 # crossplane-providers
 
-![Version: 0.0.27](https://img.shields.io/badge/Version-0.0.27-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.3.0](https://img.shields.io/badge/AppVersion-v2.3.0-informational?style=flat-square)
+![Version: 0.0.28](https://img.shields.io/badge/Version-0.0.28-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.3.0](https://img.shields.io/badge/AppVersion-v2.3.0-informational?style=flat-square)
 
 ## Overview
 
@@ -27,7 +27,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-providers
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.27"
+    version: "0.0.28"
     releaseName: crossplane-providers
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -53,7 +53,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-providers
-    targetRevision: "0.0.27"
+    targetRevision: "0.0.28"
     helm:
       valueFiles:
         - values.yaml
@@ -89,7 +89,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | extraProviders | list | `[]` |  |
 | package.namespace | string | `"crossplane-system"` |  |
 | package.registry | string | `"xpkg.crossplane.io/crossplane-contrib"` |  |
-| package.version | string | `"v2.3.0"` |  |
+| package.version | string | `"v2.4.0"` |  |
 | providers[0].enabled | bool | `true` |  |
 | providers[0].name | string | `"provider-family-aws"` |  |
 | providers[1].enabled | bool | `true` |  |

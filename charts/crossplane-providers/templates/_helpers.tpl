@@ -51,14 +51,32 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Check if any provider needs IAM resources (has managedPolicyArns or policy, without explicit roleArn)
+*/}}
+{{- define "crossplane-providers.needsIAMResources" -}}
+{{- $needsIAM := false }}
+{{- range concat .Values.providers .Values.extraProviders }}
+{{- if not (eq (.enabled | toString) "false") }}
+{{- if and (or .managedPolicyArns .policy) (not .roleArn) }}
+{{- $needsIAM = true }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- $needsIAM }}
+{{- end }}
+
+{{/*
 Validate required config values
 */}}
 {{- define "crossplane-providers.validateConfig" -}}
+{{- $needsIAM := include "crossplane-providers.needsIAMResources" . | trim }}
+{{- if eq $needsIAM "true" }}
 {{- if not .Values.environmentConfig.accountId }}
-{{- fail "environmentConfig.accountId is required" }}
+{{- fail "environmentConfig.accountId is required when providers need IAM resources" }}
 {{- end }}
 {{- if not .Values.environmentConfig.resourcePrefix }}
-{{- fail "environmentConfig.resourcePrefix is required" }}
+{{- fail "environmentConfig.resourcePrefix is required when providers need IAM resources" }}
+{{- end }}
 {{- end }}
 {{- end }}
 
