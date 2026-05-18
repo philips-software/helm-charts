@@ -22,7 +22,7 @@ secret in the same namespace as the app. The secret should have the following fi
 | crossplaneProviders.gf.datasources | list | `[]` |  |
 | crossplaneProviders.gf.debug | bool | `false` |  |
 | crossplaneProviders.gf.enabled | bool | `true` |  |
-| crossplaneProviders.gf.tag | string | `"v0.9.2"` |  |
+| crossplaneProviders.gf.tag | string | `"v0.10.0"` |  |
 | crossplaneProviders.orgmapper.debug | bool | `false` |  |
 | crossplaneProviders.orgmapper.enabled | bool | `true` |  |
 | database.cnpg | bool | `true` |  |
