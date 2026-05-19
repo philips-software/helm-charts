@@ -141,4 +141,4 @@ vpa:
     memory: 32Mi
   maxAllowed:
     cpu: 1
-    memory: 4Gi
+    memory: 1Gi
