@@ -74,8 +74,8 @@ pyroscope:
 
 log:
   level: error
-  # Suppress health check logs (from kube-probe user agents)
-  suppressHealthChecks: true
+  # Suppress health check logs (/api/health endpoint)
+  suppressHealthChecks: false
 
 # CORS configuration for browser-based OTLP clients
 cors:

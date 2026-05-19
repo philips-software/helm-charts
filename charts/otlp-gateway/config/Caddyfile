@@ -51,6 +51,9 @@
   {{- end }}
 
   handle /api/health {
+    {{- if .Values.log.suppressHealthChecks }}
+    log_skip
+    {{- end }}
     header Content-Type application/json
     respond "{\"status\": \"UP\"}" 200
   }
@@ -195,10 +198,6 @@
       resp_headers>X-Id-Token delete
       resp_headers>X-Api-Key delete
     }
-    {{- if .Values.log.suppressHealthChecks }}
-    # Suppress health check logs from kube-probe
-    skip /api/health
-    {{- end }}
   }
 
   # Match external requests (Host header matches external FQDN)
@@ -221,10 +220,6 @@
       resp_headers>X-Id-Token delete
       resp_headers>X-Api-Key delete
     }
-    {{- if .Values.log.suppressHealthChecks }}
-    # Suppress health check logs from kube-probe
-    skip /api/health
-    {{- end }}
   }
 
   import app_logic
@@ -255,10 +250,6 @@
       resp_headers>X-Id-Token delete
       resp_headers>X-Api-Key delete
     }
-    {{- if .Values.log.suppressHealthChecks }}
-    # Suppress health check logs from kube-probe
-    skip /api/health
-    {{- end }}
   }
 
   import app_logic
