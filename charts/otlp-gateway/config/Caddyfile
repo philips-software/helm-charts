@@ -24,6 +24,32 @@
 # Define common application logic as a snippet
 (app_logic) {
 
+  {{- if .Values.cors.enabled }}
+  # CORS preflight handler - must run before auth
+  @cors_preflight method OPTIONS
+  handle @cors_preflight {
+    {{- if .Values.cors.allowedOrigins }}
+    @allowed_origin expression `
+      {{- $first := true }}
+      {{- range .Values.cors.allowedOrigins }}
+      {{- if $first }}{{- $first = false }}{{- else }} || {{ end }}{header.Origin}.matches("{{ . | replace "*" ".*" }}")
+      {{- end }}
+    `
+    header @allowed_origin Access-Control-Allow-Origin {header.Origin}
+    header @allowed_origin Access-Control-Allow-Methods "{{ .Values.cors.allowedMethods | join ", " }}"
+    header @allowed_origin Access-Control-Allow-Headers "{{ .Values.cors.allowedHeaders | join ", " }}"
+    header @allowed_origin Access-Control-Max-Age "{{ .Values.cors.maxAge }}"
+    header @allowed_origin Vary Origin
+    respond @allowed_origin 204
+    # Deny CORS for non-allowed origins
+    respond 403
+    {{- else }}
+    # No allowed origins configured - deny all CORS
+    respond 403
+    {{- end }}
+  }
+  {{- end }}
+
   handle /api/health {
     header Content-Type application/json
     respond "{\"status\": \"UP\"}" 200
@@ -169,6 +195,10 @@
       resp_headers>X-Id-Token delete
       resp_headers>X-Api-Key delete
     }
+    {{- if .Values.log.suppressHealthChecks }}
+    # Suppress health check logs from kube-probe
+    skip /api/health
+    {{- end }}
   }
 
   # Match external requests (Host header matches external FQDN)
@@ -191,6 +221,10 @@
       resp_headers>X-Id-Token delete
       resp_headers>X-Api-Key delete
     }
+    {{- if .Values.log.suppressHealthChecks }}
+    # Suppress health check logs from kube-probe
+    skip /api/health
+    {{- end }}
   }
 
   import app_logic
@@ -210,7 +244,7 @@
     }
     {{- end }}
   }
-  
+
   log {
     output stdout
     level {{ .Values.log.level }}
@@ -221,6 +255,10 @@
       resp_headers>X-Id-Token delete
       resp_headers>X-Api-Key delete
     }
+    {{- if .Values.log.suppressHealthChecks }}
+    # Suppress health check logs from kube-probe
+    skip /api/health
+    {{- end }}
   }
 
   import app_logic
