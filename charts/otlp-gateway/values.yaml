@@ -170,4 +170,4 @@ vpa:
     memory: 32Mi
   maxAllowed:
     cpu: 1
-    memory: 1Gi
+    memory: 512Mi
