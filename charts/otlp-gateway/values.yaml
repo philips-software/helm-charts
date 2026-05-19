@@ -74,6 +74,33 @@ pyroscope:
 
 log:
   level: error
+  # Suppress health check logs (from kube-probe user agents)
+  suppressHealthChecks: true
+
+# CORS configuration for browser-based OTLP clients
+cors:
+  enabled: false
+  # Allowed origins (list of URLs or "*" for any - not recommended for production)
+  # Examples:
+  #   - "https://myapp.example.com"
+  #   - "https://*.dev-eps-dcp.hsp.philips.com"
+  #   - "https://localhost:4200"
+  allowedOrigins: []
+  # Allowed methods for CORS preflight
+  allowedMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  # Allowed headers for CORS preflight
+  allowedHeaders:
+    - Authorization
+    - Content-Type
+    - X-Api-Key
+    - X-Id-Token
+  # Max age for CORS preflight cache (in seconds)
+  maxAge: 86400
 
 replicas: 3
 
