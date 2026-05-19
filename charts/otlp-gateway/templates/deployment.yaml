@@ -69,6 +69,13 @@ spec:
             port: 8080
           initialDelaySeconds: 15
           periodSeconds: 20
+        {{- if .Values.vpa.inPlaceResize }}
+        resizePolicy:
+          - resourceName: cpu
+            restartPolicy: NotRequired
+          - resourceName: memory
+            restartPolicy: NotRequired
+        {{- end }}
         resources:
           requests:
               cpu: 100m

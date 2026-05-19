@@ -135,6 +135,8 @@ ruler:
 vpa:
   enabled: true
   updateMode: InPlaceOrRecreate
+  # Enable in-place resize (requires K8s 1.27+ with InPlacePodVerticalScaling feature gate)
+  inPlaceResize: false
   minReplicas: 3
   minAllowed:
     cpu: 10m
