@@ -1,0 +1,106 @@
+# k8s-observability-monitoring v1.0.5+
+#
+# Install/Upgrade:
+#   helm upgrade --install k8s-observability-monitoring \
+#     oci://ghcr.io/philips-software/helm-charts/k8s-observability-monitoring \
+#     --version 1.0.5 \
+#     -n k8s-observability-monitoring --create-namespace \
+#     --kube-context <your-cluster-context> \
+#     -f k8s-observability-monitoring-values.yaml
+
+clusterName: "<your-cluster-name>"
+
+project:
+  name: "common-bootstrap"
+
+destinations:
+  otlpGateway:
+    type: otlp
+    url: "http://otlp-gateway.otlp-gateway.svc.cluster.local"
+    protocol: http
+    auth:
+      type: basic
+      usernameKey: "username"
+      passwordKey: "apiKey"
+    secret:
+      create: false
+      name: "otlp-gateway-creds"
+    metrics:
+      enabled: true
+    logs:
+      enabled: true
+    traces:
+      enabled: true
+    processors:
+      batch:
+        enabled: true
+        size: 2000
+        maxSize: 4000
+
+prometheusOperatorObjects:
+  enabled: true
+  serviceMonitors:
+    labelExpressions: []
+    extraMetricProcessingRules: |
+      rule {
+        source_labels = ["job"]
+        regex = "patch-operator/.*"
+        action = "drop"
+      }
+    metricsTuning:
+      excludeMetrics:
+        - "apiserver_request_duration_seconds_bucket"
+        - "etcd_request_duration_seconds_bucket"
+        - "apiserver_request_sli_duration_seconds_bucket"
+
+clusterMetrics:
+  enabled: false
+
+podLogsViaLoki:
+  enabled: true
+  excludeNamespaces:
+    - "mimir-system"
+    - "loki-system"
+    - "logging"
+
+applicationObservability:
+  enabled: false
+
+autoInstrumentation:
+  enabled: false
+
+customAlloy:
+  enabled: true
+  replaceUpstreamCollector: true
+  replicas: 1
+  clustering:
+    enabled: false
+  liveDebugging:
+    enabled: true
+  kubelet:
+    enabled: true
+  sendingQueue:
+    enabled: true
+  attributeCleanup:
+    enabled: true
+  attributePromotion:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+
+kyverno:
+  policyException:
+    enabled: true
+
+collectorCommon:
+  alloy:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 192Mi
+      limits:
+        memory: 384Mi
