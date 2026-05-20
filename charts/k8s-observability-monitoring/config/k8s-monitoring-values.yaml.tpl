@@ -1,61 +1,62 @@
 cluster:
   name: {{ .Values.clusterName }}
 
-{{- if .Values.otlp.destinations }}
+{{- if .Values.destinations }}
 destinations:
-{{- range .Values.otlp.destinations }}
-{{- if .secret }}
-  # destination: {{ .name }}
-  - name: {{ .name }}
-    type: otlp
-    url: {{ .url }}
-    protocol: http
-    {{- if not .noAuth }}
+{{- range $name, $dest := .Values.destinations }}
+  {{ $name }}:
+    type: {{ $dest.type | default "otlp" }}
+    url: {{ $dest.url }}
+    {{- if $dest.protocol }}
+    protocol: {{ $dest.protocol }}
+    {{- end }}
+    {{- if $dest.auth }}
     auth:
-      type: basic
-      usernameKey: "username"
-      passwordKey: "apiKey"
+      type: {{ $dest.auth.type | default "none" }}
+      {{- if eq $dest.auth.type "basic" }}
+      usernameKey: {{ $dest.auth.usernameKey | default "username" | quote }}
+      passwordKey: {{ $dest.auth.passwordKey | default "apiKey" | quote }}
+      {{- end }}
+      {{- if eq $dest.auth.type "bearerToken" }}
+      {{- if $dest.auth.bearerTokenFile }}
+      bearerTokenFile: {{ $dest.auth.bearerTokenFile | quote }}
+      {{- end }}
+      {{- end }}
     {{- end }}
+    {{- if $dest.secret }}
     secret:
-      create: false
-      name: {{ .secret.name }}
-      namespace: {{ default $.Release.Namespace .secret.namespace }}
-    logs:
-      enabled: {{ if hasKey (default dict .logs) "enabled" }}{{ .logs.enabled }}{{ else }}true{{ end }}
+      create: {{ $dest.secret.create | default false }}
+      name: {{ $dest.secret.name }}
+      {{- if $dest.secret.namespace }}
+      namespace: {{ $dest.secret.namespace }}
+      {{- end }}
+    {{- end }}
+    {{- if hasKey $dest "metrics" }}
     metrics:
-      enabled: {{ if hasKey (default dict .metrics) "enabled" }}{{ .metrics.enabled }}{{ else }}true{{ end }}
+      enabled: {{ $dest.metrics.enabled }}
+    {{- end }}
+    {{- if hasKey $dest "logs" }}
+    logs:
+      enabled: {{ $dest.logs.enabled }}
+    {{- end }}
+    {{- if hasKey $dest "traces" }}
     traces:
-      enabled: {{ if hasKey (default dict .traces) "enabled" }}{{ .traces.enabled }}{{ else }}true{{ end }}
-    {{- if .processors }}
+      enabled: {{ $dest.traces.enabled }}
+    {{- end }}
+    {{- if $dest.processors }}
     processors:
-      {{- if .processors.batch }}
-      batch:
-        enabled: {{ default true .processors.batch.enabled }}
-        {{- if .processors.batch.size }}
-        size: {{ .processors.batch.size }}
-        {{- end }}
-        {{- if .processors.batch.maxSize }}
-        maxSize: {{ .processors.batch.maxSize }}
-        {{- end }}
-      {{- end }}
+      {{- toYaml $dest.processors | nindent 6 }}
     {{- end }}
-    {{- if .sendingQueue }}
+    {{- if $dest.sendingQueue }}
     sendingQueue:
-      enabled: {{ default true .sendingQueue.enabled }}
-      {{- if .sendingQueue.queueSize }}
-      queueSize: {{ .sendingQueue.queueSize }}
-      {{- end }}
-      {{- if .sendingQueue.numConsumers }}
-      numConsumers: {{ .sendingQueue.numConsumers }}
-      {{- end }}
+      {{- toYaml $dest.sendingQueue | nindent 6 }}
     {{- end }}
-{{- end }}
 {{- end }}
 {{- else }}
-destinations: []
+destinations: {}
 {{- end }}
 
-# Alloy Operator - manages Alloy CRDs (required in v3.x)
+# Alloy Operator
 alloy-operator:
   deploy: true
   waitForAlloyRemoval:
@@ -63,28 +64,22 @@ alloy-operator:
     nodeSelector:
       kubernetes.io/os: linux
 
-applicationObservability:
-  enabled: {{ .Values.features.applicationObservability }}
-  receivers:
-    otlp:
-      grpc:
-        enabled: true
-        port: 4317
-      http:
-        enabled: true
-        port: 4318
-
+# Prometheus Operator Objects
 prometheusOperatorObjects:
-  # Disabled when customAlloy.replaceUpstreamCollector is true (customAlloy handles it)
-  enabled: {{ if and .Values.customAlloy .Values.customAlloy.enabled .Values.customAlloy.replaceUpstreamCollector }}false{{ else }}{{ .Values.features.prometheusOperatorObjects }}{{ end }}
-  {{- if and .Values.features.prometheusOperatorObjects (not (and .Values.customAlloy .Values.customAlloy.enabled .Values.customAlloy.replaceUpstreamCollector)) }}
+  {{- if and .Values.customAlloy .Values.customAlloy.enabled .Values.customAlloy.replaceUpstreamCollector }}
+  enabled: false
+  {{- else }}
+  enabled: {{ .Values.prometheusOperatorObjects.enabled }}
+  {{- end }}
+  {{- if .Values.prometheusOperatorObjects.destinations }}
+  destinations: {{ toYaml .Values.prometheusOperatorObjects.destinations | nindent 4 }}
+  {{- end }}
+  {{- if .Values.prometheusOperatorObjects.serviceMonitors }}
   serviceMonitors:
-    {{- /* Collect all label expressions */ -}}
     {{- $labelExpressions := list }}
-    {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
+    {{- if .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
     {{- $labelExpressions = .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
     {{- end }}
-    {{- /* When customAlloy is enabled, exclude kube-state-metrics from ServiceMonitor scraping */ -}}
     {{- if and .Values.customAlloy .Values.customAlloy.enabled }}
     {{- $ksmExclusion := dict "key" "app.kubernetes.io/name" "operator" "NotIn" "values" (list "kube-state-metrics") }}
     {{- $labelExpressions = append $labelExpressions $ksmExclusion }}
@@ -93,99 +88,61 @@ prometheusOperatorObjects:
     labelExpressions:
       {{- toYaml $labelExpressions | nindent 6 }}
     {{- end }}
-    {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules }}
+    {{- if .Values.prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules }}
     extraDiscoveryRules: |
 {{ .Values.prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules | indent 6 }}
     {{- end }}
-    {{- $dropHighCardinality := and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics }}
-    {{- $dropApiserver := and $dropHighCardinality .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.apiserverRequestDurationBuckets }}
-    {{- $dropEtcd := and $dropHighCardinality .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.etcdRequestDurationBuckets }}
-    {{- $dropApiserverSli := and $dropHighCardinality .Values.prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.apiserverRequestSliDurationBuckets }}
-    {{- $hasExtraRules := and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules }}
-    {{- if or $dropApiserver $dropEtcd $dropApiserverSli $hasExtraRules }}
+    {{- if .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules }}
     extraMetricProcessingRules: |
-      {{- if $dropApiserver }}
-      // Drop apiserver_request_duration_seconds_bucket to reduce cardinality (~200K series)
-      rule {
-        source_labels = ["__name__"]
-        regex = "apiserver_request_duration_seconds_bucket"
-        action = "drop"
-      }
-      {{- end }}
-      {{- if $dropEtcd }}
-      // Drop etcd_request_duration_seconds_bucket to reduce cardinality (~150K series)
-      rule {
-        source_labels = ["__name__"]
-        regex = "etcd_request_duration_seconds_bucket"
-        action = "drop"
-      }
-      {{- end }}
-      {{- if $dropApiserverSli }}
-      // Drop apiserver_request_sli_duration_seconds_bucket to reduce cardinality (~145K series)
-      rule {
-        source_labels = ["__name__"]
-        regex = "apiserver_request_sli_duration_seconds_bucket"
-        action = "drop"
-      }
-      {{- end }}
-      {{- if $hasExtraRules }}
 {{ .Values.prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules | indent 6 }}
-      {{- end }}
+    {{- end }}
+    {{- if .Values.prometheusOperatorObjects.serviceMonitors.metricsTuning }}
+    metricsTuning:
+      {{- toYaml .Values.prometheusOperatorObjects.serviceMonitors.metricsTuning | nindent 6 }}
     {{- end }}
   {{- end }}
 
-# Cluster metrics - built-in kube-state-metrics and node-exporter scraping
+# Cluster Metrics
 clusterMetrics:
-  enabled: {{ .Values.features.clusterMetrics }}
-  {{- if and .Values.features.clusterMetrics .Values.clusterMetrics }}
-  {{- with .Values.clusterMetrics }}
-  kube-state-metrics:
-    {{- /* Disable kube-state-metrics in k8s-monitoring when customAlloy is enabled */ -}}
-    {{- if and $.Values.customAlloy $.Values.customAlloy.enabled }}
+  enabled: {{ .Values.clusterMetrics.enabled }}
+  {{- if .Values.clusterMetrics.destinations }}
+  destinations: {{ toYaml .Values.clusterMetrics.destinations | nindent 4 }}
+  {{- end }}
+  {{- if .Values.clusterMetrics.kubelet }}
+  kubelet:
+    {{- if and .Values.customAlloy .Values.customAlloy.enabled .Values.customAlloy.kubelet.enabled }}
     enabled: false
     {{- else }}
-    enabled: {{ .kubeStateMetrics.enabled }}
+    enabled: {{ .Values.clusterMetrics.kubelet.enabled }}
     {{- end }}
-    deploy: {{ default false .kubeStateMetrics.deploy }}
-    {{- if .kubeStateMetrics.namespace }}
-    namespace: {{ .kubeStateMetrics.namespace }}
+    {{- if .Values.clusterMetrics.kubelet.nodeAddressFormat }}
+    nodeAddressFormat: {{ .Values.clusterMetrics.kubelet.nodeAddressFormat }}
     {{- end }}
-    {{- if .kubeStateMetrics.labelMatchers }}
-    labelMatchers:
-      {{- toYaml .kubeStateMetrics.labelMatchers | nindent 6 }}
-    {{- end }}
+    {{- if .Values.clusterMetrics.kubelet.metricsTuning }}
     metricsTuning:
-      useDefaultAllowList: {{ default false .kubeStateMetrics.useDefaultAllowList }}
-    {{- if .kubeStateMetrics.extraMetricProcessingRules }}
-    extraMetricProcessingRules: |
-{{ .kubeStateMetrics.extraMetricProcessingRules | indent 6 }}
+      {{- toYaml .Values.clusterMetrics.kubelet.metricsTuning | nindent 6 }}
     {{- end }}
-  node-exporter:
-    enabled: {{ .nodeExporter.enabled }}
-    deploy: {{ default false .nodeExporter.deploy }}
-  {{- if .kubelet }}
-  kubelet:
-    enabled: {{ .kubelet.enabled }}
-    {{- if .kubelet.nodeAddressFormat }}
-    nodeAddressFormat: {{ .kubelet.nodeAddressFormat }}
-    {{- end }}
-    metricsTuning:
-      useDefaultAllowList: {{ default true .kubelet.useDefaultAllowList }}
   {{- end }}
-  {{- if .kubeletResource }}
+  {{- if .Values.clusterMetrics.kubeletResource }}
   kubeletResource:
-    enabled: {{ .kubeletResource.enabled }}
-    {{- if .kubeletResource.nodeAddressFormat }}
-    nodeAddressFormat: {{ .kubeletResource.nodeAddressFormat }}
+    {{- if and .Values.customAlloy .Values.customAlloy.enabled .Values.customAlloy.kubelet.enabled }}
+    enabled: false
+    {{- else }}
+    enabled: {{ .Values.clusterMetrics.kubeletResource.enabled }}
     {{- end }}
-  {{- end }}
-  {{- end }}
+    {{- if .Values.clusterMetrics.kubeletResource.nodeAddressFormat }}
+    nodeAddressFormat: {{ .Values.clusterMetrics.kubeletResource.nodeAddressFormat }}
+    {{- end }}
   {{- end }}
 
-podLogs:
-  enabled: true
-  {{- $hasDropKubeProbe := and .Values.podLogs .Values.podLogs.dropKubeProbe }}
-  {{- $hasExcludeNamespaces := and .Values.podLogs .Values.podLogs.excludeNamespaces (gt (len .Values.podLogs.excludeNamespaces) 0) }}
+# Pod Logs via Loki
+podLogsViaLoki:
+  enabled: {{ .Values.podLogsViaLoki.enabled }}
+  {{- if .Values.podLogsViaLoki.destinations }}
+  destinations: {{ toYaml .Values.podLogsViaLoki.destinations | nindent 4 }}
+  {{- end }}
+  {{- $hasDropKubeProbe := .Values.podLogsViaLoki.dropKubeProbe }}
+  {{- $hasExcludeNamespaces := and .Values.podLogsViaLoki.excludeNamespaces (gt (len .Values.podLogsViaLoki.excludeNamespaces) 0) }}
   {{- if or $hasDropKubeProbe $hasExcludeNamespaces }}
   extraLogProcessingStages: |
     {{- if $hasDropKubeProbe }}
@@ -196,7 +153,7 @@ podLogs:
     }
     {{- end }}
     {{- if $hasExcludeNamespaces }}
-    {{- range .Values.podLogs.excludeNamespaces }}
+    {{- range .Values.podLogsViaLoki.excludeNamespaces }}
     stage.match {
       selector = "{namespace=\"{{ . }}\"}"
       action = "drop"
@@ -206,65 +163,30 @@ podLogs:
     {{- end }}
   {{- end }}
 
+# Application Observability
+applicationObservability:
+  enabled: {{ .Values.applicationObservability.enabled }}
+  {{- if .Values.applicationObservability.destinations }}
+  destinations: {{ toYaml .Values.applicationObservability.destinations | nindent 4 }}
+  {{- end }}
+  {{- if .Values.applicationObservability.receivers }}
+  receivers:
+    {{- toYaml .Values.applicationObservability.receivers | nindent 4 }}
+  {{- end }}
+
+# Auto-instrumentation
 autoInstrumentation:
-  enabled: {{ .Values.features.autoInstrumentation }}
+  enabled: {{ .Values.autoInstrumentation.enabled }}
 
-# Enable the metrics collector
-# Disabled when customAlloy.replaceUpstreamCollector is true
-alloy-metrics:
-  enabled: {{ if and .Values.customAlloy .Values.customAlloy.enabled .Values.customAlloy.replaceUpstreamCollector }}false{{ else }}true{{ end }}
-  liveDebugging:
-    enabled: true
-  alloy:
-    stabilityLevel: experimental
-    resources:
-      requests:
-        memory: {{ .Values.alloyMetrics.resources.requests.memory }}
-        cpu: {{ .Values.alloyMetrics.resources.requests.cpu }}
-      limits:
-        memory: {{ .Values.alloyMetrics.resources.limits.memory }}
+# Telemetry Services
+telemetryServices:
+  kube-state-metrics:
+    deploy: {{ index .Values.telemetryServices "kube-state-metrics" "deploy" | default false }}
+  node-exporter:
+    deploy: {{ index .Values.telemetryServices "node-exporter" "deploy" | default false }}
 
-# Enable the logs collector
-alloy-logs:
-  enabled: true
-  liveDebugging:
-    enabled: true
-  alloy:
-    stabilityLevel: experimental
-    resources:
-      requests:
-        memory: {{ .Values.alloyLogs.resources.requests.memory }}
-        cpu: {{ .Values.alloyLogs.resources.requests.cpu }}
-      limits:
-        memory: {{ .Values.alloyLogs.resources.limits.memory }}
-  controller:
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: eks.amazonaws.com/compute-type
-                  operator: NotIn
-                  values:
-                    - fargate
-
-# Enable the receiver for application telemetry
-alloy-receiver:
-  enabled: {{ .Values.features.applicationObservability }}
-  alloy:
-    resources:
-      requests:
-        memory: 100Mi
-        cpu: 100m
-      limits:
-        memory: 200Mi
-        cpu: 200m
-    extraPorts:
-      - name: otlp-grpc
-        port: 4317
-        targetPort: 4317
-        protocol: TCP
-      - name: otlp-http
-        port: 4318
-        targetPort: 4318
-        protocol: TCP
+# Collector Common
+{{- if .Values.collectorCommon }}
+collectorCommon:
+  {{- toYaml .Values.collectorCommon | nindent 2 }}
+{{- end }}

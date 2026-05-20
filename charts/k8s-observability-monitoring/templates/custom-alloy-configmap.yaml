@@ -361,10 +361,10 @@ data:
 
     {{- $batchSize := 2000 }}
     {{- $batchMaxSize := 4000 }}
-    {{- range .Values.otlp.destinations }}
-    {{- if and .processors .processors.batch }}
-    {{- $batchSize = default 2000 .processors.batch.size }}
-    {{- $batchMaxSize = default 4000 .processors.batch.maxSize }}
+    {{- range $name, $dest := .Values.destinations }}
+    {{- if and $dest.processors $dest.processors.batch }}
+    {{- $batchSize = default 2000 $dest.processors.batch.size }}
+    {{- $batchMaxSize = default 4000 $dest.processors.batch.maxSize }}
     {{- end }}
     {{- end }}
 
@@ -374,13 +374,13 @@ data:
       send_batch_max_size = {{ $batchMaxSize }}
       output {
         metrics = [
-          {{- range $i, $dest := .Values.otlp.destinations }}
+          {{- range $name, $dest := .Values.destinations }}
           {{- $metricsEnabled := true }}
           {{- if and $dest.metrics (hasKey $dest.metrics "enabled") }}
           {{- $metricsEnabled = $dest.metrics.enabled }}
           {{- end }}
           {{- if $metricsEnabled }}
-          otelcol.exporter.otlphttp.{{ $dest.name }}.input,
+          otelcol.exporter.otlphttp.{{ $name }}.input,
           {{- end }}
           {{- end }}
         ]
@@ -400,47 +400,49 @@ data:
     }
     {{- end }}
 
-    {{- range .Values.otlp.destinations }}
+    {{- range $name, $dest := .Values.destinations }}
 
-    {{- if .secret }}
-    // Secret for {{ .name }}
-    remote.kubernetes.secret "{{ .name }}" {
-      name      = "{{ .secret.name }}"
-      namespace = "{{ default $.Release.Namespace .secret.namespace }}"
+    {{- if $dest.secret }}
+    // Secret for {{ $name }}
+    remote.kubernetes.secret "{{ $name }}" {
+      name      = "{{ $dest.secret.name }}"
+      namespace = "{{ default $.Release.Namespace $dest.secret.namespace }}"
     }
 
-    {{- if not .noAuth }}
-    // Auth for {{ .name }}
-    otelcol.auth.basic "{{ .name }}" {
-      username = convert.nonsensitive(remote.kubernetes.secret.{{ .name }}.data["username"])
-      password = remote.kubernetes.secret.{{ .name }}.data["apiKey"]
+    {{- if and $dest.auth (eq $dest.auth.type "basic") }}
+    // Auth for {{ $name }}
+    otelcol.auth.basic "{{ $name }}" {
+      username = convert.nonsensitive(remote.kubernetes.secret.{{ $name }}.data[{{ $dest.auth.usernameKey | default "username" | quote }}])
+      password = remote.kubernetes.secret.{{ $name }}.data[{{ $dest.auth.passwordKey | default "apiKey" | quote }}]
     }
     {{- end }}
     {{- end }}
 
-    // Exporter for {{ .name }}
-    otelcol.exporter.otlphttp "{{ .name }}" {
+    // Exporter for {{ $name }}
+    otelcol.exporter.otlphttp "{{ $name }}" {
       client {
-        endpoint = "{{ .url }}"
-        {{- if .noAuth }}
+        endpoint = "{{ $dest.url }}"
+        {{- if and $dest.auth (eq $dest.auth.type "none") }}
         {{- /* No auth */ -}}
-        {{- else if .secret }}
-        auth = otelcol.auth.basic.{{ .name }}.handler
+        {{- else if and $dest.auth (eq $dest.auth.type "basic") $dest.secret }}
+        auth = otelcol.auth.basic.{{ $name }}.handler
+        {{- else if and $dest.auth (eq $dest.auth.type "bearerToken") }}
+        auth = otelcol.auth.bearer.spiffe.handler
         {{- else if $.Values.spiffe.enabled }}
         auth = otelcol.auth.bearer.spiffe.handler
         {{- end }}
-        {{- if and .secret (not .noAuth) }}
+        {{- if and $dest.secret $dest.auth (eq $dest.auth.type "basic") }}
         headers = {
-          "X-Scope-OrgID" = convert.nonsensitive(remote.kubernetes.secret.{{ .name }}.data["tenantId"]),
+          "X-Scope-OrgID" = convert.nonsensitive(remote.kubernetes.secret.{{ $name }}.data["tenantId"]),
         }
-        {{- else if .tenantId }}
+        {{- else if $dest.tenantId }}
         headers = {
-          "X-Scope-OrgID" = "{{ .tenantId }}",
+          "X-Scope-OrgID" = "{{ $dest.tenantId }}",
         }
         {{- end }}
         tls {
-          insecure = {{ if or (hasPrefix "http://" .url) .insecure }}true{{ else }}false{{ end }}
-          insecure_skip_verify = {{ if .insecureSkipVerify }}true{{ else }}false{{ end }}
+          insecure = {{ if or (hasPrefix "http://" $dest.url) $dest.insecure }}true{{ else }}false{{ end }}
+          insecure_skip_verify = {{ if $dest.insecureSkipVerify }}true{{ else }}false{{ end }}
         }
       }
       retry_on_failure {
