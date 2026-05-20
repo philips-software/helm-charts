@@ -44,6 +44,16 @@ ingester:
   # For zone-aware HA with 3 AZs, use at least replicationFactor * 3
   replicas: 3
 
+# Gateway configuration
+gateway:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
 features:
   # Enable the CloudWatch kill job that removes CloudWatch ClusterOutputs
   # and ensures a null-output ClusterOutput exists
@@ -91,3 +101,9 @@ vpa:
         memory: 128Mi
       maxAllowed:
         memory: 1Gi
+    gateway:
+      enabled: true
+      minAllowed:
+        memory: 20Mi
+      maxAllowed:
+        memory: 256Mi

@@ -235,13 +235,13 @@ write:
           key: id
 
 gateway:
-  replicas: 3
+  replicas: {{ .Values.gateway.replicas }}
   resources:
     requests:
-      cpu: 10m
-      memory: 20Mi
+      cpu: {{ .Values.gateway.resources.requests.cpu }}
+      memory: {{ .Values.gateway.resources.requests.memory }}
     limits:
-      memory: 50Mi
+      memory: {{ .Values.gateway.resources.limits.memory }}
 
 minio:
   enabled: false
