@@ -81,6 +81,7 @@ prometheusOperatorObjects:
   enabled: false
   {{- else }}
   enabled: {{ .Values.prometheusOperatorObjects.enabled }}
+  collector: alloy-metrics
   {{- end }}
   {{- if .Values.prometheusOperatorObjects.destinations }}
   destinations: {{ toYaml .Values.prometheusOperatorObjects.destinations | nindent 4 }}
@@ -116,6 +117,7 @@ prometheusOperatorObjects:
 # Cluster Metrics
 clusterMetrics:
   enabled: {{ .Values.clusterMetrics.enabled }}
+  collector: alloy-metrics
   {{- if .Values.clusterMetrics.destinations }}
   destinations: {{ toYaml .Values.clusterMetrics.destinations | nindent 4 }}
   {{- end }}
@@ -149,6 +151,7 @@ clusterMetrics:
 # Pod Logs via Loki
 podLogsViaLoki:
   enabled: {{ .Values.podLogsViaLoki.enabled }}
+  collector: alloy-logs
   {{- if .Values.podLogsViaLoki.destinations }}
   destinations: {{ toYaml .Values.podLogsViaLoki.destinations | nindent 4 }}
   {{- end }}
@@ -177,6 +180,9 @@ podLogsViaLoki:
 # Application Observability
 applicationObservability:
   enabled: {{ .Values.applicationObservability.enabled }}
+  {{- if .Values.applicationObservability.enabled }}
+  collector: alloy-receiver
+  {{- end }}
   {{- if .Values.applicationObservability.destinations }}
   destinations: {{ toYaml .Values.applicationObservability.destinations | nindent 4 }}
   {{- end }}
