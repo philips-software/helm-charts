@@ -4,6 +4,7 @@ cluster:
 {{- if .Values.destinations }}
 destinations:
 {{- range $name, $dest := .Values.destinations }}
+{{- if not $dest.customAlloyOnly }}
   {{ $name }}:
     type: {{ $dest.type | default "otlp" }}
     url: {{ $dest.url }}
@@ -51,6 +52,7 @@ destinations:
     sendingQueue:
       {{- toYaml $dest.sendingQueue | nindent 6 }}
     {{- end }}
+{{- end }}
 {{- end }}
 {{- else }}
 destinations: {}
