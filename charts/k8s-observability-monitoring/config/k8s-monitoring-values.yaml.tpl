@@ -56,6 +56,17 @@ destinations:
 destinations: {}
 {{- end }}
 
+# Collectors
+collectors:
+  alloy-metrics:
+    presets: [clustered, statefulset, medium]
+  alloy-logs:
+    presets: [small, filesystem-log-reader, daemonset]
+  {{- if .Values.applicationObservability.enabled }}
+  alloy-receiver:
+    presets: [small, deployment]
+  {{- end }}
+
 # Alloy Operator
 alloy-operator:
   deploy: true
