@@ -58,8 +58,11 @@ destinations: {}
 
 # Collectors
 collectors:
+  {{- $needsMetricsCollector := or (and .Values.prometheusOperatorObjects.enabled (not (and .Values.customAlloy .Values.customAlloy.enabled .Values.customAlloy.replaceUpstreamCollector))) .Values.clusterMetrics.enabled }}
+  {{- if $needsMetricsCollector }}
   alloy-metrics:
     presets: [clustered, statefulset, medium]
+  {{- end }}
   alloy-logs:
     presets: [small, filesystem-log-reader, daemonset]
   {{- if .Values.applicationObservability.enabled }}
