@@ -64,11 +64,11 @@ features:
 vpa:
   # Enable VPA resources for Loki components
   enabled: false
-  # Update mode: Auto, Off, Initial, or InPlace (requires K8s 1.27+ with feature gate)
-  # - Auto: VPA will update pods by evicting and recreating them
-  # - InPlace: VPA will resize pods without restart (requires InPlacePodVerticalScaling feature)
-  # Use InPlace on K8s 1.27+ for zero-downtime scaling
-  updateMode: InPlace
+  # Update mode: Off, Initial, InPlaceOrRecreate
+  # - InPlaceOrRecreate: VPA will resize in-place if possible, otherwise recreate
+  # - Initial: VPA only sets resources at pod creation
+  # - Off: VPA only provides recommendations
+  updateMode: InPlaceOrRecreate
   # Components to create VPA resources for
   components:
     patternIngester:
