@@ -1,0 +1,15 @@
+# otlp-gateway-creds secret for ri-obs-ct cluster
+#
+# Create:
+#   kubectl apply -f otlp-gateway-creds.yaml --context ri-obs-ct
+#
+apiVersion: v1
+kind: Secret
+metadata:
+  name: otlp-gateway-creds
+  namespace: k8s-observability-monitoring
+type: Opaque
+stringData:
+  username: "otlp"
+  apiKey: "<replace-with-api-key>"
+  tenantId: "anonymous"
