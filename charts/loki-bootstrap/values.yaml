@@ -74,25 +74,25 @@ vpa:
     patternIngester:
       enabled: true
       minAllowed:
-        memory: 256Mi
+        memory: 512Mi
       maxAllowed:
         memory: 4Gi
     ingester:
       enabled: true
       minAllowed:
-        memory: 4Gi
+        memory: 8Gi
       maxAllowed:
         memory: 16Gi
     distributor:
       enabled: true
       minAllowed:
-        memory: 512Mi
+        memory: 1Gi
       maxAllowed:
         memory: 4Gi
     querier:
       enabled: true
       minAllowed:
-        memory: 512Mi
+        memory: 150Mi
       maxAllowed:
         memory: 8Gi
     indexGateway:
