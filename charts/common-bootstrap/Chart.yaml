@@ -7,7 +7,7 @@ description: |
 type: application
 version: 1.2.6
 # renovate: datasource=github-tags depName=dip-software/crossplane-compositions
-appVersion: "0.0.27"
+appVersion: "0.0.35"
 keywords:
   - crossplane
   - common
