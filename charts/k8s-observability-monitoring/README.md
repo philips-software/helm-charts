@@ -14,18 +14,18 @@ This chart now wraps [k8s-monitoring v4.x](https://github.com/grafana/k8s-monito
 ```yaml
 otlp:
   destinations:
-    - name: "grafanaCloud"
-      url: "https://otlp-gateway.grafana.net/otlp"
+    - name: "otlpGateway"
+      url: "https://otlp-gateway.example.com/otlp"
       secret:
-        name: "grafana-cloud-creds"
+        name: "otlp-gateway-creds"
 ```
 
 **After (v4.x):**
 ```yaml
 destinations:
-  grafanaCloud:
+  otlpGateway:
     type: otlp
-    url: "https://otlp-gateway.grafana.net/otlp"
+    url: "https://otlp-gateway.example.com/otlp"
     protocol: http
     auth:
       type: basic
@@ -33,7 +33,7 @@ destinations:
       passwordKey: "apiKey"
     secret:
       create: false
-      name: "grafana-cloud-creds"
+      name: "otlp-gateway-creds"
     metrics:
       enabled: true
     logs:
@@ -113,7 +113,7 @@ The OTLP destination secret must contain these keys:
 - `tenantId`: The X-Scope-OrgID header value (e.g., `anonymous`)
 
 ```bash
-kubectl create secret generic grafana-cloud-creds \
+kubectl create secret generic otlp-gateway-creds \
   --from-literal=username=otlp \
   --from-literal=apiKey=<your-token> \
   --from-literal=tenantId=anonymous
@@ -152,7 +152,7 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 | collectorCommon | object | `{"alloy":{"resources":{"limits":{"memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}}}` | Common collector settings (applies to all Alloy instances managed by operator) |
 | customAlloy | object | `{"attributeCleanup":{"enabled":true},"attributePromotion":{"enabled":false},"clustering":{"enabled":false},"enabled":false,"kubeStateMetrics":{"extraMetricProcessingRules":""},"kubelet":{"enabled":false},"liveDebugging":{"enabled":true},"replaceUpstreamCollector":false,"replicas":1,"resources":{"limits":{"memory":"1Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"sendingQueue":{"enabled":true,"numConsumers":10,"queueSize":500},"vpa":{"enabled":false,"maxAllowed":{"memory":"8Gi"},"minAllowed":{"memory":"512Mi"},"updateMode":"InPlaceOrRecreate"}}` | Custom Alloy deployment for kube-state-metrics scraping Deploys separate Alloy instance with OTEL pipeline for metrics. This is preserved from v3.x to maintain the workaround for duplicate job labels. |
 | customAlloy.replaceUpstreamCollector | bool | `false` | Replace upstream alloy-metrics collector entirely. |
-| destinations | object | `{}` | OTLP destinations where telemetry data will be sent. Each destination is a map entry with the destination name as key. See: https://github.com/grafana/k8s-monitoring-helm/blob/main/charts/k8s-monitoring/docs/destinations/README.md  Example:   destinations:     grafanaCloud:       type: otlp       url: "https://otlp-gateway.grafana.net/otlp"       protocol: http       auth:         type: basic         usernameKey: "username"         passwordKey: "apiKey"       secret:         create: false         name: "grafana-cloud-creds"       metrics:         enabled: true       logs:         enabled: true       traces:         enabled: true       processors:         batch:           enabled: true           size: 2000       sendingQueue:         enabled: true         queueSize: 100 |
+| destinations | object | `{}` | OTLP destinations where telemetry data will be sent. Each destination is a map entry with the destination name as key. See: https://github.com/grafana/k8s-monitoring-helm/blob/main/charts/k8s-monitoring/docs/destinations/README.md  Example:   destinations:     otlpGateway:       type: otlp       url: "https://otlp-gateway.example.com/otlp"       protocol: http       auth:         type: basic         usernameKey: "username"         passwordKey: "apiKey"       secret:         create: false         name: "otlp-gateway-creds"       metrics:         enabled: true       logs:         enabled: true       traces:         enabled: true       processors:         batch:           enabled: true           size: 2000       sendingQueue:         enabled: true         queueSize: 100 |
 | kyverno | object | `{"policyException":{"enabled":false,"policyName":"enforce-baseline-pod-security-profile","ruleNames":["enforce-baseline-profile"]}}` | Kyverno PolicyException configuration |
 | podLogsViaLoki | object | `{"destinations":[],"dropKubeProbe":false,"enabled":true,"excludeNamespaces":[]}` | Pod logs collection via Loki format |
 | podLogsViaLoki.dropKubeProbe | bool | `false` | Drop kube-probe logs (liveness/readiness probe requests). |

@@ -15,9 +15,9 @@ chart:
 #
 # Example:
 #   destinations:
-#     grafanaCloud:
+#     otlpGateway:
 #       type: otlp
-#       url: "https://otlp-gateway.grafana.net/otlp"
+#       url: "https://otlp-gateway.example.com/otlp"
 #       protocol: http
 #       auth:
 #         type: basic
@@ -25,7 +25,7 @@ chart:
 #         passwordKey: "apiKey"
 #       secret:
 #         create: false
-#         name: "grafana-cloud-creds"
+#         name: "otlp-gateway-creds"
 #       metrics:
 #         enabled: true
 #       logs:
