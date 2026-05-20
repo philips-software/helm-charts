@@ -9,6 +9,12 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
 spec:
   project: {{ .Values.project.name }}
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/strategy
+        - /spec/template/spec/containers/0/resources
   source:
     chart: k8s-monitoring
     repoURL: https://grafana.github.io/helm-charts
