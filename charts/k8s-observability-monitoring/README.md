@@ -1,8 +1,73 @@
 # k8s-observability-monitoring
 
-![Version: 0.40.0](https://img.shields.io/badge/Version-0.40.0-informational?style=flat-square) ![AppVersion: 3.8.3](https://img.shields.io/badge/AppVersion-3.8.3-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![AppVersion: 4.1.3](https://img.shields.io/badge/AppVersion-4.1.3-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
+
+## v1.0.0 Breaking Changes
+
+This chart now wraps [k8s-monitoring v4.x](https://github.com/grafana/k8s-monitoring-helm) which has significant changes:
+
+### Destinations Format
+
+**Before (v3.x):**
+```yaml
+otlp:
+  destinations:
+    - name: "grafanaCloud"
+      url: "https://otlp-gateway.grafana.net/otlp"
+      secret:
+        name: "grafana-cloud-creds"
+```
+
+**After (v4.x):**
+```yaml
+destinations:
+  grafanaCloud:
+    type: otlp
+    url: "https://otlp-gateway.grafana.net/otlp"
+    protocol: http
+    auth:
+      type: basic
+      usernameKey: "username"
+      passwordKey: "apiKey"
+    secret:
+      create: false
+      name: "grafana-cloud-creds"
+    metrics:
+      enabled: true
+    logs:
+      enabled: true
+    traces:
+      enabled: true
+```
+
+### Features Format
+
+**Before:**
+```yaml
+features:
+  prometheusOperatorObjects: true
+  clusterMetrics: false
+```
+
+**After:**
+```yaml
+prometheusOperatorObjects:
+  enabled: true
+clusterMetrics:
+  enabled: false
+```
+
+### Pod Logs
+
+Renamed from `podLogs` to `podLogsViaLoki`:
+```yaml
+podLogsViaLoki:
+  enabled: true
+  dropKubeProbe: true
+  excludeNamespaces: []
+```
 
 ## Installing on clusters with kube-prometheus-stack (KPS)
 
@@ -33,20 +98,12 @@ customAlloy:
   attributePromotion:
     enabled: false  # Avoid service.namespace promotion bug
 
-# Exclude kube-state-metrics from ServiceMonitor scraping (handled by customAlloy)
-prometheusOperatorObjects:
-  serviceMonitors:
-    labelExpressions:
-      - key: "app.kubernetes.io/name"
-        operator: "NotIn"
-        values:
-          - "kube-state-metrics"
+# kube-state-metrics exclusion is automatically added when customAlloy.enabled: true
 ```
 
 This configuration:
 1. Deploys a dedicated Alloy instance that scrapes kube-state-metrics directly with correct job labels
-2. Excludes the kube-state-metrics ServiceMonitor from `prometheusOperatorObjects` to avoid duplicates
-3. The customAlloy exclusion is automatically added when `customAlloy.enabled: true`
+2. Automatically excludes the kube-state-metrics ServiceMonitor from `prometheusOperatorObjects` to avoid duplicates
 
 ### OTLP Secret Requirements
 
@@ -56,7 +113,7 @@ The OTLP destination secret must contain these keys:
 - `tenantId`: The X-Scope-OrgID header value (e.g., `anonymous`)
 
 ```bash
-kubectl create secret generic otlp-gateway-creds \
+kubectl create secret generic grafana-cloud-creds \
   --from-literal=username=otlp \
   --from-literal=apiKey=<your-token> \
   --from-literal=tenantId=anonymous
@@ -87,81 +144,29 @@ This creates a `PolicyException` resource that allows `k8s-monitoring-alloy-*` p
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| alloyLogs | object | `{"resources":{"limits":{"memory":"200Mi"},"requests":{"cpu":"50m","memory":"100Mi"}}}` | Alloy Logs resource configuration |
-| alloyMetrics | object | `{"resources":{"limits":{"memory":"3Gi"},"requests":{"cpu":"300m","memory":"1536Mi"}}}` | Alloy Metrics resource configuration |
+| applicationObservability | object | `{"destinations":[],"enabled":false,"receivers":{"otlp":{"grpc":{"enabled":true,"port":4317},"http":{"enabled":true,"port":4318}}}}` | Application observability (OTLP receiver for traces, metrics, logs from apps) |
+| autoInstrumentation | object | `{"destinations":[],"enabled":false}` | Auto-instrumentation for applications |
 | chart | object | `{"version":""}` | Override the upstream chart version (defaults to appVersion in Chart.yaml) |
-| clusterMetrics | object | `{"kubeStateMetrics":{"deploy":false,"enabled":true,"extraMetricProcessingRules":"","labelMatchers":{"app.kubernetes.io/name":"kube-state-metrics"},"namespace":"","useDefaultAllowList":false},"kubelet":{"enabled":true,"nodeAddressFormat":"direct","useDefaultAllowList":true},"kubeletResource":{"enabled":true,"nodeAddressFormat":"direct"},"nodeExporter":{"deploy":false,"enabled":true}}` | Cluster metrics configuration (kube-state-metrics, node-exporter, kubelet, etc.) Only used when features.clusterMetrics is true. |
-| clusterMetrics.kubeStateMetrics.deploy | bool | `false` | Deploy kube-state-metrics (set to false if using existing deployment) |
-| clusterMetrics.kubeStateMetrics.enabled | bool | `true` | Enable scraping kube-state-metrics |
-| clusterMetrics.kubeStateMetrics.extraMetricProcessingRules | string | `""` | Extra metric processing rules for kube-state-metrics (Alloy relabel config syntax). Use this to filter/transform metrics after scraping. Example to drop duplicate scrape jobs caused by Alloy clustering bug:   rule {     source_labels = ["job"]     regex = "crossplane-system/integrations/kubernetes/kube-state-metrics"     action = "drop"   } |
-| clusterMetrics.kubeStateMetrics.labelMatchers | object | `{"app.kubernetes.io/name":"kube-state-metrics"}` | Label matchers to find kube-state-metrics service |
-| clusterMetrics.kubeStateMetrics.namespace | string | `""` | Namespace where kube-state-metrics is deployed (auto-detected if empty) |
-| clusterMetrics.kubeStateMetrics.useDefaultAllowList | bool | `false` | Use the default allowlist of metrics (true) or scrape all metrics (false). Set to false to get all kube-state-metrics including kube_service_info, kube_endpoint_info, etc. |
-| clusterMetrics.kubelet.enabled | bool | `true` | Enable scraping kubelet metrics (includes volume stats for PVC monitoring) |
-| clusterMetrics.kubelet.nodeAddressFormat | string | `"direct"` | How to access the Kubelet: "direct" (use node IP) or "proxy" (use API Server) |
-| clusterMetrics.kubelet.useDefaultAllowList | bool | `true` | Use the default allowlist of metrics (true) or scrape all metrics (false) |
-| clusterMetrics.kubeletResource.enabled | bool | `true` | Enable scraping kubelet resource metrics (CPU, memory per pod/container) |
-| clusterMetrics.kubeletResource.nodeAddressFormat | string | `"direct"` | How to access the Kubelet: "direct" (use node IP) or "proxy" (use API Server) |
-| clusterMetrics.nodeExporter.deploy | bool | `false` | Deploy node-exporter (set to false if using existing deployment) |
-| clusterMetrics.nodeExporter.enabled | bool | `true` | Enable scraping node-exporter |
+| clusterMetrics | object | `{"destinations":[],"enabled":false,"kubelet":{"enabled":true,"metricsTuning":{"useDefaultAllowList":true},"nodeAddressFormat":"direct"},"kubeletResource":{"enabled":true,"nodeAddressFormat":"direct"}}` | Cluster metrics (kubelet, cadvisor) Note: kube-state-metrics is handled by customAlloy when enabled. |
 | clusterName | string | `""` | Cluster name for telemetry labeling. Must be set to a non-empty value at install time. |
-| customAlloy | object | `{"attributeCleanup":{"enabled":true},"attributePromotion":{"enabled":false},"clustering":{"enabled":false},"enabled":false,"kubeStateMetrics":{"extraMetricProcessingRules":""},"kubelet":{"enabled":false},"liveDebugging":{"enabled":true},"replaceUpstreamCollector":false,"replicas":1,"resources":{"limits":{"memory":"1Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"sendingQueue":{"enabled":true,"numConsumers":10,"queueSize":500},"vpa":{"enabled":false,"maxAllowed":{"memory":"8Gi"},"minAllowed":{"memory":"512Mi"},"updateMode":"InPlaceOrRecreate"}}` | Custom Alloy deployment for metrics scraping This deploys a separate Alloy instance that can scrape kube-state-metrics and optionally replace the upstream alloy-metrics collector entirely. |
-| customAlloy.attributeCleanup | object | `{"enabled":true}` | Remove high-cardinality attributes to reduce storage costs Matches k8s-monitoring attribute cleanup |
-| customAlloy.attributeCleanup.enabled | bool | `true` | Enable attribute cleanup |
-| customAlloy.attributePromotion | object | `{"enabled":false}` | Promote useful attributes from datapoint to resource level |
-| customAlloy.attributePromotion.enabled | bool | `false` | Enable attribute promotion (service.name, deployment.environment, etc.) NOTE: service.namespace promotion is disabled as it causes duplicate job labels with kube-state-metrics. See: https://github.com/grafana/k8s-monitoring-helm/issues/2383 |
-| customAlloy.clustering | object | `{"enabled":false}` | Clustering configuration (for HA with multiple replicas) |
-| customAlloy.clustering.enabled | bool | `false` | Enable clustering for multi-replica deployments. When enabled, uses StatefulSet instead of Deployment for stable pod identities. This provides better hash ring stability and ordered rolling updates. |
-| customAlloy.enabled | bool | `false` | Enable custom Alloy deployment |
-| customAlloy.kubeStateMetrics | object | `{"extraMetricProcessingRules":""}` | kube-state-metrics scraping configuration |
-| customAlloy.kubeStateMetrics.extraMetricProcessingRules | string | `""` | Extra metric processing rules (Alloy relabel config syntax) |
-| customAlloy.kubelet | object | `{"enabled":false}` | Kubelet metrics scraping configuration (includes PVC volume stats) |
-| customAlloy.kubelet.enabled | bool | `false` | Enable kubelet and cAdvisor metrics scraping. Provides kubelet_volume_stats_* metrics for PVC capacity monitoring. |
-| customAlloy.liveDebugging | object | `{"enabled":true}` | Live debugging via Alloy UI (port 12345) |
-| customAlloy.liveDebugging.enabled | bool | `true` | Enable live debugging |
-| customAlloy.replaceUpstreamCollector | bool | `false` | Replace upstream alloy-metrics collector entirely. When true, disables alloy-metrics and customAlloy handles all metrics collection including ServiceMonitors, PodMonitors, and Probes (if prometheusOperatorObjects is enabled). |
-| customAlloy.replicas | int | `1` | Number of replicas |
-| customAlloy.resources | object | `{"limits":{"memory":"1Gi"},"requests":{"cpu":"100m","memory":"512Mi"}}` | Resource requests and limits |
-| customAlloy.sendingQueue | object | `{"enabled":true,"numConsumers":10,"queueSize":500}` | Sending queue configuration for resilience during destination outages. The queue buffers batches when the destination is unavailable. Without queueSize limit, memory can grow unbounded during outages causing OOM. |
-| customAlloy.sendingQueue.enabled | bool | `true` | Enable sending queue |
-| customAlloy.sendingQueue.numConsumers | int | `10` | Number of parallel consumers sending batches (default: 10 if unset) |
-| customAlloy.sendingQueue.queueSize | int | `500` | Maximum number of batches kept in memory (default: 1000 if unset). Lower values prevent OOM during extended outages. Recommended: 100-500. |
-| customAlloy.vpa | object | `{"enabled":false,"maxAllowed":{"memory":"8Gi"},"minAllowed":{"memory":"512Mi"},"updateMode":"InPlaceOrRecreate"}` | Vertical Pod Autoscaler configuration |
-| customAlloy.vpa.enabled | bool | `false` | Enable VPA for automatic memory scaling |
-| customAlloy.vpa.maxAllowed | object | `{"memory":"8Gi"}` | Maximum allowed resources |
-| customAlloy.vpa.minAllowed | object | `{"memory":"512Mi"}` | Minimum allowed resources |
-| customAlloy.vpa.updateMode | string | `"InPlaceOrRecreate"` | Update mode: "Off" (recommendations only), "Initial" (set on pod creation), "Recreate" (recreate pods), "InPlaceOrRecreate" (resize in-place if possible, else recreate) |
-| features | object | `{"applicationObservability":false,"autoInstrumentation":false,"clusterMetrics":false,"prometheusOperatorObjects":true}` | Feature toggles |
-| features.applicationObservability | bool | `false` | Enable the OTLP receiver for application telemetry (traces, metrics, logs from apps). Set to false if you don't need to receive OTLP data from applications. |
-| features.autoInstrumentation | bool | `false` | Enable auto-instrumentation for application telemetry |
-| features.clusterMetrics | bool | `false` | Enable cluster metrics collection (kube-state-metrics, node-exporter, kubelet, etc.) Set to false if using kube-prometheus-stack which provides these via ServiceMonitors. |
-| features.prometheusOperatorObjects | bool | `true` | Enable scraping Prometheus Operator objects (ServiceMonitors, PodMonitors, Probes). |
-| kyverno | object | `{"policyException":{"enabled":false,"policyName":"enforce-baseline-pod-security-profile","ruleNames":["enforce-baseline-profile"]}}` | Kyverno PolicyException configuration Creates a PolicyException to allow Alloy pods to run with required capabilities (NET_RAW) and hostPath volumes (for log collection). |
-| kyverno.policyException | object | `{"enabled":false,"policyName":"enforce-baseline-pod-security-profile","ruleNames":["enforce-baseline-profile"]}` | Create a Kyverno PolicyException for Alloy pods |
-| kyverno.policyException.policyName | string | `"enforce-baseline-pod-security-profile"` | Name of the Kyverno ClusterPolicy to exempt |
-| kyverno.policyException.ruleNames | list | `["enforce-baseline-profile"]` | Rule names within the policy to exempt |
-| otlp | object | `{"destinations":[]}` | OTLP destination configuration for sending telemetry data (metrics, logs, traces) |
-| otlp.destinations | list | `[]` | List of OTLP destinations to send telemetry data to. Each destination requires a pre-created Kubernetes Secret with basic auth credentials.  Secret format:   The secret must contain the following keys:   - username: The username for basic authentication   - apiKey: The API key or password for basic authentication  Example secret creation:   kubectl create secret generic otlp-gateway-creds \     --from-literal=username=myuser \     --from-literal=apiKey=myapikey  Or via YAML:   apiVersion: v1   kind: Secret   metadata:     name: otlp-gateway-creds   type: Opaque   stringData:     username: "myuser"     apiKey: "myapikey"  |
-| podLogs | object | `{"dropKubeProbe":false,"excludeNamespaces":[]}` | Pod logs configuration |
-| podLogs.dropKubeProbe | bool | `false` | Drop kube-probe logs (liveness/readiness probe requests). These are typically noisy and not useful for debugging. |
-| podLogs.excludeNamespaces | list | `[]` | Namespaces to exclude from log collection. Useful for filtering out noisy infrastructure namespaces like mimir-system, loki-system. |
+| collectorCommon | object | `{"alloy":{"resources":{"limits":{"memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}}}}` | Common collector settings (applies to all Alloy instances managed by operator) |
+| customAlloy | object | `{"attributeCleanup":{"enabled":true},"attributePromotion":{"enabled":false},"clustering":{"enabled":false},"enabled":false,"kubeStateMetrics":{"extraMetricProcessingRules":""},"kubelet":{"enabled":false},"liveDebugging":{"enabled":true},"replaceUpstreamCollector":false,"replicas":1,"resources":{"limits":{"memory":"1Gi"},"requests":{"cpu":"100m","memory":"512Mi"}},"sendingQueue":{"enabled":true,"numConsumers":10,"queueSize":500},"vpa":{"enabled":false,"maxAllowed":{"memory":"8Gi"},"minAllowed":{"memory":"512Mi"},"updateMode":"InPlaceOrRecreate"}}` | Custom Alloy deployment for kube-state-metrics scraping Deploys separate Alloy instance with OTEL pipeline for metrics. This is preserved from v3.x to maintain the workaround for duplicate job labels. |
+| customAlloy.replaceUpstreamCollector | bool | `false` | Replace upstream alloy-metrics collector entirely. |
+| destinations | object | `{}` | OTLP destinations where telemetry data will be sent. Each destination is a map entry with the destination name as key. See: https://github.com/grafana/k8s-monitoring-helm/blob/main/charts/k8s-monitoring/docs/destinations/README.md  Example:   destinations:     grafanaCloud:       type: otlp       url: "https://otlp-gateway.grafana.net/otlp"       protocol: http       auth:         type: basic         usernameKey: "username"         passwordKey: "apiKey"       secret:         create: false         name: "grafana-cloud-creds"       metrics:         enabled: true       logs:         enabled: true       traces:         enabled: true       processors:         batch:           enabled: true           size: 2000       sendingQueue:         enabled: true         queueSize: 100 |
+| kyverno | object | `{"policyException":{"enabled":false,"policyName":"enforce-baseline-pod-security-profile","ruleNames":["enforce-baseline-profile"]}}` | Kyverno PolicyException configuration |
+| podLogsViaLoki | object | `{"destinations":[],"dropKubeProbe":false,"enabled":true,"excludeNamespaces":[]}` | Pod logs collection via Loki format |
+| podLogsViaLoki.dropKubeProbe | bool | `false` | Drop kube-probe logs (liveness/readiness probe requests). |
+| podLogsViaLoki.excludeNamespaces | list | `[]` | Namespaces to exclude from log collection. |
 | project | object | `{"name":"default"}` | ArgoCD project name for the k8s-monitoring Application |
-| prometheusOperatorObjects | object | `{"serviceMonitors":{"dropHighCardinalityMetrics":{"apiserverRequestDurationBuckets":false,"apiserverRequestSliDurationBuckets":false,"etcdRequestDurationBuckets":false},"extraDiscoveryRules":"","extraMetricProcessingRules":"","labelExpressions":[]}}` | Prometheus Operator Objects configuration |
-| prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics | object | `{"apiserverRequestDurationBuckets":false,"apiserverRequestSliDurationBuckets":false,"etcdRequestDurationBuckets":false}` | Drop high-cardinality histogram bucket metrics to reduce storage costs. These metrics have many buckets (le labels) and often account for 300K+ series. |
-| prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.apiserverRequestDurationBuckets | bool | `false` | Drop apiserver_request_duration_seconds_bucket (~200K series). Keeps _sum and _count for calculating averages; drops individual buckets. |
-| prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.apiserverRequestSliDurationBuckets | bool | `false` | Drop apiserver_request_sli_duration_seconds_bucket (~145K series). SLI variant of request duration; often redundant with apiserver_request_duration. |
-| prometheusOperatorObjects.serviceMonitors.dropHighCardinalityMetrics.etcdRequestDurationBuckets | bool | `false` | Drop etcd_request_duration_seconds_bucket (~150K series). Keeps _sum and _count for calculating averages; drops individual buckets. |
-| prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules | string | `""` | Extra discovery rules for ServiceMonitors (Alloy relabel config syntax). Applied before scraping to filter/transform targets. |
-| prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules | string | `""` | Extra metric processing rules for ServiceMonitors (Alloy relabel config syntax). Use this to filter/transform metrics after scraping. |
-| prometheusOperatorObjects.serviceMonitors.labelExpressions | list | `[]` | Label expressions to filter which ServiceMonitors to scrape. Empty by default (scrape all). Example to exclude kube-state-metrics:   - key: "app.kubernetes.io/name"     operator: "NotIn"     values:       - "kube-state-metrics" |
-| spiffe | object | `{"audience":"","enabled":false,"helper":{"image":"ghcr.io/spiffe/spiffe-helper:0.10.0","resources":{"limits":{"memory":"32Mi"},"requests":{"cpu":"1m","memory":"16Mi"}}},"jwtPath":"/var/run/secrets/spiffe/jwt/token","trustDomain":""}` | SPIFFE authentication configuration for OTLP destinations When enabled, uses SPIFFE JWT SVIDs for authentication instead of basic auth |
-| spiffe.audience | string | `""` | Audience for the JWT SVID (typically the OTLP gateway URL) |
-| spiffe.enabled | bool | `false` | Enable SPIFFE authentication (requires SPIRE infrastructure) |
-| spiffe.helper | object | `{"image":"ghcr.io/spiffe/spiffe-helper:0.10.0","resources":{"limits":{"memory":"32Mi"},"requests":{"cpu":"1m","memory":"16Mi"}}}` | spiffe-helper image configuration |
-| spiffe.helper.image | string | `"ghcr.io/spiffe/spiffe-helper:0.10.0"` | spiffe-helper image |
-| spiffe.helper.resources | object | `{"limits":{"memory":"32Mi"},"requests":{"cpu":"1m","memory":"16Mi"}}` | Resource requests and limits |
-| spiffe.jwtPath | string | `"/var/run/secrets/spiffe/jwt/token"` | Path where the JWT token will be written (inside the shared volume) |
-| spiffe.trustDomain | string | `""` | SPIFFE trust domain |
+| prometheusOperatorObjects | object | `{"destinations":[],"enabled":true,"serviceMonitors":{"extraDiscoveryRules":"","extraMetricProcessingRules":"","labelExpressions":[],"metricsTuning":{"excludeMetrics":[]}}}` | Prometheus Operator Objects (ServiceMonitors, PodMonitors, Probes) |
+| prometheusOperatorObjects.destinations | list | `[]` | Destinations to send metrics. Empty = all metrics-capable destinations. |
+| prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules | string | `""` | Extra discovery rules for ServiceMonitors (Alloy relabel config syntax). |
+| prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules | string | `""` | Extra metric processing rules (Alloy relabel config syntax). |
+| prometheusOperatorObjects.serviceMonitors.labelExpressions | list | `[]` | Label expressions to filter which ServiceMonitors to scrape. |
+| prometheusOperatorObjects.serviceMonitors.metricsTuning | object | `{"excludeMetrics":[]}` | Metrics tuning to filter metrics. |
+| prometheusOperatorObjects.serviceMonitors.metricsTuning.excludeMetrics | list | `[]` | Metrics to exclude. Can use regular expressions. Example: ["apiserver_request_duration_seconds_bucket"] |
+| spiffe | object | `{"audience":"","enabled":false,"helper":{"image":"ghcr.io/spiffe/spiffe-helper:0.10.0","resources":{"limits":{"memory":"32Mi"},"requests":{"cpu":"1m","memory":"16Mi"}}},"jwtPath":"/var/run/secrets/spiffe/jwt/token","trustDomain":""}` | SPIFFE authentication configuration When enabled, adds spiffe-helper sidecar to customAlloy for JWT token refresh. For destinations using SPIFFE, set auth.type: bearerToken with bearerTokenFile. |
+| telemetryServices | object | `{"kube-state-metrics":{"deploy":false},"node-exporter":{"deploy":false}}` | Telemetry services deployment flags |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
