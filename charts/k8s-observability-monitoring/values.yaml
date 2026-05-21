@@ -130,6 +130,17 @@ telemetryServices:
 # -- Common collector settings (applies to all Alloy instances managed by operator)
 collectorCommon:
   alloy:
+    # -- Node affinity to prevent DaemonSets from scheduling on Fargate nodes.
+    # Fargate doesn't support DaemonSets, so we exclude nodes with eks.amazonaws.com/compute-type=fargate.
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: eks.amazonaws.com/compute-type
+                  operator: NotIn
+                  values:
+                    - fargate
     resources:
       requests:
         cpu: 100m
