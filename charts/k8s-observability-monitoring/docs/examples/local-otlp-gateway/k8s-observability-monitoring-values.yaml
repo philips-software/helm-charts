@@ -98,18 +98,19 @@ kyverno:
 
 collectorCommon:
   alloy:
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            - matchExpressions:
-                - key: eks.amazonaws.com/compute-type
-                  operator: NotIn
-                  values:
-                    - fargate
     resources:
       requests:
         cpu: 50m
         memory: 192Mi
       limits:
         memory: 384Mi
+    controller:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: eks.amazonaws.com/compute-type
+                    operator: NotIn
+                    values:
+                      - fargate
