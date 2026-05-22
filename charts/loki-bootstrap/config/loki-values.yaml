@@ -306,6 +306,11 @@ loki:
     replication_factor: {{ .Values.loki.replicationFactor }}
   runtimeConfig:
     overrides:
+      "*":  # default for all tenants
+        max_label_names_per_series: {{ .Values.loki.limits_config.maxLabelNamesPerSeries }}
+        max_global_streams_per_user: {{ .Values.loki.limits_config.maxGlobalStreamsPerUser }}
+        max_query_series: {{ .Values.loki.limits_config.maxQuerySeries }}
+        max_entries_limit_per_query: {{ .Values.loki.limits_config.maxEntriesLimitPerQuery }}
       "homelab":
         retention_period: 24h
       "starlift":
@@ -346,7 +351,6 @@ loki:
   limits_config:
     allow_structured_metadata: true
     volume_enabled: true
-    max_label_names_per_series: {{ .Values.loki.limits_config.maxLabelNamesPerSeries }}
     reject_old_samples: true
     reject_old_samples_max_age: 168h
     max_cache_freshness_per_query: 10m
@@ -358,9 +362,6 @@ loki:
     per_stream_rate_limit_burst: "500M"
     retention_period: 744h
     deletion_mode: "filter-and-delete"
-    max_global_streams_per_user: {{ .Values.loki.limits_config.maxGlobalStreamsPerUser }}
-    max_query_series: {{ .Values.loki.limits_config.maxQuerySeries }}
-    max_entries_limit_per_query: {{ .Values.loki.limits_config.maxEntriesLimitPerQuery }}
   runtime_config:
     period: 60s
   tracing:
