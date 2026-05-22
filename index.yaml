@@ -2890,6 +2890,14 @@ entries:
     version: 0.8.0
   mimir-bootstrap:
   - apiVersion: v2
+    created: "2026-05-22T12:47:10.177242015Z"
+    description: A Helm chart for bootstrapping Mimir
+    digest: 2f25c3ce84681f076019d39396714cf46b23a95f3580509de33e785ca6ee503a
+    name: mimir-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/mimir-bootstrap-0.58.0/mimir-bootstrap-0.58.0.tgz
+    version: 0.58.0
+  - apiVersion: v2
     created: "2026-05-13T11:47:50.353090975Z"
     description: A Helm chart for bootstrapping Mimir
     digest: e34611b79a02dea97f28e378020fd47b7bdb109173deebee1db24f2748ce98e9
@@ -3424,4 +3432,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-05-21T06:44:13.682962316Z"
+generated: "2026-05-22T12:47:10.345453856Z"
