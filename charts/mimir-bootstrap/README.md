@@ -1,6 +1,6 @@
 # mimir
 
-![Version: 0.57.0](https://img.shields.io/badge/Version-0.57.0-informational?style=flat-square)
+![Version: 0.59.0](https://img.shields.io/badge/Version-0.59.0-informational?style=flat-square)
 
 # Deployment
 
@@ -19,6 +19,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argoProject | string | `"default"` |  |
+| compactor.persistentVolume.size | string | `"80Gi"` | Size of the persistent volume for compactor |
 | compactorOrgmapper.package | string | `"ghcr.io/loafoe/compactor-orgmapper"` |  |
 | compactorOrgmapper.tag | string | `"v0.0.1"` |  |
 | environmentConfig.region | string | `""` |  |
@@ -47,7 +48,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | mimirProvider.credentials.secretName | string | `"mimir-credentials"` |  |
 | mimirProvider.enabled | bool | `true` |  |
 | mimirProvider.package | string | `"ghcr.io/loafoe/provider-mimir"` |  |
-| mimirProvider.tag | string | `"v0.9.0"` |  |
+| mimirProvider.tag | string | `"v1.0.0"` |  |
 | multitenancyEnabled | bool | `true` |  |
 | querier.resources.limits.memory | string | `"1.5Gi"` |  |
 | querier.resources.requests.cpu | string | `"100m"` |  |
@@ -56,6 +57,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | queryFrontend.resources.requests.cpu | string | `"100m"` |  |
 | queryFrontend.resources.requests.memory | string | `"512Mi"` |  |
 | ruler.maxRulesPerRuleGroup | int | `800` |  |
+| store_gateway.persistentVolume.size | string | `"10Gi"` | Size of the persistent volume for each store-gateway replica |
 | store_gateway.resources.limits.memory | string | `"3Gi"` |  |
 | store_gateway.resources.requests.cpu | string | `"100m"` |  |
 | store_gateway.resources.requests.memory | string | `"512Mi"` |  |

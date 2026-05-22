@@ -100,13 +100,21 @@ querier:
       memory: 1.5Gi
 
 store_gateway:
+  persistentVolume:
+    # -- Size of the persistent volume for each store-gateway replica
+    size: 10Gi
   resources:
     requests:
       cpu: 100m
       memory: 512Mi
     limits:
-      memory: 3Gi 
-      
+      memory: 3Gi
+
+compactor:
+  persistentVolume:
+    # -- Size of the persistent volume for compactor
+    size: 80Gi
+
 karpenter:
   # If true, stateful components (ingester, store-gateway, etc.) will be annotated
   # with karpenter.sh/do-not-disrupt: "true" to prevent consolidation.
