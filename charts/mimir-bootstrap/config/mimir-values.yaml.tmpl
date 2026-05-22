@@ -165,7 +165,7 @@ store_gateway:
     karpenter.sh/do-not-disrupt: "true"
     {{- end }}
   persistentVolume:
-    size: 10Gi
+    size: {{ .Values.store_gateway.persistentVolume.size }}
   resources:
     requests:
       cpu: {{ .Values.store_gateway.resources.requests.cpu }}
@@ -203,7 +203,7 @@ compactor:
     karpenter.sh/do-not-disrupt: "true"
     {{- end }}
   persistentVolume:
-    size: 80Gi
+    size: {{ .Values.compactor.persistentVolume.size }}
   resources:
     requests:
       cpu: 100m
