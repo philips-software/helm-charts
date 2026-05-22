@@ -24,6 +24,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | existingBucketName | string | `""` |  |
+| ingester.persistentVolume.size | string | `"100Gi"` | Size of the persistent volume for each ingester replica |
 | ingester.replicationFactor | int | `3` | Replication factor for ingested data. RF=3 (default): Data replicated to 3 zones, can survive 2 zone failures. RF=2: Data replicated to 2 zones, saves ~33% ingester memory but less durable. |
 | ingester.resources.limits.memory | string | `"8Gi"` |  |
 | ingester.resources.requests.cpu | string | `"200m"` |  |

@@ -184,7 +184,7 @@ ingester:
     karpenter.sh/do-not-disrupt: "true"
     {{- end }}
   persistentVolume:
-    size: 100Gi
+    size: {{ .Values.ingester.persistentVolume.size }}
   replicas: 9 # large.yaml says 27
   resources:
     requests:
