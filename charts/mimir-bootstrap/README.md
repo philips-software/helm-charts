@@ -1,6 +1,6 @@
 # mimir
 
-![Version: 0.60.0](https://img.shields.io/badge/Version-0.60.0-informational?style=flat-square)
+![Version: 0.61.0](https://img.shields.io/badge/Version-0.61.0-informational?style=flat-square)
 
 # Deployment
 
@@ -48,7 +48,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | mimirProvider.credentials.secretName | string | `"mimir-credentials"` |  |
 | mimirProvider.enabled | bool | `false` |  |
 | mimirProvider.package | string | `"ghcr.io/loafoe/provider-mimir"` |  |
-| mimirProvider.tag | string | `"v1.0.0"` |  |
+| mimirProvider.tag | string | `"v1.3.1"` |  |
 | multitenancyEnabled | bool | `true` |  |
 | querier.resources.limits.memory | string | `"1.5Gi"` |  |
 | querier.resources.requests.cpu | string | `"100m"` |  |
