@@ -17,7 +17,7 @@ environmentConfig:
   region: ""
 
 mimirProvider:
-  enabled: true
+  enabled: false
   package: ghcr.io/loafoe/provider-mimir
   # renovate: datasource=docker depName=ghcr.io/loafoe/provider-mimir
   tag: v1.0.0
