@@ -21,9 +21,20 @@ mimirProvider:
   package: ghcr.io/loafoe/provider-mimir
   # renovate: datasource=docker depName=ghcr.io/loafoe/provider-mimir
   tag: v1.3.1
+  # URI configuration (defaults to internal mimir-gateway service)
+  uri: "http://mimir-gateway.mimir-system.svc.cluster.local/prometheus"
+  rulerUri: "http://mimir-gateway.mimir-system.svc.cluster.local/prometheus"
+  alertmanagerUri: "http://mimir-gateway.mimir-system.svc.cluster.local"
+  orgId: "anonymous"
   credentials:
-    secretName: mimir-credentials
-    secretKey: credentials
+    # authType: basic or token
+    authType: basic
+    # For basic auth
+    secretName: mimir-provider-credentials
+    usernameKey: username
+    passwordKey: password
+    # For token auth (used when authType: token)
+    tokenKey: token
 
 argoProject: default
 
