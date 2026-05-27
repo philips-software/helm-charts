@@ -1,5 +1,5 @@
 {{- if .Values.mimirProvider.enabled }}
-apiVersion: mimir.crossplane.io/v1beta1
+apiVersion: mimir.crossplane.io/v1
 kind: ProviderConfig
 metadata:
   name: default
@@ -8,10 +8,34 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
+  uri: {{ .Values.mimirProvider.uri | quote }}
+  {{- with .Values.mimirProvider.rulerUri }}
+  rulerUri: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.mimirProvider.alertmanagerUri }}
+  alertmanagerUri: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.mimirProvider.orgId }}
+  orgId: {{ . | quote }}
+  {{- end }}
   credentials:
     source: Secret
-    secretRef:
-      namespace: mimir-system
-      name: {{ .Values.mimirProvider.credentials.secretName }}
-      key: {{ .Values.mimirProvider.credentials.secretKey }}
+    authType: {{ .Values.mimirProvider.credentials.authType }}
+    {{- if eq .Values.mimirProvider.credentials.authType "basic" }}
+    basicAuth:
+      usernameSecretRef:
+        name: {{ .Values.mimirProvider.credentials.secretName }}
+        namespace: mimir-system
+        key: {{ .Values.mimirProvider.credentials.usernameKey }}
+      passwordSecretRef:
+        name: {{ .Values.mimirProvider.credentials.secretName }}
+        namespace: mimir-system
+        key: {{ .Values.mimirProvider.credentials.passwordKey }}
+    {{- else if eq .Values.mimirProvider.credentials.authType "token" }}
+    tokenAuth:
+      tokenSecretRef:
+        name: {{ .Values.mimirProvider.credentials.secretName }}
+        namespace: mimir-system
+        key: {{ .Values.mimirProvider.credentials.tokenKey }}
+    {{- end }}
 {{- end }}
