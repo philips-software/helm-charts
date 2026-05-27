@@ -1,6 +1,6 @@
 # mimir
 
-![Version: 0.59.0](https://img.shields.io/badge/Version-0.59.0-informational?style=flat-square)
+![Version: 0.60.0](https://img.shields.io/badge/Version-0.60.0-informational?style=flat-square)
 
 # Deployment
 
@@ -46,7 +46,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | mimirChart.version | string | `"6.0.6"` |  |
 | mimirProvider.credentials.secretKey | string | `"credentials"` |  |
 | mimirProvider.credentials.secretName | string | `"mimir-credentials"` |  |
-| mimirProvider.enabled | bool | `true` |  |
+| mimirProvider.enabled | bool | `false` |  |
 | mimirProvider.package | string | `"ghcr.io/loafoe/provider-mimir"` |  |
 | mimirProvider.tag | string | `"v1.0.0"` |  |
 | multitenancyEnabled | bool | `true` |  |
