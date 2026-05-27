@@ -20,7 +20,7 @@ mimirProvider:
   enabled: false
   package: ghcr.io/loafoe/provider-mimir
   # renovate: datasource=docker depName=ghcr.io/loafoe/provider-mimir
-  tag: v1.0.0
+  tag: v1.3.1
   credentials:
     secretName: mimir-credentials
     secretKey: credentials
