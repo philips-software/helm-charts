@@ -150,6 +150,17 @@ collectorCommon:
                     values:
                       - fargate
 
+# -- Per-collector settings (overrides collectorCommon for specific collectors)
+# Available collectors: alloy-logs, alloy-metrics, alloy-receiver
+collectors:
+  alloy-logs:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
 # -- Custom Alloy deployment for kube-state-metrics scraping
 # Deploys separate Alloy instance with OTEL pipeline for metrics.
 # This is preserved from v3.x to maintain the workaround for duplicate job labels.

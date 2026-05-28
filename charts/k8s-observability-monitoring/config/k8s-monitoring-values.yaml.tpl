@@ -64,12 +64,21 @@ collectors:
   {{- if $needsMetricsCollector }}
   alloy-metrics:
     presets: [clustered, statefulset, medium]
+    {{- if index .Values.collectors "alloy-metrics" }}
+    {{- toYaml (index .Values.collectors "alloy-metrics") | nindent 4 }}
+    {{- end }}
   {{- end }}
   alloy-logs:
     presets: [small, filesystem-log-reader, daemonset]
+    {{- if index .Values.collectors "alloy-logs" }}
+    {{- toYaml (index .Values.collectors "alloy-logs") | nindent 4 }}
+    {{- end }}
   {{- if .Values.applicationObservability.enabled }}
   alloy-receiver:
     presets: [small, deployment]
+    {{- if index .Values.collectors "alloy-receiver" }}
+    {{- toYaml (index .Values.collectors "alloy-receiver") | nindent 4 }}
+    {{- end }}
   {{- end }}
 
 # Alloy Operator
