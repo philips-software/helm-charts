@@ -65,19 +65,22 @@ collectors:
   alloy-metrics:
     presets: [clustered, statefulset, medium]
     {{- if index .Values.collectors "alloy-metrics" }}
-    {{- toYaml (index .Values.collectors "alloy-metrics") | nindent 4 }}
+    alloy:
+      {{- toYaml (index .Values.collectors "alloy-metrics") | nindent 6 }}
     {{- end }}
   {{- end }}
   alloy-logs:
     presets: [small, filesystem-log-reader, daemonset]
     {{- if index .Values.collectors "alloy-logs" }}
-    {{- toYaml (index .Values.collectors "alloy-logs") | nindent 4 }}
+    alloy:
+      {{- toYaml (index .Values.collectors "alloy-logs") | nindent 6 }}
     {{- end }}
   {{- if .Values.applicationObservability.enabled }}
   alloy-receiver:
     presets: [small, deployment]
     {{- if index .Values.collectors "alloy-receiver" }}
-    {{- toYaml (index .Values.collectors "alloy-receiver") | nindent 4 }}
+    alloy:
+      {{- toYaml (index .Values.collectors "alloy-receiver") | nindent 6 }}
     {{- end }}
   {{- end }}
 
