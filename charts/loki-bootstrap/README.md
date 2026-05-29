@@ -1,6 +1,6 @@
 # loki-bootstrap
 
-![Version: 0.41.4](https://img.shields.io/badge/Version-0.41.4-informational?style=flat-square)
+![Version: 0.42.0](https://img.shields.io/badge/Version-0.42.0-informational?style=flat-square)
 
 ## Values
 
@@ -22,6 +22,10 @@
 | ingester.replicas | int | `3` |  |
 | initOverrides.package | string | `"busybox"` |  |
 | initOverrides.tag | string | `"1.37.0"` |  |
+| loki.limits_config.max_entries_limit_per_query | int | `5000` |  |
+| loki.limits_config.max_global_streams_per_user | int | `5000` |  |
+| loki.limits_config.max_label_names_per_series | int | `18` |  |
+| loki.limits_config.max_query_series | int | `500` |  |
 | loki.replicationFactor | int | `2` |  |
 | lokiChart.version | string | `"7.0.0"` |  |
 | multitenancyEnabled | bool | `true` |  |
