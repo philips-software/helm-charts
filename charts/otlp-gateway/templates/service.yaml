@@ -6,11 +6,11 @@ Validation: Ensure ingress.enabled and loadbalancer.enabled are not both true
 {{- end }}
 
 {{/*
-Validation: Ensure clusterFqdn is provided when TLS is needed (LoadBalancer or Ingress)
+Validation: Ensure an FQDN is available when TLS is needed (LoadBalancer or Ingress)
 */}}
 {{- if or .Values.loadbalancer.enabled .Values.ingress.enabled }}
-{{- if not .Values.environmentConfig.clusterFqdn }}
-{{- fail "ERROR: environmentConfig.clusterFqdn must be provided for TLS certificate generation." }}
+{{- if not (or .Values.environmentConfig.clusterFqdn (and .Values.useCustomFqdn .Values.environmentConfig.customFqdn)) }}
+{{- fail "ERROR: Either environmentConfig.clusterFqdn or environmentConfig.customFqdn (with useCustomFqdn: true) must be provided for TLS certificate generation." }}
 {{- end }}
 {{- end }}
 
