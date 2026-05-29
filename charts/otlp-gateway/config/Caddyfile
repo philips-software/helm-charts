@@ -201,8 +201,8 @@
   }
 
   # Match external requests (Host header matches external FQDN)
-  @external host {{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}
-  redir @external https://{{ .Values.environmentConfig.host }}.{{ .Values.environmentConfig.clusterFqdn }}{uri} 307
+  @external host {{ include "otlp-gateway.fqdn" . }}
+  redir @external https://{{ include "otlp-gateway.fqdn" . }}{uri} 307
 
   # Handle cluster-local requests directly (service name, service.namespace, etc.)
   import app_logic

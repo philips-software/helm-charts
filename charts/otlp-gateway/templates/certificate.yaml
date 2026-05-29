@@ -1,9 +1,9 @@
 {{- if or .Values.loadbalancer.enabled .Values.ingress.enabled }}
 {{/*
-Validation: Ensure clusterFqdn is provided (required as fallback for TLS certificates)
+Validation: Ensure an FQDN is available for TLS certificates (either clusterFqdn or customFqdn)
 */}}
-{{- if not .Values.environmentConfig.clusterFqdn }}
-{{- fail "ERROR: environmentConfig.clusterFqdn must be provided for TLS certificate generation." }}
+{{- if not (or .Values.environmentConfig.clusterFqdn (and .Values.useCustomFqdn .Values.environmentConfig.customFqdn)) }}
+{{- fail "ERROR: Either environmentConfig.clusterFqdn or environmentConfig.customFqdn (with useCustomFqdn: true) must be provided for TLS certificate generation." }}
 {{- end }}
 
 apiVersion: cert-manager.io/v1

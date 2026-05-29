@@ -104,11 +104,17 @@ Validate required configuration values
 */}}
 {{- define "otlp-gateway.validateConfig" -}}
 {{- if .Values.loadbalancer.enabled }}
-{{- if not .Values.environmentConfig.clusterFqdn }}
-{{- fail "environmentConfig.clusterFqdn is required when loadbalancer.enabled is true" }}
+{{- $effectiveFqdn := "" }}
+{{- if and .Values.useCustomFqdn .Values.environmentConfig.customFqdn }}
+{{- $effectiveFqdn = .Values.environmentConfig.customFqdn }}
+{{- else }}
+{{- $effectiveFqdn = .Values.environmentConfig.clusterFqdn }}
 {{- end }}
-{{- if not (regexMatch "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$" .Values.environmentConfig.clusterFqdn) }}
-{{- fail "environmentConfig.clusterFqdn must be a valid domain name (e.g., gateway.example.com)" }}
+{{- if not $effectiveFqdn }}
+{{- fail "Either environmentConfig.clusterFqdn or environmentConfig.customFqdn (with useCustomFqdn: true) is required when loadbalancer.enabled is true" }}
+{{- end }}
+{{- if not (regexMatch "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$" $effectiveFqdn) }}
+{{- fail "The effective FQDN (clusterFqdn or customFqdn) must be a valid domain name (e.g., example.com)" }}
 {{- end }}
 {{- end }}
 {{- if not .Values.environmentConfig.host }}
