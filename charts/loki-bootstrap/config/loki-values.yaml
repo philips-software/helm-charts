@@ -307,10 +307,10 @@ loki:
   runtimeConfig:
     overrides:
       "*":  # default for all tenants
-        max_label_names_per_series: {{ .Values.loki.limits_config.maxLabelNamesPerSeries }}
-        max_global_streams_per_user: {{ .Values.loki.limits_config.maxGlobalStreamsPerUser }}
-        max_query_series: {{ .Values.loki.limits_config.maxQuerySeries }}
-        max_entries_limit_per_query: {{ .Values.loki.limits_config.maxEntriesLimitPerQuery }}
+        max_label_names_per_series: {{ .Values.loki.limits_config.max_label_names_per_series }}
+        max_global_streams_per_user: {{ .Values.loki.limits_config.max_global_streams_per_user }}
+        max_query_series: {{ .Values.loki.limits_config.max_query_series }}
+        max_entries_limit_per_query: {{ .Values.loki.limits_config.max_entries_limit_per_query }}
       "homelab":
         retention_period: 24h
       "starlift":

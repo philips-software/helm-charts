@@ -38,6 +38,17 @@ loki:
   # For zone-aware HA, ensure ingester.replicas >= replicationFactor * number_of_zones
   replicationFactor: 2
 
+  # Runtime config limits (applied to all tenants via "*" override)
+  limits_config:
+    # Maximum number of label names per series (Loki default: 15, recommended: 10-15)
+    max_label_names_per_series: 18
+    # Maximum number of active streams per tenant across all ingesters (Loki default: 5000)
+    max_global_streams_per_user: 5000
+    # Maximum number of unique series returned by a metric query (Loki default: 500)
+    max_query_series: 500
+    # Maximum number of log entries returned by a query (Loki default: 5000)
+    max_entries_limit_per_query: 5000
+
 # Ingester configuration
 ingester:
   # Number of ingester replicas
