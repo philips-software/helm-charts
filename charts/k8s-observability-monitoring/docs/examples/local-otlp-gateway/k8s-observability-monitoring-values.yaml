@@ -63,8 +63,12 @@ podLogsViaLoki:
     - "loki-system"
     - "logging"
 
+# Local trace collector: deploys the alloy-receiver OTLP endpoint
+# (gRPC :4317 / HTTP :4318). Applications send OTLP traces to this in-cluster
+# endpoint; the collector forwards them to every trace-enabled destination
+# (here: otlpGateway, which routes /v1/traces to Tempo via the OTLP gateway).
 applicationObservability:
-  enabled: false
+  enabled: true
 
 autoInstrumentation:
   enabled: false
