@@ -280,12 +280,14 @@ patternIngester:
   replicas: {{ .Values.patternIngester.replicas }}
   resources:
     requests:
-      cpu: 50m
-      memory: 512Mi
+      cpu: {{ .Values.patternIngester.resources.requests.cpu }}
+      memory: {{ .Values.patternIngester.resources.requests.memory }}
     limits:
-      memory: 1Gi
+      memory: {{ .Values.patternIngester.resources.limits.memory }}
   extraArgs:
     - -config.expand-env=true
+    - -server.grpc-max-recv-msg-size-bytes={{ .Values.patternIngester.extraArgs.grpc_max_recv_msg_size }}
+    - -server.grpc-max-send-msg-size-bytes={{ .Values.patternIngester.extraArgs.grpc_max_send_msg_size }}
   extraEnv:
     - name: bucketName
       valueFrom:
@@ -367,7 +369,11 @@ loki:
   tracing:
     enabled: true
   pattern_ingester:
-    enabled: true
+    enabled: {{ .Values.loki.pattern_ingester.enabled }}
+    client_config:
+      grpc_client_config:
+        max_recv_msg_size: {{ .Values.loki.pattern_ingester.client_config.grpc_client_config.max_recv_msg_size }}
+        max_send_msg_size: {{ .Values.loki.pattern_ingester.client_config.grpc_client_config.max_send_msg_size }}
   storage:
     type: "s3"
     bucketNames:
@@ -384,8 +390,8 @@ loki:
   auth_enabled: {{ .Values.multitenancyEnabled }}
 
   server:
-    grpc_server_max_recv_msg_size: 83886080
-    grpc_server_max_send_msg_size: 83886080
+    grpc_server_max_recv_msg_size: {{ .Values.loki.server.grpc_server_max_recv_msg_size }}
+    grpc_server_max_send_msg_size: {{ .Values.loki.server.grpc_server_max_send_msg_size }}
   schemaConfig:
     configs:
       - from: "2024-07-05"
