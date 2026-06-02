@@ -70,6 +70,16 @@ gateway:
     limits:
       memory: 128Mi
 
+# Distributor configuration
+distributor:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+
 features:
   # Enable the CloudWatch kill job that removes CloudWatch ClusterOutputs
   # and ensures a null-output ClusterOutput exists
