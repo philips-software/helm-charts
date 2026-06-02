@@ -189,10 +189,10 @@ distributor:
   maxUnavailable: 1
   resources:
     requests:
-      cpu: 250m
-      memory: 1Gi
+      cpu: {{ .Values.distributor.resources.requests.cpu }}
+      memory: {{ .Values.distributor.resources.requests.memory }}
     limits:
-      memory: 2Gi
+      memory: {{ .Values.distributor.resources.limits.memory }}
   extraArgs:
     - -config.expand-env=true
   extraEnv:
