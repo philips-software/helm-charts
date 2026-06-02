@@ -49,6 +49,23 @@ loki:
     # Maximum number of log entries returned by a query (Loki default: 5000)
     max_entries_limit_per_query: 5000
 
+  # gRPC server configuration
+  server:
+    # Maximum size of gRPC messages received (bytes, default: 83886080 = 80MB)
+    grpc_server_max_recv_msg_size: 83886080  # 80MB
+    # Maximum size of gRPC messages sent (bytes, default: 83886080 = 80MB)
+    grpc_server_max_send_msg_size: 83886080  # 80MB
+
+  # Pattern ingester configuration for gRPC
+  pattern_ingester:
+    enabled: true
+    client_config:
+      grpc_client_config:
+        # Maximum size of gRPC messages received by pattern ingester client
+        max_recv_msg_size: 83886080  # 80MB
+        # Maximum size of gRPC messages sent by pattern ingester client
+        max_send_msg_size: 83886080  # 80MB
+
 # Ingester configuration
 ingester:
   # Number of ingester replicas
@@ -59,6 +76,17 @@ ingester:
 patternIngester:
   # Number of pattern ingester replicas
   replicas: 3
+  resources:
+    requests:
+      cpu: 50m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+  extraArgs:
+    # Maximum size of gRPC messages received by pattern ingester (bytes, default: 134217728 = 128MB)
+    grpc_max_recv_msg_size: 83886080  # 80MB
+    # Maximum size of gRPC messages sent by pattern ingester (bytes, default: 134217728 = 128MB)
+    grpc_max_send_msg_size: 83886080  # 80MB
 
 # Gateway configuration
 gateway:
