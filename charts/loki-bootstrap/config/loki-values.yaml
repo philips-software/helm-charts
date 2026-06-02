@@ -277,7 +277,7 @@ memcachedExporter:
       memory: 50Mi
 
 patternIngester:
-  replicas: 3
+  replicas: {{ .Values.patternIngester.replicas }}
   resources:
     requests:
       cpu: 50m
