@@ -283,6 +283,7 @@ patternIngester:
       cpu: {{ .Values.patternIngester.resources.requests.cpu }}
       memory: {{ .Values.patternIngester.resources.requests.memory }}
     limits:
+      cpu: {{ .Values.patternIngester.resources.limits.cpu }}
       memory: {{ .Values.patternIngester.resources.limits.memory }}
   extraArgs:
     - -config.expand-env=true
