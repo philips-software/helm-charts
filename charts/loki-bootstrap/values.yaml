@@ -55,6 +55,8 @@ loki:
     grpc_server_max_recv_msg_size: 83886080  # 80MB
     # Maximum size of gRPC messages sent (bytes, default: 83886080 = 80MB)
     grpc_server_max_send_msg_size: 83886080  # 80MB
+    # Maximum number of concurrent gRPC streams (default: unlimited)
+    grpc_server_max_concurrent_streams: 1000
 
   # Pattern ingester configuration for gRPC
   pattern_ingester:
@@ -71,6 +73,14 @@ ingester:
   # Number of ingester replicas
   # For zone-aware HA with 3 AZs, use at least replicationFactor * 3
   replicas: 3
+  resources:
+    requests:
+      # CPU request: Increase from default 120m due to heavy compression work
+      # (269MB → 1.2MB). Under load, ingesters need significant CPU resources
+      cpu: 500m
+      memory: 8Gi
+    limits:
+      memory: 10Gi
 
 # Pattern Ingester configuration
 patternIngester:

@@ -41,10 +41,10 @@ ingester:
   replicas: {{ .Values.ingester.replicas }}
   resources:
     requests:
-      cpu: 120m
-      memory: 8Gi
+      cpu: {{ .Values.ingester.resources.requests.cpu }}
+      memory: {{ .Values.ingester.resources.requests.memory }}
     limits:
-      memory: 10Gi
+      memory: {{ .Values.ingester.resources.limits.memory }}
   extraArgs:
     - -config.expand-env=true
   extraEnv:
@@ -393,6 +393,7 @@ loki:
   server:
     grpc_server_max_recv_msg_size: {{ .Values.loki.server.grpc_server_max_recv_msg_size }}
     grpc_server_max_send_msg_size: {{ .Values.loki.server.grpc_server_max_send_msg_size }}
+    grpc_server_max_concurrent_streams: {{ .Values.loki.server.grpc_server_max_concurrent_streams }}
   schemaConfig:
     configs:
       - from: "2024-07-05"
