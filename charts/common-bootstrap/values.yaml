@@ -20,7 +20,7 @@ environmentConfig:
 # Crossplane Compositions deployment
 crossplaneCompositions:
   enabled: true
-  repoURL: https://github.com/dip-software/crossplane-compositions
+  repoURL: https://github.com/loafoe/crossplane-compositions
   # targetRevision defaults to Chart.AppVersion (v{{ .Chart.AppVersion }})
   # Uncomment to override:
   # targetRevision: v0.0.24
@@ -35,7 +35,7 @@ argocd:
     description: Bootstrap applications
     sourceRepos:
       - https://github.com/philips-software/helm-charts
-      - https://github.com/dip-software/crossplane-compositions
+      - https://github.com/loafoe/crossplane-compositions
       - https://cloudnative-pg.io/charts/
       - https://grafana-community.github.io/helm-charts
       - https://grafana.github.io/helm-charts

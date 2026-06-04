@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 1.3.0](https://img.shields.io/badge/Version-1.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.35](https://img.shields.io/badge/AppVersion-0.0.35-informational?style=flat-square)
+![Version: 1.3.0](https://img.shields.io/badge/Version-1.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.36](https://img.shields.io/badge/AppVersion-0.0.36-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -22,7 +22,7 @@ and uses HelmApplication CRs to bootstrap platform components.
 | argocd.project.sourceNamespaces[5] | string | `"cnpg-system"` |  |
 | argocd.project.sourceNamespaces[6] | string | `"k8s-observability-monitoring"` |  |
 | argocd.project.sourceRepos[0] | string | `"https://github.com/philips-software/helm-charts"` |  |
-| argocd.project.sourceRepos[1] | string | `"https://github.com/dip-software/crossplane-compositions"` |  |
+| argocd.project.sourceRepos[1] | string | `"https://github.com/loafoe/crossplane-compositions"` |  |
 | argocd.project.sourceRepos[2] | string | `"https://cloudnative-pg.io/charts/"` |  |
 | argocd.project.sourceRepos[3] | string | `"https://grafana-community.github.io/helm-charts"` |  |
 | argocd.project.sourceRepos[4] | string | `"https://grafana.github.io/helm-charts"` |  |
@@ -33,7 +33,7 @@ and uses HelmApplication CRs to bootstrap platform components.
 | argocd.project.sourceRepos[9] | string | `"ghcr.io/philips-software"` |  |
 | crossplaneCompositions.enabled | bool | `true` |  |
 | crossplaneCompositions.path | string | `"kustomize"` |  |
-| crossplaneCompositions.repoURL | string | `"https://github.com/dip-software/crossplane-compositions"` |  |
+| crossplaneCompositions.repoURL | string | `"https://github.com/loafoe/crossplane-compositions"` |  |
 | environmentConfig.labels.config | string | `"dip-software"` |  |
 | environmentConfig.name | string | `"hsp-addons-compat"` |  |
 | harvester.enabled | bool | `true` |  |

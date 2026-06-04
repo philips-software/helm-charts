@@ -8,9 +8,9 @@ metadata:
     {{- include "common-bootstrap.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-    # Renovate: datasource=github-tags depName=dip-software/crossplane-compositions
+    # Renovate: datasource=github-tags depName=loafoe/crossplane-compositions
     renovate.io/datasource: github-tags
-    renovate.io/depName: dip-software/crossplane-compositions
+    renovate.io/depName: loafoe/crossplane-compositions
     renovate.io/registryUrl: https://github.com
 spec:
   destination:
