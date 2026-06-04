@@ -206,10 +206,10 @@ compactor:
     size: {{ .Values.compactor.persistentVolume.size }}
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
+      cpu: {{ .Values.compactor.resources.requests.cpu }}
+      memory: {{ .Values.compactor.resources.requests.memory }}
     limits:
-      memory: 512Mi
+      memory: {{ .Values.compactor.resources.limits.memory }}
   # Override topology spread constraints for StatefulSet with PVC
   topologySpreadConstraints:
     maxSkew: 1

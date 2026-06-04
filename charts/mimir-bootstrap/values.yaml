@@ -125,6 +125,12 @@ compactor:
   persistentVolume:
     # -- Size of the persistent volume for compactor
     size: 80Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
 
 karpenter:
   # If true, stateful components (ingester, store-gateway, etc.) will be annotated
