@@ -20,6 +20,9 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 |-----|------|---------|-------------|
 | argoProject | string | `"default"` |  |
 | compactor.persistentVolume.size | string | `"80Gi"` | Size of the persistent volume for compactor |
+| compactor.resources.limits.memory | string | `"512Mi"` |  |
+| compactor.resources.requests.cpu | string | `"100m"` |  |
+| compactor.resources.requests.memory | string | `"256Mi"` |  |
 | compactorOrgmapper.package | string | `"ghcr.io/loafoe/compactor-orgmapper"` |  |
 | compactorOrgmapper.tag | string | `"v0.0.1"` |  |
 | environmentConfig.region | string | `""` |  |
