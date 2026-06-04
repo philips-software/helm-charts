@@ -6,8 +6,8 @@ description: |
   and uses HelmApplication CRs to bootstrap platform components.
 type: application
 version: 1.3.0
-# renovate: datasource=github-tags depName=dip-software/crossplane-compositions
-appVersion: "0.0.35"
+# renovate: datasource=github-tags depName=loafoe/crossplane-compositions
+appVersion: "0.0.36"
 keywords:
   - crossplane
   - common
