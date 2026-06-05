@@ -38,6 +38,7 @@ spec:
               drop:
                 - ALL
             runAsNonRoot: true
+            runAsUser: 1000
           command:
             - /bin/sh
             - -c
