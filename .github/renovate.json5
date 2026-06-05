@@ -13,6 +13,15 @@
     ':disableDependencyDashboard',
   ],
   enabledManagers: ['custom.regex'],
+  packageRules: [
+    {
+      // The grafana chart version is consumed as an ArgoCD targetRevision against
+      // the HTTP Helm repo, which does not accept image digests. Track the OCI
+      // registry for new versions but never pin to a digest.
+      matchPackageNames: ['ghcr.io/grafana-community/helm-charts/grafana'],
+      pinDigests: false,
+    },
+  ],
   customManagers: [
     {
       customType: 'regex',

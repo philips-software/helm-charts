@@ -112,7 +112,7 @@ grafana:
     schedule: "*/15 * * * *"
 
 grafanaChart:
-  # renovate: datasource=helm depName=grafana registryUrl=https://grafana-community.github.io/helm-charts
+  # renovate: datasource=docker depName=ghcr.io/grafana-community/helm-charts/grafana
   version: 12.3.3
   # Helm release name for Grafana
   releaseName: gf
