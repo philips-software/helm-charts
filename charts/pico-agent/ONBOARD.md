@@ -55,6 +55,20 @@ also disables them on an existing install.
 curl -fsSL .../install.sh | READ_ONLY=true bash
 ```
 
+**nginx Ingress fallback.** Some clusters have a broken gateway
+`http-to-https-redirect` that causes redirect loops even with no `sectionName`.
+For those, set `USE_INGRESS=true` to expose pico-agent via an nginx Ingress
+instead of a Gateway API HTTPRoute. The installer disables the HTTPRoute,
+auto-discovers the `IngressClass` (prefers `nginx`) and a cert-manager
+`ClusterIssuer` (prefers one named `*prod*`), and applies the Ingress. It
+**fails fast if the cluster has no ingress controller** (no `IngressClass`) —
+no workarounds. Override discovery with `INGRESS_CLASS=`, `CLUSTER_ISSUER=`,
+`INGRESS_TLS_SECRET=`.
+
+```bash
+curl -fsSL .../install.sh | USE_INGRESS=true bash
+```
+
 If your cluster doesn't fit these conventions, follow the manual steps below.
 
 ### Uninstall

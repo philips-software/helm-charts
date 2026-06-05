@@ -18,6 +18,12 @@
 #
 #   curl -fsSL .../install.sh | READ_ONLY=true bash
 #
+# To expose via an nginx Ingress instead of a Gateway API HTTPRoute (for
+# clusters whose gateway has a broken http-to-https redirect), USE_INGRESS=true.
+# Requires an ingress controller — it fails fast if no IngressClass exists:
+#
+#   curl -fsSL .../install.sh | USE_INGRESS=true bash
+#
 set -euo pipefail
 
 # ============================================================================
@@ -53,6 +59,14 @@ else
 fi
 
 # Networking / exposure. Empty values are auto-discovered (see below).
+#
+# Two mutually exclusive modes:
+#   - Gateway API HTTPRoute (default)
+#   - nginx Ingress fallback (USE_INGRESS=true) — for clusters whose gateway
+#     has a broken http-to-https-redirect that causes loops. The chart has no
+#     Ingress template, so the installer applies the Ingress directly (same
+#     pattern as the federation CRD) and sets httpRoute.enabled=false.
+: "${USE_INGRESS:=false}"
 : "${HTTPROUTE_ENABLED:=true}"
 : "${GATEWAY_NAME:=}"         # auto: a Gateway literally named "gateway", else first
 : "${GATEWAY_NAMESPACE:=}"    # auto: namespace of the chosen Gateway
@@ -61,6 +75,11 @@ fi
                              # loops with all-listener http-to-https-redirect routes.
 : "${HOSTNAME_FQDN:=}"        # auto: pico-agent.<base-domain>
 : "${BASE_DOMAIN:=}"          # auto: most common HTTPRoute hostname suffix
+
+# nginx Ingress fallback (used only when USE_INGRESS=true)
+: "${INGRESS_CLASS:=}"        # auto: an IngressClass named "nginx", else first
+: "${CLUSTER_ISSUER:=}"       # auto: a ClusterIssuer named *prod*, else first
+: "${INGRESS_TLS_SECRET:=pico-agent-tls}"
 
 # Identity
 : "${CLUSTER_NAME:=}"         # auto: current kube-context name
@@ -79,6 +98,12 @@ fi
 # ============================================================================
 # END CONFIG
 # ============================================================================
+
+# Ingress mode and HTTPRoute mode are mutually exclusive: enabling the nginx
+# Ingress fallback disables the chart's Gateway API HTTPRoute.
+if [ "$USE_INGRESS" = "true" ]; then
+  HTTPROUTE_ENABLED=false
+fi
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*" >&2; }
 warn() { printf '\033[1;33m[warn]\033[0m %s\n' "$*" >&2; }
@@ -148,25 +173,66 @@ discover() {
 
     # Base domain: most common HTTPRoute hostname suffix (strip first label)
     if [ -z "$HOSTNAME_FQDN" ]; then
-      if [ -z "$BASE_DOMAIN" ]; then
-        BASE_DOMAIN=$(kubectl get httproutes -A \
-          -o jsonpath='{range .items[*]}{range .spec.hostnames[*]}{@}{"\n"}{end}{end}' 2>/dev/null \
-          | sed 's/^[^.]*\.//' | grep -v '^$' | sort | uniq -c | sort -rn | head -1 | awk '{print $2}')
-      fi
+      [ -n "$BASE_DOMAIN" ] || BASE_DOMAIN=$(discover_base_domain httproute)
+      [ -n "$BASE_DOMAIN" ] || die "could not discover base domain; set BASE_DOMAIN=... or HOSTNAME_FQDN=..."
+      HOSTNAME_FQDN="pico-agent.${BASE_DOMAIN}"
+    fi
+  fi
+
+  if [ "$USE_INGRESS" = "true" ]; then
+    # IngressClass: prefer one literally named "nginx", else the first.
+    # If the cluster has no IngressClass at all, fail out — no workarounds.
+    if [ -z "$INGRESS_CLASS" ]; then
+      local classes
+      classes=$(kubectl get ingressclass \
+        -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
+      INGRESS_CLASS=$(printf '%s\n' "$classes" | awk '$0=="nginx"{print;exit}')
+      [ -n "$INGRESS_CLASS" ] || INGRESS_CLASS=$(printf '%s\n' "$classes" | awk 'NF{print;exit}')
+    fi
+    [ -n "$INGRESS_CLASS" ] || \
+      die "USE_INGRESS=true but no IngressClass found in the cluster (no ingress controller). Aborting."
+
+    # ClusterIssuer: prefer one whose name contains "prod", else the first.
+    if [ -z "$CLUSTER_ISSUER" ]; then
+      local issuers
+      issuers=$(kubectl get clusterissuers \
+        -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
+      CLUSTER_ISSUER=$(printf '%s\n' "$issuers" | awk '/[Pp]rod/{print;exit}')
+      [ -n "$CLUSTER_ISSUER" ] || CLUSTER_ISSUER=$(printf '%s\n' "$issuers" | awk 'NF{print;exit}')
+      [ -n "$CLUSTER_ISSUER" ] || warn "no ClusterIssuer found; Ingress will have no TLS issuer annotation (set CLUSTER_ISSUER=...)"
+    fi
+
+    # Hostname: derive the base domain from existing Ingress hosts first
+    # (the cluster may not use Gateway API), then fall back to HTTPRoute hosts.
+    if [ -z "$HOSTNAME_FQDN" ]; then
+      [ -n "$BASE_DOMAIN" ] || BASE_DOMAIN=$(discover_base_domain ingress)
+      [ -n "$BASE_DOMAIN" ] || BASE_DOMAIN=$(discover_base_domain httproute)
       [ -n "$BASE_DOMAIN" ] || die "could not discover base domain; set BASE_DOMAIN=... or HOSTNAME_FQDN=..."
       HOSTNAME_FQDN="pico-agent.${BASE_DOMAIN}"
     fi
   fi
 }
 
+# discover_base_domain <ingress|httproute>: most common hostname suffix (the
+# part after the first label) across existing routes of that kind. Prints the
+# domain or nothing. Pipefail-safe: a filter matching nothing must not abort.
+discover_base_domain() {
+  local hosts
+  if [ "$1" = "ingress" ]; then
+    hosts=$(kubectl get ingress -A \
+      -o jsonpath='{range .items[*]}{range .spec.rules[*]}{.host}{"\n"}{end}{end}' 2>/dev/null || true)
+  else
+    hosts=$(kubectl get httproutes -A \
+      -o jsonpath='{range .items[*]}{range .spec.hostnames[*]}{@}{"\n"}{end}{end}' 2>/dev/null || true)
+  fi
+  printf '%s\n' "$hosts" | sed 's/^[^.]*\.//' | awk 'NF' \
+    | sort | uniq -c | sort -rn | awk 'NR==1{print $2}'
+}
+
 # ---------------------------------------------------------------------------
 # summarize: show the resolved plan (no secrets), as an elegant panel
 # ---------------------------------------------------------------------------
 summarize() {
-  local route="disabled"
-  [ "$HTTPROUTE_ENABLED" = "true" ] && \
-    route="$(printf '%s  (gw %s/%s, section: %s)' "$HOSTNAME_FQDN" "$GATEWAY_NAMESPACE" "$GATEWAY_NAME" "${GATEWAY_SECTION:-none (all listeners)}")"
-
   printf '\n' >&2
   printf '  \033[1;36m🚀 pico-agent\033[0m \033[2m· resolved install plan\033[0m\n' >&2
   printf '  \033[2m────────────────────────────────────────────────────────────\033[0m\n' >&2
@@ -178,7 +244,13 @@ summarize() {
   _row "🪪 " "spiffe id"    "${MCP_SPIFFE_ID}"
   _row "🌐" "federation"   "${MCP_FEDERATION_NAME}  →  ${MCP_BUNDLE_ENDPOINT}"
   _row "🎫" "jwt audience" "${JWT_AUDIENCE}"
-  _row "🛣️ " "httproute"    "${route}"
+  if [ "$USE_INGRESS" = "true" ]; then
+    _row "🌉" "ingress"     "${HOSTNAME_FQDN}  \033[2m(class ${INGRESS_CLASS}, issuer ${CLUSTER_ISSUER:-none})\033[0m"
+  elif [ "$HTTPROUTE_ENABLED" = "true" ]; then
+    _row "🛣️ " "httproute"    "$(printf '%s  (gw %s/%s, section: %s)' "$HOSTNAME_FQDN" "$GATEWAY_NAMESPACE" "$GATEWAY_NAME" "${GATEWAY_SECTION:-none (all listeners)}")"
+  else
+    _row "🛣️ " "route"        "disabled"
+  fi
   _row "📊" "monitoring"   "serviceMonitor=${SERVICEMONITOR_ENABLED}"
   if [ "$READ_ONLY" = "true" ]; then
     _row "👁️ " "mode"         "\033[1;33mREAD-ONLY\033[0m \033[2m(mutating tasks disabled; introspection only)\033[0m"
@@ -274,6 +346,62 @@ EOF
   else
     printf '%s\n' "$manifest" | kubectl apply -f - >&2 \
       || die "failed to apply ClusterFederatedTrustDomain"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# configure_ingress: nginx Ingress fallback (USE_INGRESS=true). The chart has
+# no Ingress template, so we apply one directly — mirroring the manual recipe
+# in ONBOARD.md. Runs AFTER helm (the namespace + Service must exist first).
+# Idempotent (kubectl apply). The matching HTTPRoute is disabled via
+# httpRoute.enabled=false in deploy().
+# ---------------------------------------------------------------------------
+configure_ingress() {
+  [ "$USE_INGRESS" = "true" ] || return 0
+
+  local issuer_ann=""
+  [ -n "$CLUSTER_ISSUER" ] && \
+    issuer_ann="    cert-manager.io/cluster-issuer: ${CLUSTER_ISSUER}"
+
+  log "applying nginx Ingress for ${HOSTNAME_FQDN}"
+  local manifest
+  manifest=$(cat <<EOF
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${RELEASE_NAME}
+  namespace: ${NAMESPACE}
+  annotations:
+${issuer_ann}
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: ${INGRESS_CLASS}
+  tls:
+  - hosts:
+    - ${HOSTNAME_FQDN}
+    secretName: ${INGRESS_TLS_SECRET}
+  rules:
+  - host: ${HOSTNAME_FQDN}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ${RELEASE_NAME}
+            port:
+              number: 8080
+EOF
+)
+  # drop the empty issuer line if no issuer was resolved
+  manifest=$(printf '%s\n' "$manifest" | grep -v '^$')
+
+  if [ "$DRY_RUN" = "true" ]; then
+    printf '\033[2m# kubectl apply -f - <<EOF\n%s\nEOF\033[0m\n' "$manifest" >&2
+  else
+    printf '%s\n' "$manifest" | kubectl apply -f - >&2 \
+      || die "failed to apply nginx Ingress"
   fi
 }
 
@@ -475,6 +603,7 @@ main() {
   adopt_orphans
   deploy
   normalize_route
+  configure_ingress
   verify
   done_msg
 }
