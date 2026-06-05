@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.73.0](https://img.shields.io/badge/Version-0.73.0-informational?style=flat-square)
+![Version: 0.74.0](https://img.shields.io/badge/Version-0.74.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -88,7 +88,7 @@ secret in the same namespace as the app. The secret should have the following fi
 | grafana.ssoAuthEnabled | bool | `false` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
-| grafanaChart.version | string | `"12.3.3"` |  |
+| grafanaChart.version | string | `"12.4.2"` |  |
 | useCustomFqdn | bool | `true` |  |
 
 ----------------------------------------------
