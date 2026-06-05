@@ -1,0 +1,60 @@
+# Values for pico-agent on dip-ce-k3s-eu cluster
+
+image:
+  tag: "v0.40.0"
+
+replicaCount: 1
+
+# SPIRE enabled with CSI and JWT auth
+spire:
+  enabled: true
+  csi:
+    enabled: true
+  trustDomains:
+    - "dip-ce-k3s-eu.hsp.philips.com"
+  allowedSPIFFEIDs:
+    - "spiffe://dip-ce-k3s-eu.hsp.philips.com/ns/pico-mcp/sa/pico-mcp"
+  mtlsEnabled: false
+  jwt:
+    enabled: true
+    audiences:
+      - "pico-agent-dip-ce-k3s-eu"
+
+# Service account
+serviceAccount:
+  name: "pico-agent"
+
+# RBAC
+rbac:
+  create: true
+
+# Feature flags - enable write operations
+features:
+  workloadRestart: true
+  workloadScale: true
+  podEvict: true
+  podResize: true
+  nodeclaimDelete: true
+  argocd: true
+  pvResize: true
+  configmapRead: true
+
+# Resources
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# Observability
+observability:
+  logLevel: info
+  logFormat: json
+
+# Prometheus ServiceMonitor - discovered by kube-prometheus-stack (match-all selector)
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s

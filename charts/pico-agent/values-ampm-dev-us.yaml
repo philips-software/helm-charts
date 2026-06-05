@@ -1,0 +1,59 @@
+image:
+  tag: v0.40.0
+
+# Prometheus ServiceMonitor - discovered by the cluster metrics scraper
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s
+
+# Write operation feature flags
+features:
+  workloadRestart: true
+  workloadScale: true
+  podEvict: true
+  podResize: true
+  pvResize: true
+  nodeclaimDelete: true
+  argocd: true
+  httpRequest: true
+  configmapRead: true
+
+spire:
+  csi:
+    enabled: true
+  className: spire-release-spire
+
+  # Trust domain of the pico-mcp cluster
+  trustDomains:
+    - dip-ce-k3s-eu.hsp.philips.com
+
+  # SPIFFE ID of the pico-mcp service account
+  allowedSPIFFEIDs:
+    - spiffe://dip-ce-k3s-eu.hsp.philips.com/ns/pico-mcp/sa/pico-mcp
+
+  # JWT validation settings
+  jwt:
+    enabled: true
+    audiences:
+      - pico-agent-ampm-dev-us
+
+httpRoute:
+  enabled: true
+  hostname: pico-agent.f93f-use1.bb5ef68.hsp.philips.com
+  gatewayRef:
+    name: platform
+    namespace: kube-system
+    sectionName: ""
+
+# VPA for resource recommendations
+vpa:
+  enabled: true
+  updateMode: "InPlaceOrRecreate"
+  minReplicas: 1
+  minAllowed:
+    cpu: 5m
+    memory: 16Mi
+  maxAllowed:
+    cpu: 500m
+    memory: 1Gi

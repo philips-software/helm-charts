@@ -1,0 +1,167 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "pico-agent.fullname" . }}
+  labels:
+    {{- include "pico-agent.labels" . | nindent 4 }}
+rules:
+  # PVC operations for resize
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "patch", "update"]
+  # PV read access for status checking
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["get", "list", "watch"]
+  # StorageClass read access to check allowVolumeExpansion
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list", "watch"]
+  # Node read access for cluster_info and cluster_health tasks
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch"]
+  # Node proxy access for pv_usage task (kubelet stats/summary endpoint)
+  - apiGroups: [""]
+    resources: ["nodes/proxy"]
+    verbs: ["get"]
+  # Namespace read access for cluster_info and list_namespaces tasks
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list", "watch"]
+  # Pod read access for cluster_health and list_pods tasks
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+  # Pod logs access for get_logs task
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  # Metrics API access for pod_resource_usage task
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  # Event read access for cluster_health task
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+  # Workload read access for cluster_health task (deployments, replicasets, daemonsets, statefulsets)
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+  # Service read access for list_services task
+  - apiGroups: [""]
+    resources: ["services", "endpoints"]
+    verbs: ["get", "list", "watch"]
+  # Ingress read access for list_ingresses task
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "ingressclasses"]
+    verbs: ["get", "list", "watch"]
+  # NetworkPolicies for list_network_policies task
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["get", "list", "watch"]
+  # EndpointSlices for list_endpoints task
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch"]
+  # Gateway API read access for list_gateways and list_routes tasks
+  # (optional, graceful degradation if CRDs not installed)
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources:
+      - gateways
+      - gatewayclasses
+      - httproutes
+      - tlsroutes
+      - grpcroutes
+      - tcproutes
+      - udproutes
+    verbs: ["get", "list", "watch"]
+  # NodeClaim and NodePool read access for Karpenter tasks
+  # (optional, graceful degradation if CRDs not installed)
+  - apiGroups: ["karpenter.sh"]
+    resources: ["nodeclaims", "nodepools"]
+    verbs: ["get", "list", "watch"]
+  # HPA read access for list_workloads include_hpas option
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+  # VPA read access for list_vpas task
+  # (optional, graceful degradation if CRDs not installed)
+  - apiGroups: ["autoscaling.k8s.io"]
+    resources: ["verticalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+{{- if .Values.features.getResource }}
+  # Generic resource read access for get_resource task (CRDs like Crossplane, cert-manager, etc.)
+  # Note: Secret access is explicitly blocked in pico-agent code for security
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+{{- end }}
+{{- if .Values.features.workloadRestart }}
+  # Workload patch access for workload_restart task (rolling restart)
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "daemonsets"]
+    verbs: ["patch"]
+  # PDB read access for restart safety checks
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["get", "list"]
+{{- end }}
+{{- if .Values.features.workloadScale }}
+  # Scale subresource access for workload_scale task
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale", "statefulsets/scale"]
+    verbs: ["get", "patch", "update"]
+  # HPA read access for scale warnings
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list"]
+{{- end }}
+{{- if .Values.features.podEvict }}
+  # Pod eviction for pod_evict task
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
+  # Pod delete for force eviction
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["delete"]
+  # PDB read access for eviction safety checks
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["get", "list"]
+{{- end }}
+{{- if .Values.features.podResize }}
+  # Pod resize subresource for pod_resize task (KEP-1287 in-place memory resize)
+  - apiGroups: [""]
+    resources: ["pods/resize"]
+    verbs: ["get", "patch", "update"]
+  # Node read for capacity check
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+{{- end }}
+{{- if .Values.features.nodeclaimDelete }}
+  # NodeClaim delete access for nodeclaim_delete task (Karpenter node management)
+  - apiGroups: ["karpenter.sh"]
+    resources: ["nodeclaims"]
+    verbs: ["delete"]
+{{- end }}
+{{- if .Values.features.argocd }}
+  # Argo CD application read access for argocd introspection
+  - apiGroups: ["argoproj.io"]
+    resources: ["applications"]
+    verbs: ["get", "list", "watch"]
+{{- end }}
+{{- if .Values.features.configmapRead }}
+  # ConfigMap read access for list_configmaps and get_configmap introspection
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+{{- end }}
+{{- with .Values.rbac.additionalRules }}
+{{ toYaml . | indent 2 }}
+{{- end }}
+{{- end }}
