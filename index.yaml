@@ -3484,6 +3484,30 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-bootstrap-0.37.0/otlp-gateway-bootstrap-0.37.0.tgz
     version: 0.37.0
+  pico-agent:
+  - apiVersion: v2
+    appVersion: v0.41.0
+    created: "2026-06-05T06:48:27.368540561Z"
+    description: A lightweight Kubernetes helper service for webhook-triggered cluster
+      operations
+    digest: 353a23eeba19d373f3a4982d2fc4f0bbaff2b74c82c975eff8680745627d1cdd
+    home: https://github.com/loafoe/pico-agent
+    keywords:
+    - kubernetes
+    - pvc
+    - resize
+    - spire
+    - spiffe
+    maintainers:
+    - email: andy.lo-a-foe@philips.com
+      name: Andy Lo-A-Foe
+    name: pico-agent
+    sources:
+    - https://github.com/loafoe/pico-agent
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/pico-agent-0.43.0/pico-agent-0.43.0.tgz
+    version: 0.43.0
   tempo-bootstrap:
   - apiVersion: v2
     created: "2026-03-11T13:02:38.401845878Z"
@@ -3557,4 +3581,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-06-04T06:53:33.278146089Z"
+generated: "2026-06-05T06:48:27.369045911Z"
