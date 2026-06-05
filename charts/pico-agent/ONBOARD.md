@@ -18,6 +18,13 @@ name, Gateway, base domain and cluster name, applies the pico-mcp
 non-interactive and fails fast if `kubectl`/`helm` are missing or the cluster is
 unreachable.
 
+The HTTPRoute is **always created without a `sectionName`** (it attaches to all
+listeners and relies on hostname precedence) — setting a specific listener
+causes redirect loops on gateways with an all-listener `http-to-https-redirect`
+route. The installer also strips any leftover `sectionName` from a
+previously-created route. If you have a setup that genuinely needs one, pass
+`GATEWAY_SECTION=<listener>` explicitly (discouraged).
+
 **Preview without changing anything:**
 
 ```bash

@@ -56,7 +56,9 @@ fi
 : "${HTTPROUTE_ENABLED:=true}"
 : "${GATEWAY_NAME:=}"         # auto: a Gateway literally named "gateway", else first
 : "${GATEWAY_NAMESPACE:=}"    # auto: namespace of the chosen Gateway
-: "${GATEWAY_SECTION:=}"      # auto: an https listener, else "" (all listeners)
+: "${GATEWAY_SECTION:=}"      # leave EMPTY (default): no sectionName -> attach to
+                             # all listeners. Setting a listener causes redirect
+                             # loops with all-listener http-to-https-redirect routes.
 : "${HOSTNAME_FQDN:=}"        # auto: pico-agent.<base-domain>
 : "${BASE_DOMAIN:=}"          # auto: most common HTTPRoute hostname suffix
 
@@ -137,13 +139,12 @@ discover() {
       GATEWAY_NAME="${pick##*/}"
     fi
 
-    # Section: an HTTPS listener literally named "https", else "" (all listeners)
-    if [ -z "$GATEWAY_SECTION" ]; then
-      GATEWAY_SECTION=$(kubectl -n "$GATEWAY_NAMESPACE" get gateway "$GATEWAY_NAME" \
-        -o jsonpath='{range .spec.listeners[?(@.protocol=="HTTPS")]}{.name}{"\n"}{end}' 2>/dev/null \
-        | awk '$0=="https"{print;exit}')
-      # else leave empty -> attach to all listeners (hostname precedence wins)
-    fi
+    # Section: intentionally NOT auto-discovered. We must NOT set a
+    # sectionName — attaching to a specific listener triggers redirect loops
+    # in setups whose http-to-https-redirect route also attaches to all
+    # listeners. Leaving it empty attaches to all listeners and lets Gateway
+    # API hostname precedence route correctly. Only an explicit
+    # GATEWAY_SECTION=... env override will set one (discouraged).
 
     # Base domain: most common HTTPRoute hostname suffix (strip first label)
     if [ -z "$HOSTNAME_FQDN" ]; then
@@ -164,7 +165,7 @@ discover() {
 summarize() {
   local route="disabled"
   [ "$HTTPROUTE_ENABLED" = "true" ] && \
-    route="$(printf '%s  (gw %s/%s, section "%s")' "$HOSTNAME_FQDN" "$GATEWAY_NAMESPACE" "$GATEWAY_NAME" "$GATEWAY_SECTION")"
+    route="$(printf '%s  (gw %s/%s, section: %s)' "$HOSTNAME_FQDN" "$GATEWAY_NAMESPACE" "$GATEWAY_NAME" "${GATEWAY_SECTION:-none (all listeners)}")"
 
   printf '\n' >&2
   printf '  \033[1;36m🚀 pico-agent\033[0m \033[2m· resolved install plan\033[0m\n' >&2
@@ -365,8 +366,13 @@ deploy() {
       --set "httpRoute.hostname=${HOSTNAME_FQDN}"
       --set "httpRoute.gatewayRef.name=${GATEWAY_NAME}"
       --set "httpRoute.gatewayRef.namespace=${GATEWAY_NAMESPACE}"
-      --set "httpRoute.gatewayRef.sectionName=${GATEWAY_SECTION}"
     )
+    # Only set sectionName if explicitly requested. By default we leave it
+    # UNSET so the route attaches to all listeners — setting it to a specific
+    # listener causes redirect loops in setups with an all-listener
+    # http-to-https-redirect route. Pass empty string to actively clear any
+    # value Helm might otherwise carry over.
+    args+=( --set "httpRoute.gatewayRef.sectionName=${GATEWAY_SECTION}" )
   else
     args+=( --set "httpRoute.enabled=false" )
   fi
@@ -379,6 +385,44 @@ deploy() {
   else
     helm "${args[@]}" >&2 || die "helm install failed"
   fi
+}
+
+# ---------------------------------------------------------------------------
+# normalize_route: force the HTTPRoute's parentRef to the exact desired value.
+# Helm's 3-way merge will NOT remove a sectionName that a previously-adopted
+# (hand-created) route carried, because the chart template simply omits the
+# field rather than setting it empty. A leftover sectionName re-introduces the
+# redirect-loop risk, so we explicitly rewrite parentRefs here. With an empty
+# GATEWAY_SECTION (the default) the result has NO sectionName.
+# ---------------------------------------------------------------------------
+normalize_route() {
+  [ "$HTTPROUTE_ENABLED" = "true" ] || return 0
+  [ "$DRY_RUN" = "true" ] && return 0
+
+  local parentref
+  if [ -n "$GATEWAY_SECTION" ]; then
+    parentref=$(printf '{"group":"gateway.networking.k8s.io","kind":"Gateway","name":"%s","namespace":"%s","sectionName":"%s"}' \
+      "$GATEWAY_NAME" "$GATEWAY_NAMESPACE" "$GATEWAY_SECTION")
+  else
+    parentref=$(printf '{"group":"gateway.networking.k8s.io","kind":"Gateway","name":"%s","namespace":"%s"}' \
+      "$GATEWAY_NAME" "$GATEWAY_NAMESPACE")
+  fi
+
+  # Only patch if the live parentRefs differ from desired (keeps it a noop).
+  local current
+  current=$(kubectl -n "$NAMESPACE" get "httproute/${RELEASE_NAME}" \
+    -o jsonpath='{.spec.parentRefs[0].sectionName}' 2>/dev/null || true)
+  if [ -z "$GATEWAY_SECTION" ] && [ -z "$current" ]; then
+    return 0   # already has no sectionName
+  fi
+  if [ -n "$GATEWAY_SECTION" ] && [ "$current" = "$GATEWAY_SECTION" ]; then
+    return 0
+  fi
+
+  log "normalizing HTTPRoute parentRef (sectionName: ${GATEWAY_SECTION:-<unset>})"
+  kubectl -n "$NAMESPACE" patch "httproute/${RELEASE_NAME}" --type=merge \
+    -p "{\"spec\":{\"parentRefs\":[${parentref}]}}" >/dev/null 2>&1 \
+    || warn "could not normalize HTTPRoute parentRef (check it manually)"
 }
 
 # ---------------------------------------------------------------------------
@@ -430,6 +474,7 @@ main() {
   configure_federation
   adopt_orphans
   deploy
+  normalize_route
   verify
   done_msg
 }
