@@ -833,6 +833,23 @@ entries:
   crossplane-providers:
   - apiVersion: v2
     appVersion: v2.5.0
+    created: "2026-06-05T16:21:58.464039022Z"
+    description: A Helm chart for deploying Crossplane (AWS) providers with IRSA configuration
+    digest: ed5e42fd537e0a2e994b639321b84875c641bfec07205324fa06a364beea481e
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    maintainers:
+    - name: Philips Software
+    name: crossplane-providers
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-providers-0.0.33/crossplane-providers-0.0.33.tgz
+    version: 0.0.33
+  - apiVersion: v2
+    appVersion: v2.5.0
     created: "2026-06-05T16:10:32.604116927Z"
     description: A Helm chart for deploying Crossplane (AWS) providers with IRSA configuration
     digest: 53158be0f761dfa043e51716bc089fb889064b9e88fb8acb7af55544970193fc
@@ -1543,6 +1560,13 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.0.14/fluent-bit-out-hsdp-0.0.14.tgz
     version: 0.0.14
   grafana:
+  - apiVersion: v2
+    created: "2026-06-05T16:21:58.611388609Z"
+    digest: dab3f59e15a0a541fba0ef6ee2e7fda58cc0030bb197045c60db36104dcb6090
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.74.4/grafana-0.74.4.tgz
+    version: 0.74.4
   - apiVersion: v2
     created: "2026-06-05T16:10:32.772336381Z"
     digest: 8f96c475095e19194df0b11b5b98c7a2ec553e2364c599c72d03ff50845bd632
@@ -3660,4 +3684,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-06-05T16:10:32.773020853Z"
+generated: "2026-06-05T16:21:58.612748484Z"
