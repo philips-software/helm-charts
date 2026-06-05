@@ -277,6 +277,7 @@ kubectl --context <your-context> logs -n pico-agent deploy/pico-agent -f
 | Redirect loop on HTTPS URL | Platform's `http-to-https-redirect` HTTPRoute attaches to all listeners | Use `sectionName: ""` (empty) to let hostname precedence work, or use nginx Ingress as fallback |
 | `NotAllowedByListeners` in HTTPRoute status | Namespace restrictions on listener | Use `sectionName: ""` to attach to `https-0` which allows all namespaces |
 | Redirect loop persists after HTTPRoute fix | Gateway has broken http-to-https-redirect | First try `sectionName: ""`, if still failing use nginx Ingress (see Alternative section below) |
+| `UPGRADE FAILED: … exists and cannot be imported … missing key "app.kubernetes.io/managed-by"` | A chart resource (e.g. the HTTPRoute) was created outside Helm and lacks Helm ownership metadata | `install.sh` adopts such resources automatically (stamps the Helm label/annotations before upgrading). Disable with `ADOPT_RESOURCES=false`. To fix by hand: `kubectl -n pico-agent annotate <kind>/pico-agent meta.helm.sh/release-name=pico-agent meta.helm.sh/release-namespace=pico-agent --overwrite && kubectl -n pico-agent label <kind>/pico-agent app.kubernetes.io/managed-by=Helm --overwrite` |
 
 ## Alternative: Using nginx Ingress Instead of Gateway API
 

@@ -72,6 +72,8 @@ fi
 : "${WAIT_TIMEOUT:=180s}"
 : "${COUNTDOWN:=}"            # pre-install review countdown (s); empty = auto from reading time
 : "${ASSUME_YES:=false}"     # true = skip the countdown entirely (CI / unattended)
+: "${ADOPT_RESOURCES:=true}" # stamp Helm ownership onto pre-existing chart resources
+                             # that lack it, so `helm upgrade` can adopt them
 # ============================================================================
 # END CONFIG
 # ============================================================================
@@ -275,6 +277,60 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
+# adopt_orphans: let `helm upgrade` take over chart resources that already
+# exist but were NOT created by this Helm release (e.g. applied by hand or by
+# a previous tool). Helm refuses to overwrite such objects unless they carry
+# its ownership metadata:
+#   label       app.kubernetes.io/managed-by = Helm
+#   annotation  meta.helm.sh/release-name      = <release>
+#   annotation  meta.helm.sh/release-namespace = <namespace>
+# We stamp exactly those on any pre-existing, un-owned chart resource. This is
+# the same metadata Helm would set itself, so adoption is safe and idempotent.
+# ---------------------------------------------------------------------------
+adopt_orphans() {
+  [ "$ADOPT_RESOURCES" = "true" ] || return 0
+
+  local fullname="$RELEASE_NAME"     # chart fullname == release name here
+  # kind/name pairs the chart renders into this namespace.
+  local -a targets=(
+    "httproute.gateway.networking.k8s.io/${fullname}"
+    "service/${fullname}"
+    "serviceaccount/${fullname}"
+    "servicemonitor.monitoring.coreos.com/${fullname}"
+    "deployment.apps/${fullname}"
+    "verticalpodautoscaler.autoscaling.k8s.io/${fullname}-vpa"
+  )
+
+  local res kind name owner adopted=0
+  for res in "${targets[@]}"; do
+    # exists?
+    kubectl -n "$NAMESPACE" get "$res" >/dev/null 2>&1 || continue
+    # already Helm-owned by THIS release? then skip.
+    owner=$(kubectl -n "$NAMESPACE" get "$res" \
+      -o jsonpath='{.metadata.annotations.meta\.helm\.sh/release-name}' 2>/dev/null || true)
+    if [ "$owner" = "$RELEASE_NAME" ]; then
+      continue
+    fi
+
+    if [ "$DRY_RUN" = "true" ]; then
+      printf '\033[2m# would adopt %s (label managed-by=Helm + release annotations)\033[0m\n' "$res" >&2
+      adopted=$((adopted + 1))
+      continue
+    fi
+
+    kubectl -n "$NAMESPACE" annotate --overwrite "$res" \
+      "meta.helm.sh/release-name=${RELEASE_NAME}" \
+      "meta.helm.sh/release-namespace=${NAMESPACE}" >/dev/null 2>&1 || true
+    kubectl -n "$NAMESPACE" label --overwrite "$res" \
+      "app.kubernetes.io/managed-by=Helm" >/dev/null 2>&1 || true
+    log "adopted pre-existing $res into release '$RELEASE_NAME'"
+    adopted=$((adopted + 1))
+  done
+
+  [ "$adopted" -gt 0 ] || true
+}
+
+# ---------------------------------------------------------------------------
 # deploy: helm upgrade --install with resolved values
 # ---------------------------------------------------------------------------
 deploy() {
@@ -372,6 +428,7 @@ main() {
   summarize
   confirm_countdown
   configure_federation
+  adopt_orphans
   deploy
   verify
   done_msg
