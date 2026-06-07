@@ -1,4 +1,4 @@
-{{- if and .Values.spire.enabled .Values.spire.trustDomains }}
+{{- if and .Values.spire.enabled .Values.spire.trustDomains (not .Values.spire.skipFederation) }}
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterSPIFFEID
 metadata:

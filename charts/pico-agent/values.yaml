@@ -31,6 +31,9 @@ spire:
   # Trust domains to accept (supports federation with multiple domains)
   # Example: ["example.org", "partner.com"]
   trustDomains: []
+  # Skip creating the federated ClusterSPIFFEID (use when the caller is in the
+  # same trust domain as this agent — federation with self is invalid)
+  skipFederation: false
   # Legacy single trust domain (use trustDomains for new deployments)
   # Kept for backward compatibility
   trustDomain: ""

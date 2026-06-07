@@ -486,9 +486,11 @@ deploy() {
   [ -n "$CHART_VERSION" ] && args+=( --version "$CHART_VERSION" )
   [ -n "$IMAGE_TAG" ]     && args+=( --set "image.tag=${IMAGE_TAG}" )
 
-  # Only federate if MCP_TRUST_DOMAIN differs from local (skip self-federation)
-  if [ "${_SKIP_FEDERATION:-}" != "true" ]; then
-    args+=( --set "spire.trustDomains[0]=${MCP_TRUST_DOMAIN}" )
+  # Always set trustDomains (needed for JWT caller validation), but skip
+  # federation ClusterSPIFFEID when installing on the same cluster as pico-mcp
+  args+=( --set "spire.trustDomains[0]=${MCP_TRUST_DOMAIN}" )
+  if [ "${_SKIP_FEDERATION:-}" = "true" ]; then
+    args+=( --set "spire.skipFederation=true" )
   fi
 
   # Feature flags
@@ -592,11 +594,9 @@ done_msg() {
   cat <<EOF
 Please onboard this pico-agent by calling:
 
-mcp_pico-mcp_upsert_agent(
-  id: "${CLUSTER_NAME}",
-  url: "${url}",
-  jwt_audience: "${JWT_AUDIENCE}"
-)
+mcp_pico-mcp_upsert_agent(url: "${url}")
+
+The agent's /info endpoint will auto-discover id and jwt_audience.
 EOF
   printf '  \033[2m────────────────────────────────────────────────────────────\033[0m\n' >&2
   printf '\n' >&2
