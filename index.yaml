@@ -3589,6 +3589,29 @@ entries:
     version: 0.37.0
   pico-agent:
   - apiVersion: v2
+    appVersion: v0.43.0
+    created: "2026-06-07T13:26:52.949537261Z"
+    description: A lightweight Kubernetes helper service for webhook-triggered cluster
+      operations
+    digest: 7247c9caa4bae3a67acb0c8fb46add4649be65eb1d15820c571463aa6439e35a
+    home: https://github.com/loafoe/pico-agent
+    keywords:
+    - kubernetes
+    - pvc
+    - resize
+    - spire
+    - spiffe
+    maintainers:
+    - email: andy.lo-a-foe@philips.com
+      name: Andy Lo-A-Foe
+    name: pico-agent
+    sources:
+    - https://github.com/loafoe/pico-agent
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/pico-agent-0.45.0/pico-agent-0.45.0.tgz
+    version: 0.45.0
+  - apiVersion: v2
     appVersion: v0.42.0
     created: "2026-06-07T11:38:43.596889675Z"
     description: A lightweight Kubernetes helper service for webhook-triggered cluster
@@ -3707,4 +3730,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-06-07T11:38:43.597681389Z"
+generated: "2026-06-07T13:26:53.151335678Z"
