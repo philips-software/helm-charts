@@ -326,6 +326,14 @@ configure_federation() {
     die "SPIRE CRD clusterfederatedtrustdomains.spire.spiffe.io not found — is SPIRE installed?"
   fi
 
+  # Guard: skip if installing on the same cluster as pico-mcp (self-federation
+  # breaks SPIRE agents — they cannot fetch a federated bundle for their own trust domain)
+  if [ "$CLUSTER_NAME" = "$MCP_FEDERATION_NAME" ]; then
+    log "skipping federation — installing on pico-mcp's own cluster '${CLUSTER_NAME}' (cannot federate with self)"
+    _SKIP_FEDERATION=true
+    return 0
+  fi
+
   log "applying ClusterFederatedTrustDomain '${MCP_FEDERATION_NAME}'"
   local manifest
   manifest=$(cat <<EOF
@@ -469,7 +477,6 @@ deploy() {
     --set "replicaCount=${REPLICA_COUNT}"
     --set "spire.csi.enabled=true"
     --set "spire.className=${SPIRE_CLASSNAME}"
-    --set "spire.trustDomains[0]=${MCP_TRUST_DOMAIN}"
     --set "spire.allowedSPIFFEIDs[0]=${MCP_SPIFFE_ID}"
     --set "spire.jwt.enabled=true"
     --set "spire.jwt.audiences[0]=${JWT_AUDIENCE}"
@@ -478,6 +485,11 @@ deploy() {
 
   [ -n "$CHART_VERSION" ] && args+=( --version "$CHART_VERSION" )
   [ -n "$IMAGE_TAG" ]     && args+=( --set "image.tag=${IMAGE_TAG}" )
+
+  # Only federate if MCP_TRUST_DOMAIN differs from local (skip self-federation)
+  if [ "${_SKIP_FEDERATION:-}" != "true" ]; then
+    args+=( --set "spire.trustDomains[0]=${MCP_TRUST_DOMAIN}" )
+  fi
 
   # Feature flags
   local IFS=','
