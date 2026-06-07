@@ -595,8 +595,6 @@ done_msg() {
 Please onboard this pico-agent by calling:
 
 mcp_pico-mcp_upsert_agent(url: "${url}")
-
-The agent's /info endpoint will auto-discover id and jwt_audience.
 EOF
   printf '  \033[2m────────────────────────────────────────────────────────────\033[0m\n' >&2
   printf '\n' >&2
