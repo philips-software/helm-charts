@@ -1,4 +1,4 @@
-{{- if and .Values.customAlloy.enabled .Values.spiffe.enabled }}
+{{- if and .Values.spiffe.enabled (or .Values.customAlloy.enabled (and .Values.spiffe.collectors (gt (len .Values.spiffe.collectors) 0))) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
