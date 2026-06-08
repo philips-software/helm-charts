@@ -98,3 +98,110 @@ Usage: {{ include "k8s-monitoring.collectorAlloyBlock" (dict "ctx" . "name" "all
 {{ toYaml $merged }}
 {{- end -}}
 {{- end }}
+
+{{/*
+Resolve the list of destination NAMES that Hubble flows should be shipped to.
+hubbleFlowLogs.destinations if non-empty, else podLogsViaLoki.destinations if non-empty,
+else all destinations whose logs.enabled is true.
+Usage: {{ include "k8s-monitoring.hubbleDestinations" . }}  -> space-separated names
+*/}}
+{{- define "k8s-monitoring.hubbleDestinations" -}}
+{{- $names := list -}}
+{{- if gt (len .Values.hubbleFlowLogs.destinations) 0 -}}
+  {{- $names = .Values.hubbleFlowLogs.destinations -}}
+{{- else if gt (len .Values.podLogsViaLoki.destinations) 0 -}}
+  {{- $names = .Values.podLogsViaLoki.destinations -}}
+{{- else -}}
+  {{- range $name, $dest := .Values.destinations -}}
+    {{- if and (hasKey $dest "logs") $dest.logs.enabled -}}
+      {{- $names = append $names $name -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $names | join " " -}}
+{{- end }}
+
+{{/*
+Render the Alloy extraConfig sub-pipeline that tails the Hubble export file and ships flows to
+each resolved destination's OTLP exporter, with its own small batch. Returns a raw Alloy
+config string (to be placed under collectors.alloy-logs.alloy.extraConfig).
+Usage: {{ include "k8s-monitoring.hubbleExtraConfig" . }}
+*/}}
+{{- define "k8s-monitoring.hubbleExtraConfig" -}}
+{{- $destNames := splitList " " (include "k8s-monitoring.hubbleDestinations" .) -}}
+{{- $exporters := list -}}
+{{- range $destNames -}}
+  {{- $san := regexReplaceAll "[^a-zA-Z0-9_]" . "_" -}}
+  {{- $exporters = append $exporters (printf "otelcol.exporter.otlphttp.%s.input" $san) -}}
+{{- end -}}
+local.file_match "hubble" {
+  path_targets = [{
+    __path__ = {{ .Values.hubbleFlowLogs.exportFilePath | quote }},
+    job      = "cilium/hubble-flows",
+  }]
+}
+loki.source.file "hubble" {
+  targets    = local.file_match.hubble.targets
+  forward_to = [loki.process.hubble.receiver]
+}
+loki.process "hubble" {
+  stage.json {
+    expressions = {
+      verdict   = "flow.verdict",
+      flow_type = "flow.Type",
+      src_ns    = "flow.source.namespace",
+      dst_ns    = "flow.destination.namespace",
+    }
+  }
+  stage.structured_metadata {
+    values = { verdict = "", flow_type = "", src_ns = "", dst_ns = "" }
+  }
+  forward_to = [otelcol.receiver.loki.hubble.receiver]
+}
+otelcol.receiver.loki "hubble" {
+  output { logs = [otelcol.processor.transform.hubble.input] }
+}
+otelcol.processor.transform "hubble" {
+  error_mode = "ignore"
+  log_statements {
+    context = "resource"
+    statements = [
+      `set(attributes["service.name"], "hubble-flows")`,
+      `set(attributes["service.namespace"], "cilium")`,
+      `set(attributes["k8s.cluster.name"], {{ .Values.clusterName | quote }})`,
+    ]
+  }
+  output { logs = [otelcol.processor.batch.hubble.input] }
+}
+otelcol.processor.batch "hubble" {
+  timeout             = "2s"
+  send_batch_size     = {{ .Values.hubbleFlowLogs.batchMaxSize }}
+  send_batch_max_size = {{ .Values.hubbleFlowLogs.batchMaxSize }}
+  output {
+    logs = [{{ $exporters | join ", " }}]
+  }
+}
+{{- end }}
+
+{{/*
+Alloy values fragment giving alloy-logs a read-only hostPath mount of the Hubble export dir.
+Usage: {{ include "k8s-monitoring.hubbleMountValues" . }}
+*/}}
+{{- define "k8s-monitoring.hubbleMountValues" -}}
+{{- $dir := dir .Values.hubbleFlowLogs.exportFilePath -}}
+controller:
+  volumes:
+    extra:
+      - name: hubble-export
+        hostPath:
+          path: {{ $dir | quote }}
+          type: Directory
+alloy:
+  extraConfig: |-
+{{ include "k8s-monitoring.hubbleExtraConfig" . | indent 4 }}
+  mounts:
+    extra:
+      - name: hubble-export
+        mountPath: {{ $dir | quote }}
+        readOnly: true
+{{- end }}
