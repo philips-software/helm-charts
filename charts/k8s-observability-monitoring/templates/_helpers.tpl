@@ -94,7 +94,6 @@ Usage: {{ include "k8s-monitoring.collectorAlloyBlock" (dict "ctx" . "name" "all
 {{- /* TASK 6 INSERTS THE HUBBLE FRAGMENT APPEND HERE */ -}}
 {{- if gt (len $frags) 0 -}}
   {{- $merged := include "k8s-monitoring.mergeAlloyFragments" $frags | fromYaml -}}
-alloy:
-{{ toYaml $merged | indent 2 }}
+{{ toYaml $merged }}
 {{- end -}}
 {{- end }}

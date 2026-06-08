@@ -174,12 +174,13 @@ collectorCommon:
 # Available collectors: alloy-logs, alloy-metrics, alloy-receiver
 collectors:
   alloy-logs:
-    resources:
-      requests:
-        cpu: 100m
-        memory: 256Mi
-      limits:
-        memory: 512Mi
+    alloy:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
 
 # -- Custom Alloy deployment for kube-state-metrics scraping
 # Deploys separate Alloy instance with OTEL pipeline for metrics.
