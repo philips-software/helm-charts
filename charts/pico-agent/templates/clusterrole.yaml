@@ -161,6 +161,11 @@ rules:
     resources: ["configmaps"]
     verbs: ["get", "list"]
 {{- end }}
+  # Crossplane EnvironmentConfig read access for AWS account ID detection
+  # (optional, graceful degradation if CRDs not installed)
+  - apiGroups: ["apiextensions.crossplane.io"]
+    resources: ["environmentconfigs"]
+    verbs: ["get"]
 {{- with .Values.rbac.additionalRules }}
 {{ toYaml . | indent 2 }}
 {{- end }}
