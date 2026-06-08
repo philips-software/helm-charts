@@ -48,3 +48,53 @@ alloy:
     extra:
       - { name: spiffe-jwt, mountPath: {{ dir .Values.spiffe.jwtPath | quote }}, readOnly: true }
 {{- end }}
+
+{{/*
+Concatenate the list-valued "extra" keys (controller.volumes.extra and alloy.mounts.extra)
+across a list of Alloy-values fragments, returning a single merged dict. mergeOverwrite REPLACES
+lists, so we must concat these explicitly. Input: a list of dicts. Output: merged dict.
+Usage: {{ include "k8s-monitoring.mergeAlloyFragments" (list $frag1 $frag2) | fromYaml ... }}
+*/}}
+{{- define "k8s-monitoring.mergeAlloyFragments" -}}
+{{- $merged := dict -}}
+{{- $vols := list -}}
+{{- $mounts := list -}}
+{{- range . -}}
+  {{- $f := deepCopy . -}}
+  {{- $vols = concat $vols (dig "controller" "volumes" "extra" (list) $f) -}}
+  {{- $mounts = concat $mounts (dig "alloy" "mounts" "extra" (list) $f) -}}
+  {{- $merged = mergeOverwrite $merged $f -}}
+{{- end -}}
+{{- if gt (len $vols) 0 -}}
+  {{- $_ := set $merged "controller" (mergeOverwrite (dig "controller" (dict) $merged) (dict "volumes" (dict "extra" $vols))) -}}
+{{- end -}}
+{{- if gt (len $mounts) 0 -}}
+  {{- $_ := set $merged "alloy" (mergeOverwrite (dig "alloy" (dict) $merged) (dict "mounts" (dict "extra" $mounts))) -}}
+{{- end -}}
+{{- toYaml $merged -}}
+{{- end }}
+
+{{/*
+Compute the merged Alloy values for a named upstream collector by collecting fragments
+(per-collector overrides + spiffe-helper when listed in spiffe.collectors; Task 6 adds Hubble),
+then concatenating their list-valued extras. Emits an "alloy:\n  <merged>" block, or nothing.
+Usage: {{ include "k8s-monitoring.collectorAlloyBlock" (dict "ctx" . "name" "alloy-logs") }}
+*/}}
+{{- define "k8s-monitoring.collectorAlloyBlock" -}}
+{{- $ctx := .ctx -}}
+{{- $name := .name -}}
+{{- $frags := list -}}
+{{- $override := index $ctx.Values.collectors $name -}}
+{{- if $override -}}
+  {{- $frags = append $frags (deepCopy $override) -}}
+{{- end -}}
+{{- if and $ctx.Values.spiffe.enabled (has $name $ctx.Values.spiffe.collectors) -}}
+  {{- $frags = append $frags (include "k8s-monitoring.spiffeCollectorValues" $ctx | fromYaml) -}}
+{{- end -}}
+{{- /* TASK 6 INSERTS THE HUBBLE FRAGMENT APPEND HERE */ -}}
+{{- if gt (len $frags) 0 -}}
+  {{- $merged := include "k8s-monitoring.mergeAlloyFragments" $frags | fromYaml -}}
+alloy:
+{{ toYaml $merged | indent 2 }}
+{{- end -}}
+{{- end }}
