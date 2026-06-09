@@ -128,11 +128,19 @@ config string (to be placed under collectors.alloy-logs.alloy.extraConfig).
 Usage: {{ include "k8s-monitoring.hubbleExtraConfig" . }}
 */}}
 {{- define "k8s-monitoring.hubbleExtraConfig" -}}
+{{- $ctx := . -}}
 {{- $destNames := splitList " " (include "k8s-monitoring.hubbleDestinations" .) -}}
 {{- $exporters := list -}}
 {{- range $destNames -}}
-  {{- $san := regexReplaceAll "[^a-zA-Z0-9_]" . "_" -}}
-  {{- $exporters = append $exporters (printf "otelcol.exporter.otlphttp.%s.input" $san) -}}
+  {{- if . -}}
+    {{- $san := . | lower | replace " " "_" | replace "-" "_" -}}
+    {{- $dest := index $ctx.Values.destinations . -}}
+    {{- if and $dest (eq (dig "protocol" "http" $dest) "grpc") -}}
+      {{- $exporters = append $exporters (printf "otelcol.exporter.otlp.%s.input" $san) -}}
+    {{- else -}}
+      {{- $exporters = append $exporters (printf "otelcol.exporter.otlphttp.%s.input" $san) -}}
+    {{- end -}}
+  {{- end -}}
 {{- end -}}
 local.file_match "hubble" {
   path_targets = [{
