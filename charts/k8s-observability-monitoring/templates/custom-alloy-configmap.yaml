@@ -132,6 +132,65 @@ data:
       forward_to = [otelcol.receiver.prometheus.default.receiver]
     }
 
+    {{- if and (index .Values.telemetryServices "node-exporter") (index .Values.telemetryServices "node-exporter" "deploy") }}
+    // Node Exporter Discovery
+    // Picks up the node-exporter Service deployed by the upstream k8s-monitoring sub-chart
+    // when telemetryServices.node-exporter.deploy is true. Required because
+    // customAlloy.replaceUpstreamCollector forces prometheusOperatorObjects.enabled=false
+    // in the sub-chart, which would otherwise create the ServiceMonitor for node-exporter.
+    discovery.kubernetes "node_exporter" {
+      role = "endpoints"
+      selectors {
+        role = "endpoints"
+        label = "app.kubernetes.io/name=node-exporter"
+      }
+    }
+
+    discovery.relabel "node_exporter" {
+      targets = discovery.kubernetes.node_exporter.targets
+
+      rule {
+        source_labels = ["__meta_kubernetes_endpoint_port_name"]
+        regex = "metrics"
+        action = "keep"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_node_name"]
+        target_label = "instance"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_node_name"]
+        target_label = "node"
+      }
+    }
+
+    prometheus.scrape "node_exporter" {
+      targets = discovery.relabel.node_exporter.output
+      job_name = "integrations/node_exporter"
+      scrape_interval = "60s"
+      scrape_timeout = "10s"
+      scheme = "http"
+
+      {{- if .Values.customAlloy.clustering.enabled }}
+      clustering {
+        enabled = true
+      }
+      {{- end }}
+
+      forward_to = [prometheus.relabel.node_exporter.receiver]
+    }
+
+    prometheus.relabel "node_exporter" {
+      max_cache_size = 100000
+      {{- if and .Values.customAlloy.nodeExporter .Values.customAlloy.nodeExporter.extraMetricProcessingRules }}
+      {{ .Values.customAlloy.nodeExporter.extraMetricProcessingRules | nindent 6 }}
+      {{- end }}
+      forward_to = [otelcol.receiver.prometheus.default.receiver]
+    }
+    {{- end }}
+
     {{- if .Values.customAlloy.kubelet.enabled }}
     // Kubelet Metrics Discovery
     discovery.kubernetes "kubelet" {
