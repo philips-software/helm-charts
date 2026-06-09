@@ -1,1 +1,2 @@
 {{ include "k8s-monitoring.validateClusterName" . }}
+{{ include "k8s-monitoring.validateHubbleFlowLogs" . }}

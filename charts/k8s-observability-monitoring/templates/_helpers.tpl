@@ -215,3 +215,24 @@ alloy:
         mountPath: {{ $dir | quote }}
         readOnly: true
 {{- end }}
+
+{{/*
+Validate Hubble flow-log configuration.
+Usage: {{ include "k8s-monitoring.validateHubbleFlowLogs" . }}
+*/}}
+{{- define "k8s-monitoring.validateHubbleFlowLogs" -}}
+{{- if .Values.hubbleFlowLogs.enabled -}}
+  {{- $destNames := splitList " " (include "k8s-monitoring.hubbleDestinations" .) -}}
+  {{- if or (eq (len $destNames) 0) (eq (join "" $destNames) "") -}}
+    {{- fail "hubbleFlowLogs.enabled is true but no logs-enabled destination could be resolved. Set hubbleFlowLogs.destinations, or podLogsViaLoki.destinations, or enable logs on a destination." -}}
+  {{- end -}}
+  {{- range $destNames -}}
+    {{- $dest := index $.Values.destinations . -}}
+    {{- if and $dest $dest.auth (eq (dig "auth" "type" "" $dest) "bearerToken") -}}
+      {{- if not (and $.Values.spiffe.enabled (has "alloy-logs" $.Values.spiffe.collectors)) -}}
+        {{- fail (printf "hubbleFlowLogs targets destination %q which uses SPIFFE bearerToken auth, but alloy-logs has no spiffe-helper sidecar. Add \"alloy-logs\" to spiffe.collectors (and set spiffe.enabled=true), otherwise the alloy-logs DaemonSet will crash-loop with a missing token file." .) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- end }}
