@@ -1,6 +1,6 @@
 # masterdata-datasource
 
-![Version: 0.9.4](https://img.shields.io/badge/Version-0.9.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.10.0](https://img.shields.io/badge/Version-0.10.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database for use as a datasource in Grafana
 
@@ -15,6 +15,12 @@ A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database for use a
 | grafanaDatasource.name | string | `"Masterdata PostgreSQL"` |  |
 | grafanaDatasource.providerConfigRef | string | `"default"` |  |
 | grafanaDatasource.sslMode | string | `"require"` |  |
+| postgres.existing.connectionSecretKeys.host | string | `"host"` |  |
+| postgres.existing.connectionSecretKeys.port | string | `"port"` |  |
+| postgres.existing.connectionSecretKeys.username | string | `"username"` |  |
+| postgres.existing.connectionSecretName | string | `""` |  |
+| postgres.existing.passwordSecretKey | string | `"password"` |  |
+| postgres.existing.passwordSecretName | string | `""` |  |
 | postgres.sourceIdentifier | string | `"masterdatadb-202601081341"` |  |
 | postgres.useExisting | bool | `false` |  |
 
