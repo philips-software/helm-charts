@@ -185,7 +185,7 @@ queryFrontend:
           key: id
 
 distributor:
-  replicas: 3
+  replicas: {{ .Values.distributor.replicas }}
   maxUnavailable: 1
   resources:
     requests:
