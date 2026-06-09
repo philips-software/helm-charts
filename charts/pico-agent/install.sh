@@ -82,7 +82,7 @@ fi
 : "${INGRESS_TLS_SECRET:=pico-agent-tls}"
 
 # Identity
-: "${CLUSTER_NAME:=}"         # auto: current kube-context name
+: "${CLUSTER_NAME:=}"         # auto: hsp-addons resourcePrefix, else kube-context name
 : "${SPIRE_CLASSNAME:=}"      # auto: most common ClusterSPIFFEID className
 : "${JWT_AUDIENCE:=}"         # auto: pico-agent-<cluster-name>
 
@@ -134,7 +134,19 @@ preflight() {
 discover() {
   CTX=$(kubectl config current-context 2>/dev/null) || die "no current kube-context"
 
-  [ -n "$CLUSTER_NAME" ] || CLUSTER_NAME="$CTX"
+  # CLUSTER_NAME: prefer hsp-addons resourcePrefix (stable), fall back to kube-context
+  if [ -z "$CLUSTER_NAME" ]; then
+    # Try 1: ConfigMap hsp-addons in namespace hsp-addons, field .data.tags (JSON)
+    CLUSTER_NAME=$(kubectl get configmap hsp-addons -n hsp-addons \
+      -o jsonpath='{.data.tags}' 2>/dev/null \
+      | grep -o '"Environment":"[^"]*"' | cut -d'"' -f4) || true
+    # Try 2: EnvironmentConfigs CR hsp-addons, field .spec.tags.Environment
+    [ -n "$CLUSTER_NAME" ] || \
+      CLUSTER_NAME=$(kubectl get environmentconfigs.apiextensions.crossplane.io hsp-addons \
+        -o jsonpath='{.spec.tags.Environment}' 2>/dev/null) || true
+    # Fallback: kubectl context name
+    [ -n "$CLUSTER_NAME" ] || CLUSTER_NAME="$CTX"
+  fi
   [ -n "$JWT_AUDIENCE" ] || JWT_AUDIENCE="pico-agent-${CLUSTER_NAME}"
 
   # Is the release already present? Used purely for messaging (the helm
