@@ -92,7 +92,9 @@ Usage: {{ include "k8s-monitoring.collectorAlloyBlock" (dict "ctx" . "name" "all
 {{- if and $ctx.Values.spiffe.enabled (has $name $ctx.Values.spiffe.collectors) -}}
   {{- $frags = append $frags (include "k8s-monitoring.spiffeCollectorValues" $ctx | fromYaml) -}}
 {{- end -}}
-{{- /* TASK 6 INSERTS THE HUBBLE FRAGMENT APPEND HERE */ -}}
+{{- if and (eq $name "alloy-logs") $ctx.Values.hubbleFlowLogs.enabled -}}
+  {{- $frags = append $frags (include "k8s-monitoring.hubbleMountValues" $ctx | fromYaml) -}}
+{{- end -}}
 {{- if gt (len $frags) 0 -}}
   {{- $merged := include "k8s-monitoring.mergeAlloyFragments" $frags | fromYaml -}}
 {{ toYaml $merged }}
