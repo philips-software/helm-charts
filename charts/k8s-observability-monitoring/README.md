@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 1.1.0](https://img.shields.io/badge/Version-1.1.0-informational?style=flat-square) ![AppVersion: 4.1.3](https://img.shields.io/badge/AppVersion-4.1.3-informational?style=flat-square)
+![Version: 1.1.1](https://img.shields.io/badge/Version-1.1.1-informational?style=flat-square) ![AppVersion: 4.1.3](https://img.shields.io/badge/AppVersion-4.1.3-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 

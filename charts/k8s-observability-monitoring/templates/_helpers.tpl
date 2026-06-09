@@ -126,7 +126,7 @@ Usage: {{ include "k8s-monitoring.hubbleDestinations" . }}  -> space-separated n
 {{/*
 Render the Alloy extraConfig sub-pipeline that tails the Hubble export file and ships flows to
 each resolved destination's OTLP exporter, with its own small batch. Returns a raw Alloy
-config string (to be placed under collectors.alloy-logs.alloy.extraConfig).
+config string (placed at collectors.alloy-logs.extraConfig — a top-level collector key).
 Usage: {{ include "k8s-monitoring.hubbleExtraConfig" . }}
 */}}
 {{- define "k8s-monitoring.hubbleExtraConfig" -}}
@@ -199,6 +199,13 @@ Usage: {{ include "k8s-monitoring.hubbleMountValues" . }}
 */}}
 {{- define "k8s-monitoring.hubbleMountValues" -}}
 {{- $dir := dir .Values.hubbleFlowLogs.exportFilePath -}}
+{{- /* extraConfig is a TOP-LEVEL collector key in the upstream k8s-monitoring schema
+       (collectors.<name>.extraConfig), a sibling of `alloy:` — NOT alloy.extraConfig.
+       The upstream chart reads it from the collector dict via collectors.extraConfig.alloy,
+       so nesting it under `alloy:` makes the operator silently ignore it (the generated
+       Alloy config never contains the Hubble pipeline). Keep it at the collector top level. */ -}}
+extraConfig: |-
+{{ include "k8s-monitoring.hubbleExtraConfig" . | indent 2 }}
 controller:
   volumes:
     extra:
@@ -207,8 +214,6 @@ controller:
           path: {{ $dir | quote }}
           type: Directory
 alloy:
-  extraConfig: |-
-{{ include "k8s-monitoring.hubbleExtraConfig" . | indent 4 }}
   mounts:
     extra:
       - name: hubble-export
