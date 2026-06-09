@@ -76,7 +76,7 @@ Usage: {{ include "k8s-monitoring.mergeAlloyFragments" (list $frag1 $frag2) | fr
 
 {{/*
 Compute the merged Alloy values for a named upstream collector by collecting fragments
-(per-collector overrides + spiffe-helper when listed in spiffe.collectors; Task 6 adds Hubble),
+(per-collector overrides + spiffe-helper when listed in spiffe.collectors + Hubble on alloy-logs),
 then concatenating their list-valued extras. Emits the merged collector values (top-level
 controller/alloy/etc. keys) for use under the collector name, or nothing if no fragments apply.
 Usage: {{ include "k8s-monitoring.collectorAlloyBlock" (dict "ctx" . "name" "alloy-logs") }}
