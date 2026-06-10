@@ -55,7 +55,10 @@ set -euo pipefail
 if [ "$READ_ONLY" = "true" ]; then
   : "${FEATURES:=getResource=true,argocd=true,configmapRead=true,httpRequest=true,workloadRestart=false,workloadScale=false,podEvict=false,podResize=false,nodeclaimDelete=false,pvResize=false,autoRemediate=false}"
 else
-  : "${FEATURES:=argocd=true,autoRemediate=true,configmapRead=true,httpRequest=true,podEvict=true,podResize=true,pvResize=true,workloadRestart=true,workloadScale=true}"
+  # Write mode: enable every feature EXCEPT the arbitrary resource reader
+  # (getResource). getResource grants wildcard read RBAC, so it stays off and
+  # is set explicitly to false so a re-run also disables it (declarative).
+  : "${FEATURES:=getResource=false,argocd=true,autoRemediate=true,configmapRead=true,httpRequest=true,nodeclaimDelete=true,podEvict=true,podResize=true,pvResize=true,workloadRestart=true,workloadScale=true}"
 fi
 
 # Networking / exposure. Empty values are auto-discovered (see below).
