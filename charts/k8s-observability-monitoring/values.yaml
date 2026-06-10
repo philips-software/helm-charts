@@ -204,6 +204,8 @@ customAlloy:
     enabled: false
   kubeStateMetrics:
     extraMetricProcessingRules: ""
+  nodeExporter:
+    extraMetricProcessingRules: ""
   kubelet:
     enabled: false
   resources:
