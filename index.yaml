@@ -2248,6 +2248,15 @@ entries:
   k8s-observability-monitoring:
   - apiVersion: v2
     appVersion: 4.1.3
+    created: "2026-06-10T03:57:59.756289095Z"
+    description: Helm chart for k8s-observability-monitoring
+    digest: 252aec8869aba5b35377ff40b7c9eeb2efdcf835cfb0964837643a6e805ad781
+    name: k8s-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-1.2.0/k8s-observability-monitoring-1.2.0.tgz
+    version: 1.2.0
+  - apiVersion: v2
+    appVersion: 4.1.3
     created: "2026-06-09T11:59:34.169230477Z"
     description: Helm chart for k8s-observability-monitoring
     digest: 30824161b433b39910f26dc72249a9577a7b3aa14bdcd62274e57ba479bb6a80
@@ -3848,4 +3857,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-06-09T13:58:52.849033291Z"
+generated: "2026-06-10T03:57:59.756892665Z"
