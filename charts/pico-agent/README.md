@@ -42,7 +42,7 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 | httpRoute.gatewayRef.sectionName | string | `"http-0"` |  |
 | httpRoute.hostname | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.repository | string | `"ghcr.io/loafoe/pico-agent"` |  |
+| image.repository | string | `"ghcr.io/philips-software/pico-agent"` |  |
 | image.tag | string | `""` |  |
 | imagePullSecrets | list | `[]` |  |
 | nameOverride | string | `""` |  |
