@@ -196,7 +196,7 @@ affinity: {}
 
 # Vertical Pod Autoscaler
 vpa:
-  enabled: false
+  enabled: true
   updateMode: InPlaceOrRecreate
   # Enable in-place resize (requires K8s 1.27+ with InPlacePodVerticalScaling feature gate)
   inPlaceResize: false
