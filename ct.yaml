@@ -10,6 +10,7 @@ excluded-charts:
   - cloudnative-pg-operator
   - crossplane-providers
   - grafana
+  - k8s-observability-monitoring
   - loki-bootstrap
   - mimir-bootstrap
   - otlp-gateway-bootstrap
