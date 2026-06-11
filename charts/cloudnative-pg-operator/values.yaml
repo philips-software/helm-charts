@@ -43,4 +43,4 @@ kyvernoPolicy:
 barmanCloudPlugin:
   enabled: true
   # renovate: datasource=helm depName=plugin-barman-cloud registryUrl=https://cloudnative-pg.io/charts
-  version: 0.6.0
+  version: 0.7.0
