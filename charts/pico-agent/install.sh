@@ -98,6 +98,10 @@ fi
 : "${ASSUME_YES:=false}"     # true = skip the countdown entirely (CI / unattended)
 : "${ADOPT_RESOURCES:=true}" # stamp Helm ownership onto pre-existing chart resources
                              # that lack it, so `helm upgrade` can adopt them
+: "${FORCE_CONFLICTS:=true}" # use server-side apply and force-conflicts so the
+                             # upgrade overrules fields another manager grabbed
+                             # (e.g. a manual `kubectl scale` taking .spec.replicas).
+                             # Set FORCE_CONFLICTS=false to fail on conflicts instead.
 # ============================================================================
 # END CONFIG
 # ============================================================================
@@ -532,6 +536,23 @@ deploy() {
     args+=( --set "httpRoute.gatewayRef.sectionName=${GATEWAY_SECTION}" )
   else
     args+=( --set "httpRoute.enabled=false" )
+  fi
+
+  # Force past server-side-apply field-manager conflicts. Helm refuses to change
+  # a field another manager owns (classic case: someone ran `kubectl scale`, which
+  # makes the apiserver record a separate owner for .spec.replicas, and the next
+  # `helm upgrade` then fails with a conflict on .spec.replicas). Running the
+  # upgrade as server-side apply with --force-conflicts lets Helm reclaim those
+  # fields. Both flags require Helm 3.18+/4.x; we feature-detect to stay
+  # compatible with the v3.x the preflight still allows.
+  if [ "$FORCE_CONFLICTS" = "true" ]; then
+    if helm upgrade --help 2>/dev/null | grep -q -- '--force-conflicts'; then
+      # --server-side takes a value (auto|true|false); use =true so the next
+      # flag isn't swallowed as its argument.
+      args+=( --server-side=true --force-conflicts )
+    else
+      warn "helm lacks --force-conflicts (need 3.18+/4.x); proceeding without it — a field-manager conflict may fail the upgrade"
+    fi
   fi
 
   args+=( --wait --timeout "$WAIT_TIMEOUT" )
