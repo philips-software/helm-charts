@@ -2,9 +2,27 @@ environmentConfig:
   resourcePrefix: ""
 
 postgres:
-  # Set to true to use an existing database (connection details secret must be pre-populated)
+  # When false, a Postgres database is provisioned (restored from sourceIdentifier) and its
+  # connection details secret is generated. When true, no database is created; the chart reads
+  # connection details from pre-existing secrets defined under postgres.existing below.
   useExisting: false
+
+  # Only used when useExisting is false: AWS snapshot identifier to restore the new database from.
   sourceIdentifier: "masterdatadb-202601081341"
+
+  # Only used when useExisting is true: references to pre-existing secrets holding the
+  # connection details for the external database. Both secrets must exist in the release
+  # namespace before install.
+  existing:
+    # Secret containing host/port/username (and optionally the password).
+    connectionSecretName: ""
+    connectionSecretKeys:
+      host: host
+      port: port
+      username: username
+    # Secret containing the database password. May be the same secret as connectionSecretName.
+    passwordSecretName: ""
+    passwordSecretKey: password
 
 grafanaDatasource:
   enabled: true

@@ -46,23 +46,23 @@ spec:
             - name: PG_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-connection-details
-                  key: host
+                  name: {{ include "masterdata-datasource.connectionSecretName" . }}
+                  key: {{ include "masterdata-datasource.hostKey" . }}
             - name: PG_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-connection-details
-                  key: port
+                  name: {{ include "masterdata-datasource.connectionSecretName" . }}
+                  key: {{ include "masterdata-datasource.portKey" . }}
             - name: PG_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-connection-details
-                  key: username
+                  name: {{ include "masterdata-datasource.connectionSecretName" . }}
+                  key: {{ include "masterdata-datasource.usernameKey" . }}
             - name: PG_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "masterdata-datasource.resourcePrefix" . }}-masterdata-password
-                  key: password
+                  name: {{ include "masterdata-datasource.passwordSecretName" . }}
+                  key: {{ include "masterdata-datasource.passwordKey" . }}
           command:
             - /bin/sh
             - -c
