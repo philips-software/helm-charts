@@ -12,6 +12,12 @@
     'config:best-practices',
     ':disableDependencyDashboard',
   ],
+  // config:best-practices defaults prHourlyLimit to 2, which throttles this
+  // repo to 2 PRs per run. With dozens of managed deps and major updates
+  // ordered last, breaking bumps (e.g. caddy-token v1.x) never reached the
+  // front of the queue. Lift the hourly cap; prConcurrentLimit (default 10)
+  // still bounds the number of simultaneously open PRs.
+  prHourlyLimit: 0,
   enabledManagers: ['custom.regex'],
   packageRules: [
     {
