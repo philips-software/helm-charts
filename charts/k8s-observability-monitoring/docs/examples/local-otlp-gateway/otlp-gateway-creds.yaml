@@ -1,7 +1,7 @@
-# otlp-gateway-creds secret for ri-obs-ct cluster
+# otlp-gateway-creds secret for the OTLP gateway destination
 #
 # Create:
-#   kubectl apply -f otlp-gateway-creds.yaml --context ri-obs-ct
+#   kubectl apply -f otlp-gateway-creds.yaml --context <your-cluster-context>
 #
 apiVersion: v1
 kind: Secret

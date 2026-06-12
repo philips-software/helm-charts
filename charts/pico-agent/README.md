@@ -42,7 +42,7 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 | httpRoute.gatewayRef.sectionName | string | `"http-0"` |  |
 | httpRoute.hostname | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.repository | string | `"ghcr.io/loafoe/pico-agent"` |  |
+| image.repository | string | `"ghcr.io/philips-software/pico-agent"` |  |
 | image.tag | string | `""` |  |
 | imagePullSecrets | list | `[]` |  |
 | nameOverride | string | `""` |  |
@@ -96,7 +96,7 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 | spire.trustDomain | string | `""` |  |
 | spire.trustDomains | list | `[]` |  |
 | tolerations | list | `[]` |  |
-| vpa.enabled | bool | `false` |  |
+| vpa.enabled | bool | `true` |  |
 | vpa.inPlaceResize | bool | `false` |  |
 | vpa.maxAllowed.cpu | string | `"500m"` |  |
 | vpa.maxAllowed.memory | string | `"1Gi"` |  |

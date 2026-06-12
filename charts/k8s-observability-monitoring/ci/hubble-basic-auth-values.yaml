@@ -1,0 +1,19 @@
+clusterName: test-cluster
+destinations:
+  gw:
+    type: otlp
+    url: https://gw.example.com
+    protocol: http
+    auth:
+      type: basic
+      usernameKey: username
+      passwordKey: apiKey
+    secret:
+      create: false
+      name: gw-creds
+    logs:
+      enabled: true
+podLogsViaLoki:
+  enabled: true
+hubbleFlowLogs:
+  enabled: true

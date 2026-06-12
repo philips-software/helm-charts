@@ -1,0 +1,22 @@
+clusterName: test-cluster
+spiffe:
+  enabled: true
+  trustDomain: example.com
+  audience: otlp-gateway
+  collectors:
+    - alloy-logs
+destinations:
+  gw:
+    type: otlp
+    url: https://gw.example.com
+    protocol: http
+    auth:
+      type: bearerToken
+      bearerTokenFile: /var/run/secrets/spiffe/jwt/token
+    logs:
+      enabled: true
+podLogsViaLoki:
+  enabled: true
+hubbleFlowLogs:
+  enabled: true
+  batchMaxSize: 512

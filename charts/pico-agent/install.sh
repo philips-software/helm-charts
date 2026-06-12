@@ -55,7 +55,10 @@ set -euo pipefail
 if [ "$READ_ONLY" = "true" ]; then
   : "${FEATURES:=getResource=true,argocd=true,configmapRead=true,httpRequest=true,workloadRestart=false,workloadScale=false,podEvict=false,podResize=false,nodeclaimDelete=false,pvResize=false,autoRemediate=false}"
 else
-  : "${FEATURES:=argocd=true,autoRemediate=true,configmapRead=true,httpRequest=true,podEvict=true,podResize=true,pvResize=true,workloadRestart=true,workloadScale=true}"
+  # Write mode: enable every feature EXCEPT the arbitrary resource reader
+  # (getResource). getResource grants wildcard read RBAC, so it stays off and
+  # is set explicitly to false so a re-run also disables it (declarative).
+  : "${FEATURES:=getResource=false,argocd=true,autoRemediate=true,configmapRead=true,httpRequest=true,nodeclaimDelete=true,podEvict=true,podResize=true,pvResize=true,workloadRestart=true,workloadScale=true}"
 fi
 
 # Networking / exposure. Empty values are auto-discovered (see below).
@@ -82,7 +85,7 @@ fi
 : "${INGRESS_TLS_SECRET:=pico-agent-tls}"
 
 # Identity
-: "${CLUSTER_NAME:=}"         # auto: current kube-context name
+: "${CLUSTER_NAME:=}"         # auto: hsp-addons resourcePrefix, else kube-context name
 : "${SPIRE_CLASSNAME:=}"      # auto: most common ClusterSPIFFEID className
 : "${JWT_AUDIENCE:=}"         # auto: pico-agent-<cluster-name>
 
@@ -95,6 +98,10 @@ fi
 : "${ASSUME_YES:=false}"     # true = skip the countdown entirely (CI / unattended)
 : "${ADOPT_RESOURCES:=true}" # stamp Helm ownership onto pre-existing chart resources
                              # that lack it, so `helm upgrade` can adopt them
+: "${FORCE_CONFLICTS:=true}" # use server-side apply and force-conflicts so the
+                             # upgrade overrules fields another manager grabbed
+                             # (e.g. a manual `kubectl scale` taking .spec.replicas).
+                             # Set FORCE_CONFLICTS=false to fail on conflicts instead.
 # ============================================================================
 # END CONFIG
 # ============================================================================
@@ -134,7 +141,19 @@ preflight() {
 discover() {
   CTX=$(kubectl config current-context 2>/dev/null) || die "no current kube-context"
 
-  [ -n "$CLUSTER_NAME" ] || CLUSTER_NAME="$CTX"
+  # CLUSTER_NAME: prefer hsp-addons resourcePrefix (stable), fall back to kube-context
+  if [ -z "$CLUSTER_NAME" ]; then
+    # Try 1: ConfigMap hsp-addons in namespace hsp-addons, field .data.tags (JSON)
+    CLUSTER_NAME=$(kubectl get configmap hsp-addons -n hsp-addons \
+      -o jsonpath='{.data.tags}' 2>/dev/null \
+      | grep -o '"Environment":"[^"]*"' | cut -d'"' -f4) || true
+    # Try 2: EnvironmentConfigs CR hsp-addons, field .spec.tags.Environment
+    [ -n "$CLUSTER_NAME" ] || \
+      CLUSTER_NAME=$(kubectl get environmentconfigs.apiextensions.crossplane.io hsp-addons \
+        -o jsonpath='{.spec.tags.Environment}' 2>/dev/null) || true
+    # Fallback: kubectl context name
+    [ -n "$CLUSTER_NAME" ] || CLUSTER_NAME="$CTX"
+  fi
   [ -n "$JWT_AUDIENCE" ] || JWT_AUDIENCE="pico-agent-${CLUSTER_NAME}"
 
   # Is the release already present? Used purely for messaging (the helm
@@ -517,6 +536,23 @@ deploy() {
     args+=( --set "httpRoute.gatewayRef.sectionName=${GATEWAY_SECTION}" )
   else
     args+=( --set "httpRoute.enabled=false" )
+  fi
+
+  # Force past server-side-apply field-manager conflicts. Helm refuses to change
+  # a field another manager owns (classic case: someone ran `kubectl scale`, which
+  # makes the apiserver record a separate owner for .spec.replicas, and the next
+  # `helm upgrade` then fails with a conflict on .spec.replicas). Running the
+  # upgrade as server-side apply with --force-conflicts lets Helm reclaim those
+  # fields. Both flags require Helm 3.18+/4.x; we feature-detect to stay
+  # compatible with the v3.x the preflight still allows.
+  if [ "$FORCE_CONFLICTS" = "true" ]; then
+    if helm upgrade --help 2>/dev/null | grep -q -- '--force-conflicts'; then
+      # --server-side takes a value (auto|true|false); use =true so the next
+      # flag isn't swallowed as its argument.
+      args+=( --server-side=true --force-conflicts )
+    else
+      warn "helm lacks --force-conflicts (need 3.18+/4.x); proceeding without it — a field-manager conflict may fail the upgrade"
+    fi
   fi
 
   args+=( --wait --timeout "$WAIT_TIMEOUT" )

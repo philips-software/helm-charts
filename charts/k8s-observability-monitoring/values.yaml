@@ -52,6 +52,10 @@ spiffe:
   trustDomain: ""
   audience: ""
   jwtPath: /var/run/secrets/spiffe/jwt/token
+  # -- Upstream collectors that should receive the spiffe-helper sidecar so they can
+  # authenticate to SPIFFE (bearerToken) destinations. Valid values: alloy-logs,
+  # alloy-receiver, alloy-metrics. Replaces the manual collectorCommon sidecar injection.
+  collectors: []
   helper:
     image: ghcr.io/spiffe/spiffe-helper:0.10.0
     resources:
@@ -101,6 +105,22 @@ podLogsViaLoki:
   dropKubeProbe: false
   # -- Namespaces to exclude from log collection.
   excludeNamespaces: []
+
+# -- Cilium Hubble L7 flow/access logs collection.
+# Tails Cilium's flow export file on each node (via the alloy-logs DaemonSet) and ships it to
+# a destination as OTLP logs. The chart does NOT configure Cilium: the operator must enable
+# hubble.export on the Cilium side (file path below + allowlist event_type 129).
+# Requires alloy-logs to have SPIFFE auth if a target destination uses bearerToken auth:
+# add "alloy-logs" to spiffe.collectors.
+hubbleFlowLogs:
+  enabled: false
+  # -- Cilium hubble-export-file-path. The chart mounts this file's parent dir read-only.
+  exportFilePath: /var/run/cilium/hubble/events.log
+  # -- Destinations to ship flows to. Empty = reuse the destinations resolved for podLogsViaLoki.
+  destinations: []
+  # -- Max OTLP batch size for flows. Hubble flow JSON is large (~4.5 KB/flow); keep batches
+  # under the gateway's gRPC receive limit (commonly 4 MB). 512 ~= 2.3 MB.
+  batchMaxSize: 512
 
 # -- Application observability (OTLP receiver for traces, metrics, logs from apps)
 applicationObservability:
@@ -154,12 +174,13 @@ collectorCommon:
 # Available collectors: alloy-logs, alloy-metrics, alloy-receiver
 collectors:
   alloy-logs:
-    resources:
-      requests:
-        cpu: 100m
-        memory: 256Mi
-      limits:
-        memory: 512Mi
+    alloy:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 512Mi
 
 # -- Custom Alloy deployment for kube-state-metrics scraping
 # Deploys separate Alloy instance with OTEL pipeline for metrics.
@@ -182,6 +203,8 @@ customAlloy:
   attributePromotion:
     enabled: false
   kubeStateMetrics:
+    extraMetricProcessingRules: ""
+  nodeExporter:
     extraMetricProcessingRules: ""
   kubelet:
     enabled: false

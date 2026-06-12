@@ -21,4 +21,7 @@ spec:
         - {{ .Release.Namespace }}
         names:
         - k8s-monitoring-alloy-*
+        {{- if and (index .Values.telemetryServices "node-exporter") (index .Values.telemetryServices "node-exporter" "deploy") }}
+        - k8s-monitoring-node-exporter-*
+        {{- end }}
 {{- end }}
