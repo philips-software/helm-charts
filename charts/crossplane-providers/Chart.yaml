@@ -4,7 +4,7 @@ description: A Helm chart for deploying Crossplane (AWS) providers with IRSA con
 type: application
 version: 0.0.33
 # renovate: datasource=github-releases depName=crossplane-contrib/provider-upjet-aws
-appVersion: "v2.5.0"
+appVersion: "v2.6.0"
 maintainers:
   - name: Philips Software
 keywords:
