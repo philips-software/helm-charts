@@ -1,6 +1,6 @@
 # otlp-gateway
 
-![Version: 0.57.0](https://img.shields.io/badge/Version-0.57.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.58.0](https://img.shields.io/badge/Version-0.58.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 OTLP gateway is a reference implementation which creates a single otlphttp endpoint that proxies Loki, Tempo and Mimir OTLP endpoints
 It supports authentication and authorization using both static and JWT tokens and tokens through the [caddy-token](https://github.com/loafoe/caddy-token) plugin.
@@ -78,7 +78,7 @@ authn:
 | autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | billing.enabled | bool | `false` |  |
 | billing.tenantMapperUrl | string | `"http://tenant-mapper.starlift-observability.svc.cluster.local"` |  |
-| caddy.container.image | string | `"ghcr.io/loafoe/caddy-token:v0.82.0"` |  |
+| caddy.container.image | string | `"ghcr.io/loafoe/caddy-token:v1.0.1"` |  |
 | caddy.payloadsize.enabled | bool | `false` |  |
 | cors.allowedHeaders[0] | string | `"Authorization"` |  |
 | cors.allowedHeaders[1] | string | `"Content-Type"` |  |
