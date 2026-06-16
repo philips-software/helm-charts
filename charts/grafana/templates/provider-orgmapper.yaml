@@ -1,11 +1,13 @@
 {{- if .Values.crossplaneProviders.orgmapper.enabled }}
-apiVersion: dip.io/v1alpha1
-kind: HelmApplication
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
   name: provider-orgmapper
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.argocd.namespace | default "argocd" }}
   annotations:
     argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: {{ .Values.argocd.project }}
   source:
@@ -13,11 +15,6 @@ spec:
     # renovate: datasource=docker depName=ghcr.io/philips-software/helm-charts/crossplane-providers
     targetRevision: 0.0.34
     path: .
-    withConfigKeys:
-      - resourcePrefix
-      - accountId
-      - oidcProvider
-      - oidcProviderArn
     helm:
       valuesObject:
         providers: [] # Disable default providers
@@ -30,6 +27,7 @@ spec:
             enabled: true
             debug: {{ .Values.crossplaneProviders.orgmapper.debug }}
   destination:
+    server: https://kubernetes.default.svc
     namespace: crossplane-system
   ignoreDifferences:
     - group: pkg.crossplane.io
