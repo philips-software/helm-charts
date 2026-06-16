@@ -9,7 +9,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: crossplane-provider-cleanup
+  name: {{ include "crossplane-providers.cleanupName" . }}
   namespace: {{ .Values.package.namespace }}
   labels:
     {{- include "crossplane-providers.labels" . | nindent 4 }}
@@ -22,10 +22,10 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: crossplane-provider-cleanup
+        app.kubernetes.io/name: {{ include "crossplane-providers.cleanupName" . }}
     spec:
       restartPolicy: Never
-      serviceAccountName: crossplane-provider-cleanup
+      serviceAccountName: {{ include "crossplane-providers.cleanupName" . }}
       securityContext:
         seccompProfile:
           type: RuntimeDefault

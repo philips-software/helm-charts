@@ -51,6 +51,15 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Name for the pre-sync cleanup resources (Job, ServiceAccount, ClusterRole, ClusterRoleBinding).
+Prefixed with the release name so multiple installations of this chart (e.g. one per provider)
+do not collide on these cluster-scoped and shared-namespace resources.
+*/}}
+{{- define "crossplane-providers.cleanupName" -}}
+{{- printf "%s-crossplane-provider-cleanup" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
 Check if any provider needs IAM resources (has managedPolicyArns or policy, without explicit roleArn)
 */}}
 {{- define "crossplane-providers.needsIAMResources" -}}
