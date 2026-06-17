@@ -2,7 +2,7 @@ apiVersion: v2
 name: crossplane-providers
 description: A Helm chart for deploying Crossplane (AWS) providers with IRSA configuration
 type: application
-version: 0.0.34
+version: 0.0.35
 # renovate: datasource=github-releases depName=crossplane-contrib/provider-upjet-aws
 appVersion: "v2.6.0"
 maintainers:

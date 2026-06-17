@@ -6,14 +6,16 @@ metadata:
   namespace: {{ .Values.argocd.namespace | default "argocd" }}
   annotations:
     argocd.argoproj.io/sync-wave: "3"
+  {{- if .Values.crossplaneProviders.cascadeDelete }}
   finalizers:
     - resources-finalizer.argocd.argoproj.io
+  {{- end }}
 spec:
   project: {{ .Values.argocd.project }}
   source:
     repoURL: oci://ghcr.io/philips-software/helm-charts/crossplane-providers
     # renovate: datasource=docker depName=ghcr.io/philips-software/helm-charts/crossplane-providers
-    targetRevision: 0.0.34
+    targetRevision: 0.0.35
     path: .
     helm:
       valuesObject:

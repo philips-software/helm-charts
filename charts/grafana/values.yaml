@@ -149,6 +149,21 @@ database:
 
 # Crossplane providers configuration
 crossplaneProviders:
+  # Controls the ArgoCD cascade-delete finalizer (resources-finalizer.argocd.argoproj.io)
+  # on the provider-gf / provider-orgmapper Applications.
+  #
+  # When false (default), the finalizer is OMITTED, so deleting one of these Applications
+  # is NON-CASCADING: it orphans the live Crossplane Provider/ProviderRevision/CRDs/CRs
+  # instead of tearing them down. This is the safe default for Crossplane providers:
+  # cascade-deleting a provider while its controller pod is gone leaves managed-resource
+  # finalizers (in-use.crossplane.io, finalizer.managedresource.crossplane.io) and
+  # foregroundDeletion with nothing to process them, which DEADLOCKS the whole stack.
+  # It also protects against GVK migrations (e.g. DIP HelmApplication -> ArgoCD Application)
+  # where the old Application is replaced and would otherwise prune the live provider.
+  #
+  # Set to true only if you explicitly want deleting the Application to also delete the
+  # underlying Crossplane provider resources.
+  cascadeDelete: false
   # Enable/disable Crossplane Orgmapper provider (boolean)
   orgmapper:
     enabled: true

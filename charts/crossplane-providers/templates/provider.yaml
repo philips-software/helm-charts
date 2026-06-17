@@ -9,6 +9,16 @@ metadata:
   namespace: {{ $.Values.package.namespace }}
   labels:
     {{- include "crossplane-providers.labels" $ | nindent 4 }}
+  {{- if $.Values.package.protectProvider }}
+  annotations:
+    # Prevent ArgoCD from pruning the live Provider when the parent Application is
+    # deleted. Cascade-deleting a Provider whose controller pod is already gone leaves
+    # managed-resource finalizers (in-use.crossplane.io,
+    # finalizer.managedresource.crossplane.io) and foregroundDeletion with nothing to
+    # process them, which deadlocks the whole provider stack. Deletion must be done
+    # deliberately (and the presync cleanup job clears stuck ProviderRevisions/CRDs).
+    argocd.argoproj.io/sync-options: Delete=false
+  {{- end }}
 spec:
   ignoreCrossplaneConstraints: false
   package: {{ $.Values.package.registry }}/{{ .name }}:{{ $.Values.package.version }}

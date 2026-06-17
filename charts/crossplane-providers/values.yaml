@@ -47,6 +47,13 @@ package:
   # This is typically "crossplane-system" for standard installations
   namespace: "crossplane-system"
 
+  # When true, annotates each Provider with argocd.argoproj.io/sync-options: Delete=false
+  # so ArgoCD will NOT prune the live Provider if the parent Application is deleted.
+  # This prevents the deadlock where cascade-deleting a Provider (whose controller pod
+  # is gone) leaves managed-resource finalizers and foregroundDeletion unprocessable.
+  # Set to false if you want Application deletion to also remove the Provider.
+  protectProvider: true
+
 # Additional providers to deploy (beyond the built-in AWS Family provider)
 # These providers follow the same structure as the main providers array
 # Each provider will create:
