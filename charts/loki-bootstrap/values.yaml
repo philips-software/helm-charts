@@ -118,6 +118,26 @@ distributor:
     limits:
       memory: 2Gi
 
+# Querier configuration
+querier:
+  replicas: 6
+  resources:
+    requests:
+      cpu: 20m
+      memory: 150Mi
+    limits:
+      memory: 250Mi
+
+# Query Frontend configuration
+queryFrontend:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 10m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
 features:
   # Enable the CloudWatch kill job that removes CloudWatch ClusterOutputs
   # and ensures a null-output ClusterOutput exists

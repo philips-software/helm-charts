@@ -148,15 +148,15 @@ compactor:
 
 
 querier:
-  replicas: 6
+  replicas: {{ .Values.querier.replicas }}
   maxUnavailable: 1
   multi_tenant_queries_enabled: {{ .Values.multitenancyEnabled }}
   resources:
     requests:
-      cpu: 20m
-      memory: 150Mi
+      cpu: {{ .Values.querier.resources.requests.cpu }}
+      memory: {{ .Values.querier.resources.requests.memory }}
     limits:
-      memory: 250Mi
+      memory: {{ .Values.querier.resources.limits.memory }}
   extraArgs:
     - -config.expand-env=true
   extraEnv:
@@ -167,14 +167,14 @@ querier:
           key: id
 
 queryFrontend:
-  replicas: 3
+  replicas: {{ .Values.queryFrontend.replicas }}
   maxUnavailable: 1
   resources:
     requests:
-      cpu: 10m
-      memory: 256Mi
+      cpu: {{ .Values.queryFrontend.resources.requests.cpu }}
+      memory: {{ .Values.queryFrontend.resources.requests.memory }}
     limits:
-      memory: 512Mi
+      memory: {{ .Values.queryFrontend.resources.limits.memory }}
   extraArgs:
     - -config.expand-env=true
   extraEnv:
