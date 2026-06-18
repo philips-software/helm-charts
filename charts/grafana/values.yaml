@@ -113,7 +113,7 @@ grafana:
 
 grafanaChart:
   # renovate: datasource=docker depName=ghcr.io/grafana-community/helm-charts/grafana
-  version: 12.4.6
+  version: 12.4.8
   # Helm release name for Grafana
   releaseName: gf
 
