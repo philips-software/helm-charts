@@ -1,13 +1,13 @@
 # mimir
 
-![Version: 0.61.0](https://img.shields.io/badge/Version-0.61.0-informational?style=flat-square)
+![Version: 0.63.0](https://img.shields.io/badge/Version-0.63.0-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.37.0 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.63.0 -n monitoring
 ```
 
 ## Dependencies
@@ -34,7 +34,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | ingester.resources.requests.cpu | string | `"200m"` |  |
 | ingester.resources.requests.memory | string | `"4Gi"` |  |
 | initOverrides.package | string | `"busybox"` |  |
-| initOverrides.tag | string | `"1.37.0"` |  |
+| initOverrides.tag | string | `"1.38.0"` |  |
 | kafka.persistence.size | string | `"100Gi"` |  |
 | kafkaNodePool.enabled | bool | `true` |  |
 | kafkaNodePool.expireAfter | string | `"3600h"` |  |
@@ -47,11 +47,18 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | limits.maxLabelNamesPerSeries | int | `35` |  |
 | limits.outOfOrderTimeWindow | string | `"30m"` |  |
 | mimirChart.version | string | `"6.0.6"` |  |
-| mimirProvider.credentials.secretKey | string | `"credentials"` |  |
-| mimirProvider.credentials.secretName | string | `"mimir-credentials"` |  |
+| mimirProvider.alertmanagerUri | string | `"http://mimir-gateway.mimir-system.svc.cluster.local"` |  |
+| mimirProvider.credentials.authType | string | `"basic"` |  |
+| mimirProvider.credentials.passwordKey | string | `"password"` |  |
+| mimirProvider.credentials.secretName | string | `"mimir-provider-credentials"` |  |
+| mimirProvider.credentials.tokenKey | string | `"token"` |  |
+| mimirProvider.credentials.usernameKey | string | `"username"` |  |
 | mimirProvider.enabled | bool | `false` |  |
+| mimirProvider.orgId | string | `"anonymous"` |  |
 | mimirProvider.package | string | `"ghcr.io/loafoe/provider-mimir"` |  |
+| mimirProvider.rulerUri | string | `"http://mimir-gateway.mimir-system.svc.cluster.local/prometheus"` |  |
 | mimirProvider.tag | string | `"v1.3.1"` |  |
+| mimirProvider.uri | string | `"http://mimir-gateway.mimir-system.svc.cluster.local/prometheus"` |  |
 | multitenancyEnabled | bool | `true` |  |
 | querier.resources.limits.memory | string | `"1.5Gi"` |  |
 | querier.resources.requests.cpu | string | `"100m"` |  |

@@ -7,7 +7,7 @@
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.37.0 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:{{ .Version }} -n monitoring
 ```
 
 ## Dependencies

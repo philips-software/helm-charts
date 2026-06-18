@@ -2,8 +2,17 @@
 
 {{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
 
+# Deployment
+
+## Using helm
+
+```shell
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:{{ .Version }} -n monitoring
+```
+
 {{ template "chart.requirementsSection" . }}
 
 {{ template "chart.valuesSection" . }}
 
 {{ template "helm-docs.versionFooter" . }}
+
