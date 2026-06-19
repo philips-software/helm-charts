@@ -75,7 +75,7 @@ pyroscope:
 log:
   level: error
   # Suppress health check logs (/api/health endpoint)
-  suppressHealthChecks: false
+  suppressHealthChecks: true
 
 # CORS configuration for browser-based OTLP clients
 cors:
