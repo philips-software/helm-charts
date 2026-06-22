@@ -43,6 +43,9 @@
       matchStrings: [
         // appVersion/version in Chart.yaml
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\n.*?(?:appVersion|version):\\s*["\']?(?<currentValue>[^"\'\\s]+)["\']?',
+        // appVersion/version in Chart.yaml with registryUrl (either order)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s*\\n.*?(?:appVersion|version):\\s*["\']?(?<currentValue>[^"\'\\s]+)["\']?',
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n.*?(?:appVersion|version):\\s*["\']?(?<currentValue>[^"\'\\s]+)["\']?',
         // targetRevision (ArgoCD style)
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*targetRevision:\\s*"?(?<currentValue>[^"\\s]+)"?',
         // targetRevision with registryUrl
