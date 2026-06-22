@@ -79,11 +79,42 @@ When using k8s-monitoring alongside kube-prometheus-stack, you may encounter dup
 - `crossplane-system/integrations/kubernetes/kube-state-metrics`
 - `cert-manager/integrations/kubernetes/kube-state-metrics`
 
-This is caused by a combination of:
-1. Alloy's clustering feature prefixing job labels with namespace information
-2. OTEL attribute promotion interfering with job label derivation
+**Root cause:** the upstream k8s-monitoring chart converts scraped Prometheus
+metrics to OTLP and back again. When kube-state-metrics is scraped this way,
+each metric carries a `namespace` label for the resource it describes. If that
+label is promoted to the `service.namespace` resource attribute, the namespace
+prefix is injected into the `job` label **after** the `prometheus.relabel`
+stage, inside the OTEL pipeline — producing the corrupted, per-namespace job
+names above (and duplicate scrape jobs). This only manifests when KPS coexists,
+because its kube-state-metrics ServiceMonitor is what the upstream collector
+picks up.
 
-See: https://github.com/grafana/k8s-monitoring-helm/issues/2383
+> **Note:** earlier revisions of this chart blamed Alloy *clustering* for the
+> prefix. That was a misdiagnosis — clustering is fine. The real trigger is the
+> `service.namespace` attribute promotion in the OTLP round-trip, which is why
+> `customAlloy.attributePromotion.enabled: false` is the actual fix.
+
+**Confirmed present in the latest v4.** Rendering upstream `k8s-monitoring`
+`4.1.6` (latest v4 release) with `clusterMetrics` + an OTLP destination still
+generates the offending statement in the shared transform processor:
+
+```alloy
+otelcol.processor.transform "<destination>" {
+  metric_statements {
+    context = "datapoint"
+    statements = [
+      `set(resource.attributes["service.namespace"], attributes["service_namespace"] ) where ...`,
+      ...
+```
+
+This promotion comes from the OTLP destination default
+`processors.transform.metrics.datapointToResource: { service_namespace: service.namespace }`
+(`destinations/otlp-values.yaml`). It is **on by default and not gated by any
+feature flag** — the only way to suppress it upstream is to override that map
+per-destination. customAlloy avoids the whole prometheus→OTLP→prometheus
+round-trip, which is why it remains the cleaner fix. Verified identical from
+`4.1.3` (our current pin) through `4.1.6`; no changelog entry in `4.1.4`–`4.1.6`
+addresses it.
 
 ### The Solution
 
@@ -93,10 +124,8 @@ Enable `customAlloy` which deploys a dedicated Alloy instance for kube-state-met
 # values.yaml for clusters with KPS
 customAlloy:
   enabled: true
-  clustering:
-    enabled: false  # Avoid job label prefix bug
   attributePromotion:
-    enabled: false  # Avoid service.namespace promotion bug
+    enabled: false  # The actual fix: avoids the service.namespace promotion that corrupts job labels
 
 # kube-state-metrics exclusion is automatically added when customAlloy.enabled: true
 ```
@@ -104,6 +133,31 @@ customAlloy:
 This configuration:
 1. Deploys a dedicated Alloy instance that scrapes kube-state-metrics directly with correct job labels
 2. Automatically excludes the kube-state-metrics ServiceMonitor from `prometheusOperatorObjects` to avoid duplicates
+
+### When can customAlloy be removed?
+
+`customAlloy` is a workaround, not a permanent feature. The removal trigger is
+the **behaviour**, not any tracking issue: it can be removed once a future
+k8s-monitoring release stops promoting `service_namespace → service.namespace`
+in the metrics pipeline by default (or gates it behind a flag we can disable).
+Migrating to v4 did **not** achieve this — the promotion is still emitted
+unconditionally as of upstream `v4.1.6`.
+
+To re-check after any upstream bump, render the chart and look for the
+statement — if it's gone (or disableable), customAlloy can go too:
+
+```bash
+helm template t grafana/k8s-monitoring --version <new-version> -f - <<'EOF' | grep 'service.namespace'
+cluster: {name: t}
+destinations: {gw: {type: otlp, url: http://gw/otlp, protocol: http, auth: {type: none}}}
+collectors: {alloy-metrics: {enabled: true, presets: [clustered]}}
+clusterMetrics: {enabled: true, kube-state-metrics: {labelMatchers: {app.kubernetes.io/name: kube-state-metrics}}}
+EOF
+```
+
+Then on a live KPS cluster, verify kube-state-metrics job labels are not
+namespace-prefixed — `count by (job) (kube_pod_info)` should show a single,
+clean `integrations/kubernetes/kube-state-metrics` job.
 
 ### OTLP Secret Requirements
 
