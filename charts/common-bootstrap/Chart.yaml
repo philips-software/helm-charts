@@ -5,9 +5,9 @@ description: |
   Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
   and uses HelmApplication CRs to bootstrap platform components.
 type: application
-version: 1.4.0
+version: 1.4.1
 # renovate: datasource=github-tags depName=loafoe/crossplane-compositions
-appVersion: "0.0.36"
+appVersion: "0.0.37"
 keywords:
   - crossplane
   - common
