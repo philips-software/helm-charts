@@ -31,9 +31,17 @@ spire:
   # Trust domains to accept (supports federation with multiple domains)
   # Example: ["example.org", "partner.com"]
   trustDomains: []
-  # Skip creating the federated ClusterSPIFFEID (use when the caller is in the
+  # Skip creating the federated ClusterSPIFFEID (use when ALL callers are in the
   # same trust domain as this agent — federation with self is invalid)
   skipFederation: false
+  # The agent's OWN trust domain. When a caller lives in the same trust domain
+  # as this agent, list that domain in trustDomains (so it's accepted) AND set
+  # it here, so the federated ClusterSPIFFEID excludes it from federatesWith
+  # (SPIRE cannot federate a trust domain with itself). Leave empty when every
+  # caller is remote. This lets you trust a LOCAL caller and REMOTE callers at
+  # the same time, without disabling federation entirely (skipFederation).
+  # Example: "rpi.loafoe.com"
+  localTrustDomain: ""
   # Legacy single trust domain (use trustDomains for new deployments)
   # Kept for backward compatibility
   trustDomain: ""

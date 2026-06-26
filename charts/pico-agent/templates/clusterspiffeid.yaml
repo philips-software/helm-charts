@@ -1,4 +1,18 @@
-{{- if and .Values.spire.enabled .Values.spire.trustDomains (not .Values.spire.skipFederation) }}
+{{- /*
+  federatedTrustDomains = trustDomains minus the agent's own (local) trust
+  domain. A caller in the SAME trust domain as this agent must still be in
+  .Values.spire.trustDomains (the app's accept-list feeds SPIRE_TRUST_DOMAINS),
+  but it must NOT appear in federatesWith — SPIRE cannot federate a trust domain
+  with itself, and doing so breaks the agent's SVID issuance.
+*/}}
+{{- $local := .Values.spire.localTrustDomain | default "" }}
+{{- $federated := list }}
+{{- range .Values.spire.trustDomains }}
+  {{- if ne . $local }}
+    {{- $federated = append $federated . }}
+  {{- end }}
+{{- end }}
+{{- if and .Values.spire.enabled $federated (not .Values.spire.skipFederation) }}
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterSPIFFEID
 metadata:
@@ -12,7 +26,7 @@ spec:
     matchLabels:
       kubernetes.io/metadata.name: {{ .Release.Namespace }}
   federatesWith:
-    {{- range .Values.spire.trustDomains }}
+    {{- range $federated }}
     - {{ . | quote }}
     {{- end }}
 {{- end }}

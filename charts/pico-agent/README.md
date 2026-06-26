@@ -1,6 +1,6 @@
 # pico-agent
 
-![Version: 0.43.0](https://img.shields.io/badge/Version-0.43.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.41.0](https://img.shields.io/badge/AppVersion-v0.41.0-informational?style=flat-square)
+![Version: 0.52.0](https://img.shields.io/badge/Version-0.52.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.48.0](https://img.shields.io/badge/AppVersion-v0.48.0-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -91,7 +91,9 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 | spire.hostSocketPath | string | `"/run/spire/agent-sockets"` |  |
 | spire.jwt.audiences | list | `[]` |  |
 | spire.jwt.enabled | bool | `false` |  |
+| spire.localTrustDomain | string | `""` |  |
 | spire.mtlsEnabled | bool | `false` |  |
+| spire.skipFederation | bool | `false` |  |
 | spire.socketMountPath | string | `"/spiffe-workload-api"` |  |
 | spire.trustDomain | string | `""` |  |
 | spire.trustDomains | list | `[]` |  |

@@ -37,6 +37,15 @@ set -euo pipefail
 : "${MCP_SPIFFE_ID:=spiffe://dip-ce-k3s-eu.hsp.philips.com/ns/pico-mcp/sa/pico-mcp}"
 : "${MCP_FEDERATION_NAME:=dip-ce-k3s-eu}"   # name of the ClusterFederatedTrustDomain
 
+# Optional LOCAL caller: a pico-mcp/centcom running in the SAME cluster (and
+# thus the same trust domain) as this agent. Unlike the remote MCP above, a
+# local caller needs NO federation — the agent already has its own trust
+# bundle — so it is added to the accept-list (trustDomains/allowedSPIFFEIDs)
+# but excluded from federatesWith via spire.localTrustDomain. Leave empty to
+# disable. LOCAL_TRUST_DOMAIN is auto-discovered from spire-server if unset.
+: "${LOCAL_SPIFFE_ID:=}"        # e.g. spiffe://rpi.loafoe.com/ns/centcom/sa/pico-mcp
+: "${LOCAL_TRUST_DOMAIN:=}"     # e.g. rpi.loafoe.com (auto-discovered if empty and LOCAL_SPIFFE_ID set)
+
 # Install target
 : "${NAMESPACE:=pico-agent}"
 : "${RELEASE_NAME:=pico-agent}"
@@ -155,6 +164,17 @@ discover() {
     [ -n "$CLUSTER_NAME" ] || CLUSTER_NAME="$CTX"
   fi
   [ -n "$JWT_AUDIENCE" ] || JWT_AUDIENCE="pico-agent-${CLUSTER_NAME}"
+
+  # If a LOCAL caller was requested without an explicit trust domain, derive it:
+  # prefer parsing the SPIFFE ID, else read the agent's own trust domain from
+  # the spire-server config.
+  if [ -n "$LOCAL_SPIFFE_ID" ] && [ -z "$LOCAL_TRUST_DOMAIN" ]; then
+    LOCAL_TRUST_DOMAIN=$(printf '%s' "$LOCAL_SPIFFE_ID" | sed -n 's#^spiffe://\([^/]*\)/.*#\1#p')
+    [ -n "$LOCAL_TRUST_DOMAIN" ] || LOCAL_TRUST_DOMAIN=$(kubectl get cm -n spire-system \
+      -o jsonpath='{range .items[*]}{.data.server\.conf}{"\n"}{end}' 2>/dev/null \
+      | grep -o 'trust_domain[ "]*=[ "]*[^"]*' | head -1 | sed 's/.*[ "]=[ "]*//')
+    [ -n "$LOCAL_TRUST_DOMAIN" ] || die "LOCAL_SPIFFE_ID set but could not determine LOCAL_TRUST_DOMAIN; set it explicitly"
+  fi
 
   # Is the release already present? Used purely for messaging (the helm
   # upgrade --install below is idempotent either way).
@@ -510,6 +530,17 @@ deploy() {
   args+=( --set "spire.trustDomains[0]=${MCP_TRUST_DOMAIN}" )
   if [ "${_SKIP_FEDERATION:-}" = "true" ]; then
     args+=( --set "spire.skipFederation=true" )
+  fi
+
+  # Optional LOCAL caller (same trust domain as this agent): add it to the
+  # accept-list at index 1 and mark its domain as local so the chart excludes
+  # it from federatesWith (no self-federation). The remote MCP stays federated.
+  if [ -n "$LOCAL_SPIFFE_ID" ]; then
+    args+=(
+      --set "spire.allowedSPIFFEIDs[1]=${LOCAL_SPIFFE_ID}"
+      --set "spire.trustDomains[1]=${LOCAL_TRUST_DOMAIN}"
+      --set "spire.localTrustDomain=${LOCAL_TRUST_DOMAIN}"
+    )
   fi
 
   # Feature flags
