@@ -1,13 +1,13 @@
 # mimir
 
-![Version: 0.63.0](https://img.shields.io/badge/Version-0.63.0-informational?style=flat-square)
+![Version: 0.64.0](https://img.shields.io/badge/Version-0.64.0-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.63.0 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.64.0 -n monitoring
 ```
 
 ## Dependencies
@@ -46,7 +46,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | limits.maxGlobalExemplarsPerUser | int | `0` |  |
 | limits.maxLabelNamesPerSeries | int | `35` |  |
 | limits.outOfOrderTimeWindow | string | `"30m"` |  |
-| mimirChart.version | string | `"6.0.6"` |  |
+| mimirChart.version | string | `"6.1.0"` |  |
 | mimirProvider.alertmanagerUri | string | `"http://mimir-gateway.mimir-system.svc.cluster.local"` |  |
 | mimirProvider.credentials.authType | string | `"basic"` |  |
 | mimirProvider.credentials.passwordKey | string | `"password"` |  |
