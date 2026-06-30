@@ -61,6 +61,15 @@ entries:
     version: 0.2.0
   cloudnative-pg-operator:
   - apiVersion: v2
+    created: "2026-06-30T08:17:02.155335997Z"
+    description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
+      policies
+    digest: 57136c41783679414e2df1f6b5b9458e29bb37830e3bdce73e1f5686e25e0f82
+    name: cloudnative-pg-operator
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-0.9.0/cloudnative-pg-operator-0.9.0.tgz
+    version: 0.9.0
+  - apiVersion: v2
     created: "2026-05-19T06:53:14.981735729Z"
     description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
       policies
@@ -1611,6 +1620,13 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.0.14/fluent-bit-out-hsdp-0.0.14.tgz
     version: 0.0.14
   grafana:
+  - apiVersion: v2
+    created: "2026-06-30T08:17:02.839790101Z"
+    digest: 734d6940b269b30cdf09d2e6c5b7f092c2ee3fbf36f9b3519e276659762d083d
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.76.0/grafana-0.76.0.tgz
+    version: 0.76.0
   - apiVersion: v2
     created: "2026-06-17T07:05:51.072231982Z"
     digest: e2c187252383683e0627f42a3548e57db03e8a7c3085332b0b1520288e10e4cf
@@ -4072,4 +4088,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-06-26T12:51:23.297963433Z"
+generated: "2026-06-30T08:17:03.719628415Z"
