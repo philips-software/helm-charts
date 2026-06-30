@@ -673,6 +673,22 @@ entries:
     version: 0.0.2
   crossplane-functions:
   - apiVersion: v2
+    created: "2026-06-30T08:17:43.111742676Z"
+    description: A Helm chart for deploying Crossplane functions
+    digest: 9799c839f2d688533001073fed7778872ea8e12abc237103ccea8cf3bac8d69c
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    maintainers:
+    - name: Philips Software
+    name: crossplane-functions
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-functions-0.0.14/crossplane-functions-0.0.14.tgz
+    version: 0.0.14
+  - apiVersion: v2
     created: "2026-05-09T11:50:14.744727297Z"
     description: A Helm chart for deploying Crossplane functions
     digest: 4ba3210dcf84fbcddb8bc04133eba812fc5e309c968fee243e414b7bdaa8bac2
@@ -3225,6 +3241,14 @@ entries:
     version: 0.8.0
   mimir-bootstrap:
   - apiVersion: v2
+    created: "2026-06-30T08:17:43.327251661Z"
+    description: A Helm chart for bootstrapping Mimir
+    digest: 55926a297bca866428a24924fd777c4290a61bd5de7a05f2dd2f24d6b545f2c0
+    name: mimir-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/mimir-bootstrap-0.64.0/mimir-bootstrap-0.64.0.tgz
+    version: 0.64.0
+  - apiVersion: v2
     created: "2026-06-04T06:44:39.895414432Z"
     description: A Helm chart for bootstrapping Mimir
     digest: 9a5ea51088afaaea0cc20246345ace29f6da2ddc41206b5b15d3378d3a883251
@@ -4088,4 +4112,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-06-30T08:17:03.719628415Z"
+generated: "2026-06-30T08:17:43.327861939Z"
