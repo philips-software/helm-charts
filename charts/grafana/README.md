@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.75.0](https://img.shields.io/badge/Version-0.75.0-informational?style=flat-square)
+![Version: 0.76.0](https://img.shields.io/badge/Version-0.76.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -19,6 +19,7 @@ secret in the same namespace as the app. The secret should have the following fi
 |-----|------|---------|-------------|
 | argocd.namespace | string | `"argocd"` |  |
 | argocd.project | string | `"default"` |  |
+| crossplaneProviders.cascadeDelete | bool | `false` |  |
 | crossplaneProviders.gf.datasources | list | `[]` |  |
 | crossplaneProviders.gf.debug | bool | `false` |  |
 | crossplaneProviders.gf.enabled | bool | `true` |  |
@@ -88,7 +89,7 @@ secret in the same namespace as the app. The secret should have the following fi
 | grafana.ssoAuthEnabled | bool | `false` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
-| grafanaChart.version | string | `"12.4.6"` |  |
+| grafanaChart.version | string | `"12.7.1"` |  |
 | useCustomFqdn | bool | `true` |  |
 
 ----------------------------------------------
