@@ -1,0 +1,19 @@
+apiVersion: v2
+name: centcom-satellite
+description: A lightweight Kubernetes helper service for webhook-triggered cluster operations
+type: application
+version: 0.1.0
+# renovate: datasource=docker depName=ghcr.io/loafoe/centcom-satellite
+appVersion: "v0.49.1"
+keywords:
+  - kubernetes
+  - pvc
+  - resize
+  - spire
+  - spiffe
+home: https://github.com/loafoe/centcom-satellite
+sources:
+  - https://github.com/loafoe/centcom-satellite
+maintainers:
+  - name: Andy Lo-A-Foe
+    email: andy.lo-a-foe@philips.com
