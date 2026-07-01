@@ -214,8 +214,11 @@ customAlloy:
       memory: 512Mi
     limits:
       memory: 1Gi
+  # -- VerticalPodAutoscaler for customAlloy. Enabled by default: clustering
+  # deployments outgrow the static requests under real metric volume and OOMKill
+  # at fixed limits. VPA (memory-only) right-sizes them within min/maxAllowed.
   vpa:
-    enabled: false
+    enabled: true
     updateMode: "InPlaceOrRecreate"
     minAllowed:
       memory: 512Mi
