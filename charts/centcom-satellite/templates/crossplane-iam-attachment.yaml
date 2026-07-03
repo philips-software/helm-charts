@@ -1,0 +1,18 @@
+{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) }}
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: RolePolicyAttachment
+metadata:
+  name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ .Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    roleRef:
+      name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+    policyArnRef:
+      name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+{{- end }}

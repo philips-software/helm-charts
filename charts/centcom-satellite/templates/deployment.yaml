@@ -131,6 +131,14 @@ spec:
             - name: AUTO_REMEDIATE_ENABLED
               value: "true"
             {{- end }}
+            {{- if .Values.features.cloudwatchRca }}
+            - name: CLOUDWATCH_RCA_ENABLED
+              value: "true"
+            {{- end }}
+            {{- if .Values.aws.irsa.region }}
+            - name: AWS_REGION
+              value: {{ .Values.aws.irsa.region | quote }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: {{ if .Values.spire.enabled }}/metrics{{ else }}/healthz{{ end }}

@@ -120,6 +120,32 @@ features:
   # Enable auto-remediation workflows orchestrated by centcom
   # (e.g. PV usage alerting and automatic resize). Sets AUTO_REMEDIATE_ENABLED.
   autoRemediate: false
+  # Enable CloudWatch RCA tasks (7 tasks: describe/list/tag APIs for alarms,
+  # metrics, log groups, Cost Explorer). Sets CLOUDWATCH_RCA_ENABLED. Requires
+  # AWS credentials via IRSA (aws.irsa) or ambient credentials.
+  cloudwatchRca: false
+
+# AWS integration: Crossplane-managed IAM + IRSA for CloudWatch RCA tasks
+aws:
+  irsa:
+    # Create Crossplane IAM Policy/Role/Attachment and annotate the SA for IRSA
+    enabled: false
+    # AWS account ID (used to compute the role ARN stamped on the ServiceAccount)
+    accountId: ""
+    # Cluster OIDC issuer host (no scheme), e.g. k3s-issuer.dip-ce-k3s-eu.hsp.philips.com
+    oidcIssuer: ""
+    # Token audience expected in the IRSA trust policy
+    audience: "sts.amazonaws.com"
+    # Crossplane ClusterProviderConfig name
+    providerConfigRef: default
+    # AWS region the SDK uses for CloudWatch/Logs calls (Cost Explorer is us-east-1 in code)
+    region: ""
+    # IAM path and extra tags applied to the created policy/role
+    path: /
+    tags: {}
+    # Bring-your-own role: when set, skip building the ARN from accountId and just
+    # annotate the SA with this ARN (Crossplane resources still render if enabled).
+    roleArnOverride: ""
 
 podAnnotations: {}
 
