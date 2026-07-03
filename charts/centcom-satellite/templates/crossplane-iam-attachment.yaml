@@ -1,4 +1,7 @@
 {{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) }}
+{{- $top := . }}
+{{- /* Attach the built-in CloudWatch RCA policy only when that feature is on. */ -}}
+{{- if .Values.features.cloudwatchRca }}
 apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: RolePolicyAttachment
 metadata:
@@ -12,7 +15,31 @@ spec:
     name: {{ .Values.aws.irsa.providerConfigRef }}
   forProvider:
     roleRef:
-      name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+      name: {{ include "centcom-satellite.irsaRoleName" . }}
     policyArnRef:
       name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+{{- end }}
+{{- /*
+Attach any additional pre-existing managed-policy ARNs to the same role. This is
+how future task groups that need extra IAM get wired in without a new role — set
+aws.irsa.extraPolicyArns to a list of ARNs (customer-managed or AWS-managed).
+*/ -}}
+{{- range $i, $arn := .Values.aws.irsa.extraPolicyArns }}
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: RolePolicyAttachment
+metadata:
+  name: {{ include "centcom-satellite.fullname" $top }}-extra-{{ $i }}
+  namespace: {{ $top.Release.Namespace }}
+  labels:
+    {{- include "centcom-satellite.labels" $top | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ $top.Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    roleRef:
+      name: {{ include "centcom-satellite.irsaRoleName" $top }}
+    policyArn: {{ $arn | quote }}
+{{- end }}
 {{- end }}

@@ -125,10 +125,15 @@ features:
   # AWS credentials via IRSA (aws.irsa) or ambient credentials.
   cloudwatchRca: false
 
-# AWS integration: Crossplane-managed IAM + IRSA for CloudWatch RCA tasks
+# AWS integration: Crossplane-managed IAM + IRSA.
+#
+# When enabled, the chart provisions a single GENERIC IAM role for the agent's
+# ServiceAccount and attaches one policy per enabled task-group. Today that is the
+# CloudWatch RCA policy (attached only when features.cloudwatchRca is true); future
+# task groups add their own policies to the same role rather than a new role.
 aws:
   irsa:
-    # Create Crossplane IAM Policy/Role/Attachment and annotate the SA for IRSA
+    # Create Crossplane IAM Role (+ per-feature Policy/Attachment) and annotate the SA for IRSA
     enabled: false
     # AWS account ID (used to compute the role ARN stamped on the ServiceAccount)
     accountId: ""
@@ -140,12 +145,18 @@ aws:
     providerConfigRef: default
     # AWS region the SDK uses for CloudWatch/Logs calls (Cost Explorer is us-east-1 in code)
     region: ""
-    # IAM path and extra tags applied to the created policy/role
+    # IAM path and extra tags applied to the created role/policies
     path: /
     tags: {}
     # Bring-your-own role: when set, skip building the ARN from accountId and just
     # annotate the SA with this ARN (Crossplane resources still render if enabled).
     roleArnOverride: ""
+    # Additional pre-existing managed-policy ARNs to attach to the generic role.
+    # Use this to grant IAM for task groups beyond the built-in CloudWatch RCA
+    # policy without defining a new role, e.g.:
+    #   extraPolicyArns:
+    #     - arn:aws:iam::123456789012:policy/centcom-satellite-extra
+    extraPolicyArns: []
 
 podAnnotations: {}
 

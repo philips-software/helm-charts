@@ -74,14 +74,21 @@ Inputs → outputs: "" or "/" → "/", "team" → "/team/", "/team" → "/team/"
 {{- end }}
 
 {{/*
-IRSA role ARN: explicit override, else computed from accountId + path + external name.
-External name of the Crossplane Role is "<fullname>-cw-rca".
+IRSA role name: the Crossplane Role external-name. Generic (not task-specific)
+so multiple task-scoped policies can be attached to the same role.
+*/}}
+{{- define "centcom-satellite.irsaRoleName" -}}
+{{- include "centcom-satellite.fullname" . -}}
+{{- end }}
+
+{{/*
+IRSA role ARN: explicit override, else computed from accountId + path + role name.
 The path is normalized via centcom-satellite.irsaPath.
 */}}
 {{- define "centcom-satellite.irsaRoleArn" -}}
 {{- if .Values.aws.irsa.roleArnOverride -}}
 {{- .Values.aws.irsa.roleArnOverride -}}
 {{- else -}}
-{{- printf "arn:aws:iam::%s:role%s%s-cw-rca" .Values.aws.irsa.accountId (include "centcom-satellite.irsaPath" .) (include "centcom-satellite.fullname" .) -}}
+{{- printf "arn:aws:iam::%s:role%s%s" .Values.aws.irsa.accountId (include "centcom-satellite.irsaPath" .) (include "centcom-satellite.irsaRoleName" .) -}}
 {{- end -}}
 {{- end }}

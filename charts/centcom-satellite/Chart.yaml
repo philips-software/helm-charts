@@ -2,7 +2,7 @@ apiVersion: v2
 name: centcom-satellite
 description: A lightweight Kubernetes helper service for webhook-triggered cluster operations
 type: application
-version: 0.2.0
+version: 0.3.0
 # renovate: datasource=docker depName=ghcr.io/loafoe/centcom-satellite
 appVersion: "v0.50.0"
 keywords:

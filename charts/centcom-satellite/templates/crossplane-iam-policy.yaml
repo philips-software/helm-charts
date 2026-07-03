@@ -1,4 +1,4 @@
-{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) }}
+{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) .Values.features.cloudwatchRca }}
 apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: Policy
 metadata:
