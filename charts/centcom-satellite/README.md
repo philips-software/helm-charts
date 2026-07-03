@@ -16,6 +16,78 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
 * <https://github.com/loafoe/centcom-satellite>
 
+## CloudWatch RCA Feature
+
+The chart supports AWS CloudWatch Root Cause Analysis (RCA) tasks when `features.cloudwatchRca` is enabled. This feature allows centcom-satellite to perform CloudWatch alarm analysis, metric queries, CloudWatch Logs Insights queries, and AWS Cost Explorer queries.
+
+### Prerequisites
+
+- Crossplane `provider-aws-iam` (v2.6.0 or later) installed in the cluster
+- A `ClusterProviderConfig` named `default` configured with AWS credentials (typically IRSA-based)
+- An OIDC identity provider configured in your AWS account for Kubernetes service account federation
+- A pod-identity webhook or EKS Pod Identity Agent to inject AWS credentials into pods
+
+### IRSA Configuration
+
+When `aws.irsa.enabled` is true, the chart will:
+
+1. Create a Crossplane-managed IAM Policy with permissions for CloudWatch, CloudWatch Logs, and Cost Explorer APIs
+2. Create a Crossplane-managed IAM Role with a trust policy for your cluster's OIDC provider
+3. Attach the policy to the role via a Crossplane RolePolicyAttachment
+4. Annotate the ServiceAccount with `eks.amazonaws.com/role-arn` for IRSA injection
+5. Set `AWS_REGION` environment variable on the pod
+
+The pod-identity webhook will inject `AWS_ROLE_ARN` and `AWS_WEB_IDENTITY_TOKEN_FILE` environment variables, plus the projected service account token volume.
+
+### Example Installation
+
+```bash
+helm upgrade --install centcom-satellite philips-software/centcom-satellite \
+  --namespace centcom-satellite \
+  --create-namespace \
+  --set features.cloudwatchRca=true \
+  --set aws.irsa.enabled=true \
+  --set aws.irsa.accountId=123456789012 \
+  --set aws.irsa.oidcIssuer=oidc.eks.us-west-2.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE \
+  --set aws.irsa.region=us-west-2
+```
+
+### IAM Permissions
+
+The Crossplane-managed policy grants the following permissions:
+
+- `cloudwatch:DescribeAlarms` - List and describe CloudWatch alarms
+- `cloudwatch:DescribeAlarmHistory` - Retrieve alarm state change history
+- `cloudwatch:GetMetricData` - Query CloudWatch metrics
+- `cloudwatch:ListMetrics` - List available metrics
+- `logs:DescribeLogGroups` - List CloudWatch log groups
+- `logs:StartQuery` - Start CloudWatch Logs Insights queries
+- `logs:GetQueryResults` - Retrieve query results
+- `logs:StopQuery` - Cancel running queries
+- `ce:GetCostAndUsage` - Query AWS Cost Explorer data
+
+All actions are granted on all resources (`"Resource": "*"`). Customize the policy by overriding the Crossplane Policy template if needed.
+
+### Verification
+
+After deployment, verify the IRSA setup:
+
+```bash
+# Check that Crossplane resources are SYNCED and READY
+kubectl -n <namespace> get policy.iam.aws.m.upbound.io,role.iam.aws.m.upbound.io,rolepolicyattachment.iam.aws.m.upbound.io
+
+# Verify the ServiceAccount annotation
+kubectl -n <namespace> get sa -o yaml | grep eks.amazonaws.com/role-arn
+
+# Confirm AWS environment variables are injected in the pod
+kubectl -n <namespace> exec deploy/centcom-satellite -- env | grep AWS_
+```
+
+The pod should show:
+- `AWS_ROLE_ARN=arn:aws:iam::<accountId>:role/<release-name>-cw-rca`
+- `AWS_WEB_IDENTITY_TOKEN_FILE=/var/run/secrets/eks.amazonaws.com/serviceaccount/token`
+- `AWS_REGION=<configured region>`
+
 ## Values
 
 | Key | Type | Default | Description |
