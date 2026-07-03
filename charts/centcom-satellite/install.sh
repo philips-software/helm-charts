@@ -18,6 +18,11 @@
 #
 #   curl -fsSL .../install.sh | READ_ONLY=true bash
 #
+# To enable the CloudWatch RCA + Cost Explorer tasks (read-only AWS data via
+# IRSA, all values auto-discovered), set CLOUDWATCH_RCA=true:
+#
+#   curl -fsSL .../install.sh | CLOUDWATCH_RCA=true bash
+#
 # To expose via an nginx Ingress instead of a Gateway API HTTPRoute (for
 # clusters whose gateway has a broken http-to-https redirect), USE_INGRESS=true.
 # Requires an ingress controller — it fails fast if no IngressClass exists:
@@ -68,6 +73,39 @@ else
   # (getResource). getResource grants wildcard read RBAC, so it stays off and
   # is set explicitly to false so a re-run also disables it (declarative).
   : "${FEATURES:=getResource=false,argocd=true,autoRemediate=true,configmapRead=true,httpRequest=true,nodeclaimDelete=true,podEvict=true,podResize=true,pvResize=true,workloadRestart=true,workloadScale=true}"
+fi
+
+# CloudWatch RCA + Cost Explorer tasks. These need AWS credentials, provided via
+# IRSA: the chart has Crossplane provision a generic IAM role for the agent's
+# ServiceAccount and attach the CloudWatch RCA policy. Enabling CLOUDWATCH_RCA
+# turns on the feature AND the IRSA plumbing, auto-discovering everything it can
+# from the cluster (account id, OIDC issuer, region, Crossplane providerConfig).
+#
+#   curl -fsSL .../install.sh | CLOUDWATCH_RCA=true bash
+#
+# Requires the AWS Crossplane provider (iam.aws.*) + a ClusterProviderConfig on
+# the target cluster, and an IAM OIDC provider registered for the cluster issuer.
+# Any auto-discovered value can be overridden with the matching env var below.
+: "${CLOUDWATCH_RCA:=false}"
+: "${IRSA_ENABLED:=}"          # auto: true when CLOUDWATCH_RCA=true, else false
+# NOTE: these use IRSA_-prefixed names on purpose — NOT AWS_REGION/AWS_ACCOUNT_ID.
+# Everything is derived from the TARGET CLUSTER, never from the operator's local
+# AWS env/CLI config. Reusing the standard AWS_* names here would let an ambient
+# `AWS_REGION=us-east-1` on the laptop silently override cluster discovery.
+: "${IRSA_ACCOUNT_ID:=}"       # auto: from an existing IRSA-annotated ServiceAccount
+: "${IRSA_OIDC_ISSUER:=}"      # auto: cluster issuer (from /.well-known/openid-configuration), scheme stripped
+: "${IRSA_REGION:=}"           # auto: from a node's topology region label / providerID
+: "${IRSA_PROVIDER_CONFIG:=}"  # auto: a ClusterProviderConfig named "default", else the first
+: "${IRSA_AUDIENCE:=sts.amazonaws.com}"
+: "${IRSA_ROLE_ARN:=}"         # bring-your-own role ARN; skips Crossplane role creation
+
+# IRSA follows CloudWatch RCA unless explicitly overridden, and the feature flag
+# is appended so a re-run also toggles it declaratively.
+[ -n "$IRSA_ENABLED" ] || IRSA_ENABLED="$CLOUDWATCH_RCA"
+if [ "$CLOUDWATCH_RCA" = "true" ]; then
+  FEATURES="${FEATURES},cloudwatchRca=true"
+else
+  FEATURES="${FEATURES},cloudwatchRca=false"
 fi
 
 # Networking / exposure. Empty values are auto-discovered (see below).
@@ -250,6 +288,8 @@ discover() {
       HOSTNAME_FQDN="centcom-satellite.${BASE_DOMAIN}"
     fi
   fi
+
+  discover_irsa
 }
 
 # discover_base_domain <ingress|httproute>: most common hostname suffix (the
@@ -266,6 +306,71 @@ discover_base_domain() {
   fi
   printf '%s\n' "$hosts" | sed 's/^[^.]*\.//' | awk 'NF' \
     | sort | uniq -c | sort -rn | awk 'NR==1{print $2}'
+}
+
+# discover_irsa: fill in any empty AWS/IRSA value from the live cluster. Only
+# runs when IRSA is enabled. Fails fast (die) on anything it cannot resolve,
+# since a half-configured IRSA role would silently deny AWS calls at runtime.
+discover_irsa() {
+  [ "$IRSA_ENABLED" = "true" ] || return 0
+
+  # Everything below is discovered from the TARGET CLUSTER via kubectl — never
+  # from the operator's local AWS CLI config or AWS_* env. That keeps the install
+  # reproducible regardless of whose laptop runs it.
+
+  # IRSA_ACCOUNT_ID: read from any existing IRSA-annotated ServiceAccount on the
+  # cluster (eks.amazonaws.com/role-arn = arn:aws:iam::<acct>:role/...). This is
+  # the same account every workload on the cluster assumes into.
+  if [ -z "$IRSA_ACCOUNT_ID" ]; then
+    IRSA_ACCOUNT_ID=$(kubectl get sa -A \
+      -o jsonpath='{range .items[*]}{.metadata.annotations.eks\.amazonaws\.com/role-arn}{"\n"}{end}' 2>/dev/null \
+      | grep -o 'arn:aws:iam::[0-9]\{12\}:' | head -1 | grep -o '[0-9]\{12\}') || true
+  fi
+  [ -n "$IRSA_ACCOUNT_ID" ] || die "could not discover IRSA_ACCOUNT_ID (no IRSA-annotated ServiceAccount found); set IRSA_ACCOUNT_ID=..."
+
+  # IRSA_OIDC_ISSUER: the cluster's OIDC issuer, scheme stripped (IAM OIDC
+  # providers are keyed by host+path, no scheme — the chart re-adds nothing).
+  if [ -z "$IRSA_OIDC_ISSUER" ]; then
+    IRSA_OIDC_ISSUER=$(kubectl get --raw /.well-known/openid-configuration 2>/dev/null \
+      | grep -o '"issuer"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+      | sed -e 's/.*:[[:space:]]*"//' -e 's/"$//' -e 's#^https\{0,1\}://##' -e 's#/$##') || true
+  fi
+  [ -n "$IRSA_OIDC_ISSUER" ] || die "could not discover IRSA_OIDC_ISSUER; set IRSA_OIDC_ISSUER=<host/path, no scheme>"
+
+  # IRSA_REGION: from a node's topology region label, else parsed from its AWS
+  # providerID (aws:///<az>/<instance> -> strip trailing AZ letter). Needed so
+  # the SDK resolves CloudWatch endpoints (Cost Explorer is us-east-1 in code).
+  if [ -z "$IRSA_REGION" ]; then
+    IRSA_REGION=$(kubectl get nodes \
+      -o jsonpath='{range .items[*]}{.metadata.labels.topology\.kubernetes\.io/region}{"\n"}{end}' 2>/dev/null \
+      | grep -v '^$' | head -1) || true
+    if [ -z "$IRSA_REGION" ]; then
+      # providerID: aws:///eu-west-2a/i-0abc or aws://eu-west-2a/i-0abc
+      IRSA_REGION=$(kubectl get nodes \
+        -o jsonpath='{range .items[*]}{.spec.providerID}{"\n"}{end}' 2>/dev/null \
+        | sed -n 's#^aws://[/]*\([a-z0-9-]*\)/.*#\1#p' | head -1 | sed 's/[a-z]$//') || true
+    fi
+  fi
+  [ -n "$IRSA_REGION" ] || die "could not discover IRSA_REGION (nodes lack region label/providerID); set IRSA_REGION=..."
+
+  # When bringing your own role ARN, Crossplane creates nothing — skip provider
+  # config discovery entirely.
+  if [ -z "$IRSA_ROLE_ARN" ]; then
+    # IRSA_PROVIDER_CONFIG: the Crossplane ClusterProviderConfig the chart's
+    # IAM resources reference. Prefer one named "default", else the first.
+    if [ -z "$IRSA_PROVIDER_CONFIG" ]; then
+      if ! kubectl get crd clusterproviderconfigs.aws.upbound.io >/dev/null 2>&1 \
+        && ! kubectl get crd clusterproviderconfigs.aws.m.upbound.io >/dev/null 2>&1; then
+        die "IRSA needs the AWS Crossplane provider (ClusterProviderConfig CRD not found). Install it, or pass IRSA_ROLE_ARN=<arn> to bring your own role."
+      fi
+      local pcs
+      pcs=$(kubectl get clusterproviderconfig.aws 2>/dev/null \
+        -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' || true)
+      IRSA_PROVIDER_CONFIG=$(printf '%s\n' "$pcs" | awk '$0=="default"{print;exit}')
+      [ -n "$IRSA_PROVIDER_CONFIG" ] || IRSA_PROVIDER_CONFIG=$(printf '%s\n' "$pcs" | awk 'NF{print;exit}')
+    fi
+    [ -n "$IRSA_PROVIDER_CONFIG" ] || die "could not discover a Crossplane ClusterProviderConfig; set IRSA_PROVIDER_CONFIG=... or IRSA_ROLE_ARN=<arn>"
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -291,6 +396,13 @@ summarize() {
     _row "🛣️ " "route"        "disabled"
   fi
   _row "📊" "monitoring"   "serviceMonitor=${SERVICEMONITOR_ENABLED}"
+  if [ "$IRSA_ENABLED" = "true" ]; then
+    if [ -n "$IRSA_ROLE_ARN" ]; then
+      _row "☁️ " "aws irsa"     "CloudWatch RCA \033[2m(BYO role ${IRSA_ROLE_ARN}, region ${IRSA_REGION})\033[0m"
+    else
+      _row "☁️ " "aws irsa"     "CloudWatch RCA \033[2m(acct ${IRSA_ACCOUNT_ID}, region ${IRSA_REGION}, oidc ${IRSA_OIDC_ISSUER}, providerConfig ${IRSA_PROVIDER_CONFIG})\033[0m"
+    fi
+  fi
   if [ "$READ_ONLY" = "true" ]; then
     _row "👁️ " "mode"         "\033[1;33mREAD-ONLY\033[0m \033[2m(mutating tasks disabled; introspection only)\033[0m"
   fi
@@ -550,6 +662,29 @@ deploy() {
     [ -n "$f" ] && args+=( --set "features.${f}" )
   done
   unset IFS
+
+  # AWS IRSA for CloudWatch RCA. When a role ARN is supplied we skip Crossplane
+  # role creation (roleArnOverride) and only annotate the SA; otherwise Crossplane
+  # provisions the generic role + attaches the CloudWatch policy.
+  if [ "$IRSA_ENABLED" = "true" ]; then
+    args+=(
+      --set "aws.irsa.enabled=true"
+      --set "aws.irsa.region=${IRSA_REGION}"
+      --set "aws.irsa.audience=${IRSA_AUDIENCE}"
+    )
+    if [ -n "$IRSA_ROLE_ARN" ]; then
+      args+=( --set "aws.irsa.roleArnOverride=${IRSA_ROLE_ARN}" )
+    else
+      args+=(
+        --set "aws.irsa.accountId=${IRSA_ACCOUNT_ID}"
+        --set "aws.irsa.oidcIssuer=${IRSA_OIDC_ISSUER}"
+        --set "aws.irsa.providerConfigRef=${IRSA_PROVIDER_CONFIG}"
+      )
+    fi
+  else
+    # Declarative disable so a re-run without CLOUDWATCH_RCA also tears down IRSA.
+    args+=( --set "aws.irsa.enabled=false" )
+  fi
 
   # HTTPRoute exposure
   if [ "$HTTPROUTE_ENABLED" = "true" ]; then
