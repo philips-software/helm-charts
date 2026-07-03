@@ -89,6 +89,9 @@ The path is normalized via centcom-satellite.irsaPath.
 {{- if .Values.aws.irsa.roleArnOverride -}}
 {{- .Values.aws.irsa.roleArnOverride -}}
 {{- else -}}
-{{- printf "arn:aws:iam::%s:role%s%s" .Values.aws.irsa.accountId (include "centcom-satellite.irsaPath" .) (include "centcom-satellite.irsaRoleName" .) -}}
+{{- /* toString guards against Helm coercing a numeric accountId to int64 (a
+       12-digit id without a leading zero), which would make %s emit
+       %!s(int64=...). */ -}}
+{{- printf "arn:aws:iam::%s:role%s%s" (.Values.aws.irsa.accountId | toString) (include "centcom-satellite.irsaPath" .) (include "centcom-satellite.irsaRoleName" .) -}}
 {{- end -}}
 {{- end }}

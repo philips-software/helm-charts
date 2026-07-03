@@ -676,7 +676,9 @@ deploy() {
       args+=( --set "aws.irsa.roleArnOverride=${IRSA_ROLE_ARN}" )
     else
       args+=(
-        --set "aws.irsa.accountId=${IRSA_ACCOUNT_ID}"
+        # --set-string: a 12-digit account id without a leading zero would
+        # otherwise be parsed as an int64 and break %s formatting in the chart.
+        --set-string "aws.irsa.accountId=${IRSA_ACCOUNT_ID}"
         --set "aws.irsa.oidcIssuer=${IRSA_OIDC_ISSUER}"
         --set "aws.irsa.providerConfigRef=${IRSA_PROVIDER_CONFIG}"
       )
