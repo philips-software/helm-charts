@@ -58,3 +58,15 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+IRSA role ARN: explicit override, else computed from accountId + external name.
+External name of the Crossplane Role is "<fullname>-cw-rca".
+*/}}
+{{- define "centcom-satellite.irsaRoleArn" -}}
+{{- if .Values.aws.irsa.roleArnOverride -}}
+{{- .Values.aws.irsa.roleArnOverride -}}
+{{- else -}}
+{{- printf "arn:aws:iam::%s:role/%s-cw-rca" .Values.aws.irsa.accountId (include "centcom-satellite.fullname" .) -}}
+{{- end -}}
+{{- end }}
