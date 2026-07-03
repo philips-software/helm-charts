@@ -1,0 +1,41 @@
+{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) }}
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: Role
+metadata:
+  name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    crossplane.io/external-name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ .Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    path: {{ .Values.aws.irsa.path | quote }}
+    maxSessionDuration: 3600
+    {{- with .Values.aws.irsa.tags }}
+    tags:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    assumeRolePolicy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Federated": "arn:aws:iam::{{ .Values.aws.irsa.accountId }}:oidc-provider/{{ .Values.aws.irsa.oidcIssuer }}"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+              "StringEquals": {
+                "{{ .Values.aws.irsa.oidcIssuer }}:sub": "system:serviceaccount:{{ .Release.Namespace }}:{{ include "centcom-satellite.serviceAccountName" . }}",
+                "{{ .Values.aws.irsa.oidcIssuer }}:aud": {{ .Values.aws.irsa.audience | quote }}
+              }
+            }
+          }
+        ]
+      }
+{{- end }}

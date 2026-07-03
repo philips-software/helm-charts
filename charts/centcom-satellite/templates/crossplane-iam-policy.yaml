@@ -1,0 +1,43 @@
+{{- if .Values.aws.irsa.enabled }}
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: Policy
+metadata:
+  name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    crossplane.io/external-name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ .Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    path: {{ .Values.aws.irsa.path | quote }}
+    {{- with .Values.aws.irsa.tags }}
+    tags:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    policy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "CentcomCloudWatchRCA",
+            "Effect": "Allow",
+            "Action": [
+              "cloudwatch:DescribeAlarms",
+              "cloudwatch:DescribeAlarmHistory",
+              "cloudwatch:GetMetricData",
+              "cloudwatch:ListMetrics",
+              "logs:DescribeLogGroups",
+              "logs:StartQuery",
+              "logs:GetQueryResults",
+              "logs:StopQuery",
+              "ce:GetCostAndUsage"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+{{- end }}
