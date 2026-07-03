@@ -37,6 +37,8 @@ When `aws.irsa.enabled` is true, the chart will:
 4. Annotate the ServiceAccount with `eks.amazonaws.com/role-arn` for IRSA injection
 5. Set `AWS_REGION` environment variable on the pod
 
+When `aws.irsa.roleArnOverride` is set, the chart creates no IAM resources (no Crossplane Policy/Role/Attachment) and only annotates the ServiceAccount with the provided role ARN. You are responsible for that role's policy and trust relationship.
+
 The pod-identity webhook will inject `AWS_ROLE_ARN` and `AWS_WEB_IDENTITY_TOKEN_FILE` environment variables, plus the projected service account token volume.
 
 ### Example Installation
@@ -93,8 +95,18 @@ The pod should show:
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` |  |
+| aws.irsa.accountId | string | `""` | AWS account ID for computing IRSA role ARN |
+| aws.irsa.audience | string | `"sts.amazonaws.com"` | Token audience expected in IRSA trust policy |
+| aws.irsa.enabled | bool | `false` | Create Crossplane IAM resources and annotate ServiceAccount for IRSA |
+| aws.irsa.oidcIssuer | string | `""` | Cluster OIDC issuer host (no scheme) |
+| aws.irsa.path | string | `"/"` | IAM path for Policy and Role; automatically incorporated into the role ARN |
+| aws.irsa.providerConfigRef | string | `"default"` | Crossplane ClusterProviderConfig name |
+| aws.irsa.region | string | `""` | AWS region for CloudWatch/Logs API calls |
+| aws.irsa.roleArnOverride | string | `""` | Bring-your-own role ARN; skips creating Crossplane IAM resources |
+| aws.irsa.tags | object | `{}` | Extra tags applied to IAM Policy and Role |
 | features.argocd | bool | `false` |  |
 | features.autoRemediate | bool | `false` |  |
+| features.cloudwatchRca | bool | `false` | Enable CloudWatch RCA tasks (requires AWS credentials) |
 | features.configmapRead | bool | `false` |  |
 | features.getResource | bool | `false` |  |
 | features.httpRequest | bool | `false` |  |

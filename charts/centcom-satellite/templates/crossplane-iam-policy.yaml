@@ -1,4 +1,4 @@
-{{- if .Values.aws.irsa.enabled }}
+{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) }}
 apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: Policy
 metadata:
