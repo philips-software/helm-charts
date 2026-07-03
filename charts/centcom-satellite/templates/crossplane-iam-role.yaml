@@ -13,7 +13,7 @@ spec:
     kind: ClusterProviderConfig
     name: {{ .Values.aws.irsa.providerConfigRef }}
   forProvider:
-    path: {{ .Values.aws.irsa.path | quote }}
+    path: {{ include "centcom-satellite.irsaPath" . | quote }}
     maxSessionDuration: 3600
     {{- with .Values.aws.irsa.tags }}
     tags:

@@ -60,20 +60,28 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
+Normalize IRSA path: ensure it starts and ends with "/".
+Inputs → outputs: "" or "/" → "/", "team" → "/team/", "/team" → "/team/",
+"team/" → "/team/", "/team/" → "/team/", "team/sub" → "/team/sub/".
+*/}}
+{{- define "centcom-satellite.irsaPath" -}}
+{{- $path := .Values.aws.irsa.path | trimPrefix "/" | trimSuffix "/" -}}
+{{- if eq $path "" -}}
+{{- "/" -}}
+{{- else -}}
+{{- printf "/%s/" $path -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 IRSA role ARN: explicit override, else computed from accountId + path + external name.
 External name of the Crossplane Role is "<fullname>-cw-rca".
-The path from aws.irsa.path is normalized: "/" → "/" (no extra path component),
-"team" or "/team" or "team/" or "/team/" → "/team/" (path component with slashes).
+The path is normalized via centcom-satellite.irsaPath.
 */}}
 {{- define "centcom-satellite.irsaRoleArn" -}}
 {{- if .Values.aws.irsa.roleArnOverride -}}
 {{- .Values.aws.irsa.roleArnOverride -}}
 {{- else -}}
-{{- $path := .Values.aws.irsa.path | trimPrefix "/" | trimSuffix "/" -}}
-{{- $normalizedPath := "/" -}}
-{{- if ne $path "" -}}
-{{- $normalizedPath = printf "/%s/" $path -}}
-{{- end -}}
-{{- printf "arn:aws:iam::%s:role%s%s-cw-rca" .Values.aws.irsa.accountId $normalizedPath (include "centcom-satellite.fullname" .) -}}
+{{- printf "arn:aws:iam::%s:role%s%s-cw-rca" .Values.aws.irsa.accountId (include "centcom-satellite.irsaPath" .) (include "centcom-satellite.fullname" .) -}}
 {{- end -}}
 {{- end }}

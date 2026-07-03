@@ -13,7 +13,7 @@ spec:
     kind: ClusterProviderConfig
     name: {{ .Values.aws.irsa.providerConfigRef }}
   forProvider:
-    path: {{ .Values.aws.irsa.path | quote }}
+    path: {{ include "centcom-satellite.irsaPath" . | quote }}
     {{- with .Values.aws.irsa.tags }}
     tags:
       {{- toYaml . | nindent 6 }}
