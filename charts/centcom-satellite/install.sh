@@ -29,6 +29,10 @@
 #
 #   curl -fsSL .../install.sh | USE_INGRESS=true bash
 #
+# Progress/diagnostic logs go to stderr; only the copy/paste onboarding snippet
+# goes to stdout. When stdout is not a terminal (a runner is capturing it) the
+# two are merged so the logs are not lost — override with LOG_STDOUT=true|false.
+#
 set -euo pipefail
 
 # ============================================================================
@@ -163,6 +167,26 @@ log()  { printf '\033[1;34m==>\033[0m %s\n' "$*" >&2; }
 warn() { printf '\033[1;33m[warn]\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31m[fail]\033[0m %s\n' "$*" >&2; exit 1; }
 run()  { if [ "$DRY_RUN" = "true" ]; then printf '\033[2m# %s\033[0m\n' "$*" >&2; else eval "$@"; fi; }
+
+# All progress/diagnostic output goes to stderr (the functions above, the
+# summarize panel, helm/kubectl chatter). Only the copy/paste onboarding
+# snippet in done_msg goes to stdout. That split is great in a terminal, but
+# some CI runners / UIs capture ONLY stdout — they then see "empty output"
+# even though the install is running fine (all the logs are on the stderr they
+# dropped). To avoid that, fold stderr into stdout whenever stdout is NOT a
+# terminal, i.e. exactly when something is capturing it. An interactive
+# `curl … | bash` is unaffected: only bash's *stdin* is the pipe, so its
+# stdout is still the TTY and the stderr/stdout split is preserved.
+#
+#   LOG_STDOUT=true   force-merge (everything on stdout)
+#   LOG_STDOUT=false  keep the split regardless (pure-snippet capture)
+#   LOG_STDOUT=auto   (default) merge only when stdout is not a terminal
+case "${LOG_STDOUT:=auto}" in
+  true)  exec 2>&1 ;;
+  false) : ;;
+  auto)  [ -t 1 ] || exec 2>&1 ;;
+  *)     die "LOG_STDOUT must be true, false, or auto (got: ${LOG_STDOUT})" ;;
+esac
 
 # ---------------------------------------------------------------------------
 # preflight: fail fast on missing tools / unreachable cluster
