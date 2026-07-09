@@ -3,6 +3,29 @@ entries:
   centcom-satellite:
   - apiVersion: v2
     appVersion: v0.52.0
+    created: "2026-07-09T11:03:31.330133191Z"
+    description: A lightweight Kubernetes helper service for webhook-triggered cluster
+      operations
+    digest: a47aae04628324536afd625cfd2a4605a877ed2c4fa4ca60911f5ad5ced5b574
+    home: https://github.com/loafoe/centcom-satellite
+    keywords:
+    - kubernetes
+    - pvc
+    - resize
+    - spire
+    - spiffe
+    maintainers:
+    - email: andy.lo-a-foe@philips.com
+      name: Andy Lo-A-Foe
+    name: centcom-satellite
+    sources:
+    - https://github.com/loafoe/centcom-satellite
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/centcom-satellite-0.3.3/centcom-satellite-0.3.3.tgz
+    version: 0.3.3
+  - apiVersion: v2
+    appVersion: v0.52.0
     created: "2026-07-03T17:22:10.92703079Z"
     description: A lightweight Kubernetes helper service for webhook-triggered cluster
       operations
@@ -4237,4 +4260,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-07-03T17:22:10.927698001Z"
+generated: "2026-07-09T11:03:31.486995165Z"
