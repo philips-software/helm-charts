@@ -135,6 +135,15 @@ aws:
   irsa:
     # Create Crossplane IAM Role (+ per-feature Policy/Attachment) and annotate the SA for IRSA
     enabled: false
+    # Prefix for the AWS-facing IAM resource names (Role, Policy). Unlike a
+    # Kubernetes object name, an IAM role/policy name is GLOBAL PER AWS ACCOUNT:
+    # two clusters that share one account and both install this chart would
+    # otherwise collide on the identical role/policy name (and role ARN). Set
+    # this to something cluster-unique to disambiguate them — install.sh seeds
+    # it from the cluster's environment tag (hsp-addons EnvironmentConfig).
+    # Empty == no prefix (role/policy named after the release), preserving the
+    # behaviour of installs that predate this option.
+    namePrefix: ""
     # AWS account ID (used to compute the role ARN stamped on the ServiceAccount)
     accountId: ""
     # Cluster OIDC issuer host (no scheme), e.g. k3s-issuer.dip-ce-k3s-eu.hsp.philips.com

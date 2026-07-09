@@ -5,7 +5,7 @@
 apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: RolePolicyAttachment
 metadata:
-  name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+  name: {{ include "centcom-satellite.irsaName" . }}-cw-rca
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "centcom-satellite.labels" . | nindent 4 }}
@@ -17,7 +17,7 @@ spec:
     roleRef:
       name: {{ include "centcom-satellite.irsaRoleName" . }}
     policyArnRef:
-      name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+      name: {{ include "centcom-satellite.irsaName" . }}-cw-rca
 {{- end }}
 {{- /*
 Attach any additional pre-existing managed-policy ARNs to the same role. This is

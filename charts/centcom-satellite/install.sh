@@ -102,6 +102,13 @@ fi
 : "${IRSA_PROVIDER_CONFIG:=}"  # auto: a ClusterProviderConfig named "default", else the first
 : "${IRSA_AUDIENCE:=sts.amazonaws.com}"
 : "${IRSA_ROLE_ARN:=}"         # bring-your-own role ARN; skips Crossplane role creation
+# Prefix for the AWS-facing IAM resource names (Role, Policy). An IAM role/policy
+# name is GLOBAL PER AWS ACCOUNT, so two clusters that share one account and both
+# run this installer would clash on the identical "centcom-satellite" role/policy
+# name (and role ARN). We prefix them with the cluster's environment tag to keep
+# them unique. Auto: CLUSTER_NAME (itself the hsp-addons environment tag). Set
+# empty to opt out (role/policy named after the release, pre-namePrefix behaviour).
+: "${IRSA_NAME_PREFIX:=__auto__}"
 
 # IRSA follows CloudWatch RCA unless explicitly overridden, and the feature flag
 # is appended so a re-run also toggles it declaratively.
@@ -436,6 +443,16 @@ discover_irsa_from_envconfig() {
 discover_irsa() {
   [ "$IRSA_ENABLED" = "true" ] || return 0
 
+  # IRSA_NAME_PREFIX disambiguates the AWS-facing IAM Role/Policy names, which are
+  # global per account. Default (__auto__) is the cluster's environment tag
+  # (CLUSTER_NAME, already resolved in discover()). Sanitize to the IAM-safe set
+  # [A-Za-z0-9_+=,.@-] — a kube-context fallback can be an EKS ARN full of ':' '/'
+  # that would make an invalid role name. An explicit IRSA_NAME_PREFIX="" opts out.
+  if [ "$IRSA_NAME_PREFIX" = "__auto__" ]; then
+    IRSA_NAME_PREFIX=$(printf '%s' "$CLUSTER_NAME" \
+      | tr -c 'A-Za-z0-9_+=,.@-' '-' | sed -e 's/-\{2,\}/-/g' -e 's/^-//' -e 's/-$//')
+  fi
+
   # Everything below is discovered from the TARGET CLUSTER via kubectl — never
   # from the operator's local AWS CLI config or AWS_* env. That keeps the install
   # reproducible regardless of whose laptop runs it.
@@ -565,6 +582,7 @@ summarize() {
       _row "☁️ " "aws irsa"     "CloudWatch RCA \033[2m(BYO role ${IRSA_ROLE_ARN}, region ${IRSA_REGION})\033[0m"
     else
       _row "☁️ " "aws irsa"     "CloudWatch RCA \033[2m(acct ${IRSA_ACCOUNT_ID}, region ${IRSA_REGION}, oidc ${IRSA_OIDC_ISSUER}, providerConfig ${IRSA_PROVIDER_CONFIG})\033[0m"
+      _row "🏷️ " "iam names"     "$(printf '%s\033[2m (role/policy name — account-global uniqueness)\033[0m' "${IRSA_NAME_PREFIX:+${IRSA_NAME_PREFIX}-}${RELEASE_NAME}")"
     fi
   fi
   if [ "$READ_ONLY" = "true" ]; then
@@ -858,6 +876,11 @@ deploy() {
         --set "aws.irsa.oidcIssuer=${IRSA_OIDC_ISSUER}"
         --set "aws.irsa.providerConfigRef=${IRSA_PROVIDER_CONFIG}"
       )
+      # Prefix the AWS-global IAM Role/Policy names so clusters sharing an account
+      # don't collide. Only meaningful when Crossplane creates the role (this
+      # branch); a BYO role ARN needs no name. Skipped when empty (opt-out).
+      [ -n "$IRSA_NAME_PREFIX" ] && \
+        args+=( --set "aws.irsa.namePrefix=${IRSA_NAME_PREFIX}" )
     fi
   else
     # Declarative disable so a re-run without CLOUDWATCH_RCA also tears down IRSA.

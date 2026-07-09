@@ -2,10 +2,10 @@
 apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: Policy
 metadata:
-  name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+  name: {{ include "centcom-satellite.irsaName" . }}-cw-rca
   namespace: {{ .Release.Namespace }}
   annotations:
-    crossplane.io/external-name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+    crossplane.io/external-name: {{ include "centcom-satellite.irsaName" . }}-cw-rca
   labels:
     {{- include "centcom-satellite.labels" . | nindent 4 }}
 spec:
