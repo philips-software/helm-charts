@@ -23,6 +23,17 @@
 #
 #   curl -fsSL .../install.sh | CLOUDWATCH_RCA=true bash
 #
+# To enable the GuardDuty tasks (read-only AWS data via IRSA), set GUARDDUTY=true.
+# It can be combined with CLOUDWATCH_RCA; either one turns on the IRSA plumbing:
+#
+#   curl -fsSL .../install.sh | GUARDDUTY=true bash
+#
+# Or enable EVERY IRSA-dependent task group at once with the master switch — this
+# turns on CloudWatch RCA and GuardDuty together (any group can still be opted out
+# with GROUP=false):
+#
+#   curl -fsSL .../install.sh | IRSA_ENABLED=true bash
+#
 # To expose via an nginx Ingress instead of a Gateway API HTTPRoute (for
 # clusters whose gateway has a broken http-to-https redirect), USE_INGRESS=true.
 # Requires an ingress controller — it fails fast if no IngressClass exists:
@@ -90,8 +101,25 @@ fi
 # Requires the AWS Crossplane provider (iam.aws.*) + a ClusterProviderConfig on
 # the target cluster, and an IAM OIDC provider registered for the cluster issuer.
 # Any auto-discovered value can be overridden with the matching env var below.
-: "${CLOUDWATCH_RCA:=false}"
-: "${IRSA_ENABLED:=}"          # auto: true when CLOUDWATCH_RCA=true, else false
+#
+# These task groups both depend on IRSA. Their relationship with IRSA_ENABLED is
+# bidirectional and convenience-only (the chart keeps features.* and aws.irsa.*
+# independent so ambient / instance-profile / BYO-role credentials still work):
+#   - turning ANY group on turns IRSA on (so `GUARDDUTY=true` just works), and
+#   - setting IRSA_ENABLED=true acts as a MASTER SWITCH that turns on every
+#     IRSA-dependent group you didn't explicitly set (so one flag lights them all).
+# A group left unset defaults off; an explicit `GUARDDUTY=false` always wins, even
+# under the master switch.
+: "${CLOUDWATCH_RCA:=}"
+# GuardDuty data-retrieval tasks (5 tasks: detectors, findings statistics,
+# list/get findings, and a list+hydrate composite). Like CLOUDWATCH_RCA these
+# need AWS credentials via IRSA and attach a dedicated read-only GuardDuty policy
+# to the same generic IAM role:
+#
+#   curl -fsSL .../install.sh | GUARDDUTY=true bash
+#
+: "${GUARDDUTY:=}"
+: "${IRSA_ENABLED:=}"          # master switch: true turns on all unset AWS task groups; auto-true when any group is on
 # NOTE: these use IRSA_-prefixed names on purpose — NOT AWS_REGION/AWS_ACCOUNT_ID.
 # Everything is derived from the TARGET CLUSTER, never from the operator's local
 # AWS env/CLI config. Reusing the standard AWS_* names here would let an ambient
@@ -110,13 +138,39 @@ fi
 # empty to opt out (role/policy named after the release, pre-namePrefix behaviour).
 : "${IRSA_NAME_PREFIX:=__auto__}"
 
-# IRSA follows CloudWatch RCA unless explicitly overridden, and the feature flag
-# is appended so a re-run also toggles it declaratively.
-[ -n "$IRSA_ENABLED" ] || IRSA_ENABLED="$CLOUDWATCH_RCA"
+# Resolve the IRSA master switch against the individual AWS task groups. Each of
+# CLOUDWATCH_RCA / GUARDDUTY is tri-state here: "true", "false", or unset.
+#
+#   1. If IRSA_ENABLED is explicitly true, it's the master switch: every group
+#      left unset turns on. An explicit `GROUP=false` still wins.
+#   2. Otherwise, any group explicitly true turns IRSA on for it.
+#   3. Anything still unset defaults to false.
+# The resolved feature flags are always appended (true AND false) so a re-run
+# toggles them declaratively instead of leaving stale state behind.
+if [ "$IRSA_ENABLED" = "true" ]; then
+  [ -n "$CLOUDWATCH_RCA" ] || CLOUDWATCH_RCA=true
+  [ -n "$GUARDDUTY" ]      || GUARDDUTY=true
+fi
+[ -n "$CLOUDWATCH_RCA" ] || CLOUDWATCH_RCA=false
+[ -n "$GUARDDUTY" ]      || GUARDDUTY=false
+
+if [ -z "$IRSA_ENABLED" ]; then
+  if [ "$CLOUDWATCH_RCA" = "true" ] || [ "$GUARDDUTY" = "true" ]; then
+    IRSA_ENABLED=true
+  else
+    IRSA_ENABLED=false
+  fi
+fi
+
 if [ "$CLOUDWATCH_RCA" = "true" ]; then
   FEATURES="${FEATURES},cloudwatchRca=true"
 else
   FEATURES="${FEATURES},cloudwatchRca=false"
+fi
+if [ "$GUARDDUTY" = "true" ]; then
+  FEATURES="${FEATURES},guardduty=true"
+else
+  FEATURES="${FEATURES},guardduty=false"
 fi
 
 # Networking / exposure. Empty values are auto-discovered (see below).
@@ -857,9 +911,10 @@ deploy() {
   done
   unset IFS
 
-  # AWS IRSA for CloudWatch RCA. When a role ARN is supplied we skip Crossplane
-  # role creation (roleArnOverride) and only annotate the SA; otherwise Crossplane
-  # provisions the generic role + attaches the CloudWatch policy.
+  # AWS IRSA for the CloudWatch RCA / GuardDuty task groups. When a role ARN is
+  # supplied we skip Crossplane role creation (roleArnOverride) and only annotate
+  # the SA; otherwise Crossplane provisions the generic role + attaches the policy
+  # for each enabled task group (CloudWatch RCA and/or GuardDuty).
   if [ "$IRSA_ENABLED" = "true" ]; then
     args+=(
       --set "aws.irsa.enabled=true"

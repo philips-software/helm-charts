@@ -124,13 +124,19 @@ features:
   # metrics, log groups, Cost Explorer). Sets CLOUDWATCH_RCA_ENABLED. Requires
   # AWS credentials via IRSA (aws.irsa) or ambient credentials.
   cloudwatchRca: false
+  # Enable GuardDuty tasks (5 tasks: list detectors, findings statistics, list/get
+  # findings, and a list+hydrate composite). Sets GUARDDUTY_ENABLED. Independently
+  # toggleable from cloudwatchRca. Requires AWS credentials via IRSA (aws.irsa) or
+  # ambient credentials; attaches the read-only GuardDuty policy to the IRSA role.
+  guardduty: false
 
 # AWS integration: Crossplane-managed IAM + IRSA.
 #
 # When enabled, the chart provisions a single GENERIC IAM role for the agent's
-# ServiceAccount and attaches one policy per enabled task-group. Today that is the
-# CloudWatch RCA policy (attached only when features.cloudwatchRca is true); future
-# task groups add their own policies to the same role rather than a new role.
+# ServiceAccount and attaches one policy per enabled task-group: the CloudWatch RCA
+# policy (attached only when features.cloudwatchRca is true) and the read-only
+# GuardDuty policy (attached only when features.guardduty is true). Additional task
+# groups add their own policies to the same role rather than a new role.
 aws:
   irsa:
     # Create Crossplane IAM Role (+ per-feature Policy/Attachment) and annotate the SA for IRSA
