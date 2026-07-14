@@ -1,0 +1,53 @@
+{{- if .Values.provider.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: provider-dex
+  namespace: {{ .Values.argocd.namespace | default "argocd" }}
+  labels:
+    {{- include "dex-issuer.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  {{- if .Values.provider.cascadeDelete }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  {{- end }}
+spec:
+  project: {{ .Values.argocd.project | quote }}
+  source:
+    repoURL: oci://ghcr.io/philips-software/helm-charts/crossplane-providers
+    # renovate: datasource=docker depName=ghcr.io/philips-software/helm-charts/crossplane-providers
+    targetRevision: {{ .Values.provider.crossplaneProvidersVersion }}
+    path: .
+    helm:
+      valuesObject:
+        providers: [] # Disable default AWS providers
+        package:
+          version: {{ .Values.provider.tag | quote }}
+          registry: {{ .Values.provider.registry | quote }}
+        extraProviders:
+          - name: provider-dex
+            enabled: true
+            debug: {{ .Values.provider.debug }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: crossplane-system
+  ignoreDifferences:
+    - group: pkg.crossplane.io
+      kind: DeploymentRuntimeConfig
+      jsonPointers:
+        - /spec/deploymentTemplate/spec/replicas
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 8
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+{{- end }}

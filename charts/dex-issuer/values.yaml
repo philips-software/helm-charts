@@ -1,0 +1,154 @@
+# dex-issuer Helm Chart Configuration
+# Wrapper chart that deploys Dex (OIDC issuer) plus its Postgres storage, gRPC mTLS PKI,
+# and the Crossplane provider-dex connector-management plane.
+#
+# This chart does NOT define a HelmApplication; it assumes it is itself provisioned by one.
+
+# Dex application configuration
+dex:
+  # Number of Dex replicas (must be >= 1)
+  replicas: 2
+  # Log level for Dex (debug, info, warn, error)
+  logLevel: info
+  # Human-readable name shown on the Dex login screen (frontend.issuer)
+  frontendIssuer: "DIP Services"
+  # Resource requests and limits for the Dex pod (memory-only limits, no CPU limit)
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 128Mi
+  # Expose Dex via a Gateway API HTTPRoute (mutually exclusive with ingress)
+  httpRoute:
+    enabled: true
+    # Host label for the issuer; combined with the cluster FQDN it forms the public
+    # issuer endpoint, e.g. "issuer" -> https://issuer.${clusterFqdn}
+    host: issuer
+    sharedGatewayName: platform
+    sharedGatewayNamespace: kube-system
+  # Expose Dex via an Ingress (mutually exclusive with httpRoute)
+  ingress:
+    enabled: false
+    host: issuer
+    ingressClassName: nginx
+  # Enable Dex ServiceMonitor scraping
+  serviceMonitor:
+    enabled: true
+  # OAuth2 dynamic client registration (DCR). Kept enabled: this is how clients and
+  # connectors are created at runtime (via Crossplane provider-dex over the gRPC API).
+  dcr:
+    enabled: true
+  # Scope prefixes allowed for token introspection
+  allowedScopePrefixes:
+    - "hsp:iam:introspect"
+  # Token / signing key expiry
+  expiry:
+    signingKeys: "6h"
+    idTokens: "8h"
+  # Static OAuth clients. Empty by default (no RI clients). Each entry is passed
+  # through verbatim to the upstream dex chart's config.staticClients list.
+  # Example:
+  #   - id: my-app
+  #     name: 'My App'
+  #     secretEnv: MY_APP_SECRET
+  #     redirectURIs:
+  #       - 'https://my-app.example.com/callback'
+  staticClients: []
+  # Secret (consumed via envFrom) that supplies the secretEnv values referenced by
+  # staticClients and connectors. Enable only when staticClients need secrets.
+  staticClientsSecret:
+    enabled: false
+    name: dex-static-clients
+  # Container image for Dex
+  image:
+    repository: ghcr.io/philips-forks/dex
+    # renovate: datasource=docker depName=ghcr.io/philips-forks/dex
+    tag: "v2.45.1-dip.6"
+
+# Upstream Dex Helm chart configuration
+dexChart:
+  repoURL: https://charts.dexidp.io
+  # renovate: datasource=helm depName=dex registryUrl=https://charts.dexidp.io
+  version: 0.24.0
+  # Helm release name for Dex
+  releaseName: dex
+
+# ArgoCD configuration
+argocd:
+  # ArgoCD namespace (where Application CRs are created)
+  namespace: argocd
+  # ArgoCD project name for deployment (required, cannot be empty)
+  project: default
+
+# Database configuration (dip.io Postgres via Crossplane)
+database:
+  # Use the CNPG composition
+  cnpg: true
+  # Postgres storage/engine sizing
+  size: xsmall
+  allocatedStorage: 20
+  engineVersion: "18.1"
+  # Enable CNPG snapshots + Barman backups
+  enableSnapshots: true
+  barmanBackup:
+    enabled: true
+    retentionDays: 7
+
+# Crossplane connector-management plane (provider-dex).
+# When enabled, deploys the self-signed PKI, the Dex gRPC server certificate,
+# the provider-dex Crossplane provider, and its ProviderConfigs.
+provider:
+  enabled: true
+  # Enable debug logging for provider-dex
+  debug: true
+  # Provider package version
+  # renovate: datasource=docker depName=xpkg.upbound.io/loafoe/provider-dex
+  tag: "v1.13.0"
+  # Container registry hosting the provider-dex package
+  registry: "xpkg.upbound.io/loafoe"
+  # crossplane-providers wrapper chart version
+  # renovate: datasource=docker depName=ghcr.io/philips-software/helm-charts/crossplane-providers
+  crossplaneProvidersVersion: 0.0.35
+  # Controls the ArgoCD cascade-delete finalizer on the provider-dex Application.
+  # When false (default), deleting the Application is NON-CASCADING: it orphans the
+  # live Crossplane Provider/CRDs/CRs instead of tearing them down. This is the safe
+  # default -- cascade-deleting a provider whose controller pod is gone deadlocks the
+  # stack on unprocessable managed-resource finalizers.
+  cascadeDelete: false
+  # Namespaces to create namespaced ProviderConfigs in (in addition to the
+  # cluster-default ProviderConfig). Empty by default: add a namespace here when
+  # you place Client CRs in it (they resolve providerConfigRef against a
+  # ProviderConfig in their own namespace).
+  providerConfigNamespaces: []
+
+# Self-signed PKI for Crossplane <-> Dex gRPC mTLS
+pki:
+  # Namespace where the CA certificate secret is created (cert-manager reads it here)
+  caNamespace: cert-manager
+  # Namespace where the provider-dex client certificate is created
+  clientNamespace: crossplane-system
+  # CA certificate validity
+  caDuration: 87600h # 10 years
+  caRenewBefore: 8760h # 1 year
+  # Leaf (client / server) certificate validity
+  certDuration: 8760h # 1 year
+  certRenewBefore: 720h # 30 days
+
+# Philips-branded Dex login theme. When enabled, the theme is mounted into Dex as a
+# ConfigMap. RI-specific connector hide-rules have been stripped from styles.css.
+theme:
+  enabled: true
+
+# Use custom FQDN instead of clusterFqdn (falls back to clusterFqdn if customFqdn is empty)
+useCustomFqdn: false
+
+# Environment configuration (injected per-cluster, typically via EnvironmentConfig)
+environmentConfig:
+  # Fully qualified domain name for the cluster (required, must be valid domain format)
+  clusterFqdn: ""
+  # Custom FQDN for the issuer (used when useCustomFqdn is true)
+  customFqdn: ""
+  # Resource prefix for the cluster; used to namespace account-global resource names
+  # such as the Postgres identifier (alphanumeric characters and hyphens only)
+  resourcePrefix: ""

@@ -1,0 +1,34 @@
+{{- include "dex-issuer.validateConfig" . -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dex-helm
+  namespace: {{ .Values.argocd.namespace | default "argocd" }}
+  labels:
+    {{- include "dex-issuer.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ .Values.argocd.project | quote }}
+  source:
+    chart: dex
+    repoURL: {{ .Values.dexChart.repoURL }}
+    targetRevision: {{ .Values.dexChart.version }}
+    helm:
+      releaseName: {{ .Values.dexChart.releaseName }}
+      valuesObject:
+        {{- (tpl (.Files.Get "config/dex-values.yaml") .) | trim | nindent 8 }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Release.Namespace | quote }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas

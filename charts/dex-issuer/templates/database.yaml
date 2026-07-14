@@ -1,0 +1,32 @@
+apiVersion: dip.io/v1alpha1
+kind: Postgres
+metadata:
+  name: dex
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "argocd.argoproj.io/sync-wave": "-1"
+spec:
+{{- if .Values.database.cnpg }}
+  crossplane:
+    compositionSelector:
+      matchLabels:
+        provider: cnpg
+{{- end }}
+  parameters:
+    # resourcePrefix-ed: the identifier is account-global and must not clash across clusters
+    identifier: {{ .Values.environmentConfig.resourcePrefix }}-dex
+    size: {{ .Values.database.size }}
+    allocatedStorage: {{ .Values.database.allocatedStorage }}
+    engineVersion: {{ .Values.database.engineVersion | quote }}
+    databaseName: dex
+    masterUsername: dex
+  {{- if and .Values.database.cnpg .Values.database.enableSnapshots }}
+    enableSnapshots: true
+  {{- end }}
+  {{- if .Values.database.barmanBackup.enabled }}
+    barmanBackup:
+      enabled: true
+      retentionDays: {{ .Values.database.barmanBackup.retentionDays }}
+  {{- end }}
+  writeConnectionSecretToRef:
+    name: dex-postgres-connection

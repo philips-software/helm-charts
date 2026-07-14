@@ -1,0 +1,76 @@
+{{- if .Values.provider.enabled -}}
+# Self-signed CA for Crossplane <-> Dex gRPC mTLS communication.
+# This CA issues both the Dex gRPC server cert (dex-grpc-tls) and the
+# provider-dex client cert (provider-dex-client-tls).
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: crossplane-selfsigned-issuer
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: crossplane-ca
+  namespace: {{ .Values.pki.caNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  isCA: true
+  commonName: crossplane-ca
+  secretName: crossplane-ca-secret
+  duration: {{ .Values.pki.caDuration }}
+  renewBefore: {{ .Values.pki.caRenewBefore }}
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  issuerRef:
+    name: crossplane-selfsigned-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: crossplane-ca-issuer
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  ca:
+    secretName: crossplane-ca-secret
+---
+# Client certificate for provider-dex (Crossplane provider)
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: provider-dex-client-tls
+  namespace: {{ .Values.pki.clientNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  secretName: provider-dex-client-tls
+  duration: {{ .Values.pki.certDuration }}
+  renewBefore: {{ .Values.pki.certRenewBefore }}
+  commonName: crossplane
+  subject:
+    organizations:
+      - crossplane
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  usages:
+    - client auth
+  dnsNames:
+    - crossplane
+    - crossplane.{{ .Values.pki.clientNamespace }}
+    - crossplane.{{ .Values.pki.clientNamespace }}.svc
+    - crossplane.{{ .Values.pki.clientNamespace }}.svc.cluster.local
+  issuerRef:
+    name: crossplane-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
