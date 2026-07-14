@@ -1,0 +1,138 @@
+replicaCount: {{ .Values.dex.replicas }}
+env:
+  DEX_API_CONNECTORS_CRUD: "true"
+envVars:
+  - name: DEX_PG_HOST
+    valueFrom:
+      secretKeyRef:
+        name: dex-postgres-connection
+        key: host
+  - name: DEX_PG_DATABASE
+    valueFrom:
+      secretKeyRef:
+        name: dex-postgres-connection
+        key: database
+  - name: DEX_PG_USER
+    valueFrom:
+      secretKeyRef:
+        name: dex-postgres-connection
+        key: username
+  - name: DEX_PG_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: dex-postgres-connection
+        key: password
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+{{- if .Values.provider.enabled }}
+grpc:
+  enabled: true
+{{- end }}
+serviceMonitor:
+  enabled: {{ .Values.dex.serviceMonitor.enabled }}
+image:
+  repository: {{ .Values.dex.image.repository }}
+  tag: {{ .Values.dex.image.tag | quote }}
+resources:
+  {{- toYaml .Values.dex.resources | nindent 2 }}
+config:
+  issuer: {{ include "dex-issuer.url" . }}
+{{- if .Values.provider.enabled }}
+  grpc:
+    addr: 0.0.0.0:5557
+    tlsCert: /etc/dex/tls/grpc/tls.crt
+    tlsKey: /etc/dex/tls/grpc/tls.key
+    tlsClientCA: /etc/dex/tls/grpc/ca.crt
+{{- end }}
+  logger:
+    level: {{ .Values.dex.logLevel }}
+  expiry:
+    signingKeys: {{ .Values.dex.expiry.signingKeys | quote }}
+    idTokens: {{ .Values.dex.expiry.idTokens | quote }}
+  storage:
+    type: postgres
+    config:
+      host: $DEX_PG_HOST
+      port: 5432
+      database: $DEX_PG_DATABASE
+      user: $DEX_PG_USER
+      password: $DEX_PG_PASSWORD
+      ssl:
+        mode: require
+  frontend:
+    dir: /srv/dex/web
+    issuer: {{ .Values.dex.frontendIssuer | quote }}
+  enablePasswordDB: false
+  oauth2:
+    skipApprovalScreen: true
+    allowedScopePrefixes:
+      {{- toYaml .Values.dex.allowedScopePrefixes | nindent 6 }}
+    dcr:
+      enable: {{ .Values.dex.dcr.enabled }}
+      secret: $DEX_DCR_SECRET
+{{- if .Values.dex.staticClients }}
+  staticClients:
+    {{- toYaml .Values.dex.staticClients | nindent 4 }}
+{{- end }}
+  # Connectors are managed at runtime using Crossplane via the gRPC API.
+  # This placeholder connector allows Dex to start with empty storage.
+  connectors:
+    - type: mockCallback
+      id: placeholder
+      name: Placeholder (do not use)
+volumes:
+{{- if .Values.theme.enabled }}
+  - name: styles-volume
+    configMap:
+      name: dex-theme
+{{- end }}
+{{- if .Values.provider.enabled }}
+  - name: grpc-tls
+    secret:
+      secretName: dex-grpc-tls
+{{- end }}
+volumeMounts:
+{{- if .Values.theme.enabled }}
+  - name: styles-volume
+    mountPath: /srv/dex/web/themes/light/styles.css
+    subPath: styles.css
+  - name: styles-volume
+    mountPath: /srv/dex/web/themes/light/philips-logo.svg
+    subPath: philips-logo.svg
+  - name: styles-volume
+    mountPath: /srv/dex/web/themes/light/logo.png
+    subPath: logo.png
+{{- end }}
+{{- if .Values.provider.enabled }}
+  - name: grpc-tls
+    mountPath: /etc/dex/tls/grpc
+    readOnly: true
+{{- end }}
+{{- if .Values.dex.staticClientsSecret.enabled }}
+envFrom:
+  - secretRef:
+      name: {{ .Values.dex.staticClientsSecret.name }}
+{{- end }}
+podSecurityContext:
+  fsGroup: 1001
+securityContext:
+  allowPrivilegeEscalation: false
+ingress:
+  enabled: {{ .Values.dex.ingress.enabled }}
+{{- if .Values.dex.ingress.enabled }}
+  className: {{ .Values.dex.ingress.ingressClassName }}
+  hosts:
+    - host: {{ include "dex-issuer.host" . }}
+      paths:
+        - path: /
+          pathType: Prefix
+{{- end }}
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: dex

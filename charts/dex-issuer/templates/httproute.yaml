@@ -1,0 +1,23 @@
+{{- if .Values.dex.httpRoute.enabled -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: dex
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  parentRefs:
+    - name: {{ .Values.dex.httpRoute.sharedGatewayName }}
+      namespace: {{ .Values.dex.httpRoute.sharedGatewayNamespace }}
+  hostnames:
+    - {{ include "dex-issuer.host" . | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ .Values.dexChart.releaseName }}
+          port: 5556
+{{- end }}

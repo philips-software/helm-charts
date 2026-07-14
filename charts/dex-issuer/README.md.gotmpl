@@ -1,0 +1,43 @@
+# dex-issuer
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
+storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
+
+This is a wrapper chart. It does **not** define a `HelmApplication` — it assumes it is itself
+provisioned by one — and it emits the underlying ArgoCD `Application`s and CRs.
+
+## Issuer endpoint
+
+The public issuer endpoint defaults to `https://<dex.httpRoute.host>.<clusterFqdn>`, e.g.
+`https://issuer.${clusterFqdn}`. The host label is configurable via `dex.httpRoute.host`, and the
+FQDN comes from `environmentConfig.clusterFqdn` (or `environmentConfig.customFqdn` when
+`useCustomFqdn` is true).
+
+## Environment injection
+
+Cluster-specific details are injected through `environmentConfig`:
+
+- `clusterFqdn` (**required**): the cluster's fully qualified domain name.
+- `resourcePrefix` (**required**): prefixes account-global names (e.g. the Postgres identifier
+  becomes `<resourcePrefix>-dex`) so they do not clash within a shared AWS account.
+- `customFqdn` (optional): overrides `clusterFqdn` for the issuer when `useCustomFqdn` is true.
+
+## Static clients and DCR
+
+No static OAuth clients ship by default; add them via `dex.staticClients`. Dynamic Client
+Registration (DCR) is enabled by default — real connectors and clients are created at runtime via
+the Crossplane `provider-dex` gRPC API.
+
+## Crossplane connector plane
+
+When `provider.enabled` is true (default), the chart also deploys a self-signed CA, the Dex gRPC
+server certificate, the `provider-dex` Crossplane provider (via the `crossplane-providers` chart),
+and its `ProviderConfig`s. Set `provider.enabled=false` to deploy Dex on its own.
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

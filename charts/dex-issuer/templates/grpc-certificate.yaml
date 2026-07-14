@@ -1,0 +1,34 @@
+{{- if .Values.provider.enabled -}}
+# Dex gRPC server certificate, issued by the self-signed CA. Mounted into Dex and
+# used to terminate the mTLS gRPC connection from provider-dex.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dex-grpc-tls
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  secretName: dex-grpc-tls
+  duration: {{ .Values.pki.certDuration }}
+  renewBefore: {{ .Values.pki.certRenewBefore }}
+  subject:
+    organizations:
+      - dip
+  isCA: false
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - {{ .Values.dexChart.releaseName }}
+    - {{ .Values.dexChart.releaseName }}.{{ .Release.Namespace }}
+    - {{ .Values.dexChart.releaseName }}.{{ .Release.Namespace }}.svc
+    - {{ .Values.dexChart.releaseName }}.{{ .Release.Namespace }}.svc.cluster.local
+  issuerRef:
+    name: crossplane-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}

@@ -1,0 +1,52 @@
+{{- if .Values.provider.enabled }}
+{{- $ctx := . }}
+{{- /* Cluster-default ProviderConfig plus one per configured namespace. */}}
+apiVersion: dex.crossplane.io/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: default
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  endpoint: {{ include "dex-issuer.grpcEndpoint" . }}
+  tls:
+    caCert:
+      namespace: {{ .Values.pki.clientNamespace }}
+      name: provider-dex-client-tls
+      key: ca.crt
+    clientCert:
+      namespace: {{ .Values.pki.clientNamespace }}
+      name: provider-dex-client-tls
+      key: tls.crt
+    clientKey:
+      namespace: {{ .Values.pki.clientNamespace }}
+      name: provider-dex-client-tls
+      key: tls.key
+{{- range .Values.provider.providerConfigNamespaces }}
+---
+apiVersion: dex.crossplane.io/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: default
+  namespace: {{ . }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  endpoint: {{ include "dex-issuer.grpcEndpoint" $ctx }}
+  tls:
+    caCert:
+      namespace: {{ $ctx.Values.pki.clientNamespace }}
+      name: provider-dex-client-tls
+      key: ca.crt
+    clientCert:
+      namespace: {{ $ctx.Values.pki.clientNamespace }}
+      name: provider-dex-client-tls
+      key: tls.crt
+    clientKey:
+      namespace: {{ $ctx.Values.pki.clientNamespace }}
+      name: provider-dex-client-tls
+      key: tls.key
+{{- end }}
+{{- end }}

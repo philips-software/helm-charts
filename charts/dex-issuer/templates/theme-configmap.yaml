@@ -1,0 +1,18 @@
+{{- if .Values.theme.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dex-theme
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "dex-issuer.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+binaryData:
+  logo.png: {{ .Files.Get "files/theme/logo.png" | b64enc | quote }}
+data:
+  styles.css: |
+{{ .Files.Get "files/theme/styles.css" | indent 4 }}
+  philips-logo.svg: |
+{{ .Files.Get "files/theme/philips-logo.svg" | indent 4 }}
+{{- end }}
