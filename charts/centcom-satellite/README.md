@@ -31,9 +31,9 @@ The chart supports AWS CloudWatch Root Cause Analysis (RCA) tasks when `features
 
 When `aws.irsa.enabled` is true, the chart will:
 
-1. Create a Crossplane-managed IAM Policy with permissions for CloudWatch, CloudWatch Logs, and Cost Explorer APIs
+1. Create a Crossplane-managed IAM Policy per enabled AWS task group — CloudWatch/Logs/Cost Explorer (when `features.cloudwatchRca`) and/or read-only GuardDuty (when `features.guardduty`)
 2. Create a Crossplane-managed IAM Role with a trust policy for your cluster's OIDC provider
-3. Attach the policy to the role via a Crossplane RolePolicyAttachment
+3. Attach each enabled policy to the role via a Crossplane RolePolicyAttachment
 4. Annotate the ServiceAccount with `eks.amazonaws.com/role-arn` for IRSA injection
 5. Set `AWS_REGION` environment variable on the pod
 
@@ -48,6 +48,23 @@ helm upgrade --install centcom-satellite philips-software/centcom-satellite \
   --namespace centcom-satellite \
   --create-namespace \
   --set features.cloudwatchRca=true \
+  --set aws.irsa.enabled=true \
+  --set aws.irsa.accountId=123456789012 \
+  --set aws.irsa.oidcIssuer=oidc.eks.us-west-2.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE \
+  --set aws.irsa.region=us-west-2
+```
+
+## GuardDuty Feature
+
+The chart supports read-only AWS GuardDuty tasks when `features.guardduty` is enabled. This lets centcom-satellite list detectors, retrieve findings (individually or in a filtered, hydrated batch), and compute findings statistics — enough to recreate the standard GuardDuty dashboard from a satellite.
+
+It uses the same IRSA plumbing as the CloudWatch RCA feature (see prerequisites above) and can be enabled independently or alongside it. When `features.guardduty` is true and `aws.irsa.enabled` is true, the chart attaches a dedicated read-only GuardDuty IAM policy (`guardduty:ListDetectors`, `GetDetector`, `ListFindings`, `GetFindings`, `GetFindingsStatistics`) to the generic IAM role.
+
+```bash
+helm upgrade --install centcom-satellite philips-software/centcom-satellite \
+  --namespace centcom-satellite \
+  --create-namespace \
+  --set features.guardduty=true \
   --set aws.irsa.enabled=true \
   --set aws.irsa.accountId=123456789012 \
   --set aws.irsa.oidcIssuer=oidc.eks.us-west-2.amazonaws.com/id/EXAMPLED539D4633E53DE1B71EXAMPLE \
@@ -109,6 +126,7 @@ The pod should show:
 | features.cloudwatchRca | bool | `false` | Enable CloudWatch RCA tasks (requires AWS credentials) |
 | features.configmapRead | bool | `false` |  |
 | features.getResource | bool | `false` |  |
+| features.guardduty | bool | `false` | Enable read-only GuardDuty tasks (requires AWS credentials) |
 | features.httpRequest | bool | `false` |  |
 | features.nodeclaimDelete | bool | `false` |  |
 | features.podEvict | bool | `false` |  |

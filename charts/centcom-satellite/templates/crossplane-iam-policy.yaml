@@ -2,10 +2,10 @@
 apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: Policy
 metadata:
-  name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+  name: {{ include "centcom-satellite.irsaName" . }}-cw-rca
   namespace: {{ .Release.Namespace }}
   annotations:
-    crossplane.io/external-name: {{ include "centcom-satellite.fullname" . }}-cw-rca
+    crossplane.io/external-name: {{ include "centcom-satellite.irsaName" . }}-cw-rca
   labels:
     {{- include "centcom-satellite.labels" . | nindent 4 }}
 spec:
@@ -35,6 +35,46 @@ spec:
               "logs:GetQueryResults",
               "logs:StopQuery",
               "ce:GetCostAndUsage"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+{{- end }}
+{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) .Values.features.guardduty }}
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: Policy
+metadata:
+  name: {{ include "centcom-satellite.irsaName" . }}-guardduty
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    crossplane.io/external-name: {{ include "centcom-satellite.irsaName" . }}-guardduty
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ .Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    path: {{ include "centcom-satellite.irsaPath" . | quote }}
+    {{- with .Values.aws.irsa.tags }}
+    tags:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    policy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "CentcomGuardDutyRead",
+            "Effect": "Allow",
+            "Action": [
+              "guardduty:ListDetectors",
+              "guardduty:GetDetector",
+              "guardduty:ListFindings",
+              "guardduty:GetFindings",
+              "guardduty:GetFindingsStatistics"
             ],
             "Resource": "*"
           }

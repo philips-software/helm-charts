@@ -135,6 +135,10 @@ spec:
             - name: CLOUDWATCH_RCA_ENABLED
               value: "true"
             {{- end }}
+            {{- if .Values.features.guardduty }}
+            - name: GUARDDUTY_ENABLED
+              value: "true"
+            {{- end }}
             {{- if .Values.aws.irsa.region }}
             - name: AWS_REGION
               value: {{ .Values.aws.irsa.region | quote }}

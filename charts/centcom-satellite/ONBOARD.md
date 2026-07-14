@@ -55,6 +55,21 @@ also disables them on an existing install.
 curl -fsSL .../install.sh | READ_ONLY=true bash
 ```
 
+**Memory auto-sizing.** The satellite holds Kubernetes list/get responses in
+memory, so its peak usage tracks the cluster-wide **pod count** — the chart's
+default 128Mi limit OOMs immediately on large clusters (seen on a 110-node
+cluster). The installer counts pods (`kubectl get pods -A`) and picks both the
+initial memory limit and the VPA ceiling from a tier table (e.g. ~2000 pods →
+1Gi limit / 3Gi VPA max). Override the auto-sizing with:
+
+- `POD_COUNT=<n>` — skip the cluster-wide pod list (locked-down or very large clusters)
+- `MEMORY_LIMIT=<val>` — force the initial limit (e.g. `512Mi`); request is set to half
+- `VPA_MAX_MEMORY=<val>` — force the VPA ceiling (e.g. `4Gi`)
+
+```bash
+curl -fsSL .../install.sh | MEMORY_LIMIT=512Mi VPA_MAX_MEMORY=4Gi bash
+```
+
 **nginx Ingress fallback.** Some clusters have a broken gateway
 `http-to-https-redirect` that causes redirect loops even with no `sectionName`.
 For those, set `USE_INGRESS=true` to expose centcom-satellite via an nginx Ingress

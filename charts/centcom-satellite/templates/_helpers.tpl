@@ -74,11 +74,30 @@ Inputs → outputs: "" or "/" → "/", "team" → "/team/", "/team" → "/team/"
 {{- end }}
 
 {{/*
+IRSA resource name: the base name for AWS-facing IAM resources (Role, Policy)
+provisioned via Crossplane. Unlike Kubernetes object names, an IAM role/policy
+name is GLOBAL PER AWS ACCOUNT — so two clusters that share one account and both
+install this chart under the same release name would otherwise fight over the
+identical role/policy name. aws.irsa.namePrefix disambiguates them (install.sh
+seeds it from the cluster's environment tag). Empty prefix == fullname, so
+existing installs are unaffected.
+*/}}
+{{- define "centcom-satellite.irsaName" -}}
+{{- $prefix := .Values.aws.irsa.namePrefix | default "" | trimPrefix "-" | trimSuffix "-" -}}
+{{- if $prefix -}}
+{{- printf "%s-%s" $prefix (include "centcom-satellite.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- include "centcom-satellite.fullname" . -}}
+{{- end -}}
+{{- end }}
+
+{{/*
 IRSA role name: the Crossplane Role external-name. Generic (not task-specific)
-so multiple task-scoped policies can be attached to the same role.
+so multiple task-scoped policies can be attached to the same role. Prefixed via
+centcom-satellite.irsaName for account-global uniqueness.
 */}}
 {{- define "centcom-satellite.irsaRoleName" -}}
-{{- include "centcom-satellite.fullname" . -}}
+{{- include "centcom-satellite.irsaName" . -}}
 {{- end }}
 
 {{/*

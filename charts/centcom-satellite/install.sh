@@ -23,11 +23,26 @@
 #
 #   curl -fsSL .../install.sh | CLOUDWATCH_RCA=true bash
 #
+# To enable the GuardDuty tasks (read-only AWS data via IRSA), set GUARDDUTY=true.
+# It can be combined with CLOUDWATCH_RCA; either one turns on the IRSA plumbing:
+#
+#   curl -fsSL .../install.sh | GUARDDUTY=true bash
+#
+# Or enable EVERY IRSA-dependent task group at once with the master switch — this
+# turns on CloudWatch RCA and GuardDuty together (any group can still be opted out
+# with GROUP=false):
+#
+#   curl -fsSL .../install.sh | IRSA_ENABLED=true bash
+#
 # To expose via an nginx Ingress instead of a Gateway API HTTPRoute (for
 # clusters whose gateway has a broken http-to-https redirect), USE_INGRESS=true.
 # Requires an ingress controller — it fails fast if no IngressClass exists:
 #
 #   curl -fsSL .../install.sh | USE_INGRESS=true bash
+#
+# Progress/diagnostic logs go to stderr; only the copy/paste onboarding snippet
+# goes to stdout. When stdout is not a terminal (a runner is capturing it) the
+# two are merged so the logs are not lost — override with LOG_STDOUT=true|false.
 #
 set -euo pipefail
 
@@ -86,8 +101,25 @@ fi
 # Requires the AWS Crossplane provider (iam.aws.*) + a ClusterProviderConfig on
 # the target cluster, and an IAM OIDC provider registered for the cluster issuer.
 # Any auto-discovered value can be overridden with the matching env var below.
-: "${CLOUDWATCH_RCA:=false}"
-: "${IRSA_ENABLED:=}"          # auto: true when CLOUDWATCH_RCA=true, else false
+#
+# These task groups both depend on IRSA. Their relationship with IRSA_ENABLED is
+# bidirectional and convenience-only (the chart keeps features.* and aws.irsa.*
+# independent so ambient / instance-profile / BYO-role credentials still work):
+#   - turning ANY group on turns IRSA on (so `GUARDDUTY=true` just works), and
+#   - setting IRSA_ENABLED=true acts as a MASTER SWITCH that turns on every
+#     IRSA-dependent group you didn't explicitly set (so one flag lights them all).
+# A group left unset defaults off; an explicit `GUARDDUTY=false` always wins, even
+# under the master switch.
+: "${CLOUDWATCH_RCA:=}"
+# GuardDuty data-retrieval tasks (5 tasks: detectors, findings statistics,
+# list/get findings, and a list+hydrate composite). Like CLOUDWATCH_RCA these
+# need AWS credentials via IRSA and attach a dedicated read-only GuardDuty policy
+# to the same generic IAM role:
+#
+#   curl -fsSL .../install.sh | GUARDDUTY=true bash
+#
+: "${GUARDDUTY:=}"
+: "${IRSA_ENABLED:=}"          # master switch: true turns on all unset AWS task groups; auto-true when any group is on
 # NOTE: these use IRSA_-prefixed names on purpose — NOT AWS_REGION/AWS_ACCOUNT_ID.
 # Everything is derived from the TARGET CLUSTER, never from the operator's local
 # AWS env/CLI config. Reusing the standard AWS_* names here would let an ambient
@@ -98,14 +130,47 @@ fi
 : "${IRSA_PROVIDER_CONFIG:=}"  # auto: a ClusterProviderConfig named "default", else the first
 : "${IRSA_AUDIENCE:=sts.amazonaws.com}"
 : "${IRSA_ROLE_ARN:=}"         # bring-your-own role ARN; skips Crossplane role creation
+# Prefix for the AWS-facing IAM resource names (Role, Policy). An IAM role/policy
+# name is GLOBAL PER AWS ACCOUNT, so two clusters that share one account and both
+# run this installer would clash on the identical "centcom-satellite" role/policy
+# name (and role ARN). We prefix them with the cluster's environment tag to keep
+# them unique. Auto: CLUSTER_NAME (itself the hsp-addons environment tag). Set
+# empty to opt out (role/policy named after the release, pre-namePrefix behaviour).
+: "${IRSA_NAME_PREFIX:=__auto__}"
 
-# IRSA follows CloudWatch RCA unless explicitly overridden, and the feature flag
-# is appended so a re-run also toggles it declaratively.
-[ -n "$IRSA_ENABLED" ] || IRSA_ENABLED="$CLOUDWATCH_RCA"
+# Resolve the IRSA master switch against the individual AWS task groups. Each of
+# CLOUDWATCH_RCA / GUARDDUTY is tri-state here: "true", "false", or unset.
+#
+#   1. If IRSA_ENABLED is explicitly true, it's the master switch: every group
+#      left unset turns on. An explicit `GROUP=false` still wins.
+#   2. Otherwise, any group explicitly true turns IRSA on for it.
+#   3. Anything still unset defaults to false.
+# The resolved feature flags are always appended (true AND false) so a re-run
+# toggles them declaratively instead of leaving stale state behind.
+if [ "$IRSA_ENABLED" = "true" ]; then
+  [ -n "$CLOUDWATCH_RCA" ] || CLOUDWATCH_RCA=true
+  [ -n "$GUARDDUTY" ]      || GUARDDUTY=true
+fi
+[ -n "$CLOUDWATCH_RCA" ] || CLOUDWATCH_RCA=false
+[ -n "$GUARDDUTY" ]      || GUARDDUTY=false
+
+if [ -z "$IRSA_ENABLED" ]; then
+  if [ "$CLOUDWATCH_RCA" = "true" ] || [ "$GUARDDUTY" = "true" ]; then
+    IRSA_ENABLED=true
+  else
+    IRSA_ENABLED=false
+  fi
+fi
+
 if [ "$CLOUDWATCH_RCA" = "true" ]; then
   FEATURES="${FEATURES},cloudwatchRca=true"
 else
   FEATURES="${FEATURES},cloudwatchRca=false"
+fi
+if [ "$GUARDDUTY" = "true" ]; then
+  FEATURES="${FEATURES},guardduty=true"
+else
+  FEATURES="${FEATURES},guardduty=false"
 fi
 
 # Networking / exposure. Empty values are auto-discovered (see below).
@@ -139,6 +204,21 @@ fi
 # Behaviour
 : "${SERVICEMONITOR_ENABLED:=true}"
 : "${REPLICA_COUNT:=1}"
+
+# Memory sizing. The satellite holds Kubernetes list/get responses in memory
+# (informer caches, wildcard get_resource), and Go's working set runs ~2-3x the
+# decoded JSON — so peak memory tracks total object count, best proxied by the
+# cluster-wide pod count. The chart's default 128Mi limit OOMs immediately on
+# large clusters (observed on src-co-sb: 110 nodes / thousands of pods) BEFORE
+# the VPA can react, and the chart's 1Gi vpa.maxAllowed would re-OOM anyway.
+# So discover() counts pods and picks both the initial limit and the VPA ceiling
+# from a tier table. Override either to skip the auto-sizing:
+#   POD_COUNT=<n>       skip the cluster-wide pod list (locked-down/huge clusters)
+#   MEMORY_LIMIT=<val>  force the initial limit (e.g. 512Mi); still tiers the VPA
+#   VPA_MAX_MEMORY=<val> force the VPA ceiling (e.g. 4Gi)
+: "${POD_COUNT:=}"            # auto: kubectl get pods -A | wc -l
+: "${MEMORY_LIMIT:=}"         # auto: from pod-count tier table
+: "${VPA_MAX_MEMORY:=}"       # auto: from pod-count tier table
 : "${DRY_RUN:=false}"         # true = print helm/kubectl actions, change nothing
 : "${WAIT_TIMEOUT:=180s}"
 : "${COUNTDOWN:=}"            # pre-install review countdown (s); empty = auto from reading time
@@ -159,10 +239,48 @@ if [ "$USE_INGRESS" = "true" ]; then
   HTTPROUTE_ENABLED=false
 fi
 
+# The AWS documentation placeholder account. Never a real account — if IRSA
+# discovery ever resolves to it, we fail rather than build an unusable role ARN.
+AWS_PLACEHOLDER_ACCOUNT="123456789012"
+
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*" >&2; }
 warn() { printf '\033[1;33m[warn]\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[1;31m[fail]\033[0m %s\n' "$*" >&2; exit 1; }
 run()  { if [ "$DRY_RUN" = "true" ]; then printf '\033[2m# %s\033[0m\n' "$*" >&2; else eval "$@"; fi; }
+
+# half_mem <quantity>: halve a Ki/Mi/Gi memory quantity so the request is half
+# the limit (keeps a burstable QoS). Gi is downshifted to Mi first so halving an
+# odd/1Gi value stays precise (1Gi -> 512Mi, not 0Gi). Unknown units echo as-is.
+half_mem() {
+  local q="$1" num unit
+  num=${q%[KMGkmg]i}
+  unit=${q#"$num"}
+  case "$unit" in
+    Gi) printf '%sMi' "$(( num * 1024 / 2 ))" ;;
+    Ki|Mi) printf '%s%s' "$(( num / 2 ))" "$unit" ;;
+    *)  printf '%s' "$q" ;;
+  esac
+}
+
+# All progress/diagnostic output goes to stderr (the functions above, the
+# summarize panel, helm/kubectl chatter). Only the copy/paste onboarding
+# snippet in done_msg goes to stdout. That split is great in a terminal, but
+# some CI runners / UIs capture ONLY stdout — they then see "empty output"
+# even though the install is running fine (all the logs are on the stderr they
+# dropped). To avoid that, fold stderr into stdout whenever stdout is NOT a
+# terminal, i.e. exactly when something is capturing it. An interactive
+# `curl … | bash` is unaffected: only bash's *stdin* is the pipe, so its
+# stdout is still the TTY and the stderr/stdout split is preserved.
+#
+#   LOG_STDOUT=true   force-merge (everything on stdout)
+#   LOG_STDOUT=false  keep the split regardless (pure-snippet capture)
+#   LOG_STDOUT=auto   (default) merge only when stdout is not a terminal
+case "${LOG_STDOUT:=auto}" in
+  true)  exec 2>&1 ;;
+  false) : ;;
+  auto)  [ -t 1 ] || exec 2>&1 ;;
+  *)     die "LOG_STDOUT must be true, false, or auto (got: ${LOG_STDOUT})" ;;
+esac
 
 # ---------------------------------------------------------------------------
 # preflight: fail fast on missing tools / unreachable cluster
@@ -290,6 +408,46 @@ discover() {
   fi
 
   discover_irsa
+  discover_memory
+}
+
+# ---------------------------------------------------------------------------
+# discover_memory: size the initial memory limit and the VPA ceiling from the
+# cluster-wide pod count. Both are overridable (POD_COUNT / MEMORY_LIMIT /
+# VPA_MAX_MEMORY); anything left empty is filled from the tier table. If the
+# pod list fails and no override is given, we leave the values empty so the
+# chart defaults (128Mi limit, 1Gi vpa.maxAllowed) apply unchanged.
+# ---------------------------------------------------------------------------
+discover_memory() {
+  # If the operator pinned both knobs, there's nothing to discover.
+  if [ -n "$MEMORY_LIMIT" ] && [ -n "$VPA_MAX_MEMORY" ]; then
+    return 0
+  fi
+
+  if [ -z "$POD_COUNT" ]; then
+    # --no-headers so an empty cluster yields 0, not a stray header line.
+    POD_COUNT=$(kubectl get pods -A --no-headers 2>/dev/null | grep -c '^') || true
+  fi
+
+  if [ -z "$POD_COUNT" ] || ! [ "$POD_COUNT" -ge 0 ] 2>/dev/null; then
+    warn "could not determine pod count; leaving memory at chart defaults (set MEMORY_LIMIT/VPA_MAX_MEMORY to size manually)"
+    POD_COUNT=""
+    return 0
+  fi
+
+  # Tier table: initial limit / VPA ceiling. Requests are derived as half the
+  # limit in deploy(). Tiers are picked so the initial limit alone survives the
+  # cold-start burst (before any VPA action) and the ceiling leaves headroom.
+  local tier_limit tier_max
+  if   [ "$POD_COUNT" -lt 100 ];  then tier_limit=128Mi; tier_max=1Gi
+  elif [ "$POD_COUNT" -lt 500 ];  then tier_limit=256Mi; tier_max=1Gi
+  elif [ "$POD_COUNT" -lt 1500 ]; then tier_limit=512Mi; tier_max=2Gi
+  elif [ "$POD_COUNT" -lt 4000 ]; then tier_limit=1Gi;   tier_max=3Gi
+  else                                 tier_limit=2Gi;   tier_max=4Gi
+  fi
+
+  [ -n "$MEMORY_LIMIT" ]   || MEMORY_LIMIT="$tier_limit"
+  [ -n "$VPA_MAX_MEMORY" ] || VPA_MAX_MEMORY="$tier_max"
 }
 
 # discover_base_domain <ingress|httproute>: most common hostname suffix (the
@@ -308,25 +466,97 @@ discover_base_domain() {
     | sort | uniq -c | sort -rn | awk 'NR==1{print $2}'
 }
 
+# discover_irsa_from_envconfig: fill empty IRSA values from the hsp-addons
+# Crossplane EnvironmentConfig .data (accountId / region / eks.oidcProvider).
+# This is the platform's own source of truth, so it takes precedence over the
+# SA-annotation / node-label / apiserver heuristics. Best-effort: if the CR or a
+# field is missing, leaves the value empty for the per-field fallbacks. Tries
+# hsp-addons then hsp-addons-compat.
+discover_irsa_from_envconfig() {
+  local ec field val
+  for ec in hsp-addons hsp-addons-compat; do
+    kubectl get environmentconfigs.apiextensions.crossplane.io "$ec" >/dev/null 2>&1 || continue
+    if [ -z "$IRSA_ACCOUNT_ID" ]; then
+      val=$(kubectl get environmentconfigs.apiextensions.crossplane.io "$ec" \
+        -o jsonpath='{.data.accountId}' 2>/dev/null) || true
+      # Guard against the AWS docs placeholder sneaking in from a bad config.
+      [ -n "$val" ] && [ "$val" != "$AWS_PLACEHOLDER_ACCOUNT" ] && IRSA_ACCOUNT_ID="$val"
+    fi
+    [ -n "$IRSA_REGION" ] || IRSA_REGION=$(kubectl get environmentconfigs.apiextensions.crossplane.io "$ec" \
+      -o jsonpath='{.data.region}' 2>/dev/null) || true
+    # oidcProvider is stored scheme-stripped already (host/id/...), exactly the
+    # form the chart wants.
+    [ -n "$IRSA_OIDC_ISSUER" ] || IRSA_OIDC_ISSUER=$(kubectl get environmentconfigs.apiextensions.crossplane.io "$ec" \
+      -o jsonpath='{.data.eks.oidcProvider}' 2>/dev/null) || true
+  done
+}
+
 # discover_irsa: fill in any empty AWS/IRSA value from the live cluster. Only
 # runs when IRSA is enabled. Fails fast (die) on anything it cannot resolve,
 # since a half-configured IRSA role would silently deny AWS calls at runtime.
 discover_irsa() {
   [ "$IRSA_ENABLED" = "true" ] || return 0
 
+  # IRSA_NAME_PREFIX disambiguates the AWS-facing IAM Role/Policy names, which are
+  # global per account. Default (__auto__) is the cluster's environment tag
+  # (CLUSTER_NAME, already resolved in discover()). Sanitize to the IAM-safe set
+  # [A-Za-z0-9_+=,.@-] — a kube-context fallback can be an EKS ARN full of ':' '/'
+  # that would make an invalid role name. An explicit IRSA_NAME_PREFIX="" opts out.
+  if [ "$IRSA_NAME_PREFIX" = "__auto__" ]; then
+    IRSA_NAME_PREFIX=$(printf '%s' "$CLUSTER_NAME" \
+      | tr -c 'A-Za-z0-9_+=,.@-' '-' | sed -e 's/-\{2,\}/-/g' -e 's/^-//' -e 's/-$//')
+  fi
+
   # Everything below is discovered from the TARGET CLUSTER via kubectl — never
   # from the operator's local AWS CLI config or AWS_* env. That keeps the install
   # reproducible regardless of whose laptop runs it.
 
-  # IRSA_ACCOUNT_ID: read from any existing IRSA-annotated ServiceAccount on the
+  # Authoritative source first: the hsp-addons Crossplane EnvironmentConfig
+  # carries the platform's own account/region/OIDC in .data (same CR family we
+  # already read CLUSTER_NAME from). When present it beats every per-field
+  # heuristic below — it's the value the platform provisioned the cluster with,
+  # not something inferred from possibly-stale SA annotations. Fills only empty
+  # values, so explicit env overrides still win.
+  discover_irsa_from_envconfig
+
+  # IRSA_ACCOUNT_ID: read from existing IRSA-annotated ServiceAccounts on the
   # cluster (eks.amazonaws.com/role-arn = arn:aws:iam::<acct>:role/...). This is
-  # the same account every workload on the cluster assumes into.
+  # the same account every workload on the cluster assumes into — so the account
+  # shared by the MOST SAs is the real one. We take the majority rather than the
+  # first match because:
+  #   - `head -1` is namespace-alphabetical and picks up whatever sorts first,
+  #     including a stray SA carrying a placeholder/wrong account.
+  #   - a prior bad install stamps the wrong account onto centcom-satellite's own
+  #     SA; reading it back would re-poison every re-run (self-reinforcing bug).
+  # So we EXCLUDE this release's own SA from the vote and drop the canonical AWS
+  # docs placeholder account, then pick the most common remaining account.
   if [ -z "$IRSA_ACCOUNT_ID" ]; then
+    # This release's own SA account (if any) — excluded from the vote so a prior
+    # bad install can't reinforce its own wrong value.
+    local _own_acct
+    _own_acct=$(kubectl -n "$NAMESPACE" get sa \
+      -o jsonpath='{range .items[*]}{.metadata.annotations.eks\.amazonaws\.com/role-arn}{"\n"}{end}' 2>/dev/null \
+      | grep -o 'arn:aws:iam::[0-9]\{12\}:' | grep -o '[0-9]\{12\}' | head -1) || true
+    # All accounts across the cluster, minus this release's own SA and the AWS
+    # docs placeholder, most-common first.
     IRSA_ACCOUNT_ID=$(kubectl get sa -A \
       -o jsonpath='{range .items[*]}{.metadata.annotations.eks\.amazonaws\.com/role-arn}{"\n"}{end}' 2>/dev/null \
-      | grep -o 'arn:aws:iam::[0-9]\{12\}:' | head -1 | grep -o '[0-9]\{12\}') || true
+      | grep -o 'arn:aws:iam::[0-9]\{12\}:' | grep -o '[0-9]\{12\}' \
+      | grep -vx "$AWS_PLACEHOLDER_ACCOUNT" \
+      | { [ -n "$_own_acct" ] && grep -vx "$_own_acct" || cat; } \
+      | sort | uniq -c | sort -rn | awk 'NR==1{print $2}') || true
   fi
-  [ -n "$IRSA_ACCOUNT_ID" ] || die "could not discover IRSA_ACCOUNT_ID (no IRSA-annotated ServiceAccount found); set IRSA_ACCOUNT_ID=..."
+  [ -n "$IRSA_ACCOUNT_ID" ] || die "could not discover IRSA_ACCOUNT_ID (no IRSA-annotated ServiceAccount found, or only placeholder accounts); set IRSA_ACCOUNT_ID=..."
+
+  # Never proceed with the AWS docs placeholder account. It is not a real
+  # account, so a role ARN built from it can never be assumed — IRSA would
+  # silently fail at runtime. This catches every path: an explicit
+  # IRSA_ACCOUNT_ID=123456789012, a mis-seeded EnvironmentConfig, or a cluster
+  # where the only IRSA-annotated SA carries it (e.g. src-co-sb's hand-applied
+  # crossplane-system/provider-aws role arn:aws:iam::123456789012:role/...).
+  if [ "$IRSA_ACCOUNT_ID" = "$AWS_PLACEHOLDER_ACCOUNT" ]; then
+    die "IRSA_ACCOUNT_ID resolved to the AWS docs placeholder ${AWS_PLACEHOLDER_ACCOUNT} — this is not a real account. Fix the source (a ServiceAccount or EnvironmentConfig annotated with it) or set IRSA_ACCOUNT_ID=<real account> explicitly."
+  fi
 
   # IRSA_OIDC_ISSUER: the cluster's OIDC issuer, scheme stripped (IAM OIDC
   # providers are keyed by host+path, no scheme — the chart re-adds nothing).
@@ -396,11 +626,17 @@ summarize() {
     _row "🛣️ " "route"        "disabled"
   fi
   _row "📊" "monitoring"   "serviceMonitor=${SERVICEMONITOR_ENABLED}"
+  if [ -n "$MEMORY_LIMIT" ]; then
+    _row "🧠" "memory"       "limit ${MEMORY_LIMIT}, vpa max ${VPA_MAX_MEMORY}  \033[2m(auto: ${POD_COUNT:-?} pods)\033[0m"
+  else
+    _row "🧠" "memory"       "chart defaults  \033[2m(pod count unavailable)\033[0m"
+  fi
   if [ "$IRSA_ENABLED" = "true" ]; then
     if [ -n "$IRSA_ROLE_ARN" ]; then
       _row "☁️ " "aws irsa"     "CloudWatch RCA \033[2m(BYO role ${IRSA_ROLE_ARN}, region ${IRSA_REGION})\033[0m"
     else
       _row "☁️ " "aws irsa"     "CloudWatch RCA \033[2m(acct ${IRSA_ACCOUNT_ID}, region ${IRSA_REGION}, oidc ${IRSA_OIDC_ISSUER}, providerConfig ${IRSA_PROVIDER_CONFIG})\033[0m"
+      _row "🏷️ " "iam names"     "$(printf '%s\033[2m (role/policy name — account-global uniqueness)\033[0m' "${IRSA_NAME_PREFIX:+${IRSA_NAME_PREFIX}-}${RELEASE_NAME}")"
     fi
   fi
   if [ "$READ_ONLY" = "true" ]; then
@@ -637,6 +873,18 @@ deploy() {
   [ -n "$CHART_VERSION" ] && args+=( --version "$CHART_VERSION" )
   [ -n "$IMAGE_TAG" ]     && args+=( --set "image.tag=${IMAGE_TAG}" )
 
+  # Pod-count-derived memory sizing (see discover_memory). Set the initial limit
+  # to survive the cold-start burst before VPA reacts, a matching burstable
+  # request (half the limit), and raise the VPA ceiling so scale-up isn't capped
+  # at the chart's 1Gi. Left empty on clusters where discovery couldn't run.
+  if [ -n "$MEMORY_LIMIT" ]; then
+    args+=(
+      --set "resources.limits.memory=${MEMORY_LIMIT}"
+      --set "resources.requests.memory=$(half_mem "$MEMORY_LIMIT")"
+    )
+  fi
+  [ -n "$VPA_MAX_MEMORY" ] && args+=( --set "vpa.maxAllowed.memory=${VPA_MAX_MEMORY}" )
+
   # Always set trustDomains (needed for JWT caller validation), but skip
   # federation ClusterSPIFFEID when installing on the same cluster as centcom
   args+=( --set "spire.trustDomains[0]=${MCP_TRUST_DOMAIN}" )
@@ -663,9 +911,10 @@ deploy() {
   done
   unset IFS
 
-  # AWS IRSA for CloudWatch RCA. When a role ARN is supplied we skip Crossplane
-  # role creation (roleArnOverride) and only annotate the SA; otherwise Crossplane
-  # provisions the generic role + attaches the CloudWatch policy.
+  # AWS IRSA for the CloudWatch RCA / GuardDuty task groups. When a role ARN is
+  # supplied we skip Crossplane role creation (roleArnOverride) and only annotate
+  # the SA; otherwise Crossplane provisions the generic role + attaches the policy
+  # for each enabled task group (CloudWatch RCA and/or GuardDuty).
   if [ "$IRSA_ENABLED" = "true" ]; then
     args+=(
       --set "aws.irsa.enabled=true"
@@ -682,6 +931,11 @@ deploy() {
         --set "aws.irsa.oidcIssuer=${IRSA_OIDC_ISSUER}"
         --set "aws.irsa.providerConfigRef=${IRSA_PROVIDER_CONFIG}"
       )
+      # Prefix the AWS-global IAM Role/Policy names so clusters sharing an account
+      # don't collide. Only meaningful when Crossplane creates the role (this
+      # branch); a BYO role ARN needs no name. Skipped when empty (opt-out).
+      [ -n "$IRSA_NAME_PREFIX" ] && \
+        args+=( --set "aws.irsa.namePrefix=${IRSA_NAME_PREFIX}" )
     fi
   else
     # Declarative disable so a re-run without CLOUDWATCH_RCA also tears down IRSA.
