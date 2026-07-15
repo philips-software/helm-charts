@@ -70,7 +70,7 @@ dex:
 dexChart:
   repoURL: https://charts.dexidp.io
   # renovate: datasource=helm depName=dex registryUrl=https://charts.dexidp.io
-  version: 0.24.0
+  version: 0.24.1
   # Helm release name for Dex
   releaseName: dex
 
