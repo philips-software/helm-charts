@@ -31,6 +31,14 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
+          # Push the bump commit with a PAT / GitHub App token, NOT the default
+          # GITHUB_TOKEN. Commits pushed with GITHUB_TOKEN do not trigger new
+          # workflow runs (GitHub's loop-prevention safeguard), so the guard and
+          # lint-test would never re-run on the bumped SHA and the PR would stay
+          # blocked. A separate token lifts that restriction. Falls back to
+          # GITHUB_TOKEN if the secret is absent (bump still lands; checks just
+          # won't auto-rerun).
+          token: ${{ secrets.CHART_BUMP_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Bump changed chart versions
         id: bump
