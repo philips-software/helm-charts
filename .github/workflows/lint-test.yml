@@ -11,6 +11,20 @@ on:
       - .github/workflows/lint-test.yaml
 
 jobs:
+  version-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check chart versions were bumped
+        run: |
+          base="origin/${{ github.event.repository.default_branch }}"
+          git fetch --quiet origin "${{ github.event.repository.default_branch }}"
+          .github/check-chart-versions.sh "$base"
+
   lint-test:
     runs-on: ubuntu-22.04
 
