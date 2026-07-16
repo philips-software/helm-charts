@@ -117,6 +117,11 @@ topologySpreadConstraints:
   enabled: false
   maxSkew: 1
   whenUnsatisfiable: DoNotSchedule
+  # Soft constraint to also spread pods across nodes within a zone, so that
+  # externalTrafficPolicy: Local has more distinct healthy NLB targets to
+  # route to instead of concentrating pods on a handful of nodes per zone.
+  # ScheduleAnyway means it never blocks scheduling if node capacity is tight.
+  hostnameMaxSkew: 1
 
 autoscaling:
   enabled: false

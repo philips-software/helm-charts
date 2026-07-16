@@ -1,6 +1,6 @@
 # otlp-gateway
 
-![Version: 0.60.2](https://img.shields.io/badge/Version-0.60.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.60.3](https://img.shields.io/badge/Version-0.60.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 OTLP gateway is a reference implementation which creates a single otlphttp endpoint that proxies Loki, Tempo and Mimir OTLP endpoints
 It supports authentication and authorization using both static and JWT tokens and tokens through the [caddy-token](https://github.com/loafoe/caddy-token) plugin.
@@ -124,6 +124,7 @@ authn:
 | tempo.pathPrefix | string | `"/v1/traces"` |  |
 | tempo.service | string | `"tempo-gateway.tempo-system.svc.cluster.local:80"` |  |
 | topologySpreadConstraints.enabled | bool | `false` |  |
+| topologySpreadConstraints.hostnameMaxSkew | int | `1` |  |
 | topologySpreadConstraints.maxSkew | int | `1` |  |
 | topologySpreadConstraints.whenUnsatisfiable | string | `"DoNotSchedule"` |  |
 | useCustomFqdn | bool | `true` |  |
