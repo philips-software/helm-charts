@@ -5,6 +5,10 @@
   {{- end }}
   admin :2019
 
+  {{- if or (eq .Values.log.level "debug") .Values.authn.clientCa.debug }}
+  debug
+  {{- end }}
+
   servers {
     metrics
   }

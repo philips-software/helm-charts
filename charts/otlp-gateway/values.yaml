@@ -20,7 +20,11 @@ authn:
     # - verify_if_given: Verify client cert if provided (default)
     # - require_and_verify: Require and verify client cert
     mode: verify_if_given
-    # Enable debug logging for client certificate authentication
+    # Enable debug logging for client certificate authentication.
+    # Also enables Caddy's global debug mode, which surfaces TLS handshake
+    # errors (e.g. expired/untrusted/missing client certs) via the
+    # http.stdlib logger. Does not affect per-request access log verbosity,
+    # which is controlled independently by log.level.
     debug: false
   spiffe:
     enabled: false
