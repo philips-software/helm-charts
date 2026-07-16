@@ -3,8 +3,12 @@ name: Auto-bump Chart Versions
 # Renovate (and human) PRs often change a chart's contents — an appVersion,
 # an image tag, a values file — without bumping the wrapper chart's own
 # version:. chart-releaser runs with skip_existing: true, so an unbumped
-# version means the release is silently skipped. This workflow patch-bumps the
-# version: of every changed chart and commits the result back to the PR branch.
+# version means the release is silently skipped. This workflow, for every
+# changed chart:
+#   1. patch-bumps version: (unless already bumped in the branch), and
+#   2. regenerates the helm-docs README (Version/AppVersion badges + value
+#      tables drift on any dependency change),
+# then commits both back to the PR branch.
 #
 # The companion guard in lint-test.yml still fails the PR if a version is
 # somehow left unbumped (e.g. this workflow is skipped on a fork PR), so this is
@@ -40,23 +44,35 @@ jobs:
           # won't auto-rerun).
           token: ${{ secrets.CHART_BUMP_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Bump changed chart versions
-        id: bump
+      - name: Install helm-docs
+        env:
+          # renovate: datasource=github-releases depName=norwoodj/helm-docs
+          HELM_DOCS_VERSION: 1.14.2
+        run: |
+          curl -fsSL "https://github.com/norwoodj/helm-docs/releases/download/v${HELM_DOCS_VERSION}/helm-docs_${HELM_DOCS_VERSION}_Linux_x86_64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin helm-docs
+          helm-docs --version
+
+      - name: Bump versions and regenerate docs
         run: |
           base="origin/${{ github.event.pull_request.base.ref }}"
           git fetch --quiet origin "${{ github.event.pull_request.base.ref }}"
-          bumped="$(.github/bump-chart-versions.sh "$base")"
-          {
-            echo 'bumped<<EOF'
-            echo "$bumped"
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
+          .github/bump-chart-versions.sh "$base"
+          # Docs run AFTER the bump so the regenerated Version badge reflects the
+          # new version. Scoped to changed charts only.
+          .github/regen-chart-docs.sh "$base"
 
       - name: Commit and push
-        if: steps.bump.outputs.bumped != ''
         run: |
+          # Commit whatever changed — a version bump, a regenerated README, or
+          # both. Nothing to do if the tree is clean (e.g. version was already
+          # bumped by hand and docs were already current).
+          if git diff --quiet -- charts/; then
+            echo "No chart changes to commit."
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add 'charts/**/Chart.yaml'
-          git commit -m "chore: bump chart version(s) for dependency update"
+          git add 'charts/**/Chart.yaml' 'charts/**/README.md'
+          git commit -m "chore: bump chart version(s) and regenerate docs for dependency update"
           git push origin HEAD:${{ github.event.pull_request.head.ref }}
