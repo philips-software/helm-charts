@@ -40,6 +40,9 @@ metadata:
   {{- end }}
 spec:
   type: {{ if .Values.loadbalancer.enabled }}LoadBalancer{{ else }}ClusterIP{{ end }}
+  {{- if .Values.loadbalancer.enabled }}
+  externalTrafficPolicy: Local
+  {{- end }}
   selector:
     app: otlp-gateway
   ports:
