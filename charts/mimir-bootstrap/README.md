@@ -1,13 +1,13 @@
 # mimir
 
-![Version: 0.64.0](https://img.shields.io/badge/Version-0.64.0-informational?style=flat-square)
+![Version: 0.65.0](https://img.shields.io/badge/Version-0.65.0-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.64.0 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.65.0 -n monitoring
 ```
 
 ## Dependencies

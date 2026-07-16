@@ -5,6 +5,8 @@ metadata:
   name: provider-mimir
   labels:
     {{- include "mimir-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   deploymentTemplate:
     metadata:
