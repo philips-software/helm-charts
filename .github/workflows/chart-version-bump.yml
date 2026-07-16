@@ -1,0 +1,62 @@
+name: Auto-bump Chart Versions
+
+# Renovate (and human) PRs often change a chart's contents — an appVersion,
+# an image tag, a values file — without bumping the wrapper chart's own
+# version:. chart-releaser runs with skip_existing: true, so an unbumped
+# version means the release is silently skipped. This workflow patch-bumps the
+# version: of every changed chart and commits the result back to the PR branch.
+#
+# The companion guard in lint-test.yml still fails the PR if a version is
+# somehow left unbumped (e.g. this workflow is skipped on a fork PR), so this is
+# a convenience, not the sole line of defence.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - charts/**
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    # Only push commits back to same-repo branches. Fork PRs get a read-only
+    # token; the guard job will flag any missing bump instead.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          # Push the bump commit with a PAT / GitHub App token, NOT the default
+          # GITHUB_TOKEN. Commits pushed with GITHUB_TOKEN do not trigger new
+          # workflow runs (GitHub's loop-prevention safeguard), so the guard and
+          # lint-test would never re-run on the bumped SHA and the PR would stay
+          # blocked. A separate token lifts that restriction. Falls back to
+          # GITHUB_TOKEN if the secret is absent (bump still lands; checks just
+          # won't auto-rerun).
+          token: ${{ secrets.CHART_BUMP_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Bump changed chart versions
+        id: bump
+        run: |
+          base="origin/${{ github.event.pull_request.base.ref }}"
+          git fetch --quiet origin "${{ github.event.pull_request.base.ref }}"
+          bumped="$(.github/bump-chart-versions.sh "$base")"
+          {
+            echo 'bumped<<EOF'
+            echo "$bumped"
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        if: steps.bump.outputs.bumped != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add 'charts/**/Chart.yaml'
+          git commit -m "chore: bump chart version(s) for dependency update"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
