@@ -145,16 +145,16 @@ spec:
             {{- end }}
           livenessProbe:
             httpGet:
-              path: {{ if .Values.spire.enabled }}/metrics{{ else }}/healthz{{ end }}
-              port: {{ if .Values.spire.enabled }}metrics{{ else }}http{{ end }}
+              path: /healthz
+              port: metrics
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: {{ if .Values.spire.enabled }}/metrics{{ else }}/readyz{{ end }}
-              port: {{ if .Values.spire.enabled }}metrics{{ else }}http{{ end }}
+              path: /readyz
+              port: metrics
             initialDelaySeconds: 3
             periodSeconds: 5
             timeoutSeconds: 2
