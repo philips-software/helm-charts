@@ -203,7 +203,7 @@ fi
 
 # Behaviour
 : "${SERVICEMONITOR_ENABLED:=true}"
-: "${REPLICA_COUNT:=1}"
+: "${REPLICA_COUNT:=2}"
 
 # Memory sizing. The satellite holds Kubernetes list/get responses in memory
 # (informer caches, wildcard get_resource), and Go's working set runs ~2-3x the
