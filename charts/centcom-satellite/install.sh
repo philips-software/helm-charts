@@ -53,7 +53,7 @@ set -euo pipefail
 # that centcom-satellite must trust. They are stable across target clusters, so they
 # are baked in here. Override with env vars if you onboard a different centcom.
 : "${MCP_TRUST_DOMAIN:=dip-ce-k3s-eu.hsp.philips.com}"
-: "${MCP_BUNDLE_ENDPOINT:=https://spiffe.dip-ce-k3s-eu.hsp.philips.com}"
+: "${MCP_BUNDLE_ENDPOINT:=https://spiffe.dip-ce-k3s-eu.hsp.philips.com:8443}"
 : "${MCP_SPIFFE_ID:=spiffe://dip-ce-k3s-eu.hsp.philips.com/ns/centcom/sa/centcom}"
 : "${MCP_FEDERATION_NAME:=dip-ce-k3s-eu}"   # name of the ClusterFederatedTrustDomain
 
