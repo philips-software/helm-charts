@@ -1,6 +1,6 @@
 # Default values for centcom-satellite
 
-replicaCount: 1
+replicaCount: 2
 
 image:
   repository: ghcr.io/loafoe/centcom-satellite

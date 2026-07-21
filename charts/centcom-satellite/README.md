@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.5.0](https://img.shields.io/badge/Version-0.5.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.54.0](https://img.shields.io/badge/AppVersion-v0.54.0-informational?style=flat-square)
+![Version: 0.5.1](https://img.shields.io/badge/Version-0.5.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.54.0](https://img.shields.io/badge/AppVersion-v0.54.0-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -73,7 +73,7 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 | podSecurityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
 | rbac.additionalRules | list | `[]` |  |
 | rbac.create | bool | `true` |  |
-| replicaCount | int | `1` |  |
+| replicaCount | int | `2` |  |
 | resources.limits.cpu | string | `"100m"` |  |
 | resources.limits.memory | string | `"128Mi"` |  |
 | resources.requests.cpu | string | `"10m"` |  |
