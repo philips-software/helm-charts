@@ -1,0 +1,64 @@
+# agentgateway-bootstrap configuration
+
+# Upstream agentgateway-crds Helm chart configuration
+agentgatewayCrdsChart:
+  repoURL: oci://cr.agentgateway.dev/charts
+  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway-crds
+  version: 1.3.1
+
+# Upstream agentgateway Helm chart configuration
+agentgatewayChart:
+  repoURL: oci://cr.agentgateway.dev/charts
+  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway
+  version: 1.3.1
+
+# ArgoCD project name
+argoProject: default
+
+# Environment configuration for variable substitution
+environmentConfig:
+  resourcePrefix: ""
+  region: ""
+  accountId: ""
+
+# Amazon Bedrock LLM Provider configuration
+bedrock:
+  # Enable Amazon Bedrock backend and route configuration
+  enabled: true
+  # AWS Region for Amazon Bedrock (supports ${region} variable substitution)
+  region: us-east-1
+  # Default Bedrock model (e.g. amazon.nova-micro-v1:0, us.anthropic.claude-3-5-sonnet-20241022-v2:0)
+  model: amazon.nova-micro-v1:0
+  # Authentication configuration
+  auth:
+    # Auth type: "secret", "irsa", or "implicit"
+    type: secret
+    # Secret name containing AWS credentials if auth.type is "secret"
+    secretName: bedrock-secret
+  # Route configuration for Bedrock
+  route:
+    enabled: true
+    path: /bedrock
+    openAiPath: /v1/chat/completions
+
+# Kubernetes Gateway resource configuration
+gateway:
+  enabled: true
+  name: agentgateway
+  className: agentgateway
+  namespace: agentgateway-system
+
+# Upstream agentgateway controller options
+controller:
+  replicaCount: 1
+  logLevel: info
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+# Data plane proxy defaults
+proxy:
+  logLevel: info

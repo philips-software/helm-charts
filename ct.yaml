@@ -6,6 +6,7 @@ target-branch: main
 chart-repos:
   - fluent=https://fluent.github.io/helm-charts
 excluded-charts:
+  - agentgateway-bootstrap
   - cloudnative-pg-bootstrap
   - cloudnative-pg-operator
   - crossplane-providers

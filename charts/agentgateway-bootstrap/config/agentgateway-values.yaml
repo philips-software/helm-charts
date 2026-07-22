@@ -1,0 +1,12 @@
+controller:
+  replicaCount: {{ .Values.controller.replicaCount }}
+  logLevel: {{ .Values.controller.logLevel | quote }}
+  resources:
+    {{- toYaml .Values.controller.resources | nindent 4 }}
+
+image:
+  registry: cr.agentgateway.dev
+  pullPolicy: IfNotPresent
+
+inferenceExtension:
+  enabled: true

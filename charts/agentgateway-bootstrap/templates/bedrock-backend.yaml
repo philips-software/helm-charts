@@ -1,0 +1,23 @@
+{{- if .Values.bedrock.enabled }}
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: bedrock
+  namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
+  labels:
+    {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  ai:
+    provider:
+      bedrock:
+        model: {{ .Values.bedrock.model | quote }}
+        region: {{ include "agentgateway-bootstrap.substituteVars" (dict "str" .Values.bedrock.region "ctx" .) | quote }}
+    {{- if eq .Values.bedrock.auth.type "secret" }}
+    policies:
+      auth:
+        secretRef:
+          name: {{ .Values.bedrock.auth.secretName | quote }}
+    {{- end }}
+{{- end }}

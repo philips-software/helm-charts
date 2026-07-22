@@ -1,0 +1,28 @@
+{{- include "agentgateway-bootstrap.validateConfig" . -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: agentgateway-crds
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: {{ .Values.argoProject }}
+  source:
+    chart: agentgateway-crds
+    repoURL: {{ .Values.agentgatewayCrdsChart.repoURL | quote }}
+    targetRevision: {{ .Values.agentgatewayCrdsChart.version | quote }}
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: agentgateway-system
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true

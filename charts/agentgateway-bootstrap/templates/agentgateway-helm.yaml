@@ -1,0 +1,37 @@
+{{- include "agentgateway-bootstrap.validateConfig" . -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: agentgateway-helm
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: {{ .Values.argoProject }}
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+  source:
+    chart: agentgateway
+    repoURL: {{ .Values.agentgatewayChart.repoURL | quote }}
+    targetRevision: {{ .Values.agentgatewayChart.version | quote }}
+    helm:
+      releaseName: agentgateway
+      valuesObject:
+        {{- (tpl (.Files.Get "config/agentgateway-values.yaml") .) | nindent 8 }}
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: agentgateway-system
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
