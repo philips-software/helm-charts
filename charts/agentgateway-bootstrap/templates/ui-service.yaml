@@ -1,0 +1,20 @@
+{{- if and .Values.ui.enabled .Values.gateway.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: agentgateway-ui
+  namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
+  labels:
+    {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: {{ .Values.ui.service.type | default "ClusterIP" }}
+  ports:
+    - name: http-ui
+      port: {{ .Values.ui.service.port | default 15000 }}
+      targetPort: {{ .Values.ui.service.targetPort | default 15000 }}
+      protocol: TCP
+  selector:
+    gateway.networking.k8s.io/gateway-name: {{ .Values.gateway.name | default "agentgateway" }}
+{{- end }}

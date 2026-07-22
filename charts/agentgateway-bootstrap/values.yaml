@@ -48,6 +48,37 @@ gateway:
   className: agentgateway
   namespace: agentgateway-system
 
+# Admin UI internal service configuration
+ui:
+  # Enable internal ClusterIP Service for the read-only Admin UI (port 15000)
+  enabled: true
+  service:
+    type: ClusterIP
+    port: 15000
+    targetPort: 15000
+
+# OpenTelemetry Tracing configuration
+tracing:
+  # Enable OpenTelemetry tracing AgentgatewayPolicy
+  enabled: false
+  # OTel Collector backend reference
+  backendRef:
+    name: otlp-gateway
+    namespace: otlp-gateway
+    port: 4317
+  # Tracing protocol: GRPC or HTTP
+  protocol: GRPC
+  # Random sampling ratio ("1.0" for 100%, "0.1" for 10%)
+  randomSampling: "1.0"
+  clientSampling: "true"
+  resources:
+    - name: deployment.environment.name
+      expression: '"production"'
+  attributes:
+    add:
+      - name: host
+        expression: 'request.host'
+
 # Upstream agentgateway controller options
 controller:
   replicaCount: 1
