@@ -59,6 +59,16 @@ controller:
     limits:
       memory: 256Mi
 
+# Monitoring & Prometheus metrics scraping configuration
+monitoring:
+  # Enable Prometheus ServiceMonitor and Grafana dashboard creation
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+  grafanaDashboard:
+    enabled: true
+
 # Data plane proxy defaults
 proxy:
   logLevel: info

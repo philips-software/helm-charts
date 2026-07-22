@@ -2,7 +2,7 @@
 
 ![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.1](https://img.shields.io/badge/AppVersion-1.3.1-informational?style=flat-square)
 
-A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
+A Helm chart for bootstrapping agentgateway with Amazon Bedrock support and Prometheus metrics scraping on Kubernetes via ArgoCD Applications.
 
 ## Architecture
 
@@ -40,6 +40,10 @@ This chart uses ArgoCD Application CRs organized into sync waves:
 | gateway.enabled | bool | `true` | Enable Gateway API Gateway resource |
 | gateway.name | string | `"agentgateway"` | Name of Gateway resource |
 | gateway.namespace | string | `"agentgateway-system"` | Namespace for Gateway resources |
+| monitoring.enabled | bool | `true` | Enable Prometheus ServiceMonitors and Grafana dashboards |
+| monitoring.grafanaDashboard.enabled | bool | `true` | Create Grafana dashboard ConfigMap |
+| monitoring.serviceMonitor.enabled | bool | `true` | Create ServiceMonitor resources |
+| monitoring.serviceMonitor.interval | string | `"15s"` | Metrics scrape interval |
 | proxy.logLevel | string | `"info"` | Log level for data plane proxies |
 
 ----------------------------------------------

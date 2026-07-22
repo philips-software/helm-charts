@@ -10,3 +10,11 @@ image:
 
 inferenceExtension:
   enabled: true
+
+monitoring:
+  enabled: {{ .Values.monitoring.enabled }}
+  serviceMonitor:
+    enabled: {{ .Values.monitoring.serviceMonitor.enabled }}
+    interval: {{ .Values.monitoring.serviceMonitor.interval | quote }}
+  grafanaDashboard:
+    enabled: {{ .Values.monitoring.grafanaDashboard.enabled }}
