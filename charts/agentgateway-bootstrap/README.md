@@ -1,50 +1,43 @@
 # agentgateway-bootstrap
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.1](https://img.shields.io/badge/AppVersion-1.3.1-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.1](https://img.shields.io/badge/AppVersion-1.3.1-informational?style=flat-square)
 
-A Helm chart for bootstrapping agentgateway with Amazon Bedrock support and Prometheus metrics scraping on Kubernetes via ArgoCD Applications.
-
-## Architecture
-
-This chart uses ArgoCD Application CRs organized into sync waves:
-- **Sync Wave 0**: Deploys `agentgateway-crds` chart (`oci://cr.agentgateway.dev/charts/agentgateway-crds`).
-- **Sync Wave 1**: Deploys `agentgateway` control plane & proxy (`oci://cr.agentgateway.dev/charts/agentgateway`).
-- **Sync Wave 2**: Deploys Amazon Bedrock Gateway API resources (`AgentgatewayBackend`, `Gateway`, `HTTPRoute`).
+A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| agentgatewayChart.repoURL | string | `"oci://cr.agentgateway.dev/charts"` | Upstream agentgateway chart repository |
-| agentgatewayChart.version | string | `"1.3.1"` | Upstream agentgateway chart version |
-| agentgatewayCrdsChart.repoURL | string | `"oci://cr.agentgateway.dev/charts"` | Upstream agentgateway-crds chart repository |
-| agentgatewayCrdsChart.version | string | `"1.3.1"` | Upstream agentgateway-crds chart version |
-| argoProject | string | `"default"` | ArgoCD project for applications |
-| bedrock.auth.secretName | string | `"bedrock-secret"` | Secret containing AWS credentials if auth.type is secret |
-| bedrock.auth.type | string | `"secret"` | Authentication type ("secret", "irsa", or "implicit") |
-| bedrock.enabled | bool | `true` | Enable Amazon Bedrock backend |
-| bedrock.model | string | `"amazon.nova-micro-v1:0"` | Default Amazon Bedrock model |
-| bedrock.region | string | `"us-east-1"` | AWS Region for Amazon Bedrock |
-| bedrock.route.enabled | bool | `true` | Enable HTTPRoute for Bedrock |
-| bedrock.route.openAiPath | string | `"/v1/chat/completions"` | OpenAI-compatible chat completions route path |
-| bedrock.route.path | string | `"/bedrock"` | Bedrock path prefix |
-| controller.logLevel | string | `"info"` | Log level for the control plane |
-| controller.replicaCount | int | `1` | Controller replica count |
-| controller.resources.limits.memory | string | `"256Mi"` | Controller memory limit |
-| controller.resources.requests.cpu | string | `"100m"` | Controller CPU request |
-| controller.resources.requests.memory | string | `"128Mi"` | Controller memory request |
-| environmentConfig.accountId | string | `""` | AWS Account ID |
-| environmentConfig.region | string | `""` | AWS Region override |
-| environmentConfig.resourcePrefix | string | `""` | Resource prefix for environment |
-| gateway.className | string | `"agentgateway"` | GatewayClass name |
-| gateway.enabled | bool | `true` | Enable Gateway API Gateway resource |
-| gateway.name | string | `"agentgateway"` | Name of Gateway resource |
-| gateway.namespace | string | `"agentgateway-system"` | Namespace for Gateway resources |
-| monitoring.enabled | bool | `true` | Enable Prometheus ServiceMonitors and Grafana dashboards |
-| monitoring.grafanaDashboard.enabled | bool | `true` | Create Grafana dashboard ConfigMap |
-| monitoring.serviceMonitor.enabled | bool | `true` | Create ServiceMonitor resources |
-| monitoring.serviceMonitor.interval | string | `"15s"` | Metrics scrape interval |
-| proxy.logLevel | string | `"info"` | Log level for data plane proxies |
+| agentgatewayChart.repoURL | string | `"oci://cr.agentgateway.dev/charts"` |  |
+| agentgatewayChart.version | string | `"1.3.1"` |  |
+| agentgatewayCrdsChart.repoURL | string | `"oci://cr.agentgateway.dev/charts"` |  |
+| agentgatewayCrdsChart.version | string | `"1.3.1"` |  |
+| argoProject | string | `"default"` |  |
+| bedrock.auth.secretName | string | `"bedrock-secret"` |  |
+| bedrock.auth.type | string | `"secret"` |  |
+| bedrock.enabled | bool | `true` |  |
+| bedrock.model | string | `"amazon.nova-micro-v1:0"` |  |
+| bedrock.region | string | `"us-east-1"` |  |
+| bedrock.route.enabled | bool | `true` |  |
+| bedrock.route.openAiPath | string | `"/v1/chat/completions"` |  |
+| bedrock.route.path | string | `"/bedrock"` |  |
+| controller.logLevel | string | `"info"` |  |
+| controller.replicaCount | int | `1` |  |
+| controller.resources.limits.memory | string | `"256Mi"` |  |
+| controller.resources.requests.cpu | string | `"100m"` |  |
+| controller.resources.requests.memory | string | `"128Mi"` |  |
+| environmentConfig.accountId | string | `""` |  |
+| environmentConfig.region | string | `""` |  |
+| environmentConfig.resourcePrefix | string | `""` |  |
+| gateway.className | string | `"agentgateway"` |  |
+| gateway.enabled | bool | `true` |  |
+| gateway.name | string | `"agentgateway"` |  |
+| gateway.namespace | string | `"agentgateway-system"` |  |
+| monitoring.enabled | bool | `true` |  |
+| monitoring.grafanaDashboard.enabled | bool | `true` |  |
+| monitoring.serviceMonitor.enabled | bool | `true` |  |
+| monitoring.serviceMonitor.interval | string | `"15s"` |  |
+| proxy.logLevel | string | `"info"` |  |
 
 ----------------------------------------------
 Autogenerated from chart metadata using [helm-docs v1.14.2](https://github.com/norwoodj/helm-docs/releases/v1.14.2)
