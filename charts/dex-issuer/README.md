@@ -1,6 +1,6 @@
 # dex-issuer
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.45.1-dip.6](https://img.shields.io/badge/AppVersion-v2.45.1--dip.6-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.45.1-dip.6](https://img.shields.io/badge/AppVersion-v2.45.1--dip.6-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
@@ -32,9 +32,22 @@ the Crossplane `provider-dex` gRPC API.
 
 ## Crossplane connector plane
 
-When `provider.enabled` is true (default), the chart also deploys a self-signed CA, the Dex gRPC
-server certificate, the `provider-dex` Crossplane provider (via the `crossplane-providers` chart),
-and its `ProviderConfig`s. Set `provider.enabled=false` to deploy Dex on its own.
+When `provider.enabled` is true (default), the chart deploys the `provider-dex` Crossplane
+provider (via the `crossplane-providers` chart) and its `ProviderConfig`s. Set
+`provider.enabled=false` to deploy Dex on its own.
+
+### gRPC mTLS
+
+The Dex gRPC API can be secured with mTLS between Dex and `provider-dex`. This chart never creates
+its own `ClusterIssuer` — that is a cluster-scoped resource, and a second chart creating one under
+a common name (e.g. `crossplane-selfsigned-issuer`) causes ArgoCD `SharedResourceWarning`s and
+ownership fights with whatever already owns it (typically the cluster bootstrap chart's own
+Crossplane PKI).
+
+Set `pki.existingClusterIssuer` to the name of an existing cluster-scoped `ClusterIssuer` to root
+the mTLS CA chain (`crossplane-ca`, `dex-grpc-tls`, `provider-dex-client-tls`) in it. Leave it empty
+to disable mTLS entirely: Dex then serves gRPC in plaintext and `provider-dex`'s `ProviderConfig`s
+omit `spec.tls`.
 
 ## Values
 
@@ -74,7 +87,7 @@ and its `ProviderConfig`s. Set `provider.enabled=false` to deploy Dex on its own
 | dex.staticClientsSecret.name | string | `"dex-static-clients"` |  |
 | dexChart.releaseName | string | `"dex"` |  |
 | dexChart.repoURL | string | `"https://charts.dexidp.io"` |  |
-| dexChart.version | string | `"0.24.0"` |  |
+| dexChart.version | string | `"0.24.1"` |  |
 | environmentConfig.clusterFqdn | string | `""` |  |
 | environmentConfig.customFqdn | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
@@ -84,6 +97,7 @@ and its `ProviderConfig`s. Set `provider.enabled=false` to deploy Dex on its own
 | pki.certDuration | string | `"8760h"` |  |
 | pki.certRenewBefore | string | `"720h"` |  |
 | pki.clientNamespace | string | `"crossplane-system"` |  |
+| pki.existingClusterIssuer | string | `""` |  |
 | provider.cascadeDelete | bool | `false` |  |
 | provider.crossplaneProvidersVersion | string | `"0.0.35"` |  |
 | provider.debug | bool | `true` |  |

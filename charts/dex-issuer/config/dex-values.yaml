@@ -42,9 +42,11 @@ config:
 {{- if .Values.provider.enabled }}
   grpc:
     addr: 0.0.0.0:5557
+{{- if eq (include "dex-issuer.mtlsEnabled" .) "true" }}
     tlsCert: /etc/dex/tls/grpc/tls.crt
     tlsKey: /etc/dex/tls/grpc/tls.key
     tlsClientCA: /etc/dex/tls/grpc/ca.crt
+{{- end }}
 {{- end }}
   logger:
     level: {{ .Values.dex.logLevel }}
@@ -88,7 +90,7 @@ volumes:
     configMap:
       name: dex-theme
 {{- end }}
-{{- if .Values.provider.enabled }}
+{{- if eq (include "dex-issuer.mtlsEnabled" .) "true" }}
   - name: grpc-tls
     secret:
       secretName: dex-grpc-tls
@@ -105,7 +107,7 @@ volumeMounts:
     mountPath: /srv/dex/web/themes/light/logo.png
     subPath: logo.png
 {{- end }}
-{{- if .Values.provider.enabled }}
+{{- if eq (include "dex-issuer.mtlsEnabled" .) "true" }}
   - name: grpc-tls
     mountPath: /etc/dex/tls/grpc
     readOnly: true

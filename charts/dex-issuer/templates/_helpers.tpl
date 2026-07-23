@@ -88,6 +88,17 @@ Generate the in-cluster Dex gRPC endpoint (host:port) used by provider-dex.
 {{- end }}
 
 {{/*
+Whether the Dex<->provider-dex gRPC mTLS PKI is active. Requires both the
+Crossplane connector plane and an existing ClusterIssuer to root the CA chain
+in -- this chart never creates its own cluster-scoped ClusterIssuer, since
+that is a shared resource that would collide with any other Application
+managing a same-named issuer (see pki.existingClusterIssuer in values.yaml).
+*/}}
+{{- define "dex-issuer.mtlsEnabled" -}}
+{{- if and .Values.provider.enabled .Values.pki.existingClusterIssuer }}true{{ else }}false{{ end }}
+{{- end }}
+
+{{/*
 Validate required configuration values.
 */}}
 {{- define "dex-issuer.validateConfig" -}}

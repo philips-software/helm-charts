@@ -1,5 +1,6 @@
 {{- if .Values.provider.enabled }}
 {{- $ctx := . }}
+{{- $mtls := eq (include "dex-issuer.mtlsEnabled" .) "true" }}
 {{- /* Cluster-default ProviderConfig plus one per configured namespace. */}}
 apiVersion: dex.crossplane.io/v1alpha1
 kind: ProviderConfig
@@ -10,6 +11,7 @@ metadata:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   endpoint: {{ include "dex-issuer.grpcEndpoint" . }}
+{{- if $mtls }}
   tls:
     caCert:
       namespace: {{ .Values.pki.clientNamespace }}
@@ -23,6 +25,7 @@ spec:
       namespace: {{ .Values.pki.clientNamespace }}
       name: provider-dex-client-tls
       key: tls.key
+{{- end }}
 {{- range .Values.provider.providerConfigNamespaces }}
 ---
 apiVersion: dex.crossplane.io/v1alpha1
@@ -35,6 +38,7 @@ metadata:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   endpoint: {{ include "dex-issuer.grpcEndpoint" $ctx }}
+{{- if $mtls }}
   tls:
     caCert:
       namespace: {{ $ctx.Values.pki.clientNamespace }}
@@ -48,5 +52,6 @@ spec:
       namespace: {{ $ctx.Values.pki.clientNamespace }}
       name: provider-dex-client-tls
       key: tls.key
+{{- end }}
 {{- end }}
 {{- end }}

@@ -1,16 +1,12 @@
-{{- if .Values.provider.enabled -}}
-# Self-signed CA for Crossplane <-> Dex gRPC mTLS communication.
+{{- if eq (include "dex-issuer.mtlsEnabled" .) "true" -}}
+# Intermediate CA for Crossplane <-> Dex gRPC mTLS communication, chained off
+# an existing cluster-scoped ClusterIssuer (pki.existingClusterIssuer). This
+# chart deliberately never creates its own selfSigned ClusterIssuer: that is a
+# cluster-wide resource, and other Applications (e.g. the cluster bootstrap
+# chart's own Crossplane PKI) may already own one under a common name --
+# creating a second causes ArgoCD SharedResourceWarnings and ownership fights.
 # This CA issues both the Dex gRPC server cert (dex-grpc-tls) and the
 # provider-dex client cert (provider-dex-client-tls).
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: crossplane-selfsigned-issuer
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-spec:
-  selfSigned: {}
----
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -28,7 +24,7 @@ spec:
     algorithm: RSA
     size: 2048
   issuerRef:
-    name: crossplane-selfsigned-issuer
+    name: {{ .Values.pki.existingClusterIssuer }}
     kind: ClusterIssuer
     group: cert-manager.io
 ---

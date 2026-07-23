@@ -80,8 +80,10 @@ De-RI'd behaviour:
 
 ## 3. Crossplane connector plane (`provider.enabled`, default true)
 
-- `pki.yaml`: self-signed `ClusterIssuer` → CA `Certificate` (namespace `cert-manager`) → CA
-  `ClusterIssuer`; plus the `provider-dex-client-tls` client `Certificate` in `crossplane-system`.
+- `pki.yaml`/`grpc-certificate.yaml` (mTLS, gated on `pki.existingClusterIssuer` being set — see
+  addendum below): CA `Certificate` (namespace `cert-manager`) chained off the existing
+  `ClusterIssuer` → CA `ClusterIssuer`; plus the `provider-dex-client-tls` client `Certificate` in
+  `crossplane-system`.
 - `grpc-certificate.yaml`: the Dex gRPC server `Certificate` (`dex-grpc-tls`) issued by the CA
   issuer, with in-cluster DNS SANs for the dex service.
 - `provider-dex.yaml`: ArgoCD `Application` → `crossplane-providers` chart (grafana pattern),
@@ -104,3 +106,29 @@ De-RI'd behaviour:
 - No `HelmApplication` resource (chart is provisioned by one).
 - No RI `Client` CRs, no RI static clients, no RI redirect URIs or issuer host.
 - No AWS IRSA / IAM resources (provider-dex authenticates over gRPC mTLS).
+
+## Addendum (2026-07-23): stop creating a shared ClusterIssuer
+
+**Problem:** `pki.yaml` originally created its own `ClusterIssuer/crossplane-selfsigned-issuer`
+unconditionally when `provider.enabled`. On dip-ce-k3s-eu, the cluster bootstrap chart
+(`k8s-aws-bootstrap`) already owns a `ClusterIssuer` of that exact name for Crossplane's own
+internal PKI (unrelated purpose). `ClusterIssuer` is cluster-scoped, so two ArgoCD Applications
+managing the same name triggers a `SharedResourceWarning` and an ownership fight.
+
+**Fix:** this chart no longer creates any `ClusterIssuer`. Instead:
+
+- `pki.existingClusterIssuer` (default `""`) names an existing cluster-scoped `ClusterIssuer` to
+  root the CA chain in. `crossplane-ca-issuer` (this chart's own, uniquely-named intermediate CA
+  issuer) still gets created, but its `crossplane-ca` `Certificate` now chains off
+  `pki.existingClusterIssuer` via `issuerRef` instead of a self-created selfSigned issuer.
+- `dex-issuer.mtlsEnabled` helper (`_helpers.tpl`) = `provider.enabled && pki.existingClusterIssuer
+  != ""`. `pki.yaml`, `grpc-certificate.yaml`, the `tls` block in `providerconfig-dex.yaml`'s
+  `ProviderConfig`s, and the `grpc.tlsCert`/volumes in `config/dex-values.yaml` are all gated on
+  this helper instead of bare `provider.enabled`.
+- When `pki.existingClusterIssuer` is unset (default), mTLS is fully disabled: Dex serves gRPC
+  in plaintext (`grpc.enabled: true`, no TLS files) and `ProviderConfig`s omit `spec.tls` —
+  `provider-dex` then dials Dex over an insecure gRPC connection (supported natively by
+  provider-dex's client, which uses insecure credentials when no TLS config is set).
+- `crossplane-ca-issuer` and `provider-dex-client-tls` keep their existing names; only the
+  colliding `crossplane-selfsigned-issuer` creation was removed. No renaming of already-live
+  resources, to avoid unnecessary cert-manager churn on existing deployments.

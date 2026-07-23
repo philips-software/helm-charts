@@ -122,8 +122,18 @@ provider:
   # ProviderConfig in their own namespace).
   providerConfigNamespaces: []
 
-# Self-signed PKI for Crossplane <-> Dex gRPC mTLS
+# PKI for Crossplane <-> Dex gRPC mTLS. This chart never creates its own
+# cluster-scoped ClusterIssuer -- that is a shared, cluster-wide resource, and
+# a second Application creating one under the same name causes ArgoCD
+# SharedResourceWarnings and ownership fights (see e.g.
+# https://github.com/philips-software/helm-charts/issues -- crossplane-selfsigned-issuer
+# collision with the k8s-aws-bootstrap chart's own Crossplane PKI).
 pki:
+  # Name of an existing cluster-scoped ClusterIssuer to root the mTLS CA chain
+  # in. Required to enable mTLS: leave empty to disable the gRPC mTLS PKI
+  # entirely (dex-grpc-tls, provider-dex-client-tls, and the intermediate CA
+  # are then not created, and provider-dex talks to Dex over plaintext gRPC).
+  existingClusterIssuer: ""
   # Namespace where the CA certificate secret is created (cert-manager reads it here)
   caNamespace: cert-manager
   # Namespace where the provider-dex client certificate is created
