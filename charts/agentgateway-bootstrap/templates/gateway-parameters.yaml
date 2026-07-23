@@ -13,4 +13,10 @@ spec:
   service:
     spec:
       type: {{ .Values.gateway.service.type | default "ClusterIP" }}
+  {{- if and .Values.bedrock.enabled (eq .Values.bedrock.auth.type "irsa") .Values.bedrock.auth.roleArn }}
+  serviceAccount:
+    metadata:
+      annotations:
+        eks.amazonaws.com/role-arn: {{ .Values.bedrock.auth.roleArn | quote }}
+  {{- end }}
 {{- end }}

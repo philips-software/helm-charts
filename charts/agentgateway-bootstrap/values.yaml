@@ -31,8 +31,20 @@ bedrock:
   model: amazon.nova-micro-v1:0
   # Authentication configuration
   auth:
-    # Auth type: "secret", "irsa", or "implicit"
-    type: secret
+    # Auth type: "irsa" (default - IAM Roles for Service Accounts via the
+    # cluster's pod-identity webhook and an externally-provisioned IAM role;
+    # see roleArn below) or "secret" (static AWS credentials from a Kubernetes
+    # Secret).
+    type: irsa
+    # IAM role ARN to annotate the dataplane ServiceAccount with when
+    # auth.type is "irsa" (eks.amazonaws.com/role-arn). The cluster's
+    # pod-identity webhook then injects AWS_ROLE_ARN/AWS_WEB_IDENTITY_TOKEN_FILE
+    # into the dataplane pod, which performs sts:AssumeRoleWithWebIdentity
+    # against this role automatically - no further chart-side wiring needed.
+    # This role must already exist (trust policy + Bedrock permissions
+    # provisioned externally) - this chart does not create it. Required
+    # when auth.type is "irsa".
+    roleArn: ""
     # Secret name containing AWS credentials if auth.type is "secret"
     secretName: bedrock-secret
   # Route configuration for Bedrock
