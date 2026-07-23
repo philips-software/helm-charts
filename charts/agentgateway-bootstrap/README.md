@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.4.4](https://img.shields.io/badge/Version-0.4.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.1](https://img.shields.io/badge/AppVersion-1.3.1-informational?style=flat-square)
+![Version: 0.4.5](https://img.shields.io/badge/Version-0.4.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.1](https://img.shields.io/badge/AppVersion-1.3.1-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -31,7 +31,7 @@ A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kuber
 | environmentConfig.resourcePrefix | string | `""` |  |
 | gateway.className | string | `"agentgateway"` |  |
 | gateway.enabled | bool | `true` |  |
-| gateway.name | string | `"agentgateway"` |  |
+| gateway.name | string | `"agentgateway-gw"` |  |
 | gateway.namespace | string | `"agentgateway-system"` |  |
 | gateway.service.type | string | `"ClusterIP"` |  |
 | monitoring.enabled | bool | `true` |  |
