@@ -577,6 +577,23 @@ entries:
     version: 0.1.0
   common-bootstrap:
   - apiVersion: v2
+    appVersion: 0.0.38
+    created: "2026-07-23T13:15:18.117460686Z"
+    description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
+      deploys crossplane-compositions, and uses HelmApplication CRs to bootstrap platform
+      components. '
+    digest: 49e7c422c80a541a128f01aed6c8411e8cdb658e28b5b3783047680d2ffa67b7
+    keywords:
+    - crossplane
+    - common
+    - bootstrap
+    - argocd
+    name: common-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/common-bootstrap-1.4.2/common-bootstrap-1.4.2.tgz
+    version: 1.4.2
+  - apiVersion: v2
     appVersion: 0.0.37
     created: "2026-06-24T12:03:16.742061868Z"
     description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
@@ -2054,6 +2071,13 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.0.14/fluent-bit-out-hsdp-0.0.14.tgz
     version: 0.0.14
   grafana:
+  - apiVersion: v2
+    created: "2026-07-23T13:15:18.259756907Z"
+    digest: a87685a0fb8b3ca27ee90011189214923f6b7cdc19042c834503672024e17022
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.77.0/grafana-0.77.0.tgz
+    version: 0.77.0
   - apiVersion: v2
     created: "2026-06-30T08:17:02.839790101Z"
     digest: 734d6940b269b30cdf09d2e6c5b7f092c2ee3fbf36f9b3519e276659762d083d
@@ -4577,4 +4601,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-07-23T11:46:37.66351714Z"
+generated: "2026-07-23T13:15:18.260429751Z"
