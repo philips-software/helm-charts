@@ -7,6 +7,7 @@ metadata:
     {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   controllerName: agentgateway.dev/agentgateway
   parametersRef:
