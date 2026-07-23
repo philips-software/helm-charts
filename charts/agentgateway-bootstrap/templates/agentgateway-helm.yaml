@@ -27,7 +27,7 @@ spec:
         {{- (tpl (.Files.Get "config/agentgateway-values.yaml") .) | nindent 8 }}
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: agentgateway-system
+    namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
   syncPolicy:
     syncOptions:
       - CreateNamespace=true

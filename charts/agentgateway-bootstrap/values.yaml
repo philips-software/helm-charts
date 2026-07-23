@@ -47,6 +47,11 @@ gateway:
   name: agentgateway
   className: agentgateway
   namespace: agentgateway-system
+  # Service type for the dynamically-provisioned per-Gateway dataplane Service.
+  # The embedded agentgateway-standalone chart defaults this to LoadBalancer;
+  # override to ClusterIP unless external exposure is explicitly wanted.
+  service:
+    type: ClusterIP
 
 # Admin UI internal service configuration
 ui:
