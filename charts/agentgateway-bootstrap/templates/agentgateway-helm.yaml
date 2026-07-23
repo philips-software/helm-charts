@@ -20,6 +20,7 @@ spec:
   source:
     repoURL: {{ printf "%s/agentgateway" .Values.agentgatewayChart.repoURL | quote }}
     targetRevision: {{ .Values.agentgatewayChart.version | quote }}
+    path: .
     helm:
       releaseName: agentgateway
       valuesObject:
