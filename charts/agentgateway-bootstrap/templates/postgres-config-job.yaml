@@ -123,8 +123,15 @@ spec:
                 exit 1
               fi
 
-              echo "Patching AgentgatewayParameters/$PARAMS_NAME with database.url..."
-              PATCH=$(jq -n --arg url "$DATABASE_URL" '{spec:{rawConfig:{database:{url:$url}}}}')
+              echo "Patching AgentgatewayParameters/$PARAMS_NAME with config.database.url..."
+              # rawConfig merges at the top level of agentgateway's config file
+              # (config.yaml), whose schema is { config: {...}, binds: [...],
+              # policies: [...], ... } - the database URL lives under the
+              # nested `config:` key, not at rawConfig's own top level.
+              # `database: null` clears any stale top-level key from chart
+              # versions <=0.4.9, which patched the wrong path and left
+              # agentgateway unable to parse its config at all.
+              PATCH=$(jq -n --arg url "$DATABASE_URL" '{spec:{rawConfig:{config:{database:{url:$url}},database:null}}}')
               kubectl patch agentgatewayparameters "$PARAMS_NAME" -n "$NAMESPACE" \
                 --type merge -p "$PATCH"
 
