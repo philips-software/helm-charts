@@ -438,12 +438,14 @@ discover_memory() {
   # Tier table: initial limit / VPA ceiling. Requests are derived as half the
   # limit in deploy(). Tiers are picked so the initial limit alone survives the
   # cold-start burst (before any VPA action) and the ceiling leaves headroom.
+  # Bumped 50% over the original table (128Mi/256Mi/512Mi/1Gi/2Gi limits,
+  # 1Gi/1Gi/2Gi/3Gi/4Gi ceilings) after cold-start OOMs persisted at those sizes.
   local tier_limit tier_max
-  if   [ "$POD_COUNT" -lt 100 ];  then tier_limit=128Mi; tier_max=1Gi
-  elif [ "$POD_COUNT" -lt 500 ];  then tier_limit=256Mi; tier_max=1Gi
-  elif [ "$POD_COUNT" -lt 1500 ]; then tier_limit=512Mi; tier_max=2Gi
-  elif [ "$POD_COUNT" -lt 4000 ]; then tier_limit=1Gi;   tier_max=3Gi
-  else                                 tier_limit=2Gi;   tier_max=4Gi
+  if   [ "$POD_COUNT" -lt 100 ];  then tier_limit=192Mi;  tier_max=1536Mi
+  elif [ "$POD_COUNT" -lt 500 ];  then tier_limit=384Mi;  tier_max=1536Mi
+  elif [ "$POD_COUNT" -lt 1500 ]; then tier_limit=768Mi;  tier_max=3Gi
+  elif [ "$POD_COUNT" -lt 4000 ]; then tier_limit=1536Mi; tier_max=4608Mi
+  else                                 tier_limit=3Gi;    tier_max=6Gi
   fi
 
   [ -n "$MEMORY_LIMIT" ]   || MEMORY_LIMIT="$tier_limit"
