@@ -92,4 +92,15 @@ Name of the CNPG Cluster provisioned for LLM cost tracking.
 {{- if not .Values.agentgatewayChart.version }}
 {{- fail "agentgatewayChart.version is required and cannot be empty" }}
 {{- end }}
+{{- if .Values.jwt.enabled }}
+{{- if not .Values.jwt.issuer }}
+{{- fail "jwt.issuer is required when jwt.enabled is true" }}
+{{- end }}
+{{- if not .Values.jwt.externalIssuer.host }}
+{{- fail "jwt.externalIssuer.host is required when jwt.enabled is true" }}
+{{- end }}
+{{- if not .Values.jwt.audiences }}
+{{- fail "jwt.audiences is required when jwt.enabled is true - an unset audiences list accepts a validly-signed JWT from the issuer regardless of which service it was minted for, which matters when the issuer is shared across multiple services" }}
+{{- end }}
+{{- end }}
 {{- end }}

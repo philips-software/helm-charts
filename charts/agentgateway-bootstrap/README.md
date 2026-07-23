@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.4.10](https://img.shields.io/badge/Version-0.4.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.1](https://img.shields.io/badge/AppVersion-1.3.1-informational?style=flat-square)
+![Version: 0.4.11](https://img.shields.io/badge/Version-0.4.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.1](https://img.shields.io/badge/AppVersion-1.3.1-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -44,6 +44,14 @@ A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kuber
 | gateway.name | string | `"agentgateway-gw"` |  |
 | gateway.namespace | string | `"agentgateway-system"` |  |
 | gateway.service.type | string | `"ClusterIP"` |  |
+| jwt.audiences | list | `[]` |  |
+| jwt.cacheDuration | string | `"5m"` |  |
+| jwt.enabled | bool | `false` |  |
+| jwt.externalIssuer.host | string | `""` |  |
+| jwt.externalIssuer.jwksPath | string | `"/keys"` |  |
+| jwt.externalIssuer.port | int | `443` |  |
+| jwt.externalIssuer.sni | string | `""` |  |
+| jwt.issuer | string | `""` |  |
 | monitoring.enabled | bool | `true` |  |
 | monitoring.grafanaDashboard.enabled | bool | `true` |  |
 | monitoring.serviceMonitor.enabled | bool | `true` |  |
