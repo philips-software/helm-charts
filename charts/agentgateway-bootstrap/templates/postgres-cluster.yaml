@@ -1,0 +1,28 @@
+{{- if .Values.database.enabled }}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Values.database.clusterName | default (printf "%s-db" .Values.gateway.name) }}
+  namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
+  labels:
+    {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  instances: {{ .Values.database.instances }}
+  bootstrap:
+    initdb:
+      database: {{ .Values.database.databaseName | quote }}
+      owner: {{ .Values.database.databaseName | quote }}
+  storage:
+    size: {{ .Values.database.storage.size | quote }}
+    {{- if .Values.database.storage.storageClass }}
+    storageClass: {{ .Values.database.storage.storageClass | quote }}
+    {{- end }}
+  resources:
+    requests:
+      cpu: {{ .Values.database.resources.requests.cpu | quote }}
+      memory: {{ .Values.database.resources.requests.memory | quote }}
+    limits:
+      memory: {{ .Values.database.resources.limits.memory | quote }}
+{{- end }}
