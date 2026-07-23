@@ -1948,6 +1948,24 @@ entries:
   dex-issuer:
   - apiVersion: v2
     appVersion: v2.45.1-dip.6
+    created: "2026-07-23T20:24:24.92983054Z"
+    description: Deploys Dex (OpenID Connect issuer) with its Postgres storage, gRPC
+      mTLS PKI, and Crossplane connector-management plane
+    digest: 4fec39a8d5958494ba313d1fa29bfd5588650f812d4d60aeba1b8144e10f930d
+    keywords:
+    - dex
+    - oidc
+    - issuer
+    - crossplane
+    maintainers:
+    - name: Philips Software
+    name: dex-issuer
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/dex-issuer-0.2.0/dex-issuer-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: v2.45.1-dip.6
     created: "2026-07-14T14:26:06.454169218Z"
     description: Deploys Dex (OpenID Connect issuer) with its Postgres storage, gRPC
       mTLS PKI, and Crossplane connector-management plane
@@ -4696,4 +4714,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-07-23T15:32:30.987965015Z"
+generated: "2026-07-23T20:24:24.930482799Z"
