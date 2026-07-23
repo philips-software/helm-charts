@@ -44,7 +44,12 @@ bedrock:
 # Kubernetes Gateway resource configuration
 gateway:
   enabled: true
-  name: agentgateway
+  # Must differ from the Helm release name used for the upstream agentgateway
+  # controller install (see agentgateway-helm.yaml's releaseName: agentgateway) -
+  # the controller dynamically provisions a per-Gateway dataplane Deployment
+  # named after this Gateway object, which collides with the controller's own
+  # Helm-managed Deployment if the names match.
+  name: agentgateway-gw
   className: agentgateway
   namespace: agentgateway-system
   # Service type for the dynamically-provisioned per-Gateway dataplane Service.
