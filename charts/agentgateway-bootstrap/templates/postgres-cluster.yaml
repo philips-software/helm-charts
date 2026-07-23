@@ -2,7 +2,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: {{ .Values.database.clusterName | default (printf "%s-db" .Values.gateway.name) }}
+  name: {{ include "agentgateway-bootstrap.postgresClusterName" . }}
   namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
   labels:
     {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}

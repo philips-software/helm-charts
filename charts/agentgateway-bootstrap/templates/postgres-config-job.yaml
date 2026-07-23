@@ -1,0 +1,125 @@
+{{- if .Values.database.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "agentgateway-bootstrap.fullname" . }}-postgres-wire
+  namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
+  labels:
+    {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "2"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "agentgateway-bootstrap.fullname" . }}-postgres-wire
+  namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
+  labels:
+    {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "2"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources: ["clusters"]
+    verbs: ["get", "watch"]
+  - apiGroups: ["agentgateway.dev"]
+    resources: ["agentgatewayparameters"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "agentgateway-bootstrap.fullname" . }}-postgres-wire
+  namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
+  labels:
+    {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "2"
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "agentgateway-bootstrap.fullname" . }}-postgres-wire
+    namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
+roleRef:
+  kind: Role
+  name: {{ include "agentgateway-bootstrap.fullname" . }}-postgres-wire
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "agentgateway-bootstrap.fullname" . }}-postgres-wire
+  namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
+  labels:
+    {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  backoffLimit: 4
+  template:
+    metadata: {}
+    spec:
+      serviceAccountName: {{ include "agentgateway-bootstrap.fullname" . }}-postgres-wire
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: wire-database-url
+          # renovate: datasource=docker depName=alpine/k8s
+          image: alpine/k8s:1.36.2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+          env:
+            - name: NAMESPACE
+              value: {{ .Values.gateway.namespace | default "agentgateway-system" | quote }}
+            - name: CLUSTER_NAME
+              value: {{ include "agentgateway-bootstrap.postgresClusterName" . | quote }}
+            - name: PARAMS_NAME
+              value: {{ printf "%s-params" .Values.gateway.name | quote }}
+            - name: APP_SECRET_NAME
+              value: {{ printf "%s-app" (include "agentgateway-bootstrap.postgresClusterName" .) | quote }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "Waiting for CNPG cluster $CLUSTER_NAME to be ready..."
+              kubectl wait --for=condition=Ready cluster.postgresql.cnpg.io/"$CLUSTER_NAME" \
+                -n "$NAMESPACE" --timeout=300s
+
+              echo "Reading connection URI from $APP_SECRET_NAME..."
+              DATABASE_URL=$(kubectl get secret "$APP_SECRET_NAME" -n "$NAMESPACE" \
+                -o jsonpath='{.data.uri}' | base64 -d)
+
+              echo "Patching AgentgatewayParameters/$PARAMS_NAME with database.url..."
+              PATCH=$(printf '{"spec":{"rawConfig":{"database":{"url":"%s"}}}}' "$DATABASE_URL")
+              kubectl patch agentgatewayparameters "$PARAMS_NAME" -n "$NAMESPACE" \
+                --type merge -p "$PATCH"
+
+              echo "Done."
+{{- end }}

@@ -75,6 +75,13 @@ Usage: include "agentgateway-bootstrap.substituteVars" (dict "str" .Values.myVal
 {{/*
 Validate required configuration values
 */}}
+{{/*
+Name of the CNPG Cluster provisioned for LLM cost tracking.
+*/}}
+{{- define "agentgateway-bootstrap.postgresClusterName" -}}
+{{- .Values.database.clusterName | default (printf "%s-db" .Values.gateway.name) -}}
+{{- end }}
+
 {{- define "agentgateway-bootstrap.validateConfig" -}}
 {{- if not .Values.argoProject }}
 {{- fail "argoProject is required and cannot be empty" }}
