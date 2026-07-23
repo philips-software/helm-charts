@@ -103,7 +103,10 @@ jwt:
   enabled: false
   # IdP that issued the JWT (must match the token's `iss` claim exactly).
   issuer: ""
-  # Allowed `aud` claim values. Leave empty to accept any audience.
+  # Allowed `aud` claim values. Required when jwt.enabled is true - an
+  # unset list accepts any validly-signed token from the issuer regardless
+  # of which service it was minted for, which matters whenever the issuer
+  # is shared across multiple services (as most OIDC providers are).
   audiences: []
   # External issuer reached over TLS (e.g. an OIDC provider outside the
   # cluster). host/port target the issuer's JWKS endpoint; jwksPath is the
