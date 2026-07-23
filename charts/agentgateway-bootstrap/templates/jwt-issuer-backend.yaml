@@ -1,0 +1,19 @@
+{{- if and .Values.jwt.enabled .Values.gateway.enabled }}
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayBackend
+metadata:
+  name: {{ include "agentgateway-bootstrap.fullname" . }}-jwt-issuer
+  namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
+  labels:
+    {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  static:
+    host: {{ .Values.jwt.externalIssuer.host | quote }}
+    port: {{ .Values.jwt.externalIssuer.port }}
+  policies:
+    tls:
+      sni: {{ .Values.jwt.externalIssuer.sni | default .Values.jwt.externalIssuer.host | quote }}
+{{- end }}

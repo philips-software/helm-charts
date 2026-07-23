@@ -96,6 +96,28 @@ gateway:
   service:
     type: ClusterIP
 
+# JWT authentication for the Gateway. Disabled by default - opt in once
+# clients are ready to send tokens from the configured issuer. When enabled,
+# validation is Strict: every request must carry a valid JWT.
+jwt:
+  enabled: false
+  # IdP that issued the JWT (must match the token's `iss` claim exactly).
+  issuer: ""
+  # Allowed `aud` claim values. Leave empty to accept any audience.
+  audiences: []
+  # External issuer reached over TLS (e.g. an OIDC provider outside the
+  # cluster). host/port target the issuer's JWKS endpoint; jwksPath is the
+  # path component of its jwks_uri (see the issuer's
+  # /.well-known/openid-configuration document).
+  externalIssuer:
+    host: ""
+    port: 443
+    jwksPath: /keys
+    # SNI to present in the TLS handshake. Defaults to externalIssuer.host
+    # when unset.
+    sni: ""
+  cacheDuration: 5m
+
 # Admin UI internal service configuration
 ui:
   # Enable internal ClusterIP Service for the read-only Admin UI (port 15000)

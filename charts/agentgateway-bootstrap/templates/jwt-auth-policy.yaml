@@ -1,0 +1,35 @@
+{{- if and .Values.jwt.enabled .Values.gateway.enabled }}
+apiVersion: agentgateway.dev/v1alpha1
+kind: AgentgatewayPolicy
+metadata:
+  name: {{ include "agentgateway-bootstrap.fullname" . }}-jwt-auth
+  namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
+  labels:
+    {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ .Values.gateway.name | default "agentgateway" }}
+  traffic:
+    jwtAuthentication:
+      mode: Strict
+      providers:
+        - issuer: {{ .Values.jwt.issuer | quote }}
+          {{- if .Values.jwt.audiences }}
+          audiences:
+            {{- toYaml .Values.jwt.audiences | nindent 12 }}
+          {{- end }}
+          jwks:
+            remote:
+              jwksPath: {{ .Values.jwt.externalIssuer.jwksPath | quote }}
+              cacheDuration: {{ .Values.jwt.cacheDuration | quote }}
+              backendRef:
+                group: agentgateway.dev
+                kind: AgentgatewayBackend
+                name: {{ include "agentgateway-bootstrap.fullname" . }}-jwt-issuer
+                port: {{ .Values.jwt.externalIssuer.port }}
+{{- end }}
