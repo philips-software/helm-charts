@@ -18,8 +18,7 @@ spec:
       jsonPointers:
         - /spec/replicas
   source:
-    chart: agentgateway
-    repoURL: {{ .Values.agentgatewayChart.repoURL | quote }}
+    repoURL: {{ printf "%s/agentgateway" .Values.agentgatewayChart.repoURL | quote }}
     targetRevision: {{ .Values.agentgatewayChart.version | quote }}
     helm:
       releaseName: agentgateway
