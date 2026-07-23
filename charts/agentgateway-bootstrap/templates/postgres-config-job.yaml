@@ -31,7 +31,7 @@ rules:
     verbs: ["get", "watch"]
   - apiGroups: ["agentgateway.dev"]
     resources: ["agentgatewayparameters"]
-    verbs: ["get", "patch"]
+    verbs: ["patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -107,7 +107,7 @@ spec:
             - /bin/sh
             - -c
             - |
-              set -e
+              set -eo pipefail
               echo "Waiting for CNPG cluster $CLUSTER_NAME to be ready..."
               kubectl wait --for=condition=Ready cluster.postgresql.cnpg.io/"$CLUSTER_NAME" \
                 -n "$NAMESPACE" --timeout=300s
@@ -115,9 +115,13 @@ spec:
               echo "Reading connection URI from $APP_SECRET_NAME..."
               DATABASE_URL=$(kubectl get secret "$APP_SECRET_NAME" -n "$NAMESPACE" \
                 -o jsonpath='{.data.uri}' | base64 -d)
+              if [ -z "$DATABASE_URL" ]; then
+                echo "ERROR: decoded database URL is empty" >&2
+                exit 1
+              fi
 
               echo "Patching AgentgatewayParameters/$PARAMS_NAME with database.url..."
-              PATCH=$(printf '{"spec":{"rawConfig":{"database":{"url":"%s"}}}}' "$DATABASE_URL")
+              PATCH=$(jq -n --arg url "$DATABASE_URL" '{spec:{rawConfig:{database:{url:$url}}}}')
               kubectl patch agentgatewayparameters "$PARAMS_NAME" -n "$NAMESPACE" \
                 --type merge -p "$PATCH"
 
