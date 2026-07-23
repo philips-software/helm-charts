@@ -18,7 +18,7 @@ spec:
     targetRevision: {{ .Values.agentgatewayCrdsChart.version | quote }}
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: agentgateway-system
+    namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
