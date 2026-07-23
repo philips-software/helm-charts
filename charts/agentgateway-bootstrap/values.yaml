@@ -53,6 +53,32 @@ bedrock:
     path: /bedrock
     openAiPath: /v1/chat/completions
 
+# Postgres database for LLM cost tracking (agentgateway's request-logging DB, which
+# powers its cost dashboard and Analytics UI). Provisions a plain CNPG Cluster
+# directly - no Crossplane, no external-secrets dependency. CNPG generates its own
+# <clusterName>-app Secret (with a combined `uri` key) since bootstrap.initdb.secret
+# is left unset; a Job (separate from this values block) reads that key and wires it
+# into AgentgatewayParameters.spec.rawConfig.database.url.
+database:
+  # Provision a CNPG Cluster for agentgateway's request-logging database.
+  enabled: true
+  # Cluster resource name. Defaults to "<gateway.name>-db" if unset.
+  clusterName: ""
+  # Number of CNPG instances (1 = no HA, single replica).
+  instances: 1
+  # Database (and owner role) name.
+  databaseName: agentgateway
+  storage:
+    size: 5Gi
+    # Leave empty to use the cluster's default StorageClass.
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
 # Kubernetes Gateway resource configuration
 gateway:
   enabled: true

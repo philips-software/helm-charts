@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.4.6](https://img.shields.io/badge/Version-0.4.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.1](https://img.shields.io/badge/AppVersion-1.3.1-informational?style=flat-square)
+![Version: 0.4.7](https://img.shields.io/badge/Version-0.4.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.3.1](https://img.shields.io/badge/AppVersion-1.3.1-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -27,6 +27,15 @@ A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kuber
 | controller.resources.limits.memory | string | `"256Mi"` |  |
 | controller.resources.requests.cpu | string | `"100m"` |  |
 | controller.resources.requests.memory | string | `"128Mi"` |  |
+| database.clusterName | string | `""` |  |
+| database.databaseName | string | `"agentgateway"` |  |
+| database.enabled | bool | `true` |  |
+| database.instances | int | `1` |  |
+| database.resources.limits.memory | string | `"512Mi"` |  |
+| database.resources.requests.cpu | string | `"50m"` |  |
+| database.resources.requests.memory | string | `"128Mi"` |  |
+| database.storage.size | string | `"5Gi"` |  |
+| database.storage.storageClass | string | `""` |  |
 | environmentConfig.accountId | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
