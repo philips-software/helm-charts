@@ -31,7 +31,10 @@ rules:
     verbs: ["get", "watch"]
   - apiGroups: ["agentgateway.dev"]
     resources: ["agentgatewayparameters"]
-    verbs: ["patch"]
+    # get is required too: `kubectl patch` fetches the current object before
+    # sending the merge patch. Confirmed live: patch-only RBAC is rejected
+    # with "cannot get resource agentgatewayparameters" on a real cluster.
+    verbs: ["get", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
