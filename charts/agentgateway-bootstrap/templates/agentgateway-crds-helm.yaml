@@ -15,6 +15,7 @@ spec:
   source:
     repoURL: {{ printf "%s/agentgateway-crds" .Values.agentgatewayCrdsChart.repoURL | quote }}
     targetRevision: {{ .Values.agentgatewayCrdsChart.version | quote }}
+    path: .
   destination:
     server: "https://kubernetes.default.svc"
     namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
