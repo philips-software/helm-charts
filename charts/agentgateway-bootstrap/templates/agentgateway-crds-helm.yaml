@@ -13,8 +13,7 @@ metadata:
 spec:
   project: {{ .Values.argoProject }}
   source:
-    chart: agentgateway-crds
-    repoURL: {{ .Values.agentgatewayCrdsChart.repoURL | quote }}
+    repoURL: {{ printf "%s/agentgateway-crds" .Values.agentgatewayCrdsChart.repoURL | quote }}
     targetRevision: {{ .Values.agentgatewayCrdsChart.version | quote }}
   destination:
     server: "https://kubernetes.default.svc"
