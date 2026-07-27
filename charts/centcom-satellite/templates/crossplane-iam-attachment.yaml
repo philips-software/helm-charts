@@ -39,6 +39,46 @@ spec:
     policyArnRef:
       name: {{ include "centcom-satellite.irsaName" . }}-guardduty
 {{- end }}
+{{- /* Attach the read-only Security Hub policy only when that feature is on. */ -}}
+{{- if .Values.features.securityhub }}
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: RolePolicyAttachment
+metadata:
+  name: {{ include "centcom-satellite.irsaName" . }}-securityhub
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ .Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    roleRef:
+      name: {{ include "centcom-satellite.irsaRoleName" . }}
+    policyArnRef:
+      name: {{ include "centcom-satellite.irsaName" . }}-securityhub
+{{- end }}
+{{- /* Attach the write-only Security Hub policy (BatchUpdateFindings) only when that feature is on. */ -}}
+{{- if .Values.features.securityhubWrite }}
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: RolePolicyAttachment
+metadata:
+  name: {{ include "centcom-satellite.irsaName" . }}-securityhub-write
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ .Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    roleRef:
+      name: {{ include "centcom-satellite.irsaRoleName" . }}
+    policyArnRef:
+      name: {{ include "centcom-satellite.irsaName" . }}-securityhub-write
+{{- end }}
 {{- /*
 Attach any additional pre-existing managed-policy ARNs to the same role. This is
 how future task groups that need extra IAM get wired in without a new role — set

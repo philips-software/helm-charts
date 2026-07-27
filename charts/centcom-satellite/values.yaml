@@ -129,14 +129,32 @@ features:
   # toggleable from cloudwatchRca. Requires AWS credentials via IRSA (aws.irsa) or
   # ambient credentials; attaches the read-only GuardDuty policy to the IRSA role.
   guardduty: false
+  # Enable Security Hub read tasks (list standards, get findings, get findings
+  # statistics). Sets SECURITYHUB_ENABLED. Independently toggleable from guardduty
+  # and cloudwatchRca — Security Hub aggregates findings from more products
+  # (GuardDuty, Inspector, Macie, IAM Access Analyzer, Config, custom
+  # integrations) than GuardDuty alone. Requires AWS credentials via IRSA
+  # (aws.irsa) or ambient credentials; attaches the read-only Security Hub
+  # policy to the IRSA role.
+  securityhub: false
+  # Enable the securityhub_update_findings write task (BatchUpdateFindings —
+  # sets a finding's Workflow.Status and/or Note). Sets SECURITYHUB_WRITE_ENABLED.
+  # Independently toggleable from securityhub so a cluster can grant read-only
+  # triage visibility without write access. Requires securityhub to also be
+  # enabled to be useful, though the flags are not code-coupled. Attaches a
+  # separate write-only Security Hub policy to the IRSA role (least privilege —
+  # BatchUpdateFindings only, no read permissions).
+  securityhubWrite: false
 
 # AWS integration: Crossplane-managed IAM + IRSA.
 #
 # When enabled, the chart provisions a single GENERIC IAM role for the agent's
 # ServiceAccount and attaches one policy per enabled task-group: the CloudWatch RCA
-# policy (attached only when features.cloudwatchRca is true) and the read-only
-# GuardDuty policy (attached only when features.guardduty is true). Additional task
-# groups add their own policies to the same role rather than a new role.
+# policy (attached only when features.cloudwatchRca is true), the read-only
+# GuardDuty policy (attached only when features.guardduty is true), and the
+# Security Hub read/write policies (attached only when features.securityhub /
+# features.securityhubWrite are true, respectively). Additional task groups add
+# their own policies to the same role rather than a new role.
 aws:
   irsa:
     # Create Crossplane IAM Role (+ per-feature Policy/Attachment) and annotate the SA for IRSA

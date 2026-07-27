@@ -28,9 +28,26 @@
 #
 #   curl -fsSL .../install.sh | GUARDDUTY=true bash
 #
-# Or enable EVERY IRSA-dependent task group at once with the master switch — this
-# turns on CloudWatch RCA and GuardDuty together (any group can still be opted out
-# with GROUP=false):
+# To enable the Security Hub read tasks (list standards, get findings, get
+# findings statistics — read-only AWS data via IRSA), set SECURITYHUB=true. It
+# aggregates findings from more products than GuardDuty alone and can be
+# combined with any of the above; any one turns on the IRSA plumbing:
+#
+#   curl -fsSL .../install.sh | SECURITYHUB=true bash
+#
+# To additionally enable the securityhub_update_findings WRITE task
+# (BatchUpdateFindings — sets a finding's Workflow.Status/Note), set
+# SECURITYHUB_WRITE=true. This is a mutating AWS call, kept separate from
+# SECURITYHUB so read-only triage visibility doesn't imply write access, and it
+# is force-disabled under READ_ONLY=true like the other mutating task groups:
+#
+#   curl -fsSL .../install.sh | SECURITYHUB=true SECURITYHUB_WRITE=true bash
+#
+# Or enable EVERY IRSA-dependent READ-ONLY task group at once with the master
+# switch — this turns on CloudWatch RCA, GuardDuty, and Security Hub reads
+# together (any group can still be opted out with GROUP=false). The master
+# switch deliberately does NOT include SECURITYHUB_WRITE — a mutating
+# capability stays opt-in on its own, never lit up implicitly:
 #
 #   curl -fsSL .../install.sh | IRSA_ENABLED=true bash
 #
@@ -119,7 +136,24 @@ fi
 #   curl -fsSL .../install.sh | GUARDDUTY=true bash
 #
 : "${GUARDDUTY:=}"
-: "${IRSA_ENABLED:=}"          # master switch: true turns on all unset AWS task groups; auto-true when any group is on
+# Security Hub read tasks (list standards, get findings, get findings
+# statistics). Like CLOUDWATCH_RCA/GUARDDUTY these need AWS credentials via
+# IRSA and attach a dedicated read-only Security Hub policy to the same
+# generic IAM role:
+#
+#   curl -fsSL .../install.sh | SECURITYHUB=true bash
+#
+: "${SECURITYHUB:=}"
+# Security Hub WRITE task (securityhub_update_findings via BatchUpdateFindings).
+# Unlike the groups above this is a MUTATING AWS call, so it: (a) is never
+# turned on by IRSA_ENABLED's read-only master switch, and (b) is force-disabled
+# under READ_ONLY=true regardless of how it's set, same safety guarantee as the
+# other mutating task groups:
+#
+#   curl -fsSL .../install.sh | SECURITYHUB=true SECURITYHUB_WRITE=true bash
+#
+: "${SECURITYHUB_WRITE:=}"
+: "${IRSA_ENABLED:=}"          # master switch: true turns on all unset AWS READ-ONLY task groups; auto-true when any read-only group is on
 # NOTE: these use IRSA_-prefixed names on purpose — NOT AWS_REGION/AWS_ACCOUNT_ID.
 # Everything is derived from the TARGET CLUSTER, never from the operator's local
 # AWS env/CLI config. Reusing the standard AWS_* names here would let an ambient
@@ -138,11 +172,14 @@ fi
 # empty to opt out (role/policy named after the release, pre-namePrefix behaviour).
 : "${IRSA_NAME_PREFIX:=__auto__}"
 
-# Resolve the IRSA master switch against the individual AWS task groups. Each of
-# CLOUDWATCH_RCA / GUARDDUTY is tri-state here: "true", "false", or unset.
+# Resolve the IRSA master switch against the individual AWS READ-ONLY task
+# groups. Each of CLOUDWATCH_RCA / GUARDDUTY / SECURITYHUB is tri-state here:
+# "true", "false", or unset.
 #
-#   1. If IRSA_ENABLED is explicitly true, it's the master switch: every group
-#      left unset turns on. An explicit `GROUP=false` still wins.
+#   1. If IRSA_ENABLED is explicitly true, it's the master switch: every
+#      READ-ONLY group left unset turns on. An explicit `GROUP=false` still
+#      wins. SECURITYHUB_WRITE is deliberately excluded from this — a mutating
+#      capability never lights up implicitly.
 #   2. Otherwise, any group explicitly true turns IRSA on for it.
 #   3. Anything still unset defaults to false.
 # The resolved feature flags are always appended (true AND false) so a re-run
@@ -150,12 +187,24 @@ fi
 if [ "$IRSA_ENABLED" = "true" ]; then
   [ -n "$CLOUDWATCH_RCA" ] || CLOUDWATCH_RCA=true
   [ -n "$GUARDDUTY" ]      || GUARDDUTY=true
+  [ -n "$SECURITYHUB" ]    || SECURITYHUB=true
 fi
 [ -n "$CLOUDWATCH_RCA" ] || CLOUDWATCH_RCA=false
 [ -n "$GUARDDUTY" ]      || GUARDDUTY=false
+[ -n "$SECURITYHUB" ]    || SECURITYHUB=false
+[ -n "$SECURITYHUB_WRITE" ] || SECURITYHUB_WRITE=false
+
+# SECURITYHUB_WRITE is a mutating AWS call: force it off under READ_ONLY=true
+# regardless of how it was set, matching the guarantee every other mutating
+# task group gets via the FEATURES default above. Unlike those, this flag is
+# composed by the script itself (like GUARDDUTY) rather than living inside the
+# FEATURES default string, so it needs its own explicit override here.
+if [ "$READ_ONLY" = "true" ]; then
+  SECURITYHUB_WRITE=false
+fi
 
 if [ -z "$IRSA_ENABLED" ]; then
-  if [ "$CLOUDWATCH_RCA" = "true" ] || [ "$GUARDDUTY" = "true" ]; then
+  if [ "$CLOUDWATCH_RCA" = "true" ] || [ "$GUARDDUTY" = "true" ] || [ "$SECURITYHUB" = "true" ] || [ "$SECURITYHUB_WRITE" = "true" ]; then
     IRSA_ENABLED=true
   else
     IRSA_ENABLED=false
@@ -171,6 +220,16 @@ if [ "$GUARDDUTY" = "true" ]; then
   FEATURES="${FEATURES},guardduty=true"
 else
   FEATURES="${FEATURES},guardduty=false"
+fi
+if [ "$SECURITYHUB" = "true" ]; then
+  FEATURES="${FEATURES},securityhub=true"
+else
+  FEATURES="${FEATURES},securityhub=false"
+fi
+if [ "$SECURITYHUB_WRITE" = "true" ]; then
+  FEATURES="${FEATURES},securityhubWrite=true"
+else
+  FEATURES="${FEATURES},securityhubWrite=false"
 fi
 
 # Networking / exposure. Empty values are auto-discovered (see below).
@@ -634,10 +693,16 @@ summarize() {
     _row "🧠" "memory"       "chart defaults  \033[2m(pod count unavailable)\033[0m"
   fi
   if [ "$IRSA_ENABLED" = "true" ]; then
+    local irsa_groups=""
+    [ "$CLOUDWATCH_RCA" = "true" ]    && irsa_groups="${irsa_groups:+${irsa_groups}, }CloudWatch RCA"
+    [ "$GUARDDUTY" = "true" ]         && irsa_groups="${irsa_groups:+${irsa_groups}, }GuardDuty"
+    [ "$SECURITYHUB" = "true" ]       && irsa_groups="${irsa_groups:+${irsa_groups}, }Security Hub"
+    [ "$SECURITYHUB_WRITE" = "true" ] && irsa_groups="${irsa_groups:+${irsa_groups}, }Security Hub (write)"
+    : "${irsa_groups:=none}"
     if [ -n "$IRSA_ROLE_ARN" ]; then
-      _row "☁️ " "aws irsa"     "CloudWatch RCA \033[2m(BYO role ${IRSA_ROLE_ARN}, region ${IRSA_REGION})\033[0m"
+      _row "☁️ " "aws irsa"     "${irsa_groups} \033[2m(BYO role ${IRSA_ROLE_ARN}, region ${IRSA_REGION})\033[0m"
     else
-      _row "☁️ " "aws irsa"     "CloudWatch RCA \033[2m(acct ${IRSA_ACCOUNT_ID}, region ${IRSA_REGION}, oidc ${IRSA_OIDC_ISSUER}, providerConfig ${IRSA_PROVIDER_CONFIG})\033[0m"
+      _row "☁️ " "aws irsa"     "${irsa_groups} \033[2m(acct ${IRSA_ACCOUNT_ID}, region ${IRSA_REGION}, oidc ${IRSA_OIDC_ISSUER}, providerConfig ${IRSA_PROVIDER_CONFIG})\033[0m"
       _row "🏷️ " "iam names"     "$(printf '%s\033[2m (role/policy name — account-global uniqueness)\033[0m' "${IRSA_NAME_PREFIX:+${IRSA_NAME_PREFIX}-}${RELEASE_NAME}")"
     fi
   fi
@@ -913,10 +978,10 @@ deploy() {
   done
   unset IFS
 
-  # AWS IRSA for the CloudWatch RCA / GuardDuty task groups. When a role ARN is
-  # supplied we skip Crossplane role creation (roleArnOverride) and only annotate
-  # the SA; otherwise Crossplane provisions the generic role + attaches the policy
-  # for each enabled task group (CloudWatch RCA and/or GuardDuty).
+  # AWS IRSA for the CloudWatch RCA / GuardDuty / Security Hub task groups. When
+  # a role ARN is supplied we skip Crossplane role creation (roleArnOverride) and
+  # only annotate the SA; otherwise Crossplane provisions the generic role +
+  # attaches the policy for each enabled task group.
   if [ "$IRSA_ENABLED" = "true" ]; then
     args+=(
       --set "aws.irsa.enabled=true"
