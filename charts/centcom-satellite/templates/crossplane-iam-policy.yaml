@@ -81,3 +81,78 @@ spec:
         ]
       }
 {{- end }}
+{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) (or .Values.features.securityhub .Values.features.securityhubWrite) }}
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: Policy
+metadata:
+  name: {{ include "centcom-satellite.irsaName" . }}-securityhub
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    crossplane.io/external-name: {{ include "centcom-satellite.irsaName" . }}-securityhub
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ .Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    path: {{ include "centcom-satellite.irsaPath" . | quote }}
+    {{- with .Values.aws.irsa.tags }}
+    tags:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    policy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "CentcomSecurityHubRead",
+            "Effect": "Allow",
+            "Action": [
+              "securityhub:DescribeHub",
+              "securityhub:GetEnabledStandards",
+              "securityhub:DescribeStandards",
+              "securityhub:GetFindings"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+{{- end }}
+{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) .Values.features.securityhubWrite }}
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: Policy
+metadata:
+  name: {{ include "centcom-satellite.irsaName" . }}-securityhub-write
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    crossplane.io/external-name: {{ include "centcom-satellite.irsaName" . }}-securityhub-write
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ .Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    path: {{ include "centcom-satellite.irsaPath" . | quote }}
+    {{- with .Values.aws.irsa.tags }}
+    tags:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    policy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "CentcomSecurityHubWrite",
+            "Effect": "Allow",
+            "Action": [
+              "securityhub:BatchUpdateFindings"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+{{- end }}

@@ -7,6 +7,7 @@ chart-repos:
   - fluent=https://fluent.github.io/helm-charts
 excluded-charts:
   - agentgateway-bootstrap
+  - centcom-satellite
   - cloudnative-pg-bootstrap
   - cloudnative-pg-operator
   - crossplane-providers
