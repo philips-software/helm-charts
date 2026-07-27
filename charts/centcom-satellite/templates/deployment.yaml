@@ -139,7 +139,7 @@ spec:
             - name: GUARDDUTY_ENABLED
               value: "true"
             {{- end }}
-            {{- if .Values.features.securityhub }}
+            {{- if or .Values.features.securityhub .Values.features.securityhubWrite }}
             - name: SECURITYHUB_ENABLED
               value: "true"
             {{- end }}

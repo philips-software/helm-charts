@@ -81,7 +81,7 @@ spec:
         ]
       }
 {{- end }}
-{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) .Values.features.securityhub }}
+{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) (or .Values.features.securityhub .Values.features.securityhubWrite) }}
 ---
 apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: Policy

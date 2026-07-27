@@ -139,11 +139,12 @@ features:
   securityhub: false
   # Enable the securityhub_update_findings write task (BatchUpdateFindings —
   # sets a finding's Workflow.Status and/or Note). Sets SECURITYHUB_WRITE_ENABLED.
-  # Independently toggleable from securityhub so a cluster can grant read-only
-  # triage visibility without write access. Requires securityhub to also be
-  # enabled to be useful, though the flags are not code-coupled. Attaches a
-  # separate write-only Security Hub policy to the IRSA role (least privilege —
-  # BatchUpdateFindings only, no read permissions).
+  # This is a read+write capability, not a write-only add-on: enabling it also
+  # sets SECURITYHUB_ENABLED and attaches the read-only Security Hub policy —
+  # you can enable securityhub alone for read-only triage visibility, but
+  # securityhubWrite always implies securityhub. Attaches an additional
+  # write-only Security Hub policy to the IRSA role (least privilege —
+  # BatchUpdateFindings only) on top of the read policy.
   securityhubWrite: false
 
 # AWS integration: Crossplane-managed IAM + IRSA.

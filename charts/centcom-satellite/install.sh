@@ -37,11 +37,12 @@
 #
 # To additionally enable the securityhub_update_findings WRITE task
 # (BatchUpdateFindings — sets a finding's Workflow.Status/Note), set
-# SECURITYHUB_WRITE=true. This is a mutating AWS call, kept separate from
-# SECURITYHUB so read-only triage visibility doesn't imply write access, and it
-# is force-disabled under READ_ONLY=true like the other mutating task groups:
+# SECURITYHUB_WRITE=true on its own — it's read+write, not a write-only
+# add-on, so it implies SECURITYHUB=true automatically (no need to set both).
+# It is a mutating AWS call, so it is force-disabled under READ_ONLY=true like
+# the other mutating task groups:
 #
-#   curl -fsSL .../install.sh | SECURITYHUB=true SECURITYHUB_WRITE=true bash
+#   curl -fsSL .../install.sh | SECURITYHUB_WRITE=true bash
 #
 # Or enable EVERY IRSA-dependent READ-ONLY task group at once with the master
 # switch — this turns on CloudWatch RCA, GuardDuty, and Security Hub reads
@@ -145,12 +146,14 @@ fi
 #
 : "${SECURITYHUB:=}"
 # Security Hub WRITE task (securityhub_update_findings via BatchUpdateFindings).
-# Unlike the groups above this is a MUTATING AWS call, so it: (a) is never
-# turned on by IRSA_ENABLED's read-only master switch, and (b) is force-disabled
-# under READ_ONLY=true regardless of how it's set, same safety guarantee as the
-# other mutating task groups:
+# This is read+write, not a write-only add-on: setting it turns SECURITYHUB on
+# too (below), so it does not need to be combined with SECURITYHUB=true
+# explicitly. Unlike the read-only groups above it IS a MUTATING AWS call, so
+# it: (a) is never turned on by IRSA_ENABLED's read-only master switch, and
+# (b) is force-disabled under READ_ONLY=true regardless of how it's set, same
+# safety guarantee as the other mutating task groups:
 #
-#   curl -fsSL .../install.sh | SECURITYHUB=true SECURITYHUB_WRITE=true bash
+#   curl -fsSL .../install.sh | SECURITYHUB_WRITE=true bash
 #
 : "${SECURITYHUB_WRITE:=}"
 : "${IRSA_ENABLED:=}"          # master switch: true turns on all unset AWS READ-ONLY task groups; auto-true when any read-only group is on
@@ -189,6 +192,15 @@ if [ "$IRSA_ENABLED" = "true" ]; then
   [ -n "$GUARDDUTY" ]      || GUARDDUTY=true
   [ -n "$SECURITYHUB" ]    || SECURITYHUB=true
 fi
+
+# SECURITYHUB_WRITE is read+write, not a write-only add-on: it always implies
+# SECURITYHUB=true, even overriding an explicit SECURITYHUB=false — read
+# access is required for the write policy to be useful, so there is no valid
+# "write without read" configuration to preserve here.
+if [ "$SECURITYHUB_WRITE" = "true" ]; then
+  SECURITYHUB=true
+fi
+
 [ -n "$CLOUDWATCH_RCA" ] || CLOUDWATCH_RCA=false
 [ -n "$GUARDDUTY" ]      || GUARDDUTY=false
 [ -n "$SECURITYHUB" ]    || SECURITYHUB=false
@@ -198,7 +210,9 @@ fi
 # regardless of how it was set, matching the guarantee every other mutating
 # task group gets via the FEATURES default above. Unlike those, this flag is
 # composed by the script itself (like GUARDDUTY) rather than living inside the
-# FEATURES default string, so it needs its own explicit override here.
+# FEATURES default string, so it needs its own explicit override here. Note
+# SECURITYHUB (read) stays on even under READ_ONLY — only the write call
+# itself is unsafe there, not read visibility.
 if [ "$READ_ONLY" = "true" ]; then
   SECURITYHUB_WRITE=false
 fi

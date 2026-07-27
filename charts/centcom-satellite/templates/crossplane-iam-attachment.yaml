@@ -39,8 +39,8 @@ spec:
     policyArnRef:
       name: {{ include "centcom-satellite.irsaName" . }}-guardduty
 {{- end }}
-{{- /* Attach the read-only Security Hub policy only when that feature is on. */ -}}
-{{- if .Values.features.securityhub }}
+{{- /* Attach the read-only Security Hub policy when either the read or write feature is on — write implies read (it's a read+write capability, not a write-only add-on). */ -}}
+{{- if or .Values.features.securityhub .Values.features.securityhubWrite }}
 ---
 apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: RolePolicyAttachment
