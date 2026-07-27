@@ -419,13 +419,13 @@ discover() {
   [ -n "$SPIRE_CLASSNAME" ] || die "could not discover SPIRE className; set SPIRE_CLASSNAME=..."
 
   if [ "$HTTPROUTE_ENABLED" = "true" ]; then
-    # Gateway: prefer one literally named "gateway", else the first one
+    # Gateway: prefer one named "gateway" or "platform", else the first one
     if [ -z "$GATEWAY_NAME" ]; then
       local gw
       gw=$(kubectl get gateways -A \
         -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}' 2>/dev/null)
       local pick
-      pick=$(printf '%s\n' "$gw" | awk -F/ '$2=="gateway"{print;exit}')
+      pick=$(printf '%s\n' "$gw" | awk -F/ '$2=="gateway" || $2=="platform"{print;exit}')
       [ -n "$pick" ] || pick=$(printf '%s\n' "$gw" | grep -v '^$' | head -1)
       [ -n "$pick" ] || die "no Gateway found; set GATEWAY_NAME/GATEWAY_NAMESPACE or HTTPROUTE_ENABLED=false"
       GATEWAY_NAMESPACE="${pick%%/*}"
