@@ -301,4 +301,3 @@ httpRoute:
     sectionName: http-0
   # Optional annotations
   annotations: {}
-
