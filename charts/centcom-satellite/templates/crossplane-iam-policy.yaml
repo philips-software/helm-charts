@@ -113,7 +113,10 @@ spec:
               "securityhub:DescribeHub",
               "securityhub:GetEnabledStandards",
               "securityhub:DescribeStandards",
-              "securityhub:GetFindings"
+              "securityhub:GetFindings",
+              "securityhub:GetInsights",
+              "securityhub:CreateInsight",
+              "securityhub:GetInsightResults"
             ],
             "Resource": "*"
           }
