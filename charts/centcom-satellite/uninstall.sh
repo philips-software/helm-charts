@@ -39,6 +39,12 @@ preflight() {
 
 discover() {
   CTX=$(kubectl config current-context 2>/dev/null) || die "no current kube-context"
+
+  # Bind all subsequent kubectl and helm calls to $CTX so that parallel context
+  # switches in another shell don't target the wrong cluster.
+  kubectl() { command kubectl --context "$CTX" "$@"; }
+  helm()    { command helm --kube-context "$CTX" "$@"; }
+
   [ -n "$CLUSTER_NAME" ] || CLUSTER_NAME="$CTX"
 
   RELEASE_FOUND=false

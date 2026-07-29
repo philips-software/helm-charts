@@ -379,6 +379,11 @@ preflight() {
 discover() {
   CTX=$(kubectl config current-context 2>/dev/null) || die "no current kube-context"
 
+  # Bind all subsequent kubectl and helm calls to $CTX so that parallel context
+  # switches in another shell don't target the wrong cluster.
+  kubectl() { command kubectl --context "$CTX" "$@"; }
+  helm()    { command helm --kube-context "$CTX" "$@"; }
+
   # CLUSTER_NAME: prefer hsp-addons resourcePrefix (stable), fall back to kube-context
   if [ -z "$CLUSTER_NAME" ]; then
     # Try 1: ConfigMap hsp-addons in namespace hsp-addons, field .data.tags (JSON)
