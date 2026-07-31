@@ -14,7 +14,34 @@ gateway:
     limits:
       memory: "150Mi"
 
-ingester:
+ingest:
+  kafka:
+    address: "tempo-kafka.tempo-system.svc.cluster.local:9092"
+    topic: "tempo-traces"
+    auto_create_topic_enabled: true
+    auto_create_topic_default_partitions: 3
+
+blockBuilder:
+  enabled: true
+  replicas: 3
+  resources:
+    requests:
+      cpu: "120m"
+      memory: "800Mi"
+    limits:
+      memory: "1200Mi"
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: S3_BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
+          key: id
+
+liveStore:
+  enabled: true
+  replicas: 3
   resources:
     requests:
       cpu: "120m"
