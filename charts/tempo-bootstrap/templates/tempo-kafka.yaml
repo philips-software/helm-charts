@@ -142,6 +142,7 @@ spec:
           volumeMounts:
             - mountPath: /var/lib/kafka/data
               name: data
+              subPath: data
             - mountPath: /opt/kafka/config
               name: kafka-config
             - mountPath: /tmp
