@@ -132,9 +132,25 @@ spec:
               memory: 1Gi
             limits:
               memory: 1Gi
+          readinessProbe:
+            tcpSocket:
+              port: kafka
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
           volumeMounts:
             - mountPath: /var/lib/kafka/data
               name: data
+            - mountPath: /opt/kafka/config
+              name: kafka-config
+            - mountPath: /tmp
+              name: tmp
+      volumes:
+        - name: kafka-config
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
   volumeClaimTemplates:
     - metadata:
         name: data
