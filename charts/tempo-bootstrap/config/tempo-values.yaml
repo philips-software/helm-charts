@@ -228,9 +228,9 @@ metricsGenerator:
           key: id
   config:
     processor:
-      local_blocks:
-        filter_server_spans: false
-        flush_to_storage: true
+      service_graphs:
+        max_items: 10000
+      span_metrics: {}
     registry:
       collection_interval: 15s
       external_labels: {}
