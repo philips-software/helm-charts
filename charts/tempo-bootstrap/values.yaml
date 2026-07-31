@@ -29,3 +29,19 @@ argoProject: default
 streamOverHTTPEnabled: true
 
 multitenancyEnabled: true
+
+kafka:
+  persistence:
+    size: 100Gi
+
+kafkaNodePool:
+  enabled: true
+  labels:
+    workload: tempo-kafka
+  nodeClassRefName: bottlerocket-v2
+  resources:
+    limits:
+      cpu: 4
+      memory: 16Gi
+  expireAfter: 3600h  # half a year
+
