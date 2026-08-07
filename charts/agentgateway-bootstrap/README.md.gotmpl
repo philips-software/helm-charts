@@ -4,8 +4,16 @@
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
+## Deployment Modes
+
+This chart supports two deployment modes via the `mode` value:
+
+- **`kubernetes`** (default): Deploys upstream `agentgateway-crds` and `agentgateway` (controller) charts via ArgoCD Applications.
+- **`standalone`**: Deploys upstream `agentgateway-standalone` chart via ArgoCD Application.
+
 {{ template "chart.requirementsSection" . }}
 
 {{ template "chart.valuesSection" . }}
 
 {{ template "helm-docs.versionFooter" . }}
+
