@@ -3,6 +3,25 @@ entries:
   agentgateway-bootstrap:
   - apiVersion: v2
     appVersion: 1.4.1
+    created: "2026-08-07T21:04:09.116956057Z"
+    description: A Helm chart for bootstrapping agentgateway with Amazon Bedrock LLM
+      support
+    digest: 21295becb7b44dd6d81f76dd974b614ff3e7c2b698a77828ae1dca82cc65d21e
+    keywords:
+    - agentgateway
+    - bedrock
+    - ai
+    - llm
+    - gateway-api
+    - argocd
+    - bootstrap
+    name: agentgateway-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/agentgateway-bootstrap-0.6.0/agentgateway-bootstrap-0.6.0.tgz
+    version: 0.6.0
+  - apiVersion: v2
+    appVersion: 1.4.1
     created: "2026-07-31T12:21:59.636120799Z"
     description: A Helm chart for bootstrapping agentgateway with Amazon Bedrock LLM
       support
@@ -4921,4 +4940,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-08-06T07:01:27.980114755Z"
+generated: "2026-08-07T21:04:09.117846918Z"
