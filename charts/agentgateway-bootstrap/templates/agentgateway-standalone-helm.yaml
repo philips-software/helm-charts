@@ -39,6 +39,12 @@ spec:
         gateway:
           service:
             type: {{ .Values.standalone.service.type | default "ClusterIP" }}
+  ignoreDifferences:
+    - group: ""
+      kind: ConfigMap
+      name: agentgateway-standalone-config
+      jsonPointers:
+        - /data
   destination:
     server: "https://kubernetes.default.svc"
     namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
