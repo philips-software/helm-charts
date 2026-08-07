@@ -133,10 +133,15 @@ spec:
                 kubectl patch agentgatewayparameters "$PARAMS_NAME" -n "$NAMESPACE" \
                   --type merge -p "$PATCH"
               elif [ "$MODE" = "standalone" ]; then
+                echo "Waiting for standalone ConfigMap $STANDALONE_CONFIGMAP to exist..."
+                until kubectl get configmap "$STANDALONE_CONFIGMAP" -n "$NAMESPACE" >/dev/null 2>&1; do
+                  echo "ConfigMap $STANDALONE_CONFIGMAP not created yet, waiting..."
+                  sleep 3
+                done
                 echo "Patching standalone ConfigMap $STANDALONE_CONFIGMAP with config.database.url..."
                 PATCH=$(jq -n --arg url "$DATABASE_URL" '{data:{"config.yaml": ("config:\n  database:\n    url: " + $url + "\n  storage:\n    mode: hybrid\ngateways:\n  default:\n    port: 4000\nllm:\n  models: []\nmcp:\n  targets: []\nui: {}\n")}}')
                 kubectl patch configmap "$STANDALONE_CONFIGMAP" -n "$NAMESPACE" \
-                  --type merge -p "$PATCH" || true
+                  --type merge -p "$PATCH"
               fi
 
               echo "Done."
