@@ -26,6 +26,9 @@ rules:
   - apiGroups: [""]
     resources: ["secrets", "configmaps"]
     verbs: ["get", "watch", "patch", "update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "watch", "patch", "update"]
   - apiGroups: ["postgresql.cnpg.io"]
     resources: ["clusters"]
     verbs: ["get", "watch"]
@@ -142,6 +145,8 @@ spec:
                 PATCH=$(jq -n --arg url "$DATABASE_URL" '{data:{"config.yaml": ("config:\n  database:\n    url: " + $url + "\n  storage:\n    mode: hybrid\ngateways:\n  default:\n    port: 4000\nllm:\n  models: []\nmcp:\n  targets: []\nui: {}\n")}}')
                 kubectl patch configmap "$STANDALONE_CONFIGMAP" -n "$NAMESPACE" \
                   --type merge -p "$PATCH"
+                echo "Restarting standalone deployment..."
+                kubectl rollout restart deployment/agentgateway-standalone -n "$NAMESPACE" || true
               fi
 
               echo "Done."
