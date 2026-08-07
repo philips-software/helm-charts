@@ -23,7 +23,7 @@ spec:
         mode: database
         database:
           postgres:
-            url: {{ printf "postgresql://%s:placeholder@%s-rw:5432/%s" (.Values.database.databaseName | default "agentgateway") (include "agentgateway-bootstrap.postgresClusterName" .) (.Values.database.databaseName | default "agentgateway") | quote }}
+            url: {{ printf "postgresql://%s:%s@%s-rw:5432/%s" (.Values.database.databaseName | default "agentgateway") (.Values.database.password | default "agentgateway123") (include "agentgateway-bootstrap.postgresClusterName" .) (.Values.database.databaseName | default "agentgateway") | quote }}
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
         extraEnv:
           - name: DATABASE_URL

@@ -91,6 +91,8 @@ database:
   instances: 1
   # Database (and owner role) name.
   databaseName: agentgateway
+  # Database owner password.
+  password: "agentgateway123"
   storage:
     size: 5Gi
     # Leave empty to use the cluster's default StorageClass.
