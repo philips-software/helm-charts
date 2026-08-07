@@ -1,4 +1,4 @@
-{{- if and .Values.ui.enabled .Values.gateway.enabled }}
+{{- if .Values.ui.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -16,5 +16,10 @@ spec:
       targetPort: {{ .Values.ui.service.targetPort | default 15000 }}
       protocol: TCP
   selector:
+    {{- if eq .Values.mode "standalone" }}
+    app.kubernetes.io/name: agentgateway-standalone
+    app.kubernetes.io/instance: agentgateway-standalone
+    {{- else }}
     gateway.networking.k8s.io/gateway-name: {{ .Values.gateway.name | default "agentgateway" }}
+    {{- end }}
 {{- end }}
