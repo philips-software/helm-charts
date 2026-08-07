@@ -21,6 +21,9 @@ spec:
       releaseName: agentgateway-standalone
       valuesObject:
         mode: database
+        database:
+          postgres:
+            url: {{ printf "postgresql://%s:placeholder@%s-rw:5432/%s" (.Values.database.databaseName | default "agentgateway") (include "agentgateway-bootstrap.postgresClusterName" .) (.Values.database.databaseName | default "agentgateway") | quote }}
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
         gateway:
           service:
