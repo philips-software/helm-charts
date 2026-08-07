@@ -1,5 +1,8 @@
 # agentgateway-bootstrap configuration
 
+# Deployment mode: "kubernetes" (default) or "standalone"
+mode: kubernetes
+
 # Upstream agentgateway-crds Helm chart configuration
 agentgatewayCrdsChart:
   repoURL: oci://cr.agentgateway.dev/charts
@@ -11,6 +14,18 @@ agentgatewayChart:
   repoURL: oci://cr.agentgateway.dev/charts
   # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway
   version: 1.4.1
+
+# Upstream agentgateway-standalone Helm chart configuration
+agentgatewayStandaloneChart:
+  repoURL: oci://cr.agentgateway.dev/charts
+  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway-standalone
+  version: 1.4.1
+
+# Standalone mode specific configuration
+standalone:
+  replicaCount: 1
+  service:
+    type: ClusterIP
 
 # ArgoCD project name
 argoProject: default
