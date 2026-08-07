@@ -25,6 +25,17 @@ spec:
           postgres:
             url: {{ printf "postgresql://%s:placeholder@%s-rw:5432/%s" (.Values.database.databaseName | default "agentgateway") (include "agentgateway-bootstrap.postgresClusterName" .) (.Values.database.databaseName | default "agentgateway") | quote }}
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
+        extraEnv:
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: {{ printf "%s-app" (include "agentgateway-bootstrap.postgresClusterName" .) | quote }}
+                key: uri
+          - name: AGENTGATEWAY_DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: {{ printf "%s-app" (include "agentgateway-bootstrap.postgresClusterName" .) | quote }}
+                key: uri
         gateway:
           service:
             type: {{ .Values.standalone.service.type | default "ClusterIP" }}
