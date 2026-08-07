@@ -1,22 +1,30 @@
-{{- if eq .Values.mode "kubernetes" }}
+{{- if eq .Values.mode "standalone" }}
 {{- include "agentgateway-bootstrap.validateConfig" . -}}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: agentgateway-crds
+  name: agentgateway-standalone
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: {{ .Values.argoProject }}
   source:
-    repoURL: {{ printf "%s/agentgateway-crds" .Values.agentgatewayCrdsChart.repoURL | quote }}
-    targetRevision: {{ .Values.agentgatewayCrdsChart.version | quote }}
+    repoURL: {{ printf "%s/agentgateway-standalone" .Values.agentgatewayStandaloneChart.repoURL | quote }}
+    targetRevision: {{ .Values.agentgatewayStandaloneChart.version | quote }}
     path: .
+    helm:
+      releaseName: agentgateway-standalone
+      valuesObject:
+        mode: database
+        replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
+        gateway:
+          service:
+            type: {{ .Values.standalone.service.type | default "ClusterIP" }}
   destination:
     server: "https://kubernetes.default.svc"
     namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
@@ -28,4 +36,3 @@ spec:
       prune: true
       selfHeal: true
 {{- end }}
-

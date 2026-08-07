@@ -1,4 +1,4 @@
-{{- if .Values.bedrock.enabled }}
+{{- if and .Values.bedrock.enabled (eq .Values.mode "kubernetes") }}
 apiVersion: agentgateway.dev/v1alpha1
 kind: AgentgatewayBackend
 metadata:

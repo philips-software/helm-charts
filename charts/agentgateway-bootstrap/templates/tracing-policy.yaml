@@ -1,4 +1,4 @@
-{{- if and .Values.tracing.enabled .Values.gateway.enabled }}
+{{- if and .Values.tracing.enabled .Values.gateway.enabled (eq .Values.mode "kubernetes") }}
 apiVersion: agentgateway.dev/v1alpha1
 kind: AgentgatewayPolicy
 metadata:
