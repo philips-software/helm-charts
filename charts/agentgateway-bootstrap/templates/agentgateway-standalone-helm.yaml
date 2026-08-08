@@ -1,14 +1,11 @@
 {{- if eq .Values.mode "standalone" }}
-{{- include "agentgateway-bootstrap.validateConfig" . -}}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: agentgateway-standalone
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.argoNamespace | default "argocd" }}
   labels:
     {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
@@ -23,9 +20,20 @@ spec:
         mode: database
         config:
           adminAddr: "[::]:15000"
-        database:
-          postgres:
+          database:
             url: {{ printf "postgresql://%s:${DB_PASSWORD}@%s-rw:5432/%s" (.Values.database.databaseName | default "agentgateway") (include "agentgateway-bootstrap.postgresClusterName" .) (.Values.database.databaseName | default "agentgateway") | quote }}
+        llm:
+          policies:
+            apiKey: {}
+          providers:
+            - name: openrouter
+              provider: openrouter
+              params:
+                baseUrl: https://openrouter.ai/api/v1
+                apiKey: ${OPENROUTER_API_KEY}
+          models:
+            - name: deepseek/deepseek-v4-flash
+              provider: openrouter
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
         extraEnv:
           - name: DB_PASSWORD
@@ -33,6 +41,12 @@ spec:
               secretKeyRef:
                 name: {{ printf "%s-credentials" (include "agentgateway-bootstrap.postgresClusterName" .) | quote }}
                 key: password
+          - name: OPENROUTER_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: agentgateway-openrouter-secret
+                key: apiKey
+                optional: true
         gateway:
           service:
             type: {{ .Values.standalone.service.type | default "ClusterIP" }}
