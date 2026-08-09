@@ -142,7 +142,7 @@ spec:
                   sleep 3
                 done
                 echo "Patching standalone ConfigMap $STANDALONE_CONFIGMAP with config.database.url..."
-                PATCH=$(jq -n '{data:{"config.yaml": "config:\n  adminAddr: \"[::]:15000\"\n  database:\n    url: postgresql://agentgateway:${DB_PASSWORD}@agentgateway-gw-db-rw:5432/agentgateway\n  storage:\n    mode: hybrid\ngateways:\n  default:\n    port: 4000\nllm:\n  policies:\n    apiKey: {}\n  providers:\n    - name: openrouter\n      provider: openrouter\n      params:\n        baseUrl: https://openrouter.ai/api/v1\n        apiKey: ${OPENROUTER_API_KEY}\n  models:\n    - name: deepseek/deepseek-v4-flash\n      provider: openrouter\n"}}')
+                PATCH=$(jq -n '{data:{"config.yaml": "config:\n  adminAddr: \"[::]:15000\"\n  database:\n    url: postgresql://agentgateway:${DB_PASSWORD}@agentgateway-gw-db-rw:5432/agentgateway\n  storage:\n    mode: hybrid\ngateways:\n  default:\n    port: 4000\nllm:\n  policies:\n    apiKey:\n      mode: strict\n  providers:\n    - name: openrouter\n      provider: openrouter\n      params:\n        baseUrl: https://openrouter.ai/api/v1\n        apiKey: ${OPENROUTER_API_KEY}\n  models:\n    - name: deepseek/deepseek-v4-flash\n      provider: openrouter\n"}}')
                 kubectl patch configmap "$STANDALONE_CONFIGMAP" -n "$NAMESPACE" \
                   --type merge -p "$PATCH"
                 echo "Restarting standalone deployment..."
