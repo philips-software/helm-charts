@@ -58,9 +58,7 @@ spec:
       kind: ConfigMap
       name: agentgateway-standalone-config
       jsonPointers:
-        - /data/config.yaml
-      jqPathExpressions:
-        - .data["config.yaml"]
+        - /data
   destination:
     server: "https://kubernetes.default.svc"
     namespace: {{ .Values.gateway.namespace | default "agentgateway-system" }}
