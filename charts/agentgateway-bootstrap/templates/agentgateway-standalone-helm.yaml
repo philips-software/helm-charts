@@ -19,7 +19,8 @@ spec:
       valuesObject:
         mode: database
         config:
-          adminAddr: "[::]:15000"
+          config:
+            adminAddr: "[::]:15000"
           database:
             url: {{ printf "postgresql://%s:${DB_PASSWORD}@%s-rw:5432/%s" (.Values.database.databaseName | default "agentgateway") (include "agentgateway-bootstrap.postgresClusterName" .) (.Values.database.databaseName | default "agentgateway") | quote }}
           llm:
