@@ -21,17 +21,18 @@ spec:
         config:
           config:
             adminAddr: "[::]:15000"
-          database:
-            url: {{ printf "postgresql://%s:${DB_PASSWORD}@%s-rw:5432/%s" (.Values.database.databaseName | default "agentgateway") (include "agentgateway-bootstrap.postgresClusterName" .) (.Values.database.databaseName | default "agentgateway") | quote }}
+            database:
+              url: {{ printf "postgresql://%s:${DB_PASSWORD}@%s-rw:5432/%s" (.Values.database.databaseName | default "agentgateway") (include "agentgateway-bootstrap.postgresClusterName" .) (.Values.database.databaseName | default "agentgateway") | quote }}
+            storage:
+              mode: hybrid
           llm:
             policies:
               apiKey:
                 mode: strict
             providers:
               - name: openrouter
-                provider: openai
+                provider: openrouter
                 params:
-                  baseUrl: https://openrouter.ai/api/v1
                   apiKey: ${OPENROUTER_API_KEY}
             models:
               - name: deepseek/deepseek-v4-flash
