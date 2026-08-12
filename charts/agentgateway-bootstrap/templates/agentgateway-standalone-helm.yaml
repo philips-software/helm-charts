@@ -36,7 +36,8 @@ spec:
                   apiKey: ${OPENROUTER_API_KEY}
             models:
               - name: deepseek/deepseek-v4-flash
-                provider: openrouter
+                provider:
+                  reference: openrouter
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
         extraEnv:
           - name: DB_PASSWORD
