@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.75.0](https://img.shields.io/badge/Version-0.75.0-informational?style=flat-square)
+![Version: 0.75.4](https://img.shields.io/badge/Version-0.75.4-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -13,12 +13,91 @@ secret in the same namespace as the app. The secret should have the following fi
 - `clientSecret`: The client secret for the SSO application
 - `issuerUrl`: The URL of the SSO issuer
 
+### Provisioning `grafana-sso-creds` via the Dex Provider Client CR
+
+This chart does **not** create the `grafana-sso-creds` secret itself — Dex (`dex-issuer`) and its
+Crossplane connector-management plane (`provider-dex`) typically run on a separate **hub** cluster,
+not on the cluster where this Grafana is deployed. There is no cross-cluster automation for this
+yet, so the OAuth2 client must be registered against Dex manually and its credentials copied to
+this cluster by hand. Steps:
+
+1. **On the hub cluster** running `dex-issuer`/`provider-dex`, pick (or create) a namespace that
+   already has a `ProviderConfig` (`dex.crossplane.io/v1alpha1`) pointing at that Dex instance —
+   see `dex-issuer`'s `provider.providerConfigNamespaces` value. If none of the existing
+   `ProviderConfig`s live in a namespace you can use, add one there (mirroring
+   `dex-issuer/templates/providerconfig-dex.yaml`) rather than creating it in this chart, since
+   this chart has no visibility into the hub cluster's PKI/endpoint.
+
+2. **On the hub cluster**, create a `Client` CR (`oauth.dex.crossplane.io/v1`) for this Grafana
+   instance, writing its connection secret to a throwaway name in that namespace:
+
+   ```yaml
+   apiVersion: oauth.dex.crossplane.io/v1
+   kind: Client
+   metadata:
+     name: grafana-<cluster-name>       # unique per Grafana instance across the hub
+     namespace: <namespace-with-providerconfig>
+   spec:
+     forProvider:
+       id: grafana-<cluster-name>
+       name: "Grafana (<cluster-name>)"
+       redirectURIs:
+         - https://<grafana-host>/login/generic_oauth   # e.g. gf.<clusterFqdn>
+     providerConfigRef:
+       kind: ProviderConfig
+       name: default
+     writeConnectionSecretToRef:
+       name: grafana-<cluster-name>-sso-creds
+   ```
+
+   Once `Ready`/`Synced`, this produces a secret with `clientId`, `clientSecret`, and `issuerUrl`
+   keys — exactly the shape `grafana-sso-creds` needs.
+
+3. **Copy the resulting secret to this cluster** into the same namespace as the Grafana release,
+   named `grafana-sso-creds`:
+
+   ```sh
+   kubectl --context <hub-context> get secret grafana-<cluster-name>-sso-creds \
+     -n <namespace-with-providerconfig> -o json \
+     | jq '{apiVersion,kind,type,data,metadata:{name:"grafana-sso-creds",namespace:"<release-namespace>"}}' \
+     | kubectl --context <spoke-context> apply -f -
+   ```
+
+   Re-run this whenever the client secret is rotated (the `Client` CR's `spec.forProvider.secret`
+   is empty by default, so Dex generates and keeps a stable secret — this only needs to be redone
+   if the `Client` CR itself is recreated).
+
+4. Set `grafana.ssoAuthEnabled: true` in this chart's values once the secret exists, then sync.
+
+If you're deploying to a cluster where Dex and Grafana genuinely run side-by-side (uncommon), the
+same `ProviderConfig`/`Client` pattern applies — just create both CRs locally instead of on a
+separate hub.
+
+### SSO Group to Role Mapping
+
+The following SSO configuration maps OIDC groups to Grafana roles:
+
+| Configuration | Value | Description |
+|---|---|---|
+| **role_attribute_path** | `contains(join(' ', groups), 'grafana-superadmin') && 'GrafanaAdmin' \|\| contains(join(' ', groups), 'grafana-admins') && 'Admin' \|\| contains(join(' ', groups), 'grafana-editors') && 'Editor' \|\| contains(join(' ', groups), 'grafana-viewers') && 'Viewer' \|\| 'None'` | JMESPath expression mapping OIDC groups to Grafana roles |
+| **login_attribute_path** | `email` | Extract login/username from OIDC claims |
+| **email_attribute_path** | `email` | Extract email from OIDC claims |
+
+**Required OIDC Groups:**
+- `grafana-superadmin` - Maps to GrafanaAdmin role
+- `grafana-admins` - Maps to Admin role
+- `grafana-editors` - Maps to Editor role
+- `grafana-viewers` - Maps to Viewer role
+
+Users not in any of these groups will have the 'None' role and no access.
+
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argocd.namespace | string | `"argocd"` |  |
 | argocd.project | string | `"default"` |  |
+| crossplaneProviders.cascadeDelete | bool | `false` |  |
 | crossplaneProviders.gf.datasources | list | `[]` |  |
 | crossplaneProviders.gf.debug | bool | `false` |  |
 | crossplaneProviders.gf.enabled | bool | `true` |  |
@@ -88,7 +167,7 @@ secret in the same namespace as the app. The secret should have the following fi
 | grafana.ssoAuthEnabled | bool | `false` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
-| grafanaChart.version | string | `"12.4.6"` |  |
+| grafanaChart.version | string | `"12.4.8"` |  |
 | useCustomFqdn | bool | `true` |  |
 
 ----------------------------------------------

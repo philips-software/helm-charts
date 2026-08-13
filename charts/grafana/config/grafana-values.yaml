@@ -249,9 +249,11 @@ grafana.ini:
     enabled: true
     name: OpenID Connect
     scopes: openid profile email groups offline_access
-    role_attribute_path: contains(join(' ', groups), 'grafana-superadmin') && 'GrafanaAdmin' || contains(join(' ', groups), 'grafana-admin')  && 'Admin' || contains(join(' ', groups), 'grafana-editor') && 'Editor' || contains(join(' ', groups), 'grafana-viewer') && 'Viewer' || 'None'
+    role_attribute_path: contains(join(' ', groups), 'grafana-superadmin') && 'GrafanaAdmin' || contains(join(' ', groups), 'grafana-admins')  && 'Admin' || contains(join(' ', groups), 'grafana-editors') && 'Editor' || contains(join(' ', groups), 'grafana-viewers') && 'Viewer' || 'None'
     role_attribute_strict: true
     org_attribute_path: groups
+    login_attribute_path: email
+    email_attribute_path: email
     client_id: ${clientId}
     client_secret: ${clientSecret}
     auth_url: ${issuerUrl}/auth{{- if .Values.grafana.connector }}/{{ .Values.grafana.connector }}{{- end }}
