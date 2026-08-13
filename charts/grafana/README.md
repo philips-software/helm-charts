@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.77.0](https://img.shields.io/badge/Version-0.77.0-informational?style=flat-square)
+![Version: 0.77.1](https://img.shields.io/badge/Version-0.77.1-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -72,6 +72,24 @@ this cluster by hand. Steps:
 If you're deploying to a cluster where Dex and Grafana genuinely run side-by-side (uncommon), the
 same `ProviderConfig`/`Client` pattern applies — just create both CRs locally instead of on a
 separate hub.
+
+### SSO Group to Role Mapping
+
+The following SSO configuration maps OIDC groups to Grafana roles:
+
+| Configuration | Value | Description |
+|---|---|---|
+| role_attribute_path | contains(join(' ', groups), 'grafana-superadmins') && 'GrafanaAdmin' \|\| contains(join(' ', groups), 'grafana-admins') && 'Admin' \|\| contains(join(' ', groups), 'grafana-editors') && 'Editor' \|\| contains(join(' ', groups), 'grafana-viewers') && 'Viewer' \|\| 'None' | JMESPath expression mapping OIDC groups to Grafana roles |
+| login_attribute_path | email | Extract login/username from OIDC claims |
+| email_attribute_path | email | Extract email from OIDC claims |
+
+**Required OIDC Groups:**
+- grafana-superadmins - Maps to GrafanaAdmin role
+- grafana-admins - Maps to Admin role
+- grafana-editors - Maps to Editor role
+- grafana-viewers - Maps to Viewer role
+
+Users not in any of these groups will have the 'None' role and no access.
 
 ## Values
 
@@ -149,7 +167,7 @@ separate hub.
 | grafana.ssoAuthEnabled | bool | `false` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
-| grafanaChart.version | string | `"12.8.0"` |  |
+| grafanaChart.version | string | `"12.8.1"` |  |
 | useCustomFqdn | bool | `true` |  |
 
 ----------------------------------------------
