@@ -165,6 +165,9 @@ Users not in any of these groups will have the 'None' role and no access.
 | grafana.resources.requests.cpu | string | `"200m"` |  |
 | grafana.resources.requests.memory | string | `"256Mi"` |  |
 | grafana.ssoAuthEnabled | bool | `false` |  |
+| grafana.ssoEmailAttributePath | string | `"email"` |  |
+| grafana.ssoLoginAttributePath | string | `"email"` |  |
+| grafana.ssoRoleAttributePath | string | `"contains(join(' ', groups), 'grafana-superadmins') && 'GrafanaAdmin' || contains(join(' ', groups), 'grafana-admins')  && 'Admin' || contains(join(' ', groups), 'grafana-editors') && 'Editor' || contains(join(' ', groups), 'grafana-viewers') && 'Viewer' || 'None'"` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
 | grafanaChart.version | string | `"12.8.1"` |  |
