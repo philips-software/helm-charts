@@ -167,7 +167,7 @@ Users not in any of these groups will have the 'None' role and no access.
 | grafana.ssoAuthEnabled | bool | `false` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
-| grafanaChart.version | string | `"12.8.1"` |  |
+| grafanaChart.version | string | `"12.11.1"` |  |
 | useCustomFqdn | bool | `true` |  |
 
 ----------------------------------------------
