@@ -8,6 +8,13 @@ grafana:
   # Optional SSO connector path to auto-select upstream IDP (e.g., "github", "google")
   # When set, appends to auth_url: ${issuerUrl}/auth/${connector}
   connector: ""
+  # SSO OIDC group to Grafana role mapping (JMESPath expression)
+  # Maps groups from OIDC provider to Grafana roles
+  ssoRoleAttributePath: "contains(join(' ', groups), 'grafana-superadmins') && 'GrafanaAdmin' || contains(join(' ', groups), 'grafana-admins')  && 'Admin' || contains(join(' ', groups), 'grafana-editors') && 'Editor' || contains(join(' ', groups), 'grafana-viewers') && 'Viewer' || 'None'"
+  # SSO OIDC claim to use for login/username (JMESPath expression)
+  ssoLoginAttributePath: "email"
+  # SSO OIDC claim to use for email address (JMESPath expression)
+  ssoEmailAttributePath: "email"
   # Auth proxy configuration (for reverse proxy authentication)
   # See: https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/auth-proxy/
   authProxy:
