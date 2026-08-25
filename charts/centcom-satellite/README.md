@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.9.1](https://img.shields.io/badge/Version-0.9.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.58.0](https://img.shields.io/badge/AppVersion-v0.58.0-informational?style=flat-square)
+![Version: 0.9.2](https://img.shields.io/badge/Version-0.9.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.58.0](https://img.shields.io/badge/AppVersion-v0.58.0-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -57,7 +57,7 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 | httpRoute.enabled | bool | `false` |  |
 | httpRoute.gatewayRef.name | string | `"platform"` |  |
 | httpRoute.gatewayRef.namespace | string | `"kube-system"` |  |
-| httpRoute.gatewayRef.sectionName | string | `"http-0"` |  |
+| httpRoute.gatewayRef.sectionName | string | `""` |  |
 | httpRoute.hostname | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"ghcr.io/loafoe/centcom-satellite"` |  |

@@ -316,7 +316,11 @@ httpRoute:
   gatewayRef:
     name: platform
     namespace: kube-system
-    # Use http listener when TLS is terminated at the load balancer
-    sectionName: http-0
+    # Empty (default) omits sectionName entirely, matching any listener on
+    # the Gateway. Only set this if the Gateway has multiple listeners and
+    # you need to pin to one by name — a stale/wrong name here fails the
+    # route with "No matching listener" (this default used to be the
+    # nonexistent "http-0"; every real install had to override it).
+    sectionName: ""
   # Optional annotations
   annotations: {}
