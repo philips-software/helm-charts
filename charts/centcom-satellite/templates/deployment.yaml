@@ -151,6 +151,18 @@ spec:
             - name: AWS_REGION
               value: {{ .Values.aws.irsa.region | quote }}
             {{- end }}
+            {{- if .Values.aws.assumeRole.roleArn }}
+            - name: AWS_ASSUME_ROLE_ARN
+              value: {{ .Values.aws.assumeRole.roleArn | quote }}
+            {{- if .Values.aws.assumeRole.externalId }}
+            - name: AWS_ASSUME_ROLE_EXTERNAL_ID
+              value: {{ .Values.aws.assumeRole.externalId | quote }}
+            {{- end }}
+            {{- if .Values.aws.assumeRole.sessionName }}
+            - name: AWS_ASSUME_ROLE_SESSION_NAME
+              value: {{ .Values.aws.assumeRole.sessionName | quote }}
+            {{- end }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /healthz

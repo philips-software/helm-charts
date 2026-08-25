@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.8.2](https://img.shields.io/badge/Version-0.8.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.57.1](https://img.shields.io/badge/AppVersion-v0.57.1-informational?style=flat-square)
+![Version: 0.9.0](https://img.shields.io/badge/Version-0.9.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.57.1](https://img.shields.io/badge/AppVersion-v0.57.1-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -21,6 +21,9 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` |  |
+| aws.assumeRole.externalId | string | `""` |  |
+| aws.assumeRole.roleArn | string | `""` |  |
+| aws.assumeRole.sessionName | string | `"centcom-satellite"` |  |
 | aws.irsa.accountId | string | `""` |  |
 | aws.irsa.audience | string | `"sts.amazonaws.com"` |  |
 | aws.irsa.enabled | bool | `false` |  |

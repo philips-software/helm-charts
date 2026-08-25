@@ -192,6 +192,25 @@ aws:
     #     - arn:aws:iam::123456789012:policy/centcom-satellite-extra
     extraPolicyArns: []
 
+  # Cross-account AWS AssumeRole: when set, all AWS data-retrieval/write tasks
+  # (cw_*, cost_explorer, guardduty_*, securityhub_*) operate against a
+  # *different* AWS account via STS AssumeRole, while Kubernetes tasks keep
+  # using the local in-cluster identity. Requires aws.irsa.enabled=true — the
+  # source-account sts:AssumeRole permission is granted to the same generic
+  # IRSA role via an additional Crossplane Policy/RolePolicyAttachment,
+  # scoped to roleArn only (never "*", to avoid letting this satellite assume
+  # any role in any account that trusts it).
+  assumeRole:
+    # Target IAM role ARN in a different AWS account. Empty (default)
+    # disables the feature entirely — every AWS task keeps using the base
+    # IRSA identity, byte-for-byte unchanged.
+    roleArn: ""
+    # Optional STS ExternalId, passed to AssumeRole for confused-deputy
+    # protection. Only needed if the target role's trust policy requires one.
+    externalId: ""
+    # STS RoleSessionName, visible in the target account's CloudTrail.
+    sessionName: "centcom-satellite"
+
 podAnnotations: {}
 
 podSecurityContext:
