@@ -210,6 +210,11 @@ aws:
     externalId: ""
     # STS RoleSessionName, visible in the target account's CloudTrail.
     sessionName: "centcom-satellite"
+    # Overrides the AWS region used for AssumeRole'd API calls. Only applies
+    # while roleArn is set — a cluster-less satellite's pod region has no
+    # necessary relationship to the target account's region, so this can't
+    # fall back to aws.irsa.region (which describes the pod's own cluster).
+    region: ""
 
 podAnnotations: {}
 
