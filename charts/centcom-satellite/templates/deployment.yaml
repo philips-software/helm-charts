@@ -1,3 +1,4 @@
+{{- $needsAgentSocket := eq (include "centcom-satellite.needsAgentSocket" .) "true" -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -59,8 +60,10 @@ spec:
             {{- if .Values.spire.enabled }}
             - name: SPIRE_ENABLED
               value: "true"
+            {{- if $needsAgentSocket }}
             - name: SPIRE_AGENT_SOCKET
               value: {{ .Values.spire.agentSocket | quote }}
+            {{- end }}
             {{- if .Values.spire.trustDomains }}
             - name: SPIRE_TRUST_DOMAINS
               value: {{ .Values.spire.trustDomains | join "," | quote }}
@@ -80,6 +83,18 @@ spec:
             {{- if .Values.spire.jwt.audiences }}
             - name: SPIRE_JWT_AUDIENCES
               value: {{ .Values.spire.jwt.audiences | join "," | quote }}
+            {{- end }}
+            - name: SPIRE_JWT_BUNDLE_SOURCE
+              value: {{ .Values.spire.jwt.bundleSource | default "workload_api" | quote }}
+            {{- if eq .Values.spire.jwt.bundleSource "federation" }}
+            {{- if .Values.spire.jwt.federationBundleEndpoints }}
+            - name: SPIRE_FEDERATION_BUNDLE_ENDPOINTS
+              value: {{ $pairs := list }}{{ range $td, $url := .Values.spire.jwt.federationBundleEndpoints }}{{ $pairs = append $pairs (printf "%s=%s" $td $url) }}{{ end }}{{ join "," $pairs | quote }}
+            {{- end }}
+            {{- if .Values.spire.jwt.federationCABundlePath }}
+            - name: SPIRE_FEDERATION_CA_BUNDLE_PATH
+              value: {{ .Values.spire.jwt.federationCABundlePath | quote }}
+            {{- end }}
             {{- end }}
             {{- end }}
             {{- end }}
@@ -192,13 +207,13 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.spire.enabled }}
+          {{- if $needsAgentSocket }}
           volumeMounts:
             - name: spire-agent-socket
               mountPath: {{ .Values.spire.socketMountPath | default "/spiffe-workload-api" }}
               readOnly: true
           {{- end }}
-      {{- if .Values.spire.enabled }}
+      {{- if $needsAgentSocket }}
       volumes:
         - name: spire-agent-socket
           {{- if .Values.spire.csi.enabled }}

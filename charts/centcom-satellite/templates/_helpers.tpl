@@ -114,3 +114,22 @@ The path is normalized via centcom-satellite.irsaPath.
 {{- printf "arn:aws:iam::%s:role%s%s" (.Values.aws.irsa.accountId | toString) (include "centcom-satellite.irsaPath" .) (include "centcom-satellite.irsaRoleName" .) -}}
 {{- end -}}
 {{- end }}
+
+{{/*
+needsAgentSocket: whether this deployment needs a local SPIRE Agent at all
+(socket/CSI-driver/hostPath volume, and — since a ClusterSPIFFEID is only
+ever fulfilled by workload attestation from a local agent — the
+ClusterSPIFFEID registration for this pod's own identity too). False only
+in the one case that has no local-agent involvement anywhere: JWT-SVID
+explicitly configured with bundleSource=federation (which also requires
+mTLS disabled — enforced app-side). Everything else — including today's
+existing default (spire.enabled=true, mtlsEnabled=false, jwt.enabled=false)
+— keeps mounting the socket exactly as before this value existed, so charts
+that never touch the new field see no rendered-manifest change at all.
+Returns the literal string "true" or "false" (use with `eq ... "true"`).
+*/}}
+{{- define "centcom-satellite.needsAgentSocket" -}}
+{{- $usesFederation := and .Values.spire.jwt.enabled (eq .Values.spire.jwt.bundleSource "federation") -}}
+{{- $needsSocket := and .Values.spire.enabled (not $usesFederation) -}}
+{{- if $needsSocket -}}true{{- else -}}false{{- end -}}
+{{- end }}

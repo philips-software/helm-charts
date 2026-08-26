@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.10.0](https://img.shields.io/badge/Version-0.10.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.61.0](https://img.shields.io/badge/AppVersion-v0.61.0-informational?style=flat-square)
+![Version: 0.11.0](https://img.shields.io/badge/Version-0.11.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.62.0](https://img.shields.io/badge/AppVersion-v0.62.0-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -109,7 +109,10 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 | spire.enabled | bool | `true` |  |
 | spire.hostSocketPath | string | `"/run/spire/agent-sockets"` |  |
 | spire.jwt.audiences | list | `[]` |  |
+| spire.jwt.bundleSource | string | `"workload_api"` |  |
 | spire.jwt.enabled | bool | `false` |  |
+| spire.jwt.federationBundleEndpoints | object | `{}` |  |
+| spire.jwt.federationCABundlePath | string | `""` |  |
 | spire.localTrustDomain | string | `""` |  |
 | spire.mtlsEnabled | bool | `false` |  |
 | spire.skipFederation | bool | `false` |  |
