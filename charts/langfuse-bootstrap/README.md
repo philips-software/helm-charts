@@ -22,7 +22,7 @@ Then browse to http://localhost:3000.
 
 ## SSO (optional)
 
-Set `ingress.httpRoute.enabled: true` (required for a real OAuth callback URL) and `sso.enabled: true` to sign in via the same Dex IdP centcom uses (`https://issuer.ri-obs-use1.hsp.philips.com`, running on the `ri-obs-use1-prd` cluster). Prerequisite: register a Dex `Client` CR there first - see `philips-internal/dip-oaas-ri-observability`'s `kustomize/bootstrap/dex/base/clients/dip-ce-k3s-eu-langfuse.yaml` for the pattern - then copy the resulting `<name>-dex-creds` secret's `clientId`/`clientSecret` into `sso.clientId` / `credentials.ssoClientSecret`.
+Set `ingress.httpRoute.enabled: true` (required for a real OAuth callback URL) and `sso.enabled: true` to sign in via an external Dex/OIDC IdP. Prerequisite: register an OAuth2 client with that IdP first (see this repo's `dex-issuer` chart for the Crossplane `provider-dex` pattern), then set `sso.issuer` / `sso.clientId` / `credentials.ssoClientSecret` to the resulting values.
 
 Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land with no organization membership. An existing org owner manually invites/promotes specific users (e.g. `philips-internal:homelab` members) to `ADMIN` via the Langfuse UI after their first sign-in.
 
@@ -91,8 +91,8 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | sso.clientId | string | `""` |  |
 | sso.disableUsernamePassword | bool | `false` |  |
 | sso.enabled | bool | `false` |  |
-| sso.issuer | string | `"https://issuer.ri-obs-use1.hsp.philips.com"` |  |
-| sso.name | string | `"Philips SSO"` |  |
+| sso.issuer | string | `""` |  |
+| sso.name | string | `"SSO"` |  |
 | sso.scope | string | `"openid email profile groups"` |  |
 
 ----------------------------------------------
