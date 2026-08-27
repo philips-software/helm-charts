@@ -1,0 +1,16 @@
+# clickhouse-operator-bootstrap
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+Installs the [ClickHouse Kubernetes Operator](https://github.com/ClickHouse/clickhouse-operator) cluster-wide via an ArgoCD `Application`. Install once per cluster before any chart that renders `ClickHouseCluster`/`KeeperCluster` CRs (e.g. `langfuse-bootstrap`).
+
+## Prerequisites
+
+- cert-manager, installed cluster-wide (the operator's chart creates `Certificate`/`Issuer` resources for its webhooks).
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}
+

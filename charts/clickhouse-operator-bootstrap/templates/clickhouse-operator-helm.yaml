@@ -1,0 +1,42 @@
+{{- include "clickhouse-operator-bootstrap.validateConfig" . -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: clickhouse-operator-helm
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "clickhouse-operator-bootstrap.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: {{ .Values.argoProject }}
+  source:
+    repoURL: {{ .Values.clickhouseOperatorChart.repoURL | quote }}
+    targetRevision: {{ .Values.clickhouseOperatorChart.version | quote }}
+    helm:
+      releaseName: clickhouse-operator
+      valuesObject:
+        controller:
+          watchNamespaces:
+            {{- toYaml .Values.operator.watchNamespaces | nindent 12 }}
+        manager:
+          resources:
+            {{- toYaml .Values.operator.resources | nindent 12 }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.operator.namespace }}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
