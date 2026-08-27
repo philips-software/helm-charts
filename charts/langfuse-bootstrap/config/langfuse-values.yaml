@@ -1,10 +1,24 @@
 langfuse:
   nextauth:
-    url: {{ .Values.langfuse.nextauthUrl | quote }}
+    url: {{ include "langfuse-bootstrap.nextauthUrl" . | quote }}
     secret:
       secretKeyRef:
         name: langfuse-credentials
         key: nextauth-secret
+  {{- if .Values.sso.enabled }}
+  auth:
+    disableUsernamePassword: {{ .Values.sso.disableUsernamePassword }}
+    providers:
+      custom:
+        clientId: {{ .Values.sso.clientId | quote }}
+        clientSecret:
+          secretKeyRef:
+            name: langfuse-credentials
+            key: sso-client-secret
+        issuer: {{ .Values.sso.issuer | quote }}
+        name: {{ .Values.sso.name | quote }}
+        scope: {{ .Values.sso.scope | quote }}
+  {{- end }}
   salt:
     secretKeyRef:
       name: langfuse-credentials

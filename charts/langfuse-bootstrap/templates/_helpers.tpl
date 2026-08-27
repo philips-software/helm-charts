@@ -69,6 +69,26 @@ the ServiceAccount the langfuse-web/langfuse-worker pods actually run as.
 {{- end }}
 
 {{/*
+Public hostname when ingress.httpRoute.enabled is true.
+*/}}
+{{- define "langfuse-bootstrap.host" -}}
+{{- printf "%s.%s" .Values.ingress.httpRoute.host .Values.environmentConfig.clusterFqdn -}}
+{{- end }}
+
+{{/*
+Canonical NextAuth URL: derived from the HTTPRoute host when enabled
+(required for SSO's OAuth callback to land on a reachable URL), otherwise
+langfuse.nextauthUrl (the port-forward-friendly default).
+*/}}
+{{- define "langfuse-bootstrap.nextauthUrl" -}}
+{{- if .Values.ingress.httpRoute.enabled }}
+{{- printf "https://%s" (include "langfuse-bootstrap.host" .) -}}
+{{- else }}
+{{- .Values.langfuse.nextauthUrl -}}
+{{- end }}
+{{- end }}
+
+{{/*
 Substitute variables in a string.
 Supports ${resourcePrefix}, ${region}, ${accountId}.
 Usage: include "langfuse-bootstrap.substituteVars" (dict "str" .Values.myValue "ctx" .)
@@ -100,6 +120,19 @@ Validate required configuration values
 {{- if ne (int .Values.clickhouse.keeper.replicas) 1 }}
 {{- if eq (mod (int .Values.clickhouse.keeper.replicas) 2) 0 }}
 {{- fail "clickhouse.keeper.replicas must be odd (1, 3, or 5)" }}
+{{- end }}
+{{- end }}
+{{- if .Values.ingress.httpRoute.enabled }}
+{{- if not .Values.environmentConfig.clusterFqdn }}
+{{- fail "environmentConfig.clusterFqdn is required when ingress.httpRoute.enabled is true" }}
+{{- end }}
+{{- end }}
+{{- if .Values.sso.enabled }}
+{{- if not .Values.sso.clientId }}
+{{- fail "sso.clientId is required when sso.enabled is true" }}
+{{- end }}
+{{- if not .Values.sso.issuer }}
+{{- fail "sso.issuer is required when sso.enabled is true" }}
 {{- end }}
 {{- end }}
 {{- end }}

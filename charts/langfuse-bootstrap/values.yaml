@@ -14,6 +14,21 @@ environmentConfig:
   resourcePrefix: ""
   region: ""
   accountId: ""
+  # Cluster FQDN, used to build the public hostname when ingress.httpRoute.enabled
+  # is true (e.g. "dip-ce-k3s-eu.hsp.philips.com"). Same value dex-issuer/grafana use.
+  clusterFqdn: ""
+
+# Public exposure via Gateway API. Disabled by default (ClusterIP + port-forward,
+# see README) - enable this when sso.enabled is true, since Dex must redirect back
+# to a real reachable URL that exactly matches the Client CR's redirectURIs.
+ingress:
+  httpRoute:
+    enabled: false
+    # Host label; combined with environmentConfig.clusterFqdn forms the public
+    # URL, e.g. "langfuse" -> https://langfuse.${clusterFqdn}
+    host: langfuse
+    sharedGatewayName: platform
+    sharedGatewayNamespace: kube-system
 
 # Namespace all langfuse-bootstrap resources (and the upstream chart) deploy into
 namespace: langfuse-system
@@ -42,6 +57,40 @@ credentials:
   clickhousePassword: "changeme-clickhouse-password-please-override"
   # Redis/Valkey AUTH password.
   redisPassword: "changeme-redis-password-please-override"
+  # Dex OAuth2 client secret for SSO. Only used when sso.enabled is true - see
+  # the sso block below for how to obtain it.
+  ssoClientSecret: "changeme-sso-client-secret-please-override"
+
+# Single Sign-On via the shared Philips Dex IdP (same issuer centcom uses).
+#
+# Prerequisite (done once, outside this chart): register a Dex OAuth2 Client
+# on the ri-obs-use1-prd cluster, where this Dex instance actually runs - see
+# philips-internal/dip-oaas-ri-observability's
+# kustomize/bootstrap/dex/base/clients/ for the existing pattern (e.g.
+# dip-ce-k3s-eu-grafana.yaml). Redirect URI must be
+# "https://<your langfuse host>/api/auth/callback/custom". The Client's
+# writeConnectionSecretToRef Secret (on ri-obs-use1-prd) holds the resulting
+# client id/secret - copy those into sso.clientId / credentials.ssoClientSecret.
+#
+# Langfuse OSS has no native groups-claim-to-role mapping (confirmed against
+# the actual NextAuth signIn callback source - it only supports Google's `hd`
+# domain claim and EE per-domain SSO enforcement, nothing generic for
+# arbitrary `groups`). New SSO users land with no organization membership; an
+# existing org owner must manually invite/promote philips-internal:homelab
+# members to ADMIN via the Langfuse UI after their first sign-in. The
+# `groups` scope below still puts the claim on the ID token for visibility/
+# audit even though Langfuse itself doesn't act on it.
+sso:
+  enabled: false
+  # Same Dex issuer centcom uses, running on the ri-obs-use1-prd cluster.
+  issuer: "https://issuer.ri-obs-use1.hsp.philips.com"
+  # Display name shown on the Langfuse sign-in page.
+  name: "Philips SSO"
+  # Dex OAuth2 client id from the Client CR registered on ri-obs-use1-prd (see above).
+  clientId: ""
+  scope: "openid email profile groups"
+  # Set true to remove the built-in email/password login form once SSO is verified working.
+  disableUsernamePassword: false
 
 # CNPG Postgres database for Langfuse
 database:
@@ -118,8 +167,9 @@ redis:
 # Langfuse application configuration
 langfuse:
   # Canonical URL of the deployment. Defaults to the port-forward-friendly
-  # localhost URL since this chart exposes ClusterIP only; override once
-  # Ingress/HTTPRoute is added.
+  # localhost URL, matching ClusterIP-only exposure. When ingress.httpRoute.enabled
+  # is true, this is ignored - the URL is derived from ingress.httpRoute.host +
+  # environmentConfig.clusterFqdn instead (required for SSO's OAuth callback to work).
   nextauthUrl: "http://localhost:3000"
   web:
     resources:
