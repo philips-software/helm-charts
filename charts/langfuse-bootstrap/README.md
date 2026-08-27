@@ -71,6 +71,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | ingress.httpRoute.host | string | `"langfuse"` |  |
 | ingress.httpRoute.sharedGatewayName | string | `"platform"` |  |
 | ingress.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
+| langfuse.image.tag | string | `"4.22.0"` |  |
 | langfuse.nextauthUrl | string | `"http://localhost:3000"` |  |
 | langfuse.web.resources.limits.memory | string | `"2Gi"` |  |
 | langfuse.web.resources.requests.cpu | string | `"100m"` |  |

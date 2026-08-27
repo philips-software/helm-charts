@@ -1,4 +1,6 @@
 langfuse:
+  image:
+    tag: {{ .Values.langfuse.image.tag | quote }}
   nextauth:
     url: {{ include "langfuse-bootstrap.nextauthUrl" . | quote }}
     secret:
