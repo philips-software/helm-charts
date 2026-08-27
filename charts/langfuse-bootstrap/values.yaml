@@ -122,13 +122,14 @@ langfuse:
     resources:
       requests:
         cpu: 100m
-        memory: 512Mi
-      limits:
         memory: 1Gi
+      limits:
+        # Next.js OOMs under 1Gi during startup migrations - confirmed live.
+        memory: 2Gi
   worker:
     resources:
       requests:
         cpu: 100m
-        memory: 512Mi
-      limits:
         memory: 1Gi
+      limits:
+        memory: 2Gi
