@@ -69,6 +69,7 @@ clickhouse:
     replicas: 1
     image:
       repository: clickhouse/clickhouse-server
+      # renovate: datasource=docker depName=clickhouse/clickhouse-server
       tag: "26.4"
     storage:
       size: 20Gi
@@ -85,6 +86,7 @@ clickhouse:
     replicas: 1
     image:
       repository: clickhouse/clickhouse-keeper
+      # renovate: datasource=docker depName=clickhouse/clickhouse-keeper
       tag: "26.4"
     storage:
       size: 5Gi
@@ -101,6 +103,7 @@ clickhouse:
 redis:
   image:
     repository: valkey/valkey
+    # renovate: datasource=docker depName=valkey/valkey
     tag: "8.0"
   storage:
     size: 4Gi
