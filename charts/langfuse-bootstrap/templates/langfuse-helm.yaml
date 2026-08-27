@@ -1,0 +1,36 @@
+{{- include "langfuse-bootstrap.validateConfig" . -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: langfuse-helm
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "langfuse-bootstrap.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: {{ .Values.argoProject }}
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+  source:
+    repoURL: {{ printf "%s/langfuse" .Values.langfuseChart.repoURL | quote }}
+    targetRevision: {{ .Values.langfuseChart.version | quote }}
+    helm:
+      releaseName: langfuse
+      valuesObject:
+        {{- (tpl (.Files.Get "config/langfuse-values.yaml") .) | nindent 8 }}
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: {{ .Values.namespace }}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true

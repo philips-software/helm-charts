@@ -1,0 +1,13 @@
+apiVersion: v2
+name: langfuse-bootstrap
+description: A Helm chart for bootstrapping Langfuse (LLM engineering platform) with CNPG Postgres, self-managed Redis, and S3 via IRSA
+type: application
+version: 0.1.0
+appVersion: "4.17.0"
+keywords:
+  - langfuse
+  - llm
+  - observability
+  - clickhouse
+  - argocd
+  - bootstrap
