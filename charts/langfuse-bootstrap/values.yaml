@@ -1,0 +1,135 @@
+# langfuse-bootstrap configuration
+
+# Upstream langfuse-k8s Helm chart configuration
+langfuseChart:
+  repoURL: oci://ghcr.io/langfuse/langfuse-k8s/charts
+  # renovate: datasource=docker depName=ghcr.io/langfuse/langfuse-k8s/charts/langfuse
+  version: 2.0.2
+
+# ArgoCD project name
+argoProject: default
+
+# Environment configuration for ${resourcePrefix}/${region}/${accountId} variable substitution
+environmentConfig:
+  resourcePrefix: ""
+  region: ""
+  accountId: ""
+
+# Namespace all langfuse-bootstrap resources (and the upstream chart) deploy into
+namespace: langfuse-system
+
+# Name of an existing S3 bucket for Langfuse event/media/export uploads.
+# Required and cannot be empty. Supports ${resourcePrefix}/${region}/${accountId}
+# substitution, same as loki-bootstrap's existingBucketName.
+existingBucketName: ""
+
+# Static credentials referenced via secretKeyRef throughout the upstream chart's
+# valuesObject. MUST stay static (no runtime generation) — ArgoCD renders this
+# chart via `helm template`, which regenerates anything random on every sync,
+# rotating salt/encryptionKey and breaking hashed API keys / encrypted data.
+# Override every field below for any real deployment; these are dev-only placeholders
+# (same convention as agentgateway-bootstrap's database.password default).
+credentials:
+  # Salt used to hash API keys.
+  salt: "changeme-langfuse-salt-please-override"
+  # 256-bit (64 hex char) key for encrypting sensitive data. Generate via `openssl rand -hex 32`.
+  encryptionKey: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  # NextAuth session secret.
+  nextauthSecret: "changeme-nextauth-secret-please-override"
+  # CNPG Postgres password for the langfuse role.
+  postgresPassword: "changeme-postgres-password-please-override"
+  # ClickHouse password for the built-in "default" user.
+  clickhousePassword: "changeme-clickhouse-password-please-override"
+  # Redis/Valkey AUTH password.
+  redisPassword: "changeme-redis-password-please-override"
+
+# CNPG Postgres database for Langfuse
+database:
+  # Cluster resource name. Defaults to "langfuse-db" if unset.
+  clusterName: ""
+  instances: 1
+  databaseName: langfuse
+  storage:
+    size: 5Gi
+    # Leave empty to use the cluster's default StorageClass.
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+# ClickHouse (rendered by the upstream langfuse chart itself via clickhouse.deploy:
+# true — this chart only sizes it and points auth at our credentials Secret;
+# the ClickHouse Operator must already be installed, see clickhouse-operator-bootstrap)
+clickhouse:
+  cluster:
+    # Single ClickHouse node by default. Bump for HA.
+    replicas: 1
+    image:
+      repository: clickhouse/clickhouse-server
+      tag: "26.4"
+    storage:
+      size: 20Gi
+      # Leave empty to use the cluster's default StorageClass.
+      className: ""
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
+  keeper:
+    # Must be odd (1, 3, 5). 1 is a valid single-node Keeper; 3 for HA.
+    replicas: 1
+    image:
+      repository: clickhouse/clickhouse-keeper
+      tag: "26.4"
+    storage:
+      size: 5Gi
+      className: ""
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+# Self-managed Redis (Valkey) — Langfuse's queue/cache. Deployed directly by this
+# chart rather than toggling the upstream chart's bundled valkey-io/valkey subchart.
+redis:
+  image:
+    repository: valkey/valkey
+    tag: "8.0"
+  storage:
+    size: 4Gi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+# Langfuse application configuration
+langfuse:
+  # Canonical URL of the deployment. Defaults to the port-forward-friendly
+  # localhost URL since this chart exposes ClusterIP only; override once
+  # Ingress/HTTPRoute is added.
+  nextauthUrl: "http://localhost:3000"
+  web:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 1Gi
+      limits:
+        # Next.js OOMs under 1Gi during startup migrations - confirmed live.
+        memory: 2Gi
+  worker:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 1Gi
+      limits:
+        memory: 2Gi

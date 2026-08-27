@@ -1,0 +1,27 @@
+# langfuse-bootstrap
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access via IRSA against an existing bucket.
+
+## Prerequisites
+
+- `clickhouse-operator-bootstrap` installed cluster-wide (provides the `ClickHouseCluster`/`KeeperCluster` CRDs this chart's upstream dependency renders against).
+- CloudNativePG operator installed cluster-wide (see `cloudnative-pg-operator`).
+- An existing S3 bucket (set via `existingBucketName`) and IRSA support in-cluster (see `loki-bootstrap` for the same pattern).
+
+## Reaching the login screen
+
+This chart exposes Langfuse as ClusterIP only:
+
+```bash
+kubectl port-forward svc/langfuse-web 3000:3000 -n langfuse-system
+```
+
+Then browse to http://localhost:3000.
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

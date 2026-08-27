@@ -1,0 +1,86 @@
+langfuse:
+  nextauth:
+    url: {{ .Values.langfuse.nextauthUrl | quote }}
+    secret:
+      secretKeyRef:
+        name: langfuse-credentials
+        key: nextauth-secret
+  salt:
+    secretKeyRef:
+      name: langfuse-credentials
+      key: salt
+  encryptionKey:
+    secretKeyRef:
+      name: langfuse-credentials
+      key: encryption-key
+  serviceAccount:
+    create: true
+    name: {{ include "langfuse-bootstrap.s3ServiceAccountName" . | quote }}
+    annotations:
+      eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%s:role/%s-irsa-role" (.Values.environmentConfig.accountId | toString) (include "langfuse-bootstrap.s3ServiceAccountName" .) | quote }}
+  web:
+    resources:
+      {{- toYaml .Values.langfuse.web.resources | nindent 6 }}
+  worker:
+    resources:
+      {{- toYaml .Values.langfuse.worker.resources | nindent 6 }}
+
+postgresql:
+  deploy: false
+  host: {{ printf "%s-rw.%s.svc.cluster.local" (include "langfuse-bootstrap.postgresClusterName" .) .Values.namespace | quote }}
+  port: 5432
+  auth:
+    username: {{ .Values.database.databaseName | quote }}
+    database: {{ .Values.database.databaseName | quote }}
+    existingSecret: {{ printf "%s-credentials" (include "langfuse-bootstrap.postgresClusterName" .) | quote }}
+    secretKeys:
+      userPasswordKey: password
+
+clickhouse:
+  deploy: true
+  crdCheck: true
+  auth:
+    username: default
+    existingSecret: langfuse-credentials
+    existingSecretKey: clickhouse-password
+  cluster:
+    replicas: {{ .Values.clickhouse.cluster.replicas }}
+    image:
+      repository: {{ .Values.clickhouse.cluster.image.repository | quote }}
+      tag: {{ .Values.clickhouse.cluster.image.tag | quote }}
+    storage:
+      size: {{ .Values.clickhouse.cluster.storage.size | quote }}
+      {{- if .Values.clickhouse.cluster.storage.className }}
+      className: {{ .Values.clickhouse.cluster.storage.className | quote }}
+      {{- end }}
+    resources:
+      {{- toYaml .Values.clickhouse.cluster.resources | nindent 6 }}
+  keeper:
+    enabled: true
+    replicas: {{ .Values.clickhouse.keeper.replicas }}
+    image:
+      repository: {{ .Values.clickhouse.keeper.image.repository | quote }}
+      tag: {{ .Values.clickhouse.keeper.image.tag | quote }}
+    storage:
+      size: {{ .Values.clickhouse.keeper.storage.size | quote }}
+      {{- if .Values.clickhouse.keeper.storage.className }}
+      className: {{ .Values.clickhouse.keeper.storage.className | quote }}
+      {{- end }}
+    resources:
+      {{- toYaml .Values.clickhouse.keeper.resources | nindent 6 }}
+
+redis:
+  deploy: false
+  host: langfuse-redis.{{ .Values.namespace }}.svc.cluster.local
+  port: 6379
+  auth:
+    username: default
+    existingSecret: langfuse-credentials
+    existingSecretPasswordKey: redis-password
+
+s3:
+  deploy: false
+  storageProvider: s3
+  bucket: {{ include "langfuse-bootstrap.substituteVars" (dict "str" .Values.existingBucketName "ctx" .) | quote }}
+  region: {{ .Values.environmentConfig.region | quote }}
+  forcePathStyle: false

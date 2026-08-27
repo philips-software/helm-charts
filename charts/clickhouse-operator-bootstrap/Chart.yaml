@@ -1,0 +1,11 @@
+apiVersion: v2
+name: clickhouse-operator-bootstrap
+description: A Helm chart for bootstrapping the ClickHouse Kubernetes Operator
+type: application
+version: 0.1.0
+appVersion: "0.0.7"
+keywords:
+  - clickhouse
+  - operator
+  - argocd
+  - bootstrap
