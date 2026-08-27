@@ -58,6 +58,31 @@ spire:
     # Expected JWT audiences (at least one required when jwt.enabled=true)
     # Example: ["centcom-satellite", "https://centcom-satellite.example.org"]
     audiences: []
+    # How the JWT trust bundle is obtained. "workload_api" (default) fetches
+    # it from the local SPIRE Workload API via the agent socket below —
+    # requires a local SPIRE Agent (CSI driver or hostPath). "federation"
+    # fetches it from a SPIFFE Federation Bundle Endpoint over HTTPS instead
+    # — no local SPIRE Agent required, so the chart skips the agent-socket
+    # volume/mount entirely. This is what makes ECS/Fargate-style targets
+    # (or any cluster without a SPIRE Agent DaemonSet) viable. Requires
+    # spire.mtlsEnabled=false — federation mode has no X.509 identity source.
+    bundleSource: "workload_api"
+    # Map of trust domain -> federation bundle endpoint URL. Required, with
+    # one entry per domain in spire.trustDomains, when bundleSource is
+    # "federation". Example:
+    #   federationBundleEndpoints:
+    #     example.org: "https://spire-server.example.org/bundle"
+    federationBundleEndpoints: {}
+    # Optional path (inside the container) of a PEM file of root CAs to
+    # trust when fetching from federationBundleEndpoints. This chart has no
+    # built-in mechanism to mount an extra file into the container, so this
+    # is only useful if the image already has the file baked in, or via a
+    # separately managed volume/volumeMount layered on with a Helm
+    # post-renderer or a chart fork. Empty (default) uses the system trust
+    # store, the common case for an endpoint behind a normal ALB/ingress
+    # with a publicly trusted certificate, which needs nothing
+    # set here.
+    federationCABundlePath: ""
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -192,6 +217,30 @@ aws:
     #     - arn:aws:iam::123456789012:policy/centcom-satellite-extra
     extraPolicyArns: []
 
+  # Cross-account AWS AssumeRole: when set, all AWS data-retrieval/write tasks
+  # (cw_*, cost_explorer, guardduty_*, securityhub_*) operate against a
+  # *different* AWS account via STS AssumeRole, while Kubernetes tasks keep
+  # using the local in-cluster identity. Requires aws.irsa.enabled=true — the
+  # source-account sts:AssumeRole permission is granted to the same generic
+  # IRSA role via an additional Crossplane Policy/RolePolicyAttachment,
+  # scoped to roleArn only (never "*", to avoid letting this satellite assume
+  # any role in any account that trusts it).
+  assumeRole:
+    # Target IAM role ARN in a different AWS account. Empty (default)
+    # disables the feature entirely — every AWS task keeps using the base
+    # IRSA identity, byte-for-byte unchanged.
+    roleArn: ""
+    # Optional STS ExternalId, passed to AssumeRole for confused-deputy
+    # protection. Only needed if the target role's trust policy requires one.
+    externalId: ""
+    # STS RoleSessionName, visible in the target account's CloudTrail.
+    sessionName: "centcom-satellite"
+    # Overrides the AWS region used for AssumeRole'd API calls. Only applies
+    # while roleArn is set — a cluster-less satellite's pod region has no
+    # necessary relationship to the target account's region, so this can't
+    # fall back to aws.irsa.region (which describes the pod's own cluster).
+    region: ""
+
 podAnnotations: {}
 
 podSecurityContext:
@@ -297,7 +346,11 @@ httpRoute:
   gatewayRef:
     name: platform
     namespace: kube-system
-    # Use http listener when TLS is terminated at the load balancer
-    sectionName: http-0
+    # Empty (default) omits sectionName entirely, matching any listener on
+    # the Gateway. Only set this if the Gateway has multiple listeners and
+    # you need to pin to one by name — a stale/wrong name here fails the
+    # route with "No matching listener" (this default used to be the
+    # nonexistent "http-0"; every real install had to override it).
+    sectionName: ""
   # Optional annotations
   annotations: {}

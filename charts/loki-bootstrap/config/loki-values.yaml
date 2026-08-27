@@ -236,12 +236,16 @@ write:
 
 gateway:
   replicas: {{ .Values.gateway.replicas }}
+  maxUnavailable: 1
   resources:
     requests:
       cpu: {{ .Values.gateway.resources.requests.cpu }}
       memory: {{ .Values.gateway.resources.requests.memory }}
     limits:
       memory: {{ .Values.gateway.resources.limits.memory }}
+  metrics:
+    # Chart 18.x adds an unbounded jkroepke/access-log-exporter sidecar by default; keep it off to match prior footprint.
+    enabled: false
 
 minio:
   enabled: false
@@ -277,7 +281,10 @@ memcachedExporter:
       memory: 50Mi
 
 patternIngester:
+  # Chart 18.x requires this explicit gate; without it the component is no longer deployed regardless of replicas.
+  enabled: true
   replicas: {{ .Values.patternIngester.replicas }}
+  maxUnavailable: 1
   resources:
     requests:
       cpu: {{ .Values.patternIngester.resources.requests.cpu }}

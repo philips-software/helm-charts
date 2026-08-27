@@ -79,6 +79,26 @@ spec:
     policyArnRef:
       name: {{ include "centcom-satellite.irsaName" . }}-securityhub-write
 {{- end }}
+{{- /* Attach the cross-account AssumeRole policy only when a target roleArn is configured. */ -}}
+{{- if .Values.aws.assumeRole.roleArn }}
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: RolePolicyAttachment
+metadata:
+  name: {{ include "centcom-satellite.irsaName" . }}-assumerole
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ .Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    roleRef:
+      name: {{ include "centcom-satellite.irsaRoleName" . }}
+    policyArnRef:
+      name: {{ include "centcom-satellite.irsaName" . }}-assumerole
+{{- end }}
 {{- /*
 Attach any additional pre-existing managed-policy ARNs to the same role. This is
 how future task groups that need extra IAM get wired in without a new role — set

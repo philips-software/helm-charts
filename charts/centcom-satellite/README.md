@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.8.2](https://img.shields.io/badge/Version-0.8.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.57.1](https://img.shields.io/badge/AppVersion-v0.57.1-informational?style=flat-square)
+![Version: 0.11.0](https://img.shields.io/badge/Version-0.11.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.62.0](https://img.shields.io/badge/AppVersion-v0.62.0-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -21,6 +21,10 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` |  |
+| aws.assumeRole.externalId | string | `""` |  |
+| aws.assumeRole.region | string | `""` |  |
+| aws.assumeRole.roleArn | string | `""` |  |
+| aws.assumeRole.sessionName | string | `"centcom-satellite"` |  |
 | aws.irsa.accountId | string | `""` |  |
 | aws.irsa.audience | string | `"sts.amazonaws.com"` |  |
 | aws.irsa.enabled | bool | `false` |  |
@@ -54,7 +58,7 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 | httpRoute.enabled | bool | `false` |  |
 | httpRoute.gatewayRef.name | string | `"platform"` |  |
 | httpRoute.gatewayRef.namespace | string | `"kube-system"` |  |
-| httpRoute.gatewayRef.sectionName | string | `"http-0"` |  |
+| httpRoute.gatewayRef.sectionName | string | `""` |  |
 | httpRoute.hostname | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"ghcr.io/loafoe/centcom-satellite"` |  |
@@ -105,7 +109,10 @@ A lightweight Kubernetes helper service for webhook-triggered cluster operations
 | spire.enabled | bool | `true` |  |
 | spire.hostSocketPath | string | `"/run/spire/agent-sockets"` |  |
 | spire.jwt.audiences | list | `[]` |  |
+| spire.jwt.bundleSource | string | `"workload_api"` |  |
 | spire.jwt.enabled | bool | `false` |  |
+| spire.jwt.federationBundleEndpoints | object | `{}` |  |
+| spire.jwt.federationCABundlePath | string | `""` |  |
 | spire.localTrustDomain | string | `""` |  |
 | spire.mtlsEnabled | bool | `false` |  |
 | spire.skipFederation | bool | `false` |  |
