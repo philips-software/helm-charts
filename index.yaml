@@ -1059,6 +1059,22 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/centcom-satellite-0.1.0/centcom-satellite-0.1.0.tgz
     version: 0.1.0
+  clickhouse-operator-bootstrap:
+  - apiVersion: v2
+    appVersion: 0.0.7
+    created: "2026-08-27T16:20:05.33809789Z"
+    description: A Helm chart for bootstrapping the ClickHouse Kubernetes Operator
+    digest: 824777ccae4abbe86609cefd16d240aa49e5c105961c00d9cac74e60b3acec37
+    keywords:
+    - clickhouse
+    - operator
+    - argocd
+    - bootstrap
+    name: clickhouse-operator-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/clickhouse-operator-bootstrap-0.1.0/clickhouse-operator-bootstrap-0.1.0.tgz
+    version: 0.1.0
   cloudnative-pg-bootstrap:
   - apiVersion: v2
     appVersion: 0.6.3
@@ -4137,6 +4153,25 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/k8sgpt-bootstrap-0.1.0/k8sgpt-bootstrap-0.1.0.tgz
     version: 0.1.0
+  langfuse-bootstrap:
+  - apiVersion: v2
+    appVersion: 4.17.0
+    created: "2026-08-27T16:20:05.835166409Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 via IRSA
+    digest: 84226c6bfbbf60a2661f6d84ff59636bc70c901681f6638ee730736251d8ba74
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.1.0/langfuse-bootstrap-0.1.0.tgz
+    version: 0.1.0
   loki-bootstrap:
   - apiVersion: v2
     created: "2026-08-27T11:50:06.84190471Z"
@@ -5360,4 +5395,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-08-27T12:19:01.758771451Z"
+generated: "2026-08-27T16:20:05.835779141Z"
