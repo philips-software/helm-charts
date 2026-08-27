@@ -86,7 +86,9 @@ sso:
   # OAuth2 client id from the Client registered with your Dex/IdP (see above).
   clientId: ""
   scope: "openid email profile groups"
-  # Set true to remove the built-in email/password login form once SSO is verified working.
+  # Set true to disable email/password sign-in entirely (server-side enforced,
+  # not just hidden in the UI) once SSO is verified working - existing
+  # password accounts are locked out too, only SSO logins succeed.
   disableUsernamePassword: false
 
 # CNPG Postgres database for Langfuse
