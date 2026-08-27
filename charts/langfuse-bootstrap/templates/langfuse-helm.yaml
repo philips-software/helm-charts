@@ -19,6 +19,7 @@ spec:
         - /spec/replicas
   source:
     repoURL: {{ printf "%s/langfuse" .Values.langfuseChart.repoURL | quote }}
+    path: "."
     targetRevision: {{ .Values.langfuseChart.version | quote }}
     helm:
       releaseName: langfuse

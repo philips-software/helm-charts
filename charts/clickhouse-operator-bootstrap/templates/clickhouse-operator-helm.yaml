@@ -14,6 +14,7 @@ spec:
   project: {{ .Values.argoProject }}
   source:
     repoURL: {{ .Values.clickhouseOperatorChart.repoURL | quote }}
+    path: "."
     targetRevision: {{ .Values.clickhouseOperatorChart.version | quote }}
     helm:
       releaseName: clickhouse-operator
