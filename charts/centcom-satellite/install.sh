@@ -81,6 +81,14 @@
 # explicitly to opt out of auto-detection and force the workload-API path
 # regardless (useful to see the real "SPIRE not installed" error instead).
 #
+# ServiceMonitor and VerticalPodAutoscaler are auto-detected the same way:
+# each needs its own CRD (the Prometheus Operator's, the VPA's) present on
+# the target cluster, and each defaults to enabled -- installing the chart
+# on a cluster missing either CRD would otherwise fail outright with "no
+# matches for kind ...". Pass SERVICEMONITOR_ENABLED=true|false or
+# VPA_ENABLED=true|false explicitly to skip auto-detection and force either
+# one regardless of what the cluster has.
+#
 # If the install fails, the [FATAL] line at the end names the exact failing
 # command and line number already. For even more detail (every command the
 # script runs, as it runs it), re-run with TRACE=true:
@@ -361,8 +369,17 @@ fi
 : "${SPIRE_CLASSNAME:=}"      # auto: most common ClusterSPIFFEID className
 : "${JWT_AUDIENCE:=}"         # auto: centcom-satellite-<cluster-name>
 
-# Behaviour
+# Behaviour. Both of these are auto-detected against the target cluster in
+# discover() below (ServiceMonitor needs the Prometheus Operator CRD,
+# VerticalPodAutoscaler needs the VPA CRD) UNLESS the operator passes an
+# explicit value here, which always wins over auto-detection either way.
+# *_ENABLED_EXPLICIT track whether that happened, mirroring AGENTLESS_EXPLICIT.
+SERVICEMONITOR_ENABLED_EXPLICIT=true
+[ -z "${SERVICEMONITOR_ENABLED+x}" ] && SERVICEMONITOR_ENABLED_EXPLICIT=false
 : "${SERVICEMONITOR_ENABLED:=true}"
+VPA_ENABLED_EXPLICIT=true
+[ -z "${VPA_ENABLED+x}" ] && VPA_ENABLED_EXPLICIT=false
+: "${VPA_ENABLED:=true}"
 : "${REPLICA_COUNT:=2}"
 
 # Memory sizing. The satellite holds Kubernetes list/get responses in memory
@@ -514,6 +531,23 @@ discover() {
     && ! kubectl get crd clusterspiffeids.spire.spiffe.io >/dev/null 2>&1; then
     log "no SPIRE controller-manager detected on this cluster (clusterspiffeids CRD not found) — falling back to AGENTLESS mode automatically (pass AGENTLESS=false to force the workload-API path instead)"
     AGENTLESS=true
+  fi
+
+  # Auto-detect: ServiceMonitor and VerticalPodAutoscaler each need their own
+  # CRD present on the target cluster (the Prometheus Operator's, the VPA's).
+  # `helm install` fails outright ("no matches for kind ...") if either CRD
+  # is missing and the chart tries to render that resource anyway, so -- same
+  # pattern as AGENTLESS above -- default each to the cluster's own
+  # capability unless the operator said otherwise explicitly.
+  if [ "$SERVICEMONITOR_ENABLED_EXPLICIT" != "true" ] \
+    && ! kubectl get crd servicemonitors.monitoring.coreos.com >/dev/null 2>&1; then
+    log "no Prometheus Operator detected on this cluster (servicemonitors CRD not found) — disabling ServiceMonitor automatically (pass SERVICEMONITOR_ENABLED=true to force it)"
+    SERVICEMONITOR_ENABLED=false
+  fi
+  if [ "$VPA_ENABLED_EXPLICIT" != "true" ] \
+    && ! kubectl get crd verticalpodautoscalers.autoscaling.k8s.io >/dev/null 2>&1; then
+    log "no VPA controller detected on this cluster (verticalpodautoscalers CRD not found) — disabling VPA automatically (pass VPA_ENABLED=true to force it)"
+    VPA_ENABLED=false
   fi
 
   # CLUSTER_NAME: prefer hsp-addons resourcePrefix (stable), fall back to kube-context
@@ -878,7 +912,10 @@ summarize() {
   else
     _row "🛣️ " "route"        "disabled"
   fi
-  _row "📊" "monitoring"   "serviceMonitor=${SERVICEMONITOR_ENABLED}"
+  local sm_suffix="" vpa_suffix=""
+  [ "$SERVICEMONITOR_ENABLED_EXPLICIT" = "true" ] || sm_suffix=" (auto)"
+  [ "$VPA_ENABLED_EXPLICIT" = "true" ] || vpa_suffix=" (auto)"
+  _row "📊" "monitoring"   "serviceMonitor=${SERVICEMONITOR_ENABLED}${sm_suffix}  vpa=${VPA_ENABLED}${vpa_suffix}"
   if [ -n "$MEMORY_LIMIT" ]; then
     _row "🧠" "memory"       "limit ${MEMORY_LIMIT}, vpa max ${VPA_MAX_MEMORY}  \033[2m(auto: ${POD_COUNT:-?} pods)\033[0m"
   else
@@ -1159,6 +1196,11 @@ deploy() {
     )
   fi
   [ -n "$VPA_MAX_MEMORY" ] && args+=( --set "vpa.maxAllowed.memory=${VPA_MAX_MEMORY}" )
+  # Always set explicitly (declarative reconcile): a re-run without
+  # VPA_ENABLED=true also disables an existing VerticalPodAutoscaler on a
+  # cluster that's since lost its VPA controller, same as every other
+  # auto-detected toggle in this script.
+  args+=( --set "vpa.enabled=${VPA_ENABLED}" )
 
   # Always set trustDomains (needed for JWT caller validation), but skip
   # federation ClusterSPIFFEID when installing on the same cluster as centcom
