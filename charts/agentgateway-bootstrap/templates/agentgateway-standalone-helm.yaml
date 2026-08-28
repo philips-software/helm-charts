@@ -29,6 +29,7 @@ spec:
             policies:
               apiKey:
                 mode: strict
+                keys: []
             providers:
               {{- if .Values.bedrock.enabled }}
               - name: bedrock

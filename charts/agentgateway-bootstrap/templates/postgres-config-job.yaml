@@ -173,7 +173,7 @@ spec:
                   MODELS="${MODELS}    - name: deepseek/deepseek-v4-flash${NL}      provider:${NL}        reference: openrouter${NL}"
                 fi
 
-                CONFIG_YAML="config:${NL}  adminAddr: \"[::]:15000\"${NL}  database:${NL}    url: postgresql://agentgateway:\${DB_PASSWORD}@agentgateway-gw-db-rw:5432/agentgateway${NL}  storage:${NL}    mode: hybrid${NL}gateways:${NL}  default:${NL}    port: 4000${NL}llm:${NL}  policies:${NL}    apiKey:${NL}      mode: strict${NL}  providers:${NL}${PROVIDERS}  models:${NL}${MODELS}"
+                CONFIG_YAML="config:${NL}  adminAddr: \"[::]:15000\"${NL}  database:${NL}    url: postgresql://agentgateway:\${DB_PASSWORD}@agentgateway-gw-db-rw:5432/agentgateway${NL}  storage:${NL}    mode: hybrid${NL}gateways:${NL}  default:${NL}    port: 4000${NL}llm:${NL}  policies:${NL}    apiKey:${NL}      mode: strict${NL}      keys: []${NL}  providers:${NL}${PROVIDERS}  models:${NL}${MODELS}"
                 PATCH=$(jq -n --arg cfg "$CONFIG_YAML" '{data:{"config.yaml": $cfg}}')
                 kubectl patch configmap "$STANDALONE_CONFIGMAP" -n "$NAMESPACE" \
                   --type merge -p "$PATCH"
