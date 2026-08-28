@@ -30,27 +30,49 @@ spec:
               apiKey:
                 mode: strict
             providers:
+              {{- if .Values.bedrock.enabled }}
+              - name: bedrock
+                provider: bedrock
+                params:
+                  awsRegion: {{ include "agentgateway-bootstrap.substituteVars" (dict "str" .Values.bedrock.region "ctx" .) | quote }}
+              {{- end }}
+              {{- if .Values.openrouter.enabled }}
               - name: openrouter
                 provider: openrouter
                 params:
                   apiKey: ${OPENROUTER_API_KEY}
+              {{- end }}
             models:
+              {{- if .Values.bedrock.enabled }}
+              - name: {{ .Values.bedrock.model | quote }}
+                provider:
+                  reference: bedrock
+              {{- end }}
+              {{- if .Values.openrouter.enabled }}
               - name: deepseek/deepseek-v4-flash
                 provider:
                   reference: openrouter
+              {{- end }}
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
+        {{- if and .Values.bedrock.enabled (eq .Values.bedrock.auth.type "irsa") .Values.bedrock.auth.roleArn }}
+        serviceAccount:
+          annotations:
+            eks.amazonaws.com/role-arn: {{ .Values.bedrock.auth.roleArn | quote }}
+        {{- end }}
         extraEnv:
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: {{ printf "%s-credentials" (include "agentgateway-bootstrap.postgresClusterName" .) | quote }}
                 key: password
+          {{- if .Values.openrouter.enabled }}
           - name: OPENROUTER_API_KEY
             valueFrom:
               secretKeyRef:
                 name: agentgateway-openrouter-secret
                 key: apiKey
                 optional: true
+          {{- end }}
         gateway:
           service:
             type: {{ .Values.standalone.service.type | default "ClusterIP" }}

@@ -113,6 +113,14 @@ spec:
               value: {{ .Values.mode | quote }}
             - name: STANDALONE_CONFIGMAP
               value: "agentgateway-standalone-config"
+            - name: BEDROCK_ENABLED
+              value: {{ .Values.bedrock.enabled | quote }}
+            - name: BEDROCK_REGION
+              value: {{ include "agentgateway-bootstrap.substituteVars" (dict "str" .Values.bedrock.region "ctx" .) | quote }}
+            - name: BEDROCK_MODEL
+              value: {{ .Values.bedrock.model | quote }}
+            - name: OPENROUTER_ENABLED
+              value: {{ .Values.openrouter.enabled | quote }}
             - name: OPENROUTER_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -148,8 +156,25 @@ spec:
                   sleep 3
                 done
                 echo "Patching standalone ConfigMap $STANDALONE_CONFIGMAP with config.database.url..."
-                KEY_VAL="${OPENROUTER_API_KEY:-}"
-                PATCH=$(jq -n --arg key "$KEY_VAL" '{data:{"config.yaml": ("config:\n  adminAddr: \"[::]:15000\"\n  database:\n    url: postgresql://agentgateway:${DB_PASSWORD}@agentgateway-gw-db-rw:5432/agentgateway\n  storage:\n    mode: hybrid\ngateways:\n  default:\n    port: 4000\nllm:\n  policies:\n    apiKey:\n      mode: strict\n  providers:\n    - name: openrouter\n      provider: openrouter\n      params:\n        apiKey: " + $key + "\n  models:\n    - name: deepseek/deepseek-v4-flash\n      provider:\n        reference: openrouter\n")}}')
+
+                # POSIX trick to get a newline into a variable without losing it to
+                # command-substitution's trailing-newline stripping.
+                NL=$(printf '\nX'); NL=${NL%X}
+
+                PROVIDERS=""
+                MODELS=""
+                if [ "$BEDROCK_ENABLED" = "true" ]; then
+                  PROVIDERS="${PROVIDERS}    - name: bedrock${NL}      provider: bedrock${NL}      params:${NL}        awsRegion: ${BEDROCK_REGION}${NL}"
+                  MODELS="${MODELS}    - name: ${BEDROCK_MODEL}${NL}      provider:${NL}        reference: bedrock${NL}"
+                fi
+                if [ "$OPENROUTER_ENABLED" = "true" ]; then
+                  KEY_VAL="${OPENROUTER_API_KEY:-}"
+                  PROVIDERS="${PROVIDERS}    - name: openrouter${NL}      provider: openrouter${NL}      params:${NL}        apiKey: ${KEY_VAL}${NL}"
+                  MODELS="${MODELS}    - name: deepseek/deepseek-v4-flash${NL}      provider:${NL}        reference: openrouter${NL}"
+                fi
+
+                CONFIG_YAML="config:${NL}  adminAddr: \"[::]:15000\"${NL}  database:${NL}    url: postgresql://agentgateway:\${DB_PASSWORD}@agentgateway-gw-db-rw:5432/agentgateway${NL}  storage:${NL}    mode: hybrid${NL}gateways:${NL}  default:${NL}    port: 4000${NL}llm:${NL}  policies:${NL}    apiKey:${NL}      mode: strict${NL}  providers:${NL}${PROVIDERS}  models:${NL}${MODELS}"
+                PATCH=$(jq -n --arg cfg "$CONFIG_YAML" '{data:{"config.yaml": $cfg}}')
                 kubectl patch configmap "$STANDALONE_CONFIGMAP" -n "$NAMESPACE" \
                   --type merge -p "$PATCH"
                 echo "Restarting standalone deployment..."

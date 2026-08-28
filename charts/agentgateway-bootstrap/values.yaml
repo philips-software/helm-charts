@@ -76,6 +76,15 @@ bedrock:
     path: /bedrock
     openAiPath: /v1/chat/completions
 
+# OpenRouter LLM Provider configuration (standalone mode only - the
+# kubernetes-mode Gateway/AgentgatewayBackend path never wired OpenRouter).
+# Independent of bedrock.enabled: both can be on at once in standalone mode.
+openrouter:
+  # Enable an OpenRouter provider + deepseek/deepseek-v4-flash model in the
+  # standalone chart's static config. The API key is read at deploy time from
+  # the agentgateway-openrouter-secret Secret (see agentgateway-standalone-helm.yaml).
+  enabled: true
+
 # Postgres database for LLM cost tracking (agentgateway's request-logging DB, which
 # powers its cost dashboard and Analytics UI). Provisions a plain CNPG Cluster
 # directly - no Crossplane, no external-secrets dependency. CNPG generates its own

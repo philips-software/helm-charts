@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.7.19](https://img.shields.io/badge/Version-0.7.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.4.1](https://img.shields.io/badge/AppVersion-1.4.1-informational?style=flat-square)
+![Version: 0.7.20](https://img.shields.io/badge/Version-0.7.20-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.4.1](https://img.shields.io/badge/AppVersion-1.4.1-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -67,6 +67,7 @@ This chart supports two deployment modes via the `mode` value:
 | monitoring.grafanaDashboard.enabled | bool | `true` |  |
 | monitoring.serviceMonitor.enabled | bool | `true` |  |
 | monitoring.serviceMonitor.interval | string | `"15s"` |  |
+| openrouter.enabled | bool | `true` |  |
 | proxy.logLevel | string | `"info"` |  |
 | standalone.replicaCount | int | `1` |  |
 | standalone.service.type | string | `"ClusterIP"` |  |
