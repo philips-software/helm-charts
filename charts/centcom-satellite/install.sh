@@ -58,6 +58,22 @@
 #
 #   curl -fsSL .../install.sh | USE_INGRESS=true bash
 #
+# To force SPIRE-AGENT-LESS mode, set AGENTLESS=true. The satellite validates
+# incoming JWT-SVIDs against a trust bundle fetched (and kept live-refreshed)
+# directly from a SPIFFE Federation Bundle Endpoint over HTTPS — no local
+# SPIRE Agent socket, no ClusterFederatedTrustDomain CR, no CSI driver
+# dependency. It reuses the same MCP_BUNDLE_ENDPOINT already configured above
+# as the URL the satellite polls to keep its bundle current. This works even
+# on a cluster that DOES run a SPIRE Agent (the agent is simply not used) —
+# useful for proving out agent-less deployments (the real payoff target is
+# ECS/Fargate-style clusters with no agent at all). mTLS is incompatible with
+# this mode (no local X.509 identity source) and stays off, matching the
+# chart default. LOCAL_SPIFFE_ID is not supported together with AGENTLESS —
+# the same-trust-domain/no-self-federation logic it drives has no meaning
+# once every trust domain's bundle comes from an explicit URL fetch:
+#
+#   curl -fsSL .../install.sh | AGENTLESS=true bash
+#
 # Progress/diagnostic logs go to stderr; only the copy/paste onboarding snippet
 # goes to stdout. When stdout is not a terminal (a runner is capturing it) the
 # two are merged so the logs are not lost — override with LOG_STDOUT=true|false.
@@ -83,6 +99,11 @@ set -euo pipefail
 # disable. LOCAL_TRUST_DOMAIN is auto-discovered from spire-server if unset.
 : "${LOCAL_SPIFFE_ID:=}"        # e.g. spiffe://rpi.loafoe.com/ns/centcom/sa/centcom
 : "${LOCAL_TRUST_DOMAIN:=}"     # e.g. rpi.loafoe.com (auto-discovered if empty and LOCAL_SPIFFE_ID set)
+
+# Force SPIRE-agent-less mode (JWT-SVID validation via federation bundle
+# fetch instead of the local Workload API). See the AGENTLESS block in the
+# usage comment above.
+: "${AGENTLESS:=false}"
 
 # Install target
 : "${NAMESPACE:=centcom-satellite}"
@@ -310,6 +331,12 @@ fi
 # Ingress fallback disables the chart's Gateway API HTTPRoute.
 if [ "$USE_INGRESS" = "true" ]; then
   HTTPROUTE_ENABLED=false
+fi
+
+# AGENTLESS + LOCAL_SPIFFE_ID is not a supported combination — fail fast
+# rather than silently ignoring one of them. See the AGENTLESS usage comment.
+if [ "$AGENTLESS" = "true" ] && [ -n "$LOCAL_SPIFFE_ID" ]; then
+  die "AGENTLESS=true is not supported together with LOCAL_SPIFFE_ID"
 fi
 
 # The AWS documentation placeholder account. Never a real account — if IRSA
@@ -698,6 +725,9 @@ summarize() {
   _row "🪪 " "spiffe id"    "${MCP_SPIFFE_ID}"
   _row "🌐" "federation"   "${MCP_FEDERATION_NAME}  →  ${MCP_BUNDLE_ENDPOINT}"
   _row "🎫" "jwt audience" "${JWT_AUDIENCE}"
+  if [ "$AGENTLESS" = "true" ]; then
+    _row "🛰️ " "spire mode"   "\033[1;35mAGENT-LESS\033[0m \033[2m(JWT bundle fetched via HTTPS from ${MCP_BUNDLE_ENDPOINT}, no local agent socket)\033[0m"
+  fi
   if [ "$USE_INGRESS" = "true" ]; then
     _row "🌉" "ingress"     "${HOSTNAME_FQDN}  \033[2m(class ${INGRESS_CLASS}, issuer ${CLUSTER_ISSUER:-none})\033[0m"
   elif [ "$HTTPROUTE_ENABLED" = "true" ]; then
@@ -795,6 +825,15 @@ confirm_countdown() {
 # configure_federation: ensure the ClusterFederatedTrustDomain exists
 # ---------------------------------------------------------------------------
 configure_federation() {
+  # Agent-less mode fetches the trust bundle itself via HTTPS (see deploy());
+  # it needs neither the ClusterFederatedTrustDomain CR nor the SPIRE CRD it
+  # depends on.
+  if [ "$AGENTLESS" = "true" ]; then
+    log "skipping ClusterFederatedTrustDomain — AGENTLESS=true fetches the bundle directly"
+    _SKIP_FEDERATION=true
+    return 0
+  fi
+
   if ! kubectl get crd clusterfederatedtrustdomains.spire.spiffe.io >/dev/null 2>&1; then
     die "SPIRE CRD clusterfederatedtrustdomains.spire.spiffe.io not found — is SPIRE installed?"
   fi
@@ -973,9 +1012,27 @@ deploy() {
 
   # Always set trustDomains (needed for JWT caller validation), but skip
   # federation ClusterSPIFFEID when installing on the same cluster as centcom
+  # (or, below, when AGENTLESS=true also sets _SKIP_FEDERATION).
   args+=( --set "spire.trustDomains[0]=${MCP_TRUST_DOMAIN}" )
   if [ "${_SKIP_FEDERATION:-}" = "true" ]; then
     args+=( --set "spire.skipFederation=true" )
+  fi
+
+  # Agent-less mode: fetch the JWT trust bundle straight from the federation
+  # bundle endpoint over HTTPS instead of the local SPIRE Workload API. The
+  # chart skips the agent-socket volume/mount entirely once bundleSource is
+  # "federation" (centcom-satellite.needsAgentSocket). Reuses
+  # MCP_BUNDLE_ENDPOINT — the same URL the CR-based path would otherwise hand
+  # to SPIRE itself — as the URL the satellite fetches/refreshes on its own.
+  # Dots in the trust-domain key must be escaped for `helm --set`'s dotted-path
+  # syntax, or they'd be parsed as nested map keys instead of a literal key.
+  if [ "$AGENTLESS" = "true" ]; then
+    local td_escaped
+    td_escaped=$(printf '%s' "$MCP_TRUST_DOMAIN" | sed 's/\./\\./g')
+    args+=(
+      --set "spire.jwt.bundleSource=federation"
+      --set "spire.jwt.federationBundleEndpoints.${td_escaped}=${MCP_BUNDLE_ENDPOINT}"
+    )
   fi
 
   # Optional LOCAL caller (same trust domain as this agent): add it to the
