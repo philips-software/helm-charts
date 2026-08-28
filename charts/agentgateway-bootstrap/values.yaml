@@ -7,25 +7,25 @@ mode: kubernetes
 agentgatewayCrdsChart:
   # Repository URL for agentgateway-crds chart
   repoURL: oci://cr.agentgateway.dev/charts
-  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway-crds
   # Version for agentgateway-crds chart
-  version: 1.4.1
+  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway-crds
+  version: 1.5.0
 
 # Upstream agentgateway Helm chart configuration
 agentgatewayChart:
   # Repository URL for agentgateway chart
   repoURL: oci://cr.agentgateway.dev/charts
-  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway
   # Version for agentgateway chart
-  version: 1.4.1
+  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway
+  version: 1.5.0
 
 # Upstream agentgateway-standalone Helm chart configuration
 agentgatewayStandaloneChart:
   # Repository URL for agentgateway-standalone chart
   repoURL: oci://cr.agentgateway.dev/charts
-  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway-standalone
   # Version for agentgateway-standalone chart
-  version: 1.4.1
+  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway-standalone
+  version: 1.5.0
 
 # Standalone mode specific configuration
 standalone:
