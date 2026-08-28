@@ -444,6 +444,17 @@ preflight() {
   command -v kubectl >/dev/null 2>&1 || die "kubectl not found in PATH"
   command -v helm    >/dev/null 2>&1 || die "helm not found in PATH"
 
+  # The discovery logic below is built entirely out of standard POSIX text
+  # tools -- normally a safe assumption, but not guaranteed on every target
+  # (a minimal/hardened image, a locked-down jump host, a container missing
+  # coreutils). Missing one of these would otherwise surface as a cryptic
+  # mid-pipeline failure deep inside discover() ("command not found" buried
+  # in a [FATAL] line) instead of a clear, immediate message here.
+  local tool
+  for tool in awk cat cut grep head sed sort tail tr uniq wc; do
+    command -v "$tool" >/dev/null 2>&1 || die "$tool not found in PATH (required by this script's cluster-discovery logic)"
+  done
+
   local hv
   hv=$(helm version --short 2>/dev/null || true)
   case "$hv" in
@@ -497,9 +508,13 @@ discover() {
   # the spire-server config.
   if [ -n "$LOCAL_SPIFFE_ID" ] && [ -z "$LOCAL_TRUST_DOMAIN" ]; then
     LOCAL_TRUST_DOMAIN=$(printf '%s' "$LOCAL_SPIFFE_ID" | sed -n 's#^spiffe://\([^/]*\)/.*#\1#p')
+    # || true: grep -o exits 1 (not an error, just "no match") when the
+    # config has no trust_domain line — without the guard that propagates
+    # through pipefail and set -e straight past the die() below, with no
+    # message at all.
     [ -n "$LOCAL_TRUST_DOMAIN" ] || LOCAL_TRUST_DOMAIN=$(kubectl get cm -n spire-system \
       -o jsonpath='{range .items[*]}{.data.server\.conf}{"\n"}{end}' 2>/dev/null \
-      | grep -o 'trust_domain[ "]*=[ "]*[^"]*' | head -1 | sed 's/.*[ "]=[ "]*//')
+      | grep -o 'trust_domain[ "]*=[ "]*[^"]*' | head -1 | sed 's/.*[ "]=[ "]*//') || true
     [ -n "$LOCAL_TRUST_DOMAIN" ] || die "LOCAL_SPIFFE_ID set but could not determine LOCAL_TRUST_DOMAIN; set it explicitly"
   fi
 
@@ -508,13 +523,26 @@ discover() {
   RELEASE_EXISTS=false
   helm status "$RELEASE_NAME" -n "$NAMESPACE" >/dev/null 2>&1 && RELEASE_EXISTS=true
 
-  # SPIRE className: most common across existing ClusterSPIFFEIDs
-  if [ -z "$SPIRE_CLASSNAME" ]; then
-    SPIRE_CLASSNAME=$(kubectl get clusterspiffeids \
-      -o jsonpath='{range .items[*]}{.spec.className}{"\n"}{end}' 2>/dev/null \
-      | grep -v '^$' | sort | uniq -c | sort -rn | head -1 | awk '{print $2}')
+  # SPIRE className: only meaningful for the (federated) ClusterSPIFFEID the
+  # chart renders for the workload-API/local-agent path -- it's never read
+  # by the chart at all once bundleSource=federation (needsAgentSocket is
+  # false), which is exactly what AGENTLESS=true forces. Skipping this
+  # entirely under AGENTLESS also means the script no longer assumes the
+  # clusterspiffeids CRD (i.e. a SPIRE Agent/controller-manager) exists on
+  # the target cluster at all -- which AGENTLESS is explicitly saying it
+  # doesn't. || true below: grep -v exits 1 (not an error, just "no
+  # non-blank line") when there are zero ClusterSPIFFEIDs yet (e.g. a fresh
+  # SPIRE install) -- without the guard, pipefail propagates that through
+  # set -e and the script dies right here instead of reaching the die()
+  # message below, which exists specifically for this exact "not found" case.
+  if [ "$AGENTLESS" != "true" ]; then
+    if [ -z "$SPIRE_CLASSNAME" ]; then
+      SPIRE_CLASSNAME=$(kubectl get clusterspiffeids \
+        -o jsonpath='{range .items[*]}{.spec.className}{"\n"}{end}' 2>/dev/null \
+        | grep -v '^$' | sort | uniq -c | sort -rn | head -1 | awk '{print $2}') || true
+    fi
+    [ -n "$SPIRE_CLASSNAME" ] || die "could not discover SPIRE className; set SPIRE_CLASSNAME=..."
   fi
-  [ -n "$SPIRE_CLASSNAME" ] || die "could not discover SPIRE className; set SPIRE_CLASSNAME=..."
 
   if [ "$HTTPROUTE_ENABLED" = "true" ]; then
     # Gateway: prefer one named "gateway" or "platform", else the first one
@@ -524,7 +552,10 @@ discover() {
         -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}' 2>/dev/null)
       local pick
       pick=$(printf '%s\n' "$gw" | awk -F/ '$2=="gateway" || $2=="platform"{print;exit}')
-      [ -n "$pick" ] || pick=$(printf '%s\n' "$gw" | grep -v '^$' | head -1)
+      # || true: same grep-exit-1-on-no-match hazard as SPIRE_CLASSNAME above
+      # -- if the cluster has zero Gateways at all, $gw is empty and this
+      # would otherwise die silently instead of hitting the die() below.
+      [ -n "$pick" ] || pick=$(printf '%s\n' "$gw" | grep -v '^$' | head -1) || true
       [ -n "$pick" ] || die "no Gateway found; set GATEWAY_NAME/GATEWAY_NAMESPACE or HTTPROUTE_ENABLED=false"
       GATEWAY_NAMESPACE="${pick%%/*}"
       GATEWAY_NAME="${pick##*/}"
@@ -795,7 +826,9 @@ summarize() {
   _row "🎯" "target"       "${CLUSTER_NAME}  \033[2m(context: ${CTX})\033[0m"
   _row "📦" "release"      "${RELEASE_NAME}  →  ns/${NAMESPACE}"
   _row "🏷️ " "chart"        "${CHART##*/}${CHART_VERSION:+ @ ${CHART_VERSION}}  \033[2m(image: ${IMAGE_TAG:-chart default})\033[0m"
-  _row "🔐" "spire class"  "${SPIRE_CLASSNAME}"
+  if [ "$AGENTLESS" != "true" ]; then
+    _row "🔐" "spire class"  "${SPIRE_CLASSNAME}"
+  fi
   _row "🤝" "trusts mcp"   "${MCP_TRUST_DOMAIN}"
   _row "🪪 " "spiffe id"    "${MCP_SPIFFE_ID}"
   _row "🌐" "federation"   "${MCP_FEDERATION_NAME}  →  ${MCP_BUNDLE_ENDPOINT}"
@@ -989,8 +1022,10 @@ spec:
               number: 8080
 EOF
 )
-  # drop the empty issuer line if no issuer was resolved
-  manifest=$(printf '%s\n' "$manifest" | grep -v '^$')
+  # drop the empty issuer line if no issuer was resolved. || true: guards
+  # the same grep-exit-1-on-no-match hazard as above, in case $manifest is
+  # ever entirely blank (not expected in practice, but free to guard).
+  manifest=$(printf '%s\n' "$manifest" | grep -v '^$') || true
 
   if [ "$DRY_RUN" = "true" ]; then
     printf '\033[2m# kubectl apply -f - <<EOF\n%s\nEOF\033[0m\n' "$manifest" >&2
@@ -1063,7 +1098,6 @@ deploy() {
     --namespace "$NAMESPACE" --create-namespace
     --set "replicaCount=${REPLICA_COUNT}"
     --set "spire.csi.enabled=true"
-    --set "spire.className=${SPIRE_CLASSNAME}"
     --set "spire.allowedSPIFFEIDs[0]=${MCP_SPIFFE_ID}"
     --set "spire.jwt.enabled=true"
     --set "spire.jwt.audiences[0]=${JWT_AUDIENCE}"
@@ -1072,6 +1106,12 @@ deploy() {
 
   [ -n "$CHART_VERSION" ] && args+=( --version "$CHART_VERSION" )
   [ -n "$IMAGE_TAG" ]     && args+=( --set "image.tag=${IMAGE_TAG}" )
+
+  # className only matters for the (federated) ClusterSPIFFEID the chart
+  # renders on the workload-API/local-agent path; it's not read at all once
+  # AGENTLESS leaves it unset (see discover(), which skips discovering it
+  # entirely in that mode).
+  [ -n "$SPIRE_CLASSNAME" ] && args+=( --set "spire.className=${SPIRE_CLASSNAME}" )
 
   # Pod-count-derived memory sizing (see discover_memory). Set the initial limit
   # to survive the cold-start burst before VPA reacts, a matching burstable
