@@ -58,6 +58,13 @@
 #
 #   curl -fsSL .../install.sh | USE_INGRESS=true bash
 #
+# Routing mode is also auto-detected: leave both USE_INGRESS and
+# HTTPROUTE_ENABLED unset and, if the cluster has no Gateway API at all,
+# the installer switches to nginx Ingress by itself when an IngressClass is
+# available, or disables routing entirely (ClusterIP-only, with a warning)
+# if neither is available -- no need to know in advance what the target
+# cluster has. Set either flag explicitly to opt out of auto-detection.
+#
 # To force SPIRE-AGENT-LESS mode, set AGENTLESS=true. The satellite validates
 # incoming JWT-SVIDs against a trust bundle fetched (and kept live-refreshed)
 # directly from a SPIFFE Federation Bundle Endpoint over HTTPS — no local
@@ -349,7 +356,16 @@ fi
 #     has a broken http-to-https-redirect that causes loops. The chart has no
 #     Ingress template, so the installer applies the Ingress directly (same
 #     pattern as the federation CRD) and sets httpRoute.enabled=false.
+# USE_INGRESS_EXPLICIT / HTTPROUTE_ENABLED_EXPLICIT: whether the operator
+# picked a routing mode by hand (either flag) vs. left both at their
+# defaults. discover() below auto-picks between HTTPRoute/Ingress/no-route
+# based on what the cluster actually has ONLY when neither was set -- an
+# explicit choice of either always wins over auto-detection.
+USE_INGRESS_EXPLICIT=true
+[ -z "${USE_INGRESS+x}" ] && USE_INGRESS_EXPLICIT=false
 : "${USE_INGRESS:=false}"
+HTTPROUTE_ENABLED_EXPLICIT=true
+[ -z "${HTTPROUTE_ENABLED+x}" ] && HTTPROUTE_ENABLED_EXPLICIT=false
 : "${HTTPROUTE_ENABLED:=true}"
 : "${GATEWAY_NAME:=}"         # auto: a Gateway literally named "gateway", else first
 : "${GATEWAY_NAMESPACE:=}"    # auto: namespace of the chosen Gateway
@@ -548,6 +564,29 @@ discover() {
     && ! kubectl get crd verticalpodautoscalers.autoscaling.k8s.io >/dev/null 2>&1; then
     log "no VPA controller detected on this cluster (verticalpodautoscalers CRD not found) — disabling VPA automatically (pass VPA_ENABLED=true to force it)"
     VPA_ENABLED=false
+  fi
+
+  # Auto-detect routing mode: only when the operator picked neither
+  # USE_INGRESS nor HTTPROUTE_ENABLED explicitly. Gateway API HTTPRoute is
+  # the default, but a cluster without the Gateway API CRD can't use it at
+  # all -- the Gateway-discovery block below would otherwise die() trying
+  # to find a Gateway that can never exist. Prefer nginx Ingress if an
+  # IngressClass is available; otherwise fall back to no external route at
+  # all (ClusterIP-only) with a clear warning, rather than dying -- that's
+  # still a valid, working deployment (see the in-cluster endpoint URL in
+  # `helm install`'s NOTES), just unreachable from outside the cluster.
+  if [ "$USE_INGRESS_EXPLICIT" != "true" ] && [ "$HTTPROUTE_ENABLED_EXPLICIT" != "true" ] \
+    && ! kubectl get crd gateways.gateway.networking.k8s.io >/dev/null 2>&1; then
+    HTTPROUTE_ENABLED=false
+    local ingressclasses
+    ingressclasses=$(kubectl get ingressclass \
+      -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
+    if [ -n "$ingressclasses" ]; then
+      log "no Gateway API detected on this cluster (gateways CRD not found) — falling back to nginx Ingress automatically (pass HTTPROUTE_ENABLED=true to force Gateway API instead)"
+      USE_INGRESS=true
+    else
+      warn "no Gateway API and no IngressClass detected on this cluster — centcom-satellite will be ClusterIP-only (no external endpoint). Install an ingress controller and re-run with USE_INGRESS=true, or install Gateway API, to expose it externally."
+    fi
   fi
 
   # CLUSTER_NAME: prefer hsp-addons resourcePrefix (stable), fall back to kube-context
@@ -905,12 +944,14 @@ summarize() {
     [ "$AGENTLESS_EXPLICIT" = "true" ] || agentless_why="auto-detected: no SPIRE controller-manager on this cluster"
     _row "🛰️ " "spire mode"   "\033[1;35mAGENT-LESS\033[0m \033[2m(${agentless_why}; JWT bundle fetched via HTTPS from ${MCP_BUNDLE_ENDPOINT}, no local agent socket)\033[0m"
   fi
+  local route_auto=""
+  [ "$USE_INGRESS_EXPLICIT" = "true" ] || [ "$HTTPROUTE_ENABLED_EXPLICIT" = "true" ] || route_auto=" (auto)"
   if [ "$USE_INGRESS" = "true" ]; then
-    _row "🌉" "ingress"     "${HOSTNAME_FQDN}  \033[2m(class ${INGRESS_CLASS}, issuer ${CLUSTER_ISSUER:-none})\033[0m"
+    _row "🌉" "ingress"     "${HOSTNAME_FQDN}  \033[2m(class ${INGRESS_CLASS}, issuer ${CLUSTER_ISSUER:-none})${route_auto}\033[0m"
   elif [ "$HTTPROUTE_ENABLED" = "true" ]; then
-    _row "🛣️ " "httproute"    "$(printf '%s  (gw %s/%s, section: %s)' "$HOSTNAME_FQDN" "$GATEWAY_NAMESPACE" "$GATEWAY_NAME" "${GATEWAY_SECTION:-none (all listeners)}")"
+    _row "🛣️ " "httproute"    "$(printf '%s  (gw %s/%s, section: %s)%s' "$HOSTNAME_FQDN" "$GATEWAY_NAMESPACE" "$GATEWAY_NAME" "${GATEWAY_SECTION:-none (all listeners)}" "$route_auto")"
   else
-    _row "🛣️ " "route"        "disabled"
+    _row "🛣️ " "route"        "disabled${route_auto}"
   fi
   local sm_suffix="" vpa_suffix=""
   [ "$SERVICEMONITOR_ENABLED_EXPLICIT" = "true" ] || sm_suffix=" (auto)"
