@@ -411,6 +411,7 @@ esac
 # preflight: fail fast on missing tools / unreachable cluster
 # ---------------------------------------------------------------------------
 preflight() {
+  log "checking prerequisites (kubectl, helm)"
   command -v kubectl >/dev/null 2>&1 || die "kubectl not found in PATH"
   command -v helm    >/dev/null 2>&1 || die "helm not found in PATH"
 
@@ -421,7 +422,13 @@ preflight() {
     *) die "helm 3.x or newer required (found: ${hv:-unknown})" ;;
   esac
 
-  kubectl version >/dev/null 2>&1 \
+  # A hung/unreachable API server here would otherwise block silently
+  # forever (both streams redirected to /dev/null): the customer sees the
+  # startup banner and then literally nothing, indistinguishable from the
+  # script never having started. --request-timeout bounds it so this either
+  # succeeds or dies with a clear message within 15s, never hangs.
+  log "checking cluster connectivity (kubectl version, 15s timeout)"
+  kubectl version --request-timeout=15s >/dev/null 2>&1 \
     || die "cannot reach a Kubernetes cluster (check your kubeconfig / current-context)"
 }
 
@@ -430,10 +437,15 @@ preflight() {
 # ---------------------------------------------------------------------------
 discover() {
   CTX=$(kubectl config current-context 2>/dev/null) || die "no current kube-context"
+  log "discovering cluster configuration (context: ${CTX})"
 
   # Bind all subsequent kubectl and helm calls to $CTX so that parallel context
-  # switches in another shell don't target the wrong cluster.
-  kubectl() { command kubectl --context "$CTX" "$@"; }
+  # switches in another shell don't target the wrong cluster. --request-timeout
+  # bounds every one of the many discovery calls below (SPIRE className,
+  # Gateway/Ingress, IRSA, pod count for memory sizing, ...) so a slow or
+  # half-unreachable API server fails one specific call fast instead of
+  # hanging the whole install with no explanation.
+  kubectl() { command kubectl --context "$CTX" --request-timeout=20s "$@"; }
   helm()    { command helm --kube-context "$CTX" "$@"; }
 
   # CLUSTER_NAME: prefer hsp-addons resourcePrefix (stable), fall back to kube-context
