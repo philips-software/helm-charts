@@ -96,14 +96,19 @@ set -euo pipefail
 printf 'centcom-satellite installer: starting (bash %s, pid %s)\n' "${BASH_VERSION:-?}" "$$"
 printf 'centcom-satellite installer: starting (bash %s, pid %s)\n' "${BASH_VERSION:-?}" "$$" >&2
 
-# Global safety net: report ANY uncaught command failure (a bug, an
-# unhandled edge case in discover(), a transient kubectl/helm error nobody
-# wrapped in `|| die "..."`) instead of `set -e` silently exiting with no
-# explanation. Known, expected failures still go through die() with a
-# specific message; this trap only ever fires for something that fell
-# through the cracks — and even then, guarantees a message instead of blank
-# output.
-trap 'ec=$?; printf "\n[FATAL] install.sh: uncaught failure (exit %s) at line %s: %s\n" "$ec" "$LINENO" "$BASH_COMMAND" >&2; exit "$ec"' ERR
+# Global safety net: guarantee a message on ANY exit with a non-zero status,
+# including one `set -e` triggers silently deep inside a function with no
+# `die "..."` around it. Deliberately an EXIT trap, not `trap ... ERR` +
+# `set -E`: that combination was tried and reverted — on bash 3.2 (macOS's
+# stock /bin/bash, still common), enabling errtrace together with an active
+# ERR trap breaks the normal "a command executed in a && or || list, or in
+# an if-test, doesn't trigger set -e" exemptions SCRIPT-WIDE, turning
+# every one of the many intentionally-guarded `cmd || true` / `cmd &&
+# var=true` / `if ! cmd; then` idioms this script relies on into a fresh
+# silent-exit bug — worse than the blank-output problem it was meant to
+# solve. A plain EXIT trap fires exactly once, at real process exit,
+# without needing errtrace, and doesn't touch -e's exemption rules at all.
+trap 'ec=$?; [ "$ec" -eq 0 ] || printf "\n[FATAL] install.sh exited with status %s\n" "$ec" >&2' EXIT
 
 # ============================================================================
 # BAKED-IN DEFAULTS  --  edit these, or override per-run with env vars
@@ -733,8 +738,17 @@ discover_irsa() {
     # IRSA_PROVIDER_CONFIG: the Crossplane ClusterProviderConfig the chart's
     # IAM resources reference. Prefer one named "default", else the first.
     if [ -z "$IRSA_PROVIDER_CONFIG" ]; then
-      if ! kubectl get crd clusterproviderconfigs.aws.upbound.io >/dev/null 2>&1 \
-        && ! kubectl get crd clusterproviderconfigs.aws.m.upbound.io >/dev/null 2>&1; then
+      # Checks both Crossplane AWS provider CRD naming generations (the
+      # historical aws.upbound.io and the newer aws.m.upbound.io "family"
+      # provider). Written as `cmd && var=true` rather than `if ! cmd1 && !
+      # cmd2; then die; fi` — bash 3.2 (macOS's stock /bin/bash) does not
+      # reliably honor the "commands in an if-test are exempt from set -e"
+      # rule for a negated && compound nested this many function calls deep,
+      # and silently exits the whole script with no message at all.
+      local aws_provider_crd_found=false
+      kubectl get crd clusterproviderconfigs.aws.upbound.io   >/dev/null 2>&1 && aws_provider_crd_found=true
+      kubectl get crd clusterproviderconfigs.aws.m.upbound.io >/dev/null 2>&1 && aws_provider_crd_found=true
+      if [ "$aws_provider_crd_found" != "true" ]; then
         die "IRSA needs the AWS Crossplane provider (ClusterProviderConfig CRD not found). Install it, or pass IRSA_ROLE_ARN=<arn> to bring your own role."
       fi
       local pcs
