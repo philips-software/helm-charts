@@ -74,6 +74,13 @@
 #
 #   curl -fsSL .../install.sh | AGENTLESS=true bash
 #
+# AGENTLESS is also auto-detected: leave it unset and, if this cluster has
+# no SPIRE controller-manager at all (the clusterspiffeids CRD), the
+# installer switches to AGENTLESS mode by itself -- no need to know in
+# advance whether the target cluster runs SPIRE. Pass AGENTLESS=false
+# explicitly to opt out of auto-detection and force the workload-API path
+# regardless (useful to see the real "SPIRE not installed" error instead).
+#
 # If the install fails, the [FATAL] line at the end names the exact failing
 # command and line number already. For even more detail (every command the
 # script runs, as it runs it), re-run with TRACE=true:
@@ -156,7 +163,12 @@ trap 'ec=$?; if [ "$ec" -ne 0 ]; then printf "\n[FATAL] install.sh exited with s
 
 # Force SPIRE-agent-less mode (JWT-SVID validation via federation bundle
 # fetch instead of the local Workload API). See the AGENTLESS block in the
-# usage comment above.
+# usage comment above. AGENTLESS_EXPLICIT tracks whether the operator passed
+# this at all (vs. left it at the default) -- discover() uses that below to
+# auto-detect AGENTLESS when the operator expressed no opinion, without ever
+# overriding an explicit AGENTLESS=true or AGENTLESS=false.
+AGENTLESS_EXPLICIT=true
+[ -z "${AGENTLESS+x}" ] && AGENTLESS_EXPLICIT=false
 : "${AGENTLESS:=false}"
 
 # Install target
@@ -488,6 +500,22 @@ discover() {
   kubectl() { command kubectl --context "$CTX" --request-timeout=20s "$@"; }
   helm()    { command helm --kube-context "$CTX" "$@"; }
 
+  # Auto-detect: if the operator expressed no opinion on AGENTLESS at all
+  # (see AGENTLESS_EXPLICIT above), and this cluster has no SPIRE
+  # controller-manager -- the clusterspiffeids CRD the workload-API path
+  # fundamentally depends on -- fall back to AGENTLESS mode automatically
+  # instead of requiring AGENTLESS=true to be passed by hand. An explicit
+  # AGENTLESS=true or AGENTLESS=false always wins over this. Skipped when
+  # LOCAL_SPIFFE_ID is set: that combination is unsupported (see the
+  # top-level die() near AGENTLESS_EXPLICIT's definition), which was already
+  # checked before AGENTLESS had a chance to change here -- letting
+  # auto-detection flip it now would silently slide past that guard.
+  if [ "$AGENTLESS_EXPLICIT" != "true" ] && [ -z "$LOCAL_SPIFFE_ID" ] \
+    && ! kubectl get crd clusterspiffeids.spire.spiffe.io >/dev/null 2>&1; then
+    log "no SPIRE controller-manager detected on this cluster (clusterspiffeids CRD not found) — falling back to AGENTLESS mode automatically (pass AGENTLESS=false to force the workload-API path instead)"
+    AGENTLESS=true
+  fi
+
   # CLUSTER_NAME: prefer hsp-addons resourcePrefix (stable), fall back to kube-context
   if [ -z "$CLUSTER_NAME" ]; then
     # Try 1: ConfigMap hsp-addons in namespace hsp-addons, field .data.tags (JSON)
@@ -548,8 +576,13 @@ discover() {
     # Gateway: prefer one named "gateway" or "platform", else the first one
     if [ -z "$GATEWAY_NAME" ]; then
       local gw
+      # || true: if the Gateway API CRD isn't installed at all, `kubectl get
+      # gateways` exits non-zero even with stderr redirected -- unguarded,
+      # that kills the script right here instead of reaching the die()
+      # below, written specifically to give a clear message for exactly
+      # this "no Gateway found" case (same class of bug as SPIRE_CLASSNAME).
       gw=$(kubectl get gateways -A \
-        -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}' 2>/dev/null)
+        -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
       local pick
       pick=$(printf '%s\n' "$gw" | awk -F/ '$2=="gateway" || $2=="platform"{print;exit}')
       # || true: same grep-exit-1-on-no-match hazard as SPIRE_CLASSNAME above
@@ -834,7 +867,9 @@ summarize() {
   _row "🌐" "federation"   "${MCP_FEDERATION_NAME}  →  ${MCP_BUNDLE_ENDPOINT}"
   _row "🎫" "jwt audience" "${JWT_AUDIENCE}"
   if [ "$AGENTLESS" = "true" ]; then
-    _row "🛰️ " "spire mode"   "\033[1;35mAGENT-LESS\033[0m \033[2m(JWT bundle fetched via HTTPS from ${MCP_BUNDLE_ENDPOINT}, no local agent socket)\033[0m"
+    local agentless_why="forced via AGENTLESS=true"
+    [ "$AGENTLESS_EXPLICIT" = "true" ] || agentless_why="auto-detected: no SPIRE controller-manager on this cluster"
+    _row "🛰️ " "spire mode"   "\033[1;35mAGENT-LESS\033[0m \033[2m(${agentless_why}; JWT bundle fetched via HTTPS from ${MCP_BUNDLE_ENDPOINT}, no local agent socket)\033[0m"
   fi
   if [ "$USE_INGRESS" = "true" ]; then
     _row "🌉" "ingress"     "${HOSTNAME_FQDN}  \033[2m(class ${INGRESS_CLASS}, issuer ${CLUSTER_ISSUER:-none})\033[0m"
