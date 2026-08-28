@@ -74,6 +74,12 @@
 #
 #   curl -fsSL .../install.sh | AGENTLESS=true bash
 #
+# If the install fails, the [FATAL] line at the end names the exact failing
+# command and line number already. For even more detail (every command the
+# script runs, as it runs it), re-run with TRACE=true:
+#
+#   curl -fsSL .../install.sh | TRACE=true AGENTLESS=true bash
+#
 # Progress/diagnostic logs go to stderr; only the copy/paste onboarding snippet
 # goes to stdout. When stdout is not a terminal (a runner is capturing it) the
 # two are merged so the logs are not lost — override with LOG_STDOUT=true|false.
@@ -96,19 +102,37 @@ set -euo pipefail
 printf 'centcom-satellite installer: starting (bash %s, pid %s)\n' "${BASH_VERSION:-?}" "$$"
 printf 'centcom-satellite installer: starting (bash %s, pid %s)\n' "${BASH_VERSION:-?}" "$$" >&2
 
-# Global safety net: guarantee a message on ANY exit with a non-zero status,
-# including one `set -e` triggers silently deep inside a function with no
-# `die "..."` around it. Deliberately an EXIT trap, not `trap ... ERR` +
-# `set -E`: that combination was tried and reverted — on bash 3.2 (macOS's
-# stock /bin/bash, still common), enabling errtrace together with an active
-# ERR trap breaks the normal "a command executed in a && or || list, or in
-# an if-test, doesn't trigger set -e" exemptions SCRIPT-WIDE, turning
-# every one of the many intentionally-guarded `cmd || true` / `cmd &&
-# var=true` / `if ! cmd; then` idioms this script relies on into a fresh
-# silent-exit bug — worse than the blank-output problem it was meant to
-# solve. A plain EXIT trap fires exactly once, at real process exit,
-# without needing errtrace, and doesn't touch -e's exemption rules at all.
-trap 'ec=$?; [ "$ec" -eq 0 ] || printf "\n[FATAL] install.sh exited with status %s\n" "$ec" >&2' EXIT
+# TRACE=true: full bash -x command tracing, for a customer to re-run when the
+# summary below isn't enough. Plain xtrace, unlike errtrace/ERR (see below),
+# has no effect on set -e's exemption rules — zero risk, standard bash.
+if [ "${TRACE:-false}" = "true" ]; then
+  set -x
+fi
+
+# Global safety net: guarantee a message with the failing command on ANY
+# exit with a non-zero status, including one `set -e` triggers silently deep
+# inside a function with no `die "..."` around it.
+#
+# This is errtrace (-E) + a trap on ERR, which earlier caused a nasty
+# regression and was reverted once already: on bash 3.2 (macOS's stock
+# /bin/bash, still common), enabling errtrace together with an ERR trap
+# that itself calls `exit` breaks the normal "a command executed in a && or
+# || list, or in an if-test, doesn't trigger set -e" exemptions SCRIPT-WIDE,
+# turning every intentionally-guarded `cmd || true` / `cmd && var=true` /
+# `if ! cmd; then` idiom in this script into a fresh silent-exit bug.
+#
+# The fix that makes this safe: the ERR trap below is PURELY PASSIVE — it
+# only ever records $BASH_COMMAND/$LINENO into variables, never calls exit
+# or otherwise touches control flow. Verified empirically that a passive ERR
+# trap does NOT reproduce the regression, while an ERR trap that calls exit
+# does. The actual reporting (and the only `exit`) happens in the separate
+# EXIT trap, which fires exactly once at real process exit regardless of
+# which function was on the stack.
+set -E
+ERR_LAST_CMD=""
+ERR_LAST_LINE=""
+trap 'ERR_LAST_CMD="$BASH_COMMAND"; ERR_LAST_LINE="$LINENO"' ERR
+trap 'ec=$?; if [ "$ec" -ne 0 ]; then printf "\n[FATAL] install.sh exited with status %s%s\n" "$ec" "${ERR_LAST_CMD:+ — last command (line ${ERR_LAST_LINE}): ${ERR_LAST_CMD}}" >&2; printf "[hint] re-run with TRACE=true for full command tracing\n" >&2; fi' EXIT
 
 # ============================================================================
 # BAKED-IN DEFAULTS  --  edit these, or override per-run with env vars
