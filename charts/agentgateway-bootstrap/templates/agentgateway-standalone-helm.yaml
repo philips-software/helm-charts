@@ -57,6 +57,10 @@ spec:
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
         {{- if and .Values.bedrock.enabled (eq .Values.bedrock.auth.type "irsa") .Values.bedrock.auth.roleArn }}
         serviceAccount:
+          # Reuse the same ServiceAccount name the kubernetes-mode dataplane used
+          # (named after gateway.name), since the IAM role's trust policy is
+          # scoped to that exact `system:serviceaccount:<ns>:<name>` subject.
+          name: {{ .Values.gateway.name | default "agentgateway-gw" | quote }}
           annotations:
             eks.amazonaws.com/role-arn: {{ .Values.bedrock.auth.roleArn | quote }}
         {{- end }}
