@@ -1,6 +1,6 @@
 lokiChart:
   # renovate: datasource=docker depName=ghcr.io/grafana-community/helm-charts/loki
-  version: 18.11.3
+  version: 18.11.4
 
 compactorOrgmapper:
   package: ghcr.io/loafoe/compactor-orgmapper
