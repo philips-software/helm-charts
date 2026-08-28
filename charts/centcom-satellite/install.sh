@@ -78,7 +78,32 @@
 # goes to stdout. When stdout is not a terminal (a runner is capturing it) the
 # two are merged so the logs are not lost — override with LOG_STDOUT=true|false.
 #
+# If `curl -fsSL ... | bash` ever produces ZERO output (not even this banner
+# below), the script never ran at all — that's a curl/network/proxy failure
+# upstream of bash, not something this script can detect or report on. Rule
+# that out first: `curl -fsSL <url> -o /tmp/install.sh && bash /tmp/install.sh`
+# separates the two steps so a fetch failure surfaces on its own.
 set -euo pipefail
+
+# Unconditional, un-suppressible proof of life: the very first thing this
+# script does, before parsing a single config default or touching the
+# LOG_STDOUT stderr/stdout split below. A customer who reports "no output at
+# all" from `curl -fsSL ... | bash` is otherwise nearly impossible to
+# diagnose — was the script fetched? did it start? did it die before its
+# first log line? Printing to BOTH streams, before any of that machinery
+# exists yet, means this line survives even a `set -e` failure one statement
+# later or a stdout-only log capture.
+printf 'centcom-satellite installer: starting (bash %s, pid %s)\n' "${BASH_VERSION:-?}" "$$"
+printf 'centcom-satellite installer: starting (bash %s, pid %s)\n' "${BASH_VERSION:-?}" "$$" >&2
+
+# Global safety net: report ANY uncaught command failure (a bug, an
+# unhandled edge case in discover(), a transient kubectl/helm error nobody
+# wrapped in `|| die "..."`) instead of `set -e` silently exiting with no
+# explanation. Known, expected failures still go through die() with a
+# specific message; this trap only ever fires for something that fell
+# through the cracks — and even then, guarantees a message instead of blank
+# output.
+trap 'ec=$?; printf "\n[FATAL] install.sh: uncaught failure (exit %s) at line %s: %s\n" "$ec" "$LINENO" "$BASH_COMMAND" >&2; exit "$ec"' ERR
 
 # ============================================================================
 # BAKED-IN DEFAULTS  --  edit these, or override per-run with env vars
