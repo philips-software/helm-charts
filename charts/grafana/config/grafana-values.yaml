@@ -36,6 +36,17 @@ imageRenderer:
     tag: v5.12.2
   env:
     BROWSER_TZ: "Europe/Amsterdam"
+  # Deterministic, not random: the upstream chart's default token generation
+  # uses `lookup` to reuse the existing Secret across renders, but `lookup`
+  # needs a live cluster connection, which ArgoCD's manifest generation (and
+  # any GitOps controller with selfHeal) does not provide. Without this
+  # override, every reconcile regenerates a brand-new random token, and
+  # already-running Grafana/renderer pods (which cache the token in their env
+  # at start, not live) drift out of sync with each other and the Secret,
+  # breaking panel rendering (401s and/or JWT signature errors) until every
+  # pod happens to restart in sync. Deriving it from the release identity
+  # keeps it stable across renders while still unique per Grafana instance.
+  token: {{ printf "%s/%s/grafana-image-renderer/v1" .Release.Namespace .Release.Name | sha256sum | trunc 40 }}
 
 serviceMonitor:
   enabled: true
