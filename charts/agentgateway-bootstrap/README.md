@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.7.23](https://img.shields.io/badge/Version-0.7.23-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.5.0](https://img.shields.io/badge/AppVersion-1.5.0-informational?style=flat-square)
+![Version: 0.7.24](https://img.shields.io/badge/Version-0.7.24-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.5.0](https://img.shields.io/badge/AppVersion-1.5.0-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -10,6 +10,80 @@ This chart supports two deployment modes via the `mode` value:
 
 - **`kubernetes`** (default): Deploys upstream `agentgateway-crds` and `agentgateway` (controller) charts via ArgoCD Applications.
 - **`standalone`**: Deploys upstream `agentgateway-standalone` chart via ArgoCD Application.
+
+## Database Backup & Restore
+
+The request-logging database (`database.*`) is a plain CNPG `Cluster` - no Crossplane, no Barman/S3 dependency, by design. Backups use CNPG's native **CSI VolumeSnapshot** support instead: a snapshot of the PGDATA PVC taken through the cluster's storage driver (e.g. `ebs.csi.aws.com` on EKS).
+
+### Enabling backups
+
+Backups are off by default because the `VolumeSnapshotClass` name is cluster-specific. Enable them via:
+
+```yaml
+database:
+  backup:
+    volumeSnapshot:
+      enabled: true
+      # Must match a VolumeSnapshotClass whose driver supports the cluster's StorageClass.
+      className: ebs-csi-aws
+      # Hot (online) backup via pg_backup_start/stop; false pauses WAL first for a cold snapshot.
+      online: true
+      # Optional cron schedule for automatic backups (creates a ScheduledBackup).
+      # Leave empty to only take backups on demand.
+      schedule: "0 0 3 * * *"
+```
+
+This adds `spec.backup.volumeSnapshot` to the `Cluster` and, if `schedule` is set, a `ScheduledBackup` (`method: volumeSnapshot`) targeting it.
+
+### Taking an on-demand backup
+
+Even with `schedule` unset, you can trigger a backup at any time by creating a `Backup` resource:
+
+```yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: agentgateway-gw-db-manual-1
+  namespace: agentgateway-system
+spec:
+  cluster:
+    name: agentgateway-gw-db
+  method: volumeSnapshot
+```
+
+Check progress with `kubectl get backup -n agentgateway-system agentgateway-gw-db-manual-1` until `.status.phase` is `completed`. This produces a `VolumeSnapshot` (same namespace as the cluster) named after the backup.
+
+### Restoring
+
+CNPG restores a volume snapshot backup by **bootstrapping a new `Cluster`** from it - there is no in-place restore of an existing cluster. Point `bootstrap.recovery.volumeSnapshots.storage` at the `VolumeSnapshot` created by the backup:
+
+```yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: agentgateway-gw-db-restored
+  namespace: agentgateway-system     # VolumeSnapshot is namespace-scoped - must match
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-system-trixie  # match the source cluster's image
+  bootstrap:
+    recovery:
+      volumeSnapshots:
+        storage:
+          name: agentgateway-gw-db-manual-1   # the VolumeSnapshot from the backup
+          kind: VolumeSnapshot
+          apiGroup: snapshot.storage.k8s.io
+  storage:
+    size: 5Gi
+```
+
+Wait for `kubectl get cluster -n agentgateway-system agentgateway-gw-db-restored` to report `status.readyInstances: 1`, then verify the data (e.g. `kubectl exec ... -c postgres -- psql -U postgres -d agentgateway -c 'SELECT count(*) FROM request_logs;'`).
+
+To actually recover production data with this, either point `database.clusterName` / the app's connection secret at the restored cluster, or `pg_dump` from it and `pg_restore` into the original cluster - then delete the temporary restored `Cluster` and its PVC once you're done.
+
+**Notes:**
+- The recovery `Cluster` needs `imageName` set explicitly (matching the source cluster) unless the target environment has a `ClusterImageCatalog` named `default` - not all clusters do.
+- This flow was live-tested end-to-end (backup → restore → verified identical row counts/checksums → cleanup) against a real deployment; see the chart's git history for details.
 
 ## Values
 
@@ -36,10 +110,14 @@ This chart supports two deployment modes via the `mode` value:
 | controller.resources.limits.memory | string | `"256Mi"` |  |
 | controller.resources.requests.cpu | string | `"100m"` |  |
 | controller.resources.requests.memory | string | `"128Mi"` |  |
+| database.backup.volumeSnapshot.className | string | `""` |  |
+| database.backup.volumeSnapshot.enabled | bool | `false` |  |
+| database.backup.volumeSnapshot.online | bool | `true` |  |
+| database.backup.volumeSnapshot.schedule | string | `""` |  |
 | database.clusterName | string | `""` |  |
 | database.databaseName | string | `"agentgateway"` |  |
 | database.enabled | bool | `true` |  |
-| database.instances | int | `1` |  |
+| database.instances | int | `2` |  |
 | database.password | string | `"agentgateway123"` |  |
 | database.resources.limits.memory | string | `"512Mi"` |  |
 | database.resources.requests.cpu | string | `"50m"` |  |

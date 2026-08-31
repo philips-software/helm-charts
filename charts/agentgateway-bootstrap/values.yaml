@@ -96,8 +96,9 @@ database:
   enabled: true
   # Cluster resource name. Defaults to "<gateway.name>-db" if unset.
   clusterName: ""
-  # Number of CNPG instances (1 = no HA, single replica).
-  instances: 1
+  # Number of CNPG instances (1 = no HA, single replica; 2+ = HA with automatic
+  # failover). Matches the DIP Postgres composition's default of 2.
+  instances: 2
   # Database (and owner role) name.
   databaseName: agentgateway
   # Database owner password.
@@ -112,6 +113,19 @@ database:
       memory: 128Mi
     limits:
       memory: 512Mi
+  backup:
+    # CNPG VolumeSnapshot backups (CSI snapshots of the PGDATA PVC), no
+    # Crossplane/S3/Barman dependency - consistent with this chart's
+    # plain-CNPG design. Off by default because className is cluster-specific.
+    volumeSnapshot:
+      enabled: false
+      # VolumeSnapshotClass to use (must support the cluster's StorageClass CSI driver).
+      className: ""
+      # Hot (online) backup via pg_backup_start/stop; false pauses WAL first for a cold snapshot.
+      online: true
+      # Cron schedule for a ScheduledBackup (method: volumeSnapshot). Leave empty to
+      # disable scheduling - on-demand backups can still be triggered with a Backup CR.
+      schedule: ""
 
 # Kubernetes Gateway resource configuration
 gateway:

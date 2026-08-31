@@ -2,7 +2,7 @@ apiVersion: v2
 name: agentgateway-bootstrap
 description: A Helm chart for bootstrapping agentgateway with Amazon Bedrock LLM support
 type: application
-version: 0.7.23
+version: 0.7.24
 appVersion: "1.5.0"
 keywords:
   - agentgateway

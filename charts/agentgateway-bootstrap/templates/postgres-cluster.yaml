@@ -10,6 +10,12 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   instances: {{ .Values.database.instances }}
+  {{- if .Values.database.backup.volumeSnapshot.enabled }}
+  backup:
+    volumeSnapshot:
+      className: {{ .Values.database.backup.volumeSnapshot.className | required "database.backup.volumeSnapshot.className is required when database.backup.volumeSnapshot.enabled is true" | quote }}
+      online: {{ .Values.database.backup.volumeSnapshot.online }}
+  {{- end }}
   bootstrap:
     initdb:
       database: {{ .Values.database.databaseName | quote }}
