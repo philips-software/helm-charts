@@ -1348,6 +1348,23 @@ entries:
     version: 0.1.0
   common-bootstrap:
   - apiVersion: v2
+    appVersion: 0.0.40
+    created: "2026-08-31T18:27:19.847051682Z"
+    description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
+      deploys crossplane-compositions, and uses HelmApplication CRs to bootstrap platform
+      components. '
+    digest: 7307b5406c5236448f9aafbb39b5196cb27c66aa3866c754e668641ae9857a84
+    keywords:
+    - crossplane
+    - common
+    - bootstrap
+    - argocd
+    name: common-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/common-bootstrap-1.4.3/common-bootstrap-1.4.3.tgz
+    version: 1.4.3
+  - apiVersion: v2
     appVersion: 0.0.38
     created: "2026-07-23T13:15:18.117460686Z"
     description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
@@ -5513,4 +5530,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-08-31T10:14:25.586785028Z"
+generated: "2026-08-31T18:27:19.847919791Z"
