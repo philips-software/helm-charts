@@ -185,6 +185,12 @@ vpa:
         memory: 128Mi
       maxAllowed:
         memory: 1Gi
+    compactor:
+      enabled: true
+      minAllowed:
+        memory: 128Mi
+      maxAllowed:
+        memory: 1Gi
     gateway:
       enabled: true
       minAllowed:
