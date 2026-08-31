@@ -67,27 +67,25 @@ data:
     }
 
     // Prometheus Operator PodMonitors Discovery
+    // NOTE: allow_arbitrary_file_access is intentionally NOT set here -- this Alloy
+    // component doesn't support that attribute (unlike prometheus.operator.servicemonitors
+    // above); setting it makes Alloy fail config evaluation entirely (CrashLoopBackOff).
     prometheus.operator.podmonitors "pod_monitors" {
       {{- if .Values.customAlloy.clustering.enabled }}
       clustering {
         enabled = true
       }
       {{- end }}
-      {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.allowArbitraryFileAccess }}
-      allow_arbitrary_file_access = true
-      {{- end }}
       forward_to = [otelcol.receiver.prometheus.default.receiver]
     }
 
     // Prometheus Operator Probes Discovery
+    // NOTE: allow_arbitrary_file_access is intentionally NOT set here -- see PodMonitors note above.
     prometheus.operator.probes "probes" {
       {{- if .Values.customAlloy.clustering.enabled }}
       clustering {
         enabled = true
       }
-      {{- end }}
-      {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.allowArbitraryFileAccess }}
-      allow_arbitrary_file_access = true
       {{- end }}
       forward_to = [otelcol.receiver.prometheus.default.receiver]
     }

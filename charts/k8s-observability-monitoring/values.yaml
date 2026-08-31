@@ -70,7 +70,8 @@ prometheusOperatorObjects:
   enabled: true
   # -- Destinations to send metrics. Empty = all metrics-capable destinations.
   destinations: []
-  # -- Allow Alloy's ServiceMonitor/PodMonitor/Probes discovery to honor bearerTokenFile
+  # -- Allow Alloy's ServiceMonitor discovery (prometheus.operator.servicemonitors only --
+  # the PodMonitors/Probes components don't support this attribute) to honor bearerTokenFile
   # (a path on Alloy's own filesystem, e.g. its mounted serviceaccount token). Required for
   # kube-prometheus-stack's built-in system ServiceMonitors (kube-apiserver, kube-scheduler,
   # kube-controller-manager, kube-etcd, coredns, kube-proxy, kubelet), which all use this
