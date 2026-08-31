@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 1.4.1](https://img.shields.io/badge/Version-1.4.1-informational?style=flat-square) ![AppVersion: 4.4.0](https://img.shields.io/badge/AppVersion-4.4.0-informational?style=flat-square)
+![Version: 1.4.2](https://img.shields.io/badge/Version-1.4.2-informational?style=flat-square) ![AppVersion: 4.5.0](https://img.shields.io/badge/AppVersion-4.5.0-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -324,7 +324,8 @@ curl -s localhost:12345/metrics | \
 | podLogsViaLoki.dropKubeProbe | bool | `false` | Drop kube-probe logs (liveness/readiness probe requests). |
 | podLogsViaLoki.excludeNamespaces | list | `[]` | Namespaces to exclude from log collection. |
 | project | object | `{"name":"default"}` | ArgoCD project name for the k8s-monitoring Application |
-| prometheusOperatorObjects | object | `{"destinations":[],"enabled":true,"serviceMonitors":{"extraDiscoveryRules":"","extraMetricProcessingRules":"","labelExpressions":[],"metricsTuning":{"excludeMetrics":[]}}}` | Prometheus Operator Objects (ServiceMonitors, PodMonitors, Probes) |
+| prometheusOperatorObjects | object | `{"allowArbitraryFileAccess":true,"destinations":[],"enabled":true,"serviceMonitors":{"extraDiscoveryRules":"","extraMetricProcessingRules":"","labelExpressions":[],"metricsTuning":{"excludeMetrics":[]}}}` | Prometheus Operator Objects (ServiceMonitors, PodMonitors, Probes) |
+| prometheusOperatorObjects.allowArbitraryFileAccess | bool | `true` | Allow Alloy's ServiceMonitor/PodMonitor/Probes discovery to honor bearerTokenFile (a path on Alloy's own filesystem, e.g. its mounted serviceaccount token). Required for kube-prometheus-stack's built-in system ServiceMonitors (kube-apiserver, kube-scheduler, kube-controller-manager, kube-etcd, coredns, kube-proxy, kubelet), which all use this pattern. Without it, Alloy silently drops those ServiceMonitors ("error generating scrapeconfig ... disallowed because allow_arbitrary_file_access is false") and their metrics never reach any destination -- even though `up` is unaffected, the underlying component-specific metrics (e.g. apiserver_request_total) are simply never scraped. |
 | prometheusOperatorObjects.destinations | list | `[]` | Destinations to send metrics. Empty = all metrics-capable destinations. |
 | prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules | string | `""` | Extra discovery rules for ServiceMonitors (Alloy relabel config syntax). |
 | prometheusOperatorObjects.serviceMonitors.extraMetricProcessingRules | string | `""` | Extra metric processing rules (Alloy relabel config syntax). |

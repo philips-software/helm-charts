@@ -70,6 +70,15 @@ prometheusOperatorObjects:
   enabled: true
   # -- Destinations to send metrics. Empty = all metrics-capable destinations.
   destinations: []
+  # -- Allow Alloy's ServiceMonitor/PodMonitor/Probes discovery to honor bearerTokenFile
+  # (a path on Alloy's own filesystem, e.g. its mounted serviceaccount token). Required for
+  # kube-prometheus-stack's built-in system ServiceMonitors (kube-apiserver, kube-scheduler,
+  # kube-controller-manager, kube-etcd, coredns, kube-proxy, kubelet), which all use this
+  # pattern. Without it, Alloy silently drops those ServiceMonitors ("error generating
+  # scrapeconfig ... disallowed because allow_arbitrary_file_access is false") and their
+  # metrics never reach any destination -- even though `up` is unaffected, the underlying
+  # component-specific metrics (e.g. apiserver_request_total) are simply never scraped.
+  allowArbitraryFileAccess: true
   serviceMonitors:
     # -- Label expressions to filter which ServiceMonitors to scrape.
     labelExpressions: []

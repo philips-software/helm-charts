@@ -17,6 +17,12 @@ data:
         enabled = true
       }
       {{- end }}
+      {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.allowArbitraryFileAccess }}
+      // Required for kube-prometheus-stack's system ServiceMonitors (apiserver, kube-scheduler,
+      // kube-controller-manager, kube-etcd, coredns, kube-proxy, kubelet), which use
+      // bearerTokenFile pointing at Alloy's own mounted serviceaccount token.
+      allow_arbitrary_file_access = true
+      {{- end }}
 
       // Exclude kube-state-metrics as it's handled separately below
       selector {
@@ -67,6 +73,9 @@ data:
         enabled = true
       }
       {{- end }}
+      {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.allowArbitraryFileAccess }}
+      allow_arbitrary_file_access = true
+      {{- end }}
       forward_to = [otelcol.receiver.prometheus.default.receiver]
     }
 
@@ -76,6 +85,9 @@ data:
       clustering {
         enabled = true
       }
+      {{- end }}
+      {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.allowArbitraryFileAccess }}
+      allow_arbitrary_file_access = true
       {{- end }}
       forward_to = [otelcol.receiver.prometheus.default.receiver]
     }
