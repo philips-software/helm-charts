@@ -25,6 +25,19 @@ spec:
               url: {{ printf "postgresql://%s:${DB_PASSWORD}@%s-rw:5432/%s" (.Values.database.databaseName | default "agentgateway") (include "agentgateway-bootstrap.postgresClusterName" .) (.Values.database.databaseName | default "agentgateway") | quote }}
             storage:
               mode: hybrid
+          {{- if .Values.ui.oidc.enabled }}
+          ui:
+            policies:
+              oidc:
+                issuer: {{ .Values.ui.oidc.issuer | quote }}
+                clientId: {{ .Values.ui.oidc.clientId | quote }}
+                clientSecret: ${OIDC_CLIENT_SECRET}
+                redirectURI: {{ .Values.ui.oidc.redirectURI | quote }}
+                {{- if .Values.ui.oidc.scopes }}
+                scopes:
+                  {{- toYaml .Values.ui.oidc.scopes | nindent 18 }}
+                {{- end }}
+          {{- end }}
           llm:
             policies:
               apiKey:
@@ -76,6 +89,14 @@ spec:
               secretKeyRef:
                 name: agentgateway-openrouter-secret
                 key: apiKey
+                optional: true
+          {{- end }}
+          {{- if .Values.ui.oidc.enabled }}
+          - name: OIDC_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: agentgateway-oidc-secret
+                key: clientSecret
                 optional: true
           {{- end }}
         gateway:

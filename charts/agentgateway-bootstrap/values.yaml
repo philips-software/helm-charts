@@ -177,6 +177,25 @@ ui:
     type: ClusterIP
     port: 15000
     targetPort: 15000
+  # Browser-based OIDC login for the Admin UI (standalone mode only). Protects
+  # UI traffic once it's attached to an externally-reachable gateway/HTTPRoute -
+  # enable this before exposing the UI beyond the cluster-internal admin port.
+  # The client secret is read at deploy time from the agentgateway-oidc-secret
+  # Secret (key clientSecret; see agentgateway-standalone-helm.yaml), and the
+  # browser session cookie is signed with OIDC_COOKIE_SECRET from the
+  # <release>-oidc Secret the upstream chart already wires in unconditionally.
+  oidc:
+    enabled: false
+    # OIDC issuer URL (used for discovery + ID token validation).
+    issuer: ""
+    # OAuth2 client ID registered with the issuer.
+    clientId: ""
+    # Absolute callback URI the gateway handles for the OIDC code exchange
+    # (e.g. https://<ui-hostname>/oauth/callback). Must match a redirect URI
+    # registered with the issuer.
+    redirectURI: ""
+    # Additional OAuth2 scopes to request. `openid` is always included.
+    scopes: []
 
 # OpenTelemetry Tracing configuration
 tracing:
