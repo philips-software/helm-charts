@@ -196,6 +196,14 @@ ui:
     redirectURI: ""
     # Additional OAuth2 scopes to request. `openid` is always included.
     scopes: []
+  # Restrict Admin UI access to specific JWT groups claim values, on top of
+  # oidc above (oidc.enabled must be true for this to have any effect - it
+  # renders a ui.policies.authorization CEL rule requiring at least one of
+  # these strings to appear in the `groups` claim, e.g. Dex group slugs like
+  # "philips-internal:some-group" or "urn:iamr:<org>:<group>"). Leave empty
+  # to allow any authenticated user through OIDC with no group restriction.
+  authorization:
+    groups: []
 
 # OpenTelemetry Tracing configuration
 tracing:

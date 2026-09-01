@@ -37,6 +37,15 @@ spec:
                 scopes:
                   {{- toYaml .Values.ui.oidc.scopes | nindent 18 }}
                 {{- end }}
+              {{- if .Values.ui.authorization.groups }}
+              {{- $exprs := list }}
+              {{- range .Values.ui.authorization.groups }}
+              {{- $exprs = append $exprs (printf "%q in jwt.groups" .) }}
+              {{- end }}
+              authorization:
+                rules:
+                  - require: {{ join " || " $exprs | quote }}
+              {{- end }}
           {{- end }}
           llm:
             policies:
