@@ -159,7 +159,7 @@ spec:
         ]
       }
 {{- end }}
-{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) .Values.aws.assumeRole.roleArn }}
+{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) .Values.aws.assumeRole .Values.aws.assumeRole.roleArn }}
 ---
 apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: Policy

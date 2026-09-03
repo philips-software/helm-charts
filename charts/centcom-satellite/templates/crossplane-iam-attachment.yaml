@@ -80,7 +80,7 @@ spec:
       name: {{ include "centcom-satellite.irsaName" . }}-securityhub-write
 {{- end }}
 {{- /* Attach the cross-account AssumeRole policy only when a target roleArn is configured. */ -}}
-{{- if .Values.aws.assumeRole.roleArn }}
+{{- if and .Values.aws.assumeRole .Values.aws.assumeRole.roleArn }}
 ---
 apiVersion: iam.aws.m.upbound.io/v1beta1
 kind: RolePolicyAttachment

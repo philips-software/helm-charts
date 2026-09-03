@@ -166,7 +166,7 @@ spec:
             - name: AWS_REGION
               value: {{ .Values.aws.irsa.region | quote }}
             {{- end }}
-            {{- if .Values.aws.assumeRole.roleArn }}
+            {{- if and .Values.aws.assumeRole .Values.aws.assumeRole.roleArn }}
             - name: AWS_ASSUME_ROLE_ARN
               value: {{ .Values.aws.assumeRole.roleArn | quote }}
             {{- if .Values.aws.assumeRole.externalId }}
