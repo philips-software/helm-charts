@@ -57,6 +57,26 @@ liveStore:
           name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
           key: id
 
+backendScheduler:
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: S3_BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
+          key: id
+
+backendWorker:
+  extraArgs:
+    - -config.expand-env=true
+  extraEnv:
+    - name: S3_BUCKET_NAME
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.environmentConfig.resourcePrefix }}-tempo
+          key: id
+
 distributor:
   replicas: 2
   resources:
