@@ -220,20 +220,29 @@ ui:
 # code in standalone mode.
 standaloneTracing:
   enabled: false
-  # OTLP HTTP receiver base URL (e.g. https://langfuse.example.com/api/public/otel).
-  # agentgateway appends `path` below to build the full traces endpoint.
+  # OTLP HTTP receiver origin ONLY (scheme+host, e.g. https://langfuse.example.com)
+  # - NOT the full ingestion path. agentgateway's `path` below is joined as an
+  # absolute path and REPLACES otlpEndpoint's own path component entirely
+  # (confirmed empirically: otlpEndpoint with a path + a `path` value produces
+  # scheme+host+path, dropping otlpEndpoint's path) - so put the full ingestion
+  # path (e.g. Langfuse's /api/public/otel/v1/traces) in `path`, not here.
   otlpEndpoint: ""
   # grpc or http - Langfuse's OTLP receiver requires http.
   otlpProtocol: http
+  # Full absolute ingestion path - see otlpEndpoint note above. Langfuse:
+  # /api/public/otel/v1/traces.
   path: /v1/traces
   # true (or a 0.0-1.0 ratio) to sample all traces.
   randomSampling: true
   # Static, non-secret headers sent with every OTLP export (e.g. vendor
-  # ingestion-version headers).
+  # ingestion-version headers). Values are compiled as CEL expressions (same
+  # engine as frontendPolicies.accessLog), so a literal string MUST be a CEL
+  # string literal - wrap it in embedded double quotes, e.g. '"4"', not just "4".
   headers: {}
-  # Secret holding the sensitive Authorization header value (e.g. "Basic
-  # <base64 publicKey:secretKey>"), injected as env var OTLP_AUTH_HEADER and
-  # referenced via ${OTLP_AUTH_HEADER} in the rendered config. Leave name
+  # Secret holding the sensitive Authorization header value's bearer token
+  # (just the base64 "publicKey:secretKey" part, no "Basic " prefix - the
+  # rendered config template adds that), injected as env var OTLP_AUTH_HEADER
+  # and referenced via ${OTLP_AUTH_HEADER} in the rendered config. Leave name
   # empty if the OTLP receiver needs no auth.
   authHeaderSecret:
     name: ""

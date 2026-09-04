@@ -41,7 +41,7 @@ spec:
                 {{ $k }}: {{ $v | quote }}
                 {{- end }}
                 {{- if .Values.standaloneTracing.authHeaderSecret.name }}
-                Authorization: ${OTLP_AUTH_HEADER}
+                Authorization: '"Basic ${OTLP_AUTH_HEADER}"'
                 {{- end }}
               {{- end }}
             {{- end }}
