@@ -6,10 +6,18 @@ metadata:
   labels:
     {{- include "centcom-satellite.labels" . | nindent 4 }}
 rules:
-  # PVC operations for resize
+  # PVC read access (list_pvcs, pv_usage, storage_status) — always granted.
+  # Write verbs (patch/update, needed only for pv_resize) are gated below,
+  # behind features.pvResize, same as every other mutating capability.
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
-    verbs: ["get", "list", "watch", "patch", "update"]
+    verbs: ["get", "list", "watch"]
+{{- if .Values.features.pvResize }}
+  # PVC patch/update for the pv_resize task (opt-in via features.pvResize)
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["patch", "update"]
+{{- end }}
   # PV read access for status checking
   - apiGroups: [""]
     resources: ["persistentvolumes"]

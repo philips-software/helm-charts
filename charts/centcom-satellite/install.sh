@@ -14,9 +14,18 @@
 #   CLUSTER_NAME=edge BASE_DOMAIN=example.com \
 #     curl -fsSL .../install.sh | bash
 #
-# For an observe-only agent (all mutating tasks disabled), set READ_ONLY=true:
+# Defaults to READ-ONLY: every mutating task (workload restart/scale, pod
+# evict/resize, PVC resize, NodeClaim delete, Security Hub write, PV-usage
+# auto-remediation) starts disabled, matching the software's own defaults —
+# a plain `curl | bash` with no env vars produces an agent that can observe
+# and report but cannot change anything. To opt into a fully-mutating agent
+# instead, set WRITE_MODE=true (or flip on individual features.* flags
+# yourself via a values file and `helm upgrade --install` — see the docs):
 #
-#   curl -fsSL .../install.sh | READ_ONLY=true bash
+#   curl -fsSL .../install.sh | WRITE_MODE=true bash
+#
+# READ_ONLY=true is still accepted as an explicit synonym for the default,
+# for anyone who scripted against the old flag name.
 #
 # To enable the CloudWatch RCA + Cost Explorer tasks (read-only AWS data via
 # IRSA, all values auto-discovered), set CLOUDWATCH_RCA=true:
@@ -193,9 +202,23 @@ AGENTLESS_EXPLICIT=true
 : "${CHART_VERSION:=}"        # empty = latest
 : "${IMAGE_TAG:=}"            # empty = chart default appVersion
 
-# Read-only mode: disable every mutating task, keep all introspection/read
-# tasks enabled. Set READ_ONLY=true for an observe-only agent.
-: "${READ_ONLY:=false}"
+# Read-only vs write mode: two independent knobs resolved into one decision so
+# both spellings work and nothing needs to change for anyone already scripting
+# against READ_ONLY. Precedence: an explicit "false" on either variable wins
+# over an unset/default on the other, so READ_ONLY=false and WRITE_MODE=true
+# are equivalent ways to opt into a mutating agent. With nothing set at all,
+# the default is READ-ONLY — this changed 2026-09 (previously defaulted to
+# write mode); see docs/centcom/02-security.md in the innovation-day repo for
+# why. Set WRITE_MODE=true (or READ_ONLY=false) for a fully-mutating agent.
+: "${READ_ONLY:=}"
+: "${WRITE_MODE:=}"
+if [ "$READ_ONLY" = "true" ] || [ "$WRITE_MODE" = "false" ]; then
+  READ_ONLY=true   # an explicit read-only request always wins over a conflicting write request
+elif [ "$WRITE_MODE" = "true" ] || [ "$READ_ONLY" = "false" ]; then
+  READ_ONLY=false
+else
+  READ_ONLY=true    # nothing set -> safe default
+fi
 
 # Feature flags (helm --set features.*). Edit to taste. An explicit FEATURES
 # always wins; otherwise the default is chosen by READ_ONLY. In read-only mode
@@ -977,7 +1000,9 @@ summarize() {
     fi
   fi
   if [ "$READ_ONLY" = "true" ]; then
-    _row "👁️ " "mode"         "\033[1;33mREAD-ONLY\033[0m \033[2m(mutating tasks disabled; introspection only)\033[0m"
+    _row "👁️ " "mode"         "\033[1;32mREAD-ONLY (default)\033[0m \033[2m(mutating tasks disabled; introspection only)\033[0m"
+  else
+    _row "✏️ " "mode"         "\033[1;31mWRITE\033[0m \033[2m(mutating tasks enabled — set WRITE_MODE=false, or just drop the flag, for read-only)\033[0m"
   fi
   if [ "$RELEASE_EXISTS" = "true" ]; then
     _row "♻️ " "action"       "reconcile existing release \033[2m(idempotent — no change if already current)\033[0m"
