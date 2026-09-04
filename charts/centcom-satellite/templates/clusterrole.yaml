@@ -50,6 +50,10 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
     verbs: ["get", "list", "watch"]
+  # CronJob/Job read access for list_workloads task
+  - apiGroups: ["batch"]
+    resources: ["cronjobs", "jobs"]
+    verbs: ["get", "list", "watch"]
   # Service read access for list_services task
   - apiGroups: [""]
     resources: ["services", "endpoints"]
