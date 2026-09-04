@@ -34,6 +34,14 @@ standalone:
   service:
     # Service type for standalone deployment
     type: ClusterIP
+  # Override the agentgateway-standalone image (e.g. to run a locally-patched
+  # build). Leave repository unset to use the upstream agentgateway-standalone
+  # chart's own default (cr.agentgateway.dev/agentgateway, tagged at the
+  # chart's appVersion).
+  image:
+    registry: ""
+    repository: ""
+    tag: ""
 
 # ArgoCD project name
 argoProject: default

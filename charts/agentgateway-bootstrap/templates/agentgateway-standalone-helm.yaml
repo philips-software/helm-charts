@@ -77,6 +77,18 @@ spec:
                   reference: openrouter
               {{- end }}
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
+        {{- if or .Values.standalone.image.registry .Values.standalone.image.repository .Values.standalone.image.tag }}
+        image:
+          {{- if .Values.standalone.image.registry }}
+          registry: {{ .Values.standalone.image.registry | quote }}
+          {{- end }}
+          {{- if .Values.standalone.image.repository }}
+          repository: {{ .Values.standalone.image.repository | quote }}
+          {{- end }}
+          {{- if .Values.standalone.image.tag }}
+          tag: {{ .Values.standalone.image.tag | quote }}
+          {{- end }}
+        {{- end }}
         {{- if and .Values.bedrock.enabled (eq .Values.bedrock.auth.type "irsa") .Values.bedrock.auth.roleArn }}
         serviceAccount:
           # Reuse the same ServiceAccount name the kubernetes-mode dataplane used
