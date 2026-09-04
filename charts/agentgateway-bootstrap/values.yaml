@@ -213,6 +213,32 @@ ui:
   authorization:
     groups: []
 
+# Standalone-mode direct OTLP trace export: agentgateway's own process exports
+# spans straight to an OTLP HTTP receiver (e.g. Langfuse's /api/public/otel).
+# Separate from `tracing.*` below, which only applies to `mode: kubernetes`
+# (an AgentgatewayPolicy pointing at a Gateway API backendRef) and is dead
+# code in standalone mode.
+standaloneTracing:
+  enabled: false
+  # OTLP HTTP receiver base URL (e.g. https://langfuse.example.com/api/public/otel).
+  # agentgateway appends `path` below to build the full traces endpoint.
+  otlpEndpoint: ""
+  # grpc or http - Langfuse's OTLP receiver requires http.
+  otlpProtocol: http
+  path: /v1/traces
+  # true (or a 0.0-1.0 ratio) to sample all traces.
+  randomSampling: true
+  # Static, non-secret headers sent with every OTLP export (e.g. vendor
+  # ingestion-version headers).
+  headers: {}
+  # Secret holding the sensitive Authorization header value (e.g. "Basic
+  # <base64 publicKey:secretKey>"), injected as env var OTLP_AUTH_HEADER and
+  # referenced via ${OTLP_AUTH_HEADER} in the rendered config. Leave name
+  # empty if the OTLP receiver needs no auth.
+  authHeaderSecret:
+    name: ""
+    key: "OTLP_AUTH_HEADER"
+
 # OpenTelemetry Tracing configuration
 tracing:
   # Enable OpenTelemetry tracing AgentgatewayPolicy

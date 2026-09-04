@@ -25,6 +25,26 @@ spec:
               url: {{ printf "postgresql://%s:${DB_PASSWORD}@%s-rw:5432/%s" (.Values.database.databaseName | default "agentgateway") (include "agentgateway-bootstrap.postgresClusterName" .) (.Values.database.databaseName | default "agentgateway") | quote }}
             storage:
               mode: hybrid
+            {{- if .Values.standaloneTracing.enabled }}
+            tracing:
+              otlpEndpoint: {{ .Values.standaloneTracing.otlpEndpoint | quote }}
+              otlpProtocol: {{ .Values.standaloneTracing.otlpProtocol | default "http" | quote }}
+              {{- if .Values.standaloneTracing.path }}
+              path: {{ .Values.standaloneTracing.path | quote }}
+              {{- end }}
+              {{- if .Values.standaloneTracing.randomSampling }}
+              randomSampling: {{ .Values.standaloneTracing.randomSampling }}
+              {{- end }}
+              {{- if or .Values.standaloneTracing.headers .Values.standaloneTracing.authHeaderSecret.name }}
+              headers:
+                {{- range $k, $v := .Values.standaloneTracing.headers }}
+                {{ $k }}: {{ $v | quote }}
+                {{- end }}
+                {{- if .Values.standaloneTracing.authHeaderSecret.name }}
+                Authorization: ${OTLP_AUTH_HEADER}
+                {{- end }}
+              {{- end }}
+            {{- end }}
           {{- if .Values.ui.oidc.enabled }}
           ui:
             policies:
@@ -118,6 +138,14 @@ spec:
               secretKeyRef:
                 name: agentgateway-oidc-secret
                 key: clientSecret
+                optional: true
+          {{- end }}
+          {{- if and .Values.standaloneTracing.enabled .Values.standaloneTracing.authHeaderSecret.name }}
+          - name: OTLP_AUTH_HEADER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.standaloneTracing.authHeaderSecret.name | quote }}
+                key: {{ .Values.standaloneTracing.authHeaderSecret.key | default "OTLP_AUTH_HEADER" | quote }}
                 optional: true
           {{- end }}
         gateway:
