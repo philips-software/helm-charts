@@ -138,7 +138,7 @@ clickhouse:
     image:
       repository: clickhouse/clickhouse-keeper
       # renovate: datasource=docker depName=clickhouse/clickhouse-keeper
-      tag: "26.7"
+      tag: "26.8"
     storage:
       size: 5Gi
       className: ""
