@@ -49,6 +49,12 @@ spec:
               value: {{ .Values.observability.logLevel | quote }}
             - name: LOG_FORMAT
               value: {{ .Values.observability.logFormat | quote }}
+            - name: RATE_LIMIT_ENABLED
+              value: {{ .Values.rateLimit.enabled | quote }}
+            - name: RATE_LIMIT_REQUESTS_PER_SECOND
+              value: {{ .Values.rateLimit.requestsPerSecond | quote }}
+            - name: RATE_LIMIT_BURST
+              value: {{ .Values.rateLimit.burst | quote }}
             {{- if .Values.observability.otelEndpoint }}
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: {{ .Values.observability.otelEndpoint | quote }}

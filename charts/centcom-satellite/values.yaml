@@ -290,6 +290,20 @@ observability:
   otelInsecure: true
   otelServiceName: centcom-satellite
 
+# Per-client-IP request throttling on the main HTTP server (port 8080).
+# Enabled by default with a generous limit: legitimate traffic (centcom
+# polling cluster_info every few seconds, a handful of concurrent tool
+# calls, log streaming) never approaches it. /healthz and /readyz are never
+# throttled regardless of this config. On rejection the satellite responds
+# 429 with Retry-After plus the RateLimit-Limit/Remaining/Reset headers, and
+# centcom's own client honors Retry-After and retries automatically.
+rateLimit:
+  enabled: true
+  # Sustained requests/second allowed per client IP.
+  requestsPerSecond: 50
+  # Burst capacity above the sustained rate before throttling kicks in.
+  burst: 100
+
 # Prometheus ServiceMonitor (requires the Prometheus Operator CRDs).
 # Scrapes the metrics port (9090) at /metrics. The centcom-satellite exposes:
 #   centcom_satellite_http_* / tasks_* / auth_attempts_total / k8s_requests_* /

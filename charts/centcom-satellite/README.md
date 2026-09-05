@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.17.0](https://img.shields.io/badge/Version-0.17.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.65.0](https://img.shields.io/badge/AppVersion-v0.65.0-informational?style=flat-square)
+![Version: 0.18.0](https://img.shields.io/badge/Version-0.18.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.66.0](https://img.shields.io/badge/AppVersion-v0.66.0-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -133,6 +133,9 @@ on `PATH`; needs no credentials for a public chart repository.
 | podSecurityContext.runAsNonRoot | bool | `true` |  |
 | podSecurityContext.runAsUser | int | `65532` |  |
 | podSecurityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
+| rateLimit.burst | int | `100` |  |
+| rateLimit.enabled | bool | `true` |  |
+| rateLimit.requestsPerSecond | int | `50` |  |
 | rbac.additionalRules | list | `[]` |  |
 | rbac.create | bool | `true` |  |
 | replicaCount | int | `2` |  |
