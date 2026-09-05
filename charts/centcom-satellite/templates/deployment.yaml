@@ -50,11 +50,11 @@ spec:
             - name: LOG_FORMAT
               value: {{ .Values.observability.logFormat | quote }}
             - name: RATE_LIMIT_ENABLED
-              value: {{ .Values.rateLimit.enabled | quote }}
+              value: {{ (default dict .Values.rateLimit).enabled | default true | quote }}
             - name: RATE_LIMIT_REQUESTS_PER_SECOND
-              value: {{ .Values.rateLimit.requestsPerSecond | quote }}
+              value: {{ (default dict .Values.rateLimit).requestsPerSecond | default 50 | quote }}
             - name: RATE_LIMIT_BURST
-              value: {{ .Values.rateLimit.burst | quote }}
+              value: {{ (default dict .Values.rateLimit).burst | default 100 | quote }}
             {{- if .Values.observability.otelEndpoint }}
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: {{ .Values.observability.otelEndpoint | quote }}
