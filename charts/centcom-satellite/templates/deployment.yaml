@@ -104,9 +104,15 @@ spec:
             {{- end }}
             {{- end }}
             {{- end }}
-            {{- if .Values.features.getResource }}
             - name: GET_RESOURCE_ENABLED
-              value: "true"
+              value: {{ .Values.features.getResource | quote }}
+            {{- if .Values.features.resourceAccessDeny }}
+            {{- $pairs := list }}
+            {{- range .Values.features.resourceAccessDeny }}
+            {{- $pairs = append $pairs (printf "%s/%s" .group .kind) }}
+            {{- end }}
+            - name: RESOURCE_ACCESS_DENY
+              value: {{ join "," $pairs | quote }}
             {{- end }}
             {{- if .Values.features.workloadRestart }}
             - name: WORKLOAD_RESTART_ENABLED
@@ -134,10 +140,6 @@ spec:
             {{- end }}
             {{- if .Values.features.argocd }}
             - name: FEATURES_ARGOCD
-              value: "true"
-            {{- end }}
-            {{- if .Values.features.configmapRead }}
-            - name: FEATURES_CONFIGMAP_READ
               value: "true"
             {{- end }}
             {{- if .Values.features.httpRequest }}

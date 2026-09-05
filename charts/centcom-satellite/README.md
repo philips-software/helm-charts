@@ -95,8 +95,7 @@ on `PATH`; needs no credentials for a public chart repository.
 | features.argocd | bool | `false` |  |
 | features.autoRemediate | bool | `false` |  |
 | features.cloudwatchRca | bool | `false` |  |
-| features.configmapRead | bool | `false` |  |
-| features.getResource | bool | `false` |  |
+| features.getResource | bool | `true` |  |
 | features.guardduty | bool | `false` |  |
 | features.httpRequest | bool | `false` |  |
 | features.nodeclaimDelete | bool | `false` |  |
@@ -105,6 +104,7 @@ on `PATH`; needs no credentials for a public chart repository.
 | features.podResizeAbsoluteCap | string | `"4Gi"` |  |
 | features.podResizePercentageCap | int | `50` |  |
 | features.pvResize | bool | `false` |  |
+| features.resourceAccessDeny | list | `[]` |  |
 | features.securityhub | bool | `false` |  |
 | features.securityhubWrite | bool | `false` |  |
 | features.workloadRestart | bool | `false` |  |

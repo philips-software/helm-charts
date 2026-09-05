@@ -106,10 +106,21 @@ rbac:
 
 # Feature flags for optional functionality
 features:
-  # Enable get_resource task for fetching arbitrary Kubernetes resources
-  # When enabled, also grants wildcard read RBAC permissions
-  # Note: Secret access is blocked in code for security
-  getResource: false
+  # Enable get_resource task for fetching arbitrary Kubernetes resources.
+  # Enabled by default - defense in depth across three independent layers:
+  # 1. RBAC: binds the built-in `view` ClusterRole (excludes Secrets by design)
+  #    instead of a wildcard grant - see clusterrolebinding-view.yaml.
+  # 2. Denylist: Secret is always blocked in code regardless of RBAC; add more
+  #    group+kind pairs via features.resourceAccessDeny.
+  # 3. Redaction: secret-shaped values (high-entropy/PEM/inline-secret/
+  #    secret-key-name) are masked in the returned object graph.
+  getResource: true
+  # Additional group+kind pairs get_resource refuses to read, on top of the
+  # non-negotiable default (Secret). Empty by default. Example:
+  # resourceAccessDeny:
+  #   - group: "external-secrets.io"
+  #     kind: "SecretStore"
+  resourceAccessDeny: []
   # Enable workload_restart task for rolling restarts of deployments/statefulsets/daemonsets
   # When enabled, grants patch permission on apps workloads and read on PDBs
   workloadRestart: false
@@ -131,10 +142,6 @@ features:
   # Enable Argo CD application introspection
   # When enabled, grants get/list/watch on argoproj.io applications
   argocd: false
-  # Enable list_configmaps + get_configmap tasks for ConfigMap introspection
-  # When enabled, grants get/list on configmaps. get_configmap redacts
-  # secret-looking values (high-entropy/PEM/inline-secret/secret-key-name).
-  configmapRead: false
   # Enable http_request task for making HTTP requests to cluster-internal services
   # Useful for admin endpoints, ring management, config reloads, debugging
   # Only allows requests to cluster-internal addresses (pods, services)

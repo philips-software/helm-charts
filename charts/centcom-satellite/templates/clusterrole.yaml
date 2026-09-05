@@ -46,6 +46,11 @@ rules:
   - apiGroups: [""]
     resources: ["pods/log"]
     verbs: ["get"]
+  # ConfigMap read access for list_configmaps metadata listing — always
+  # granted, same as the other list_* rules above.
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
   # Metrics API access for pod_resource_usage task
   - apiGroups: ["metrics.k8s.io"]
     resources: ["pods"]
@@ -175,12 +180,6 @@ rules:
   - apiGroups: ["argoproj.io"]
     resources: ["applications"]
     verbs: ["get", "list", "watch"]
-{{- end }}
-{{- if .Values.features.configmapRead }}
-  # ConfigMap read access for list_configmaps and get_configmap introspection
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get", "list"]
 {{- end }}
   # Crossplane EnvironmentConfig read access for AWS account ID detection
   # (optional, graceful degradation if CRDs not installed)
