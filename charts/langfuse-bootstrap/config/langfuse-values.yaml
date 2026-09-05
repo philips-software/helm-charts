@@ -20,6 +20,7 @@ langfuse:
         issuer: {{ .Values.sso.issuer | quote }}
         name: {{ .Values.sso.name | quote }}
         scope: {{ .Values.sso.scope | quote }}
+        allowAccountLinking: {{ .Values.sso.allowAccountLinking }}
   {{- end }}
   salt:
     secretKeyRef:

@@ -1,6 +1,6 @@
 # langfuse-bootstrap
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.17.0](https://img.shields.io/badge/AppVersion-4.17.0-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.17.0](https://img.shields.io/badge/AppVersion-4.17.0-informational?style=flat-square)
 
 Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access via IRSA against an existing bucket.
 
@@ -26,13 +26,15 @@ Set `ingress.httpRoute.enabled: true` (required for a real OAuth callback URL) a
 
 Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land with no organization membership. An existing org owner manually invites/promotes specific users (e.g. `philips-internal:homelab` members) to `ADMIN` via the Langfuse UI after their first sign-in.
 
+If your issuer is itself a broker federating multiple upstream identity providers, the same person signing in via different upstream paths can get different provider-account ids on the same email, and NextAuth will refuse the second one with `OAuthAccountNotLinked` unless you set `sso.allowAccountLinking: true` (sets `AUTH_CUSTOM_ALLOW_ACCOUNT_LINKING`). Only enable this if every upstream IdP behind the issuer verifies the email claim — it links accounts by email match with no further confirmation.
+
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argoProject | string | `"default"` |  |
 | clickhouse.cluster.image.repository | string | `"clickhouse/clickhouse-server"` |  |
-| clickhouse.cluster.image.tag | string | `"26.4"` |  |
+| clickhouse.cluster.image.tag | string | `"26.8"` |  |
 | clickhouse.cluster.replicas | int | `1` |  |
 | clickhouse.cluster.resources.limits.memory | string | `"2Gi"` |  |
 | clickhouse.cluster.resources.requests.cpu | string | `"500m"` |  |
@@ -40,7 +42,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | clickhouse.cluster.storage.className | string | `""` |  |
 | clickhouse.cluster.storage.size | string | `"20Gi"` |  |
 | clickhouse.keeper.image.repository | string | `"clickhouse/clickhouse-keeper"` |  |
-| clickhouse.keeper.image.tag | string | `"26.4"` |  |
+| clickhouse.keeper.image.tag | string | `"26.8"` |  |
 | clickhouse.keeper.replicas | int | `1` |  |
 | clickhouse.keeper.resources.limits.memory | string | `"512Mi"` |  |
 | clickhouse.keeper.resources.requests.cpu | string | `"100m"` |  |
@@ -83,12 +85,13 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | langfuseChart.version | string | `"2.0.2"` |  |
 | namespace | string | `"langfuse-system"` |  |
 | redis.image.repository | string | `"valkey/valkey"` |  |
-| redis.image.tag | string | `"8.0"` |  |
+| redis.image.tag | string | `"9.1"` |  |
 | redis.resources.limits.memory | string | `"512Mi"` |  |
 | redis.resources.requests.cpu | string | `"50m"` |  |
 | redis.resources.requests.memory | string | `"128Mi"` |  |
 | redis.storage.size | string | `"4Gi"` |  |
 | redis.storage.storageClass | string | `""` |  |
+| sso.allowAccountLinking | bool | `false` |  |
 | sso.clientId | string | `""` |  |
 | sso.disableUsernamePassword | bool | `false` |  |
 | sso.enabled | bool | `false` |  |

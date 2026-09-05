@@ -93,6 +93,15 @@ sso:
   # not just hidden in the UI) once SSO is verified working - existing
   # password accounts are locked out too, only SSO logins succeed.
   disableUsernamePassword: false
+  # Sets AUTH_CUSTOM_ALLOW_ACCOUNT_LINKING. NextAuth normally refuses to
+  # attach a new OAuth identity to an existing user
+  # ("OAuthAccountNotLinked") unless the two sign-ins came from the exact
+  # same provider account. Enable this when your issuer is itself a broker
+  # federating multiple upstream identity providers (so the same person can
+  # get different provider account ids across sign-ins) - safe only because
+  # the upstream IdP(s) behind this issuer cryptographically verify the
+  # email claim. Do not enable for a provider that allows unverified email.
+  allowAccountLinking: false
 
 # CNPG Postgres database for Langfuse
 database:
