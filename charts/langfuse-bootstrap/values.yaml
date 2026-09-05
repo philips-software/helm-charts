@@ -179,7 +179,7 @@ langfuse:
     # Chart.appVersion, which lags behind - tracked independently here since
     # the app and the wrapper chart release on different cadences.
     # renovate: datasource=docker depName=docker.langfuse.com/langfuse/langfuse
-    tag: "4.22.0"
+    tag: "4.30.0"
   web:
     resources:
       requests:
