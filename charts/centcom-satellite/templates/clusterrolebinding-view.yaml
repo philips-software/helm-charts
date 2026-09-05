@@ -1,0 +1,28 @@
+{{/*
+Binds the satellite's ServiceAccount to the built-in `view` ClusterRole when
+get_resource is enabled, instead of granting an apiGroups:["*"] wildcard in
+the main ClusterRole. `view` grants the standard read surface and excludes
+`secrets` by design (only `edit`/`admin` include them) — a real RBAC-layer
+backstop for get_resource's generic reads, independent of the task's own
+application-level Secret-kind check. See templates/clusterrole.yaml for the
+known consequence: CRDs that don't carry the Kubernetes-native
+`rbac.authorization.k8s.io/aggregate-to-view: "true"` label (Crossplane's own
+CRDs use a different, Crossplane-specific aggregation label) are not covered
+by this binding.
+*/}}
+{{- if and .Values.rbac.create .Values.features.getResource }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "centcom-satellite.fullname" . }}-view
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "centcom-satellite.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

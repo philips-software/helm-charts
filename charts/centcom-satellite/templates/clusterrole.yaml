@@ -104,13 +104,22 @@ rules:
   - apiGroups: ["autoscaling.k8s.io"]
     resources: ["verticalpodautoscalers"]
     verbs: ["get", "list", "watch"]
-{{- if .Values.features.getResource }}
-  # Generic resource read access for get_resource task (CRDs like Crossplane, cert-manager, etc.)
-  # Note: Secret access is explicitly blocked in centcom-satellite code for security
-  - apiGroups: ["*"]
-    resources: ["*"]
-    verbs: ["get", "list", "watch"]
-{{- end }}
+{{/*
+  Generic resource read access for get_resource (any CRD/kind by GVK) used to
+  be an apiGroups:["*"] resources:["*"] wildcard here — which, at the raw K8s
+  RBAC layer, includes secrets, leaving Secret protection entirely up to one
+  application-level kind check with no independent backstop. It's now a
+  separate ClusterRoleBinding to the built-in `view` ClusterRole instead (see
+  templates/clusterrolebinding-view.yaml), which excludes secrets natively.
+  Known consequence, verified against a real cluster rather than assumed:
+  cert-manager and Kyverno CRDs aggregate into the real `view` role and stay
+  readable; Crossplane CRDs (IAM roles, RDS, KMS, etc.) use Crossplane's own
+  aggregation label (rbac.crossplane.io/aggregate-to-view), not the
+  Kubernetes-native one `view` selects on, so they do NOT flow into `view`
+  and become unreadable via get_resource specifically — add a targeted rule
+  for the exact Crossplane API groups you need if that capability matters to
+  you; do not restore the wildcard to work around it.
+*/}}
 {{- if .Values.features.workloadRestart }}
   # Workload patch access for workload_restart task (rolling restart)
   - apiGroups: ["apps"]
