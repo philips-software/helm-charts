@@ -143,7 +143,7 @@ set -euo pipefail
 # in lockstep with Chart.yaml's version on every release that touches this
 # script. `install.sh verify` uses it to know which signed OCI chart to check
 # itself against — see that function for the full explanation.
-INSTALL_SH_CHART_VERSION="0.16.0"
+INSTALL_SH_CHART_VERSION="0.17.0"
 
 # Unconditional, un-suppressible proof of life: the very first thing this
 # script does, before parsing a single config default or touching the
