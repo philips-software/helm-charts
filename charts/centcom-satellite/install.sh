@@ -4,6 +4,23 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/philips-software/helm-charts/main/charts/centcom-satellite/install.sh | bash
 #
+# Don't trust a fetched copy sight-unseen — verify it against the signed
+# chart it shipped in before running it:
+#
+#   curl -fsSL .../install.sh -o install.sh
+#   bash install.sh verify
+#
+# This pulls the exact chart version this script embeds (see
+# INSTALL_SH_CHART_VERSION below) from oci://ghcr.io/philips-software/helm-charts,
+# cosign-verifies its signature (keyless, GitHub Actions OIDC identity —
+# requires the `cosign` CLI), extracts the install.sh bundled inside that
+# signed chart, and diffs it byte-for-byte against the copy you just fetched.
+# A match means what you're about to run is exactly what CI built and signed
+# for that release — not a tampered or stale copy from some other source.
+# Requires `helm` and `cosign` on PATH; not meaningful piped straight from
+# curl (there's no on-disk file yet to check) — fetch-then-verify-then-run,
+# same discipline as reviewing the script by eye, just automated.
+#
 # Deploys centcom-satellite to the *current* kubectl cluster and wires it up to centcom
 # via SPIRE federation. It auto-discovers everything it can from the target
 # cluster (SPIRE class name, Gateway, base domain, cluster name) and falls back
@@ -121,6 +138,12 @@
 # that out first: `curl -fsSL <url> -o /tmp/install.sh && bash /tmp/install.sh`
 # separates the two steps so a fetch failure surfaces on its own.
 set -euo pipefail
+
+# The chart version this exact copy of install.sh shipped in. Bumped by hand
+# in lockstep with Chart.yaml's version on every release that touches this
+# script. `install.sh verify` uses it to know which signed OCI chart to check
+# itself against — see that function for the full explanation.
+INSTALL_SH_CHART_VERSION="0.16.0"
 
 # Unconditional, un-suppressible proof of life: the very first thing this
 # script does, before parsing a single config default or touching the
@@ -1476,5 +1499,67 @@ main() {
   verify
   done_msg
 }
+
+# self_verify checks THIS SCRIPT's own integrity against the signed chart it
+# shipped in — unrelated to verify() above, which checks the *deployment's*
+# rollout status. Invoked as `bash install.sh verify` (or `./install.sh verify`
+# on a saved, executable copy), not via the pipe form.
+self_verify() {
+  case "$0" in
+    bash|-bash|sh|-sh)
+      echo "verify needs a saved copy of this script on disk, not a piped 'curl | bash -s verify' — fetch it first:" >&2
+      echo "  curl -fsSL https://raw.githubusercontent.com/philips-software/helm-charts/main/charts/centcom-satellite/install.sh -o install.sh" >&2
+      echo "  bash install.sh verify" >&2
+      exit 1
+      ;;
+  esac
+  local script_path="$0"
+  local chart_ref="ghcr.io/philips-software/helm-charts/centcom-satellite:${INSTALL_SH_CHART_VERSION}"
+
+  command -v helm >/dev/null 2>&1 || { echo "verify requires helm on PATH" >&2; exit 1; }
+  command -v cosign >/dev/null 2>&1 || { echo "verify requires cosign on PATH (https://docs.sigstore.dev/cosign/installation/)" >&2; exit 1; }
+
+  echo "Verifying signature of ${chart_ref} ..." >&2
+  if ! cosign verify "$chart_ref" \
+      --certificate-identity-regexp="https://github.com/philips-software/helm-charts/.*" \
+      --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+      >/dev/null 2>&1; then
+    echo "❌ signature verification FAILED for ${chart_ref}" >&2
+    echo "   Either this chart version was never signed, or something is wrong — do not trust this script." >&2
+    exit 1
+  fi
+  echo "✅ chart signature verified (built and signed by philips-software/helm-charts CI)" >&2
+
+  local tmpdir
+  tmpdir=$(mktemp -d)
+  trap 'rm -rf "$tmpdir"' EXIT
+
+  echo "Pulling oci://${chart_ref} ..." >&2
+  helm pull "oci://ghcr.io/philips-software/helm-charts/centcom-satellite" \
+    --version "$INSTALL_SH_CHART_VERSION" -d "$tmpdir" >/dev/null
+
+  tar -xzf "$tmpdir"/*.tgz -C "$tmpdir"
+  local canonical="$tmpdir/centcom-satellite/install.sh"
+  if [ ! -f "$canonical" ]; then
+    echo "❌ install.sh not found inside the signed chart — cannot compare" >&2
+    exit 1
+  fi
+
+  if cmp -s "$script_path" "$canonical"; then
+    echo "✅ MATCH: this script is byte-for-byte identical to the signed install.sh in chart ${INSTALL_SH_CHART_VERSION}" >&2
+    echo "   Safe to run." >&2
+    exit 0
+  else
+    echo "❌ MISMATCH: this script does NOT match the signed install.sh in chart ${INSTALL_SH_CHART_VERSION}" >&2
+    echo "   Do not run it. Diff against the canonical copy:" >&2
+    diff -u "$canonical" "$script_path" >&2 || true
+    exit 1
+  fi
+}
+
+if [ "${1:-}" = "verify" ]; then
+  self_verify
+  exit $?
+fi
 
 main "$@"

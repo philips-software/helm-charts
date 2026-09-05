@@ -15,6 +15,33 @@ runs:
   using: "composite"
   steps:
 
+    - name: Check install.sh self-verify version markers
+      shell: bash
+      run: |
+        # Any chart shipping an install.sh with an INSTALL_SH_CHART_VERSION
+        # marker (its own self-verify mechanism, see that script) must have
+        # that marker match Chart.yaml's version exactly, or a script fetched
+        # from this exact release would verify itself against the WRONG
+        # chart. Charts without the marker are skipped.
+        check_status=0
+        for d in ${CHARTS_PATH}*/ ; do
+            script="${d}install.sh"
+            chart="${d}Chart.yaml"
+            [ -f "$script" ] && [ -f "$chart" ] || continue
+            marker=$(grep -o '^INSTALL_SH_CHART_VERSION="[^"]*"' "$script" | sed -E 's/.*="(.*)"/\1/') || true
+            [ -n "$marker" ] || continue
+            chart_version=$(awk '/^version:/{print $2}' "$chart")
+            if [ "$marker" != "$chart_version" ]; then
+              echo "::error file=${script}::INSTALL_SH_CHART_VERSION=${marker} does not match ${chart}'s version: ${chart_version}"
+              check_status=1
+            else
+              echo "${script}: INSTALL_SH_CHART_VERSION matches Chart.yaml (${chart_version})"
+            fi
+        done
+        exit $check_status
+      env:
+        CHARTS_PATH: ${{ inputs.chartsPath }}
+
     - name: Package Helm Charts
       shell: bash
       run: |
@@ -48,9 +75,24 @@ runs:
       shell: bash
       working-directory: dist
       run: |
+        : > ../signed-refs.txt
         for f in *.tgz ; do
+            name=$(helm show chart "$f" | awk '/^name:/{print $2}')
+            version=$(helm show chart "$f" | awk '/^version:/{print $2}')
             echo "helm push $f oci://${REGISTRY}"
-            helm push $f oci://${REGISTRY}
+            helm push "$f" "oci://${REGISTRY}"
+            echo "${REGISTRY}/${name}:${version}" >> ../signed-refs.txt
         done
       env:
         REGISTRY: "ghcr.io/${{ github.repository }}"
+
+    - name: Install cosign
+      uses: sigstore/cosign-installer@v3
+
+    - name: Sign Helm Charts
+      shell: bash
+      run: |
+        while read -r ref; do
+          echo "cosign sign --yes $ref"
+          cosign sign --yes "$ref"
+        done < signed-refs.txt
