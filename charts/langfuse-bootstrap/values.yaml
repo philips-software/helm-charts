@@ -7,7 +7,7 @@
 langfuseChart:
   repoURL: oci://ghcr.io/langfuse/langfuse-k8s/charts
   # renovate: datasource=docker depName=ghcr.io/langfuse/langfuse-k8s/charts/langfuse
-  version: 2.0.2
+  version: 2.1.0
 
 # ArgoCD project name
 argoProject: default
