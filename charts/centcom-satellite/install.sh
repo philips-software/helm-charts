@@ -122,6 +122,26 @@
 # VPA_ENABLED=true|false explicitly to skip auto-detection and force either
 # one regardless of what the cluster has.
 #
+# To hand this off to someone else (an operator without your shell env, a
+# change-ticket reviewer, a GitOps PR) instead of running the install
+# yourself, set VALUES_ONLY=true. The script still connects to the target
+# cluster and runs every auto-discovery step above (SPIRE class, Gateway,
+# IRSA account/region/OIDC issuer, memory tier, ...) exactly as it would for
+# a real install, but instead of applying anything it dry-runs the resolved
+# `helm upgrade --install` through Helm itself, writes the resulting merged
+# values.yaml to disk (default: <release-name>-values.yaml, override with
+# VALUES_FILE=...), and prints the plain `helm upgrade --install -f <file>`
+# command on stdout. Nothing in the cluster changes -- no ClusterFederatedTrustDomain,
+# no Ingress, no Helm release, no resource adoption:
+#
+#   curl -fsSL .../install.sh | VALUES_ONLY=true bash
+#
+# The AGENTLESS-mode federation bundle fetch and the nginx Ingress fallback
+# (USE_INGRESS=true) are both plain kubectl manifests applied outside the
+# Helm chart, not part of values.yaml -- render_values_only() prints a note
+# reminding you to apply those yourself (or just drop VALUES_ONLY) if either
+# is in play.
+#
 # If the install fails, the [FATAL] line at the end names the exact failing
 # command and line number already. For even more detail (every command the
 # script runs, as it runs it), re-run with TRACE=true:
@@ -143,7 +163,7 @@ set -euo pipefail
 # in lockstep with Chart.yaml's version on every release that touches this
 # script. `install.sh verify` uses it to know which signed OCI chart to check
 # itself against — see that function for the full explanation.
-INSTALL_SH_CHART_VERSION="0.21.0"
+INSTALL_SH_CHART_VERSION="0.22.0"
 
 # Unconditional, un-suppressible proof of life: the very first thing this
 # script does, before parsing a single config default or touching the
@@ -459,6 +479,8 @@ VPA_ENABLED_EXPLICIT=true
 : "${MEMORY_LIMIT:=}"         # auto: from pod-count tier table
 : "${VPA_MAX_MEMORY:=}"       # auto: from pod-count tier table
 : "${DRY_RUN:=false}"         # true = print helm/kubectl actions, change nothing
+: "${VALUES_ONLY:=false}"     # true = render values.yaml + print the helm command, change nothing (see render_values_only)
+: "${VALUES_FILE:=}"          # output path for VALUES_ONLY; empty = <release-name>-values.yaml
 : "${WAIT_TIMEOUT:=180s}"
 : "${COUNTDOWN:=}"            # pre-install review countdown (s); empty = auto from reading time
 : "${ASSUME_YES:=false}"     # true = skip the countdown entirely (CI / unattended)
@@ -1033,6 +1055,7 @@ summarize() {
     _row "🌱" "action"       "fresh install"
   fi
   [ "$DRY_RUN" = "true" ] && _row "🧪" "mode"        "\033[1;33mDRY RUN — nothing will change\033[0m"
+  [ "$VALUES_ONLY" = "true" ] && _row "📄" "mode"        "\033[1;33mVALUES ONLY — rendering values.yaml, nothing will change\033[0m"
   printf '  \033[2m────────────────────────────────────────────────────────────\033[0m\n' >&2
   printf '\n' >&2
 }
@@ -1251,10 +1274,15 @@ adopt_orphans() {
 }
 
 # ---------------------------------------------------------------------------
-# deploy: helm upgrade --install with resolved values
+# build_helm_args: populate the global HELM_ARGS array with every
+# `helm upgrade --install ...` argument this installer resolves from the
+# target cluster (SPIRE/JWT, memory sizing, IRSA, HTTPRoute, feature flags).
+# Shared by deploy() (which runs it) and render_values_only() (which instead
+# dry-runs it to dump the resulting values.yaml) so the two paths can never
+# drift apart.
 # ---------------------------------------------------------------------------
-deploy() {
-  local -a args=(
+build_helm_args() {
+  HELM_ARGS=(
     upgrade --install "$RELEASE_NAME" "$CHART"
     --namespace "$NAMESPACE" --create-namespace
     --set "replicaCount=${REPLICA_COUNT}"
@@ -1265,38 +1293,38 @@ deploy() {
     --set "serviceMonitor.enabled=${SERVICEMONITOR_ENABLED}"
   )
 
-  [ -n "$CHART_VERSION" ] && args+=( --version "$CHART_VERSION" )
-  [ -n "$IMAGE_TAG" ]     && args+=( --set "image.tag=${IMAGE_TAG}" )
+  [ -n "$CHART_VERSION" ] && HELM_ARGS+=( --version "$CHART_VERSION" )
+  [ -n "$IMAGE_TAG" ]     && HELM_ARGS+=( --set "image.tag=${IMAGE_TAG}" )
 
   # className only matters for the (federated) ClusterSPIFFEID the chart
   # renders on the workload-API/local-agent path; it's not read at all once
   # AGENTLESS leaves it unset (see discover(), which skips discovering it
   # entirely in that mode).
-  [ -n "$SPIRE_CLASSNAME" ] && args+=( --set "spire.className=${SPIRE_CLASSNAME}" )
+  [ -n "$SPIRE_CLASSNAME" ] && HELM_ARGS+=( --set "spire.className=${SPIRE_CLASSNAME}" )
 
   # Pod-count-derived memory sizing (see discover_memory). Set the initial limit
   # to survive the cold-start burst before VPA reacts, a matching burstable
   # request (half the limit), and raise the VPA ceiling so scale-up isn't capped
   # at the chart's 1Gi. Left empty on clusters where discovery couldn't run.
   if [ -n "$MEMORY_LIMIT" ]; then
-    args+=(
+    HELM_ARGS+=(
       --set "resources.limits.memory=${MEMORY_LIMIT}"
       --set "resources.requests.memory=$(half_mem "$MEMORY_LIMIT")"
     )
   fi
-  [ -n "$VPA_MAX_MEMORY" ] && args+=( --set "vpa.maxAllowed.memory=${VPA_MAX_MEMORY}" )
+  [ -n "$VPA_MAX_MEMORY" ] && HELM_ARGS+=( --set "vpa.maxAllowed.memory=${VPA_MAX_MEMORY}" )
   # Always set explicitly (declarative reconcile): a re-run without
   # VPA_ENABLED=true also disables an existing VerticalPodAutoscaler on a
   # cluster that's since lost its VPA controller, same as every other
   # auto-detected toggle in this script.
-  args+=( --set "vpa.enabled=${VPA_ENABLED}" )
+  HELM_ARGS+=( --set "vpa.enabled=${VPA_ENABLED}" )
 
   # Always set trustDomains (needed for JWT caller validation), but skip
   # federation ClusterSPIFFEID when installing on the same cluster as centcom
   # (or, below, when AGENTLESS=true also sets _SKIP_FEDERATION).
-  args+=( --set "spire.trustDomains[0]=${MCP_TRUST_DOMAIN}" )
+  HELM_ARGS+=( --set "spire.trustDomains[0]=${MCP_TRUST_DOMAIN}" )
   if [ "${_SKIP_FEDERATION:-}" = "true" ]; then
-    args+=( --set "spire.skipFederation=true" )
+    HELM_ARGS+=( --set "spire.skipFederation=true" )
   fi
 
   # Agent-less mode: fetch the JWT trust bundle straight from the federation
@@ -1310,7 +1338,7 @@ deploy() {
   if [ "$AGENTLESS" = "true" ]; then
     local td_escaped
     td_escaped=$(printf '%s' "$MCP_TRUST_DOMAIN" | sed 's/\./\\./g')
-    args+=(
+    HELM_ARGS+=(
       --set "spire.jwt.bundleSource=federation"
       --set "spire.jwt.federationBundleEndpoints.${td_escaped}=${MCP_BUNDLE_ENDPOINT}"
     )
@@ -1320,7 +1348,7 @@ deploy() {
   # accept-list at index 1 and mark its domain as local so the chart excludes
   # it from federatesWith (no self-federation). The remote MCP stays federated.
   if [ -n "$LOCAL_SPIFFE_ID" ]; then
-    args+=(
+    HELM_ARGS+=(
       --set "spire.allowedSPIFFEIDs[1]=${LOCAL_SPIFFE_ID}"
       --set "spire.trustDomains[1]=${LOCAL_TRUST_DOMAIN}"
       --set "spire.localTrustDomain=${LOCAL_TRUST_DOMAIN}"
@@ -1331,7 +1359,7 @@ deploy() {
   local IFS=','
   local f
   for f in $FEATURES; do
-    [ -n "$f" ] && args+=( --set "features.${f}" )
+    [ -n "$f" ] && HELM_ARGS+=( --set "features.${f}" )
   done
   unset IFS
 
@@ -1340,15 +1368,15 @@ deploy() {
   # only annotate the SA; otherwise Crossplane provisions the generic role +
   # attaches the policy for each enabled task group.
   if [ "$IRSA_ENABLED" = "true" ]; then
-    args+=(
+    HELM_ARGS+=(
       --set "aws.irsa.enabled=true"
       --set "aws.irsa.region=${IRSA_REGION}"
       --set "aws.irsa.audience=${IRSA_AUDIENCE}"
     )
     if [ -n "$IRSA_ROLE_ARN" ]; then
-      args+=( --set "aws.irsa.roleArnOverride=${IRSA_ROLE_ARN}" )
+      HELM_ARGS+=( --set "aws.irsa.roleArnOverride=${IRSA_ROLE_ARN}" )
     else
-      args+=(
+      HELM_ARGS+=(
         # --set-string: a 12-digit account id without a leading zero would
         # otherwise be parsed as an int64 and break %s formatting in the chart.
         --set-string "aws.irsa.accountId=${IRSA_ACCOUNT_ID}"
@@ -1359,16 +1387,16 @@ deploy() {
       # don't collide. Only meaningful when Crossplane creates the role (this
       # branch); a BYO role ARN needs no name. Skipped when empty (opt-out).
       [ -n "$IRSA_NAME_PREFIX" ] && \
-        args+=( --set "aws.irsa.namePrefix=${IRSA_NAME_PREFIX}" )
+        HELM_ARGS+=( --set "aws.irsa.namePrefix=${IRSA_NAME_PREFIX}" )
     fi
   else
     # Declarative disable so a re-run without CLOUDWATCH_RCA also tears down IRSA.
-    args+=( --set "aws.irsa.enabled=false" )
+    HELM_ARGS+=( --set "aws.irsa.enabled=false" )
   fi
 
   # HTTPRoute exposure
   if [ "$HTTPROUTE_ENABLED" = "true" ]; then
-    args+=(
+    HELM_ARGS+=(
       --set "httpRoute.enabled=true"
       --set "httpRoute.hostname=${HOSTNAME_FQDN}"
       --set "httpRoute.gatewayRef.name=${GATEWAY_NAME}"
@@ -1379,10 +1407,18 @@ deploy() {
     # listener causes redirect loops in setups with an all-listener
     # http-to-https-redirect route. Pass empty string to actively clear any
     # value Helm might otherwise carry over.
-    args+=( --set "httpRoute.gatewayRef.sectionName=${GATEWAY_SECTION}" )
+    HELM_ARGS+=( --set "httpRoute.gatewayRef.sectionName=${GATEWAY_SECTION}" )
   else
-    args+=( --set "httpRoute.enabled=false" )
+    HELM_ARGS+=( --set "httpRoute.enabled=false" )
   fi
+}
+
+# ---------------------------------------------------------------------------
+# deploy: helm upgrade --install with resolved values (build_helm_args above)
+# ---------------------------------------------------------------------------
+deploy() {
+  build_helm_args
+  local -a args=( "${HELM_ARGS[@]}" )
 
   # Force past server-side-apply field-manager conflicts. Helm refuses to change
   # a field another manager owns (classic case: someone ran `kubectl scale`, which
@@ -1408,6 +1444,64 @@ deploy() {
     printf '\033[2m# helm %s\033[0m\n' "${args[*]}" >&2
   else
     helm "${args[@]}" >&2 || die "helm install failed"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# render_values_only: VALUES_ONLY=true path. Runs the exact same resolved
+# `helm upgrade --install` this installer would otherwise apply, but as a
+# `--dry-run --debug` so nothing in the cluster changes (no federation CR, no
+# Ingress, no adoption, no actual helm release) — then extracts Helm's own
+# "COMPUTED VALUES:" block (the full chart defaults merged with every --set
+# override resolved above) into a values file, and prints the equivalent
+# plain `helm upgrade --install -f <file>` command so the operator can review
+# the file and run that command by hand whenever they're ready.
+# ---------------------------------------------------------------------------
+render_values_only() {
+  build_helm_args
+  local -a args=( "${HELM_ARGS[@]}" --dry-run --debug )
+
+  local out
+  log "rendering resolved values (VALUES_ONLY=true — no cluster changes)"
+  out=$(helm "${args[@]}" 2>&1) || die "helm dry-run failed while rendering values:
+${out}"
+
+  local values_file="${VALUES_FILE:-${RELEASE_NAME}-values.yaml}"
+  # COMPUTED VALUES: is Helm's own dump of the full chart defaults merged with
+  # every --set override above — exactly what would be installed. HOOKS: is
+  # the next fixed section in `helm --dry-run --debug` output, so it's a safe
+  # end marker regardless of chart content.
+  awk '/^COMPUTED VALUES:$/{flag=1;next} /^HOOKS:$/{flag=0} flag' <<<"$out" \
+    | sed -e '/./,$!d' > "$values_file"
+
+  if [ ! -s "$values_file" ]; then
+    die "could not extract COMPUTED VALUES from helm dry-run output — helm version too old? (need 3.x)"
+  fi
+
+  log "wrote resolved values to ${values_file}"
+  printf '\n' >&2
+  printf '  \033[1;32m✅ values rendered — nothing was changed on the cluster.\033[0m\n' >&2
+  printf '  \033[2m📄 %s\033[0m\n' "$values_file" >&2
+  printf '\n' >&2
+  printf '  \033[1mRun this yourself when ready:\033[0m\n' >&2
+  printf '  \033[2m────────────────────────────────────────────────────────────\033[0m\n' >&2
+  # Goes to stdout: the copy/paste command, plain values-file form (no --set
+  # flags — they're already baked into the rendered file above).
+  cat <<EOF
+helm upgrade --install ${RELEASE_NAME} ${CHART}${CHART_VERSION:+ --version ${CHART_VERSION}} \\
+  --namespace ${NAMESPACE} --create-namespace \\
+  -f ${values_file} \\
+  --wait --timeout ${WAIT_TIMEOUT}
+EOF
+  printf '  \033[2m────────────────────────────────────────────────────────────\033[0m\n' >&2
+  printf '\n' >&2
+  if [ "$AGENTLESS" != "true" ]; then
+    printf '  \033[1;33mNote:\033[0m the ClusterFederatedTrustDomain and (if USE_INGRESS=true) the nginx\n' >&2
+    printf '  Ingress this script would otherwise apply are NOT included above — they are\n' >&2
+    printf '  plain kubectl manifests, not part of the chart. Re-run without VALUES_ONLY,\n' >&2
+    printf '  or apply them yourself; see configure_federation()/configure_ingress() in\n' >&2
+    printf '  this script for the exact manifests.\n' >&2
+    printf '\n' >&2
   fi
 }
 
@@ -1490,6 +1584,12 @@ main() {
   preflight
   discover
   summarize
+
+  if [ "$VALUES_ONLY" = "true" ]; then
+    render_values_only
+    return 0
+  fi
+
   confirm_countdown
   configure_federation
   adopt_orphans

@@ -26,7 +26,12 @@ curl -fsSL https://raw.githubusercontent.com/philips-software/helm-charts/main/c
 
 It defaults to a read-only install; pass `WRITE_MODE=true` to enable mutating features.
 Fetch and read the script before piping it to `bash` rather than running it sight-unseen —
-see the next section for how to actually verify it.
+see the next section for how to actually verify it. To hand the actual `helm` step to
+someone else instead of running it yourself, pass `VALUES_ONLY=true` — the script still
+auto-discovers everything but only renders `values.yaml` plus the equivalent
+`helm upgrade --install -f values.yaml` command, without touching the cluster (see the
+[configuration reference](#installsh-configuration-reference) below for the full list of
+overrides).
 
 ## Verifying `install.sh` before running it
 
@@ -67,6 +72,139 @@ diff centcom-satellite/install.sh /path/to/your/install.sh && echo "MATCH — sa
 If step 3 fails, or step 5 reports any difference, stop — do not run the script you
 fetched. Requires `cosign` (<https://docs.sigstore.dev/cosign/installation/>) and `helm`
 on `PATH`; needs no credentials for a public chart repository.
+
+## `install.sh` configuration reference
+
+Every setting below is an environment variable read by `install.sh` (not a Helm value —
+see [Values](#values) for those). Anything left unset is either auto-discovered from the
+target cluster or defaulted to the safe/read-only choice; nothing is prompted interactively.
+Pass overrides the same way as the examples above, e.g.:
+
+```bash
+curl -fsSL .../install.sh | CLUSTER_NAME=edge AGENTLESS=true bash
+```
+
+### Rendering values instead of installing
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `VALUES_ONLY` | `false` | When `true`, runs every auto-discovery step as normal but never touches the cluster: it dry-runs the resolved `helm upgrade --install` through Helm itself, writes the merged `values.yaml` to disk, and prints the equivalent plain `helm upgrade --install -f <file>` command on stdout for you to run by hand. Skips `confirm_countdown`, `configure_federation`, `adopt_orphans`, `deploy`, `normalize_route`, `configure_ingress`, and `verify` entirely. Note: the `ClusterFederatedTrustDomain` (unless `AGENTLESS=true`) and the nginx `Ingress` (if `USE_INGRESS=true`) are plain `kubectl` manifests outside the chart, so they are *not* captured in the rendered file — apply them yourself or re-run without `VALUES_ONLY`. |
+| `VALUES_FILE` | `<release-name>-values.yaml` | Output path for the rendered values file when `VALUES_ONLY=true`. |
+
+### centcom federation (the caller this satellite trusts)
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `MCP_TRUST_DOMAIN` | `dip-ce-k3s-eu.hsp.philips.com` | Trust domain of the centcom cluster calling this satellite. |
+| `MCP_BUNDLE_ENDPOINT` | `https://spiffe.dip-ce-k3s-eu.hsp.philips.com:8443` | SPIFFE Federation Bundle Endpoint for `MCP_TRUST_DOMAIN`. Also reused as the URL `AGENTLESS=true` polls directly. |
+| `MCP_SPIFFE_ID` | `spiffe://dip-ce-k3s-eu.hsp.philips.com/ns/centcom/sa/centcom` | SPIFFE ID of the centcom caller, added to `spire.allowedSPIFFEIDs`. |
+| `MCP_FEDERATION_NAME` | `dip-ce-k3s-eu` | Name of the `ClusterFederatedTrustDomain` this script applies. |
+
+### Optional local caller (same trust domain, same cluster)
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `LOCAL_SPIFFE_ID` | *(empty)* | SPIFFE ID of a centcom running in the *same* cluster/trust domain as this satellite. Added to the accept-list without federation. Unsupported together with `AGENTLESS=true`. |
+| `LOCAL_TRUST_DOMAIN` | *(empty)* | Trust domain for `LOCAL_SPIFFE_ID`. Auto-discovered from the SPIFFE ID or the local `spire-server` config if unset. |
+
+### SPIRE agent-less mode
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `AGENTLESS` | *(auto)* | Force JWT-SVID validation via a federation-bundle HTTPS fetch instead of the local SPIRE Workload API — no agent socket, no `ClusterFederatedTrustDomain`, no CSI driver. Auto-enabled when the cluster has no SPIRE controller-manager (`clusterspiffeids` CRD absent); pass `AGENTLESS=false` to force the workload-API path anyway. Incompatible with `LOCAL_SPIFFE_ID` and with `spire.mtlsEnabled`. |
+
+### Install target
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `NAMESPACE` | `centcom-satellite` | Target namespace. |
+| `RELEASE_NAME` | `centcom-satellite` | Helm release name. |
+| `CHART` | `oci://ghcr.io/philips-software/helm-charts/centcom-satellite` | Chart reference (OCI ref or local path). |
+| `CHART_VERSION` | *(empty = latest)* | Pin a specific chart version. |
+| `IMAGE_TAG` | *(empty = chart's appVersion)* | Override the container image tag. |
+
+### Read-only vs. write mode
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `READ_ONLY` | `true` (when nothing set) | Explicit `true` always forces read-only, regardless of `WRITE_MODE`. Accepted as a synonym of `WRITE_MODE=false`. |
+| `WRITE_MODE` | *(empty)* | Set `true` to enable every mutating feature (`workloadRestart`, `workloadScale`, `podEvict`, `podResize`, `nodeclaimDelete`, `pvResize`, `autoRemediate`, `securityhubWrite` if requested) except `getResource` (wildcard-read, opt-in separately). With nothing set at all the installer defaults to read-only. |
+| `FEATURES` | *(derived from `READ_ONLY`)* | Raw override of the `features.*` Helm values as a comma-separated `key=value` list, e.g. `FEATURES=getResource=true,argocd=true`. Rarely needed directly — prefer `WRITE_MODE`/`READ_ONLY` and the AWS task-group flags below. |
+
+### AWS-backed task groups (CloudWatch RCA / GuardDuty / Security Hub)
+
+All of these provision the same generic Crossplane-managed IAM role via IRSA; any one of them enables the IRSA plumbing.
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `IRSA_ENABLED` | *(auto)* | Master switch: `true` turns on every unset AWS **read-only** task group below (never `SECURITYHUB_WRITE`, which stays opt-in). Auto-`true` when any individual group is explicitly `true`. |
+| `CLOUDWATCH_RCA` | `false` | Enable CloudWatch RCA + Cost Explorer tasks (7 read-only tasks). |
+| `GUARDDUTY` | `false` | Enable GuardDuty read tasks (5 tasks: detectors, findings statistics, list/get findings, hydrate composite). |
+| `SECURITYHUB` | `false` | Enable Security Hub read tasks (list standards, get findings, findings statistics). Aggregates more products than GuardDuty alone. |
+| `SECURITYHUB_WRITE` | `false` | Enable `securityhub_update_findings` (`BatchUpdateFindings`). Read+write, not write-only — implies `SECURITYHUB=true` automatically. Force-disabled whenever `READ_ONLY=true`, regardless of how it's set. |
+
+### IRSA / AWS identity (all auto-discovered from the target cluster)
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `IRSA_ACCOUNT_ID` | *(auto)* | AWS account ID, discovered from an existing IRSA-annotated ServiceAccount (majority vote, excluding this release's own SA and the AWS-docs placeholder account). |
+| `IRSA_OIDC_ISSUER` | *(auto)* | Cluster OIDC issuer host (scheme stripped), from `/.well-known/openid-configuration`. |
+| `IRSA_REGION` | *(auto)* | AWS region, from a node's `topology.kubernetes.io/region` label or `providerID`. |
+| `IRSA_PROVIDER_CONFIG` | *(auto)* | Crossplane `ClusterProviderConfig` name — prefers one named `default`. |
+| `IRSA_AUDIENCE` | `sts.amazonaws.com` | Token audience for the IRSA trust policy. |
+| `IRSA_ROLE_ARN` | *(empty)* | Bring-your-own IAM role ARN — skips Crossplane role creation entirely. |
+| `IRSA_NAME_PREFIX` | *(auto: `CLUSTER_NAME`, sanitized)* | Disambiguates the AWS-global IAM Role/Policy names when multiple clusters share an AWS account. Set empty to opt out (pre-existing, un-prefixed naming). |
+
+### Cross-account AWS AssumeRole
+
+See `CROSS-ACCOUNT-ASSUMEROLE.md` in the innovation-day repo for the full onboarding runbook — not exposed as `install.sh` flags; configure `aws.assumeRole.*` directly in a values file (see [Values](#values)).
+
+### Networking / exposure
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `USE_INGRESS` | *(auto)* | Use an nginx `Ingress` instead of a Gateway API `HTTPRoute` — for clusters whose gateway has a broken http-to-https redirect. Fails fast if no `IngressClass` exists. Mutually exclusive with `HTTPROUTE_ENABLED`. |
+| `HTTPROUTE_ENABLED` | `true` (unless `USE_INGRESS=true`) | Explicitly force/disable the Gateway API `HTTPRoute` path. Leaving both this and `USE_INGRESS` unset auto-detects: no Gateway API CRD → nginx Ingress if available, else ClusterIP-only with a warning. |
+| `GATEWAY_NAME` | *(auto)* | Gateway to attach to — prefers one named `gateway` or `platform`, else the first found. |
+| `GATEWAY_NAMESPACE` | *(auto)* | Namespace of the chosen Gateway. |
+| `GATEWAY_SECTION` | *(empty — intentionally not auto-set)* | Gateway listener `sectionName`. Leave empty to attach to all listeners; setting one can cause redirect loops on gateways with an all-listener http-to-https-redirect route. |
+| `HOSTNAME_FQDN` | *(auto: `centcom-satellite.<BASE_DOMAIN>`)* | Full hostname for the route. |
+| `BASE_DOMAIN` | *(auto: most common existing route hostname suffix)* | Base domain used to build `HOSTNAME_FQDN`. |
+| `INGRESS_CLASS` | *(auto, `USE_INGRESS=true` only)* | `IngressClass` — prefers one named `nginx`, else the first found. |
+| `CLUSTER_ISSUER` | *(auto, `USE_INGRESS=true` only)* | cert-manager `ClusterIssuer` — prefers one whose name contains `prod`. |
+| `INGRESS_TLS_SECRET` | `centcom-satellite-tls` | TLS secret name for the nginx `Ingress`. |
+
+### Identity
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `CLUSTER_NAME` | *(auto: hsp-addons environment tag, else kube-context name)* | Identifies this cluster (used in `JWT_AUDIENCE`, `IRSA_NAME_PREFIX`, log/summary output). |
+| `SPIRE_CLASSNAME` | *(auto, skipped under `AGENTLESS=true`)* | SPIRE controller-manager `className` — the most common one found among existing `ClusterSPIFFEID`s. |
+| `JWT_AUDIENCE` | *(auto: `centcom-satellite-<CLUSTER_NAME>`)* | Expected JWT-SVID audience. |
+
+### Behavior / sizing
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `SERVICEMONITOR_ENABLED` | *(auto)* | Force on/off; unset auto-detects the Prometheus Operator CRD. |
+| `VPA_ENABLED` | *(auto)* | Force on/off; unset auto-detects the VPA CRD. |
+| `REPLICA_COUNT` | `2` | Pod replica count. |
+| `POD_COUNT` | *(auto: cluster-wide pod count)* | Skips the live pod-count query when set — useful on locked-down/huge clusters. Drives the memory tier table below. |
+| `MEMORY_LIMIT` | *(auto, tiered from `POD_COUNT`)* | Force the initial memory limit (e.g. `512Mi`); the VPA ceiling still tiers unless `VPA_MAX_MEMORY` is also set. |
+| `VPA_MAX_MEMORY` | *(auto, tiered from `POD_COUNT`)* | Force the VPA memory ceiling (e.g. `4Gi`). |
+| `DRY_RUN` | `false` | Print every helm/kubectl action instead of running it — nothing changes. Unlike `VALUES_ONLY`, does not write a values file. |
+| `WAIT_TIMEOUT` | `180s` | Timeout for `helm --wait` and the post-install rollout check. |
+| `COUNTDOWN` | *(auto, 8–20s from plan size)* | Seconds to review the resolved plan before installing; `ESC` aborts, `ENTER` proceeds immediately. |
+| `ASSUME_YES` | `false` | Skip the review countdown entirely (CI / unattended runs). |
+| `ADOPT_RESOURCES` | `true` | Stamp Helm ownership onto pre-existing chart resources that lack it, so `helm upgrade` can adopt them. |
+| `FORCE_CONFLICTS` | `true` | Use server-side apply + `--force-conflicts` so the upgrade reclaims fields another manager grabbed (e.g. a manual `kubectl scale`). Requires Helm 3.18+/4.x; falls back with a warning on older Helm. |
+
+### Diagnostics
+
+| Variable | Default | Description |
+|----------|---------|--------------|
+| `TRACE` | `false` | Full `bash -x` command tracing. |
+| `LOG_STDOUT` | `auto` | `auto` merges stderr into stdout only when stdout isn't a terminal (a CI runner capturing output); `true`/`false` force one behavior regardless. Only the final copy/paste snippet (or, under `VALUES_ONLY`, the `helm` command) is ever stdout-only by design. |
 
 ## Source Code
 
