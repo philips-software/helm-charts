@@ -74,14 +74,12 @@ spec:
             httpGet:
               path: /-/healthy
               port: http
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            {{- toYaml .Values.customAlloy.livenessProbe | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /-/ready
               port: http
-            initialDelaySeconds: 10
-            periodSeconds: 5
+            {{- toYaml .Values.customAlloy.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.customAlloy.resources | nindent 12 }}
           volumeMounts:
