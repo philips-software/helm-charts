@@ -23,7 +23,13 @@ runs:
         # that marker match Chart.yaml's version exactly, or a script fetched
         # from this exact release would verify itself against the WRONG
         # chart. Charts without the marker are skipped.
-        check_status=0
+        #
+        # A mismatch skips packaging/publishing for *that chart only* (see
+        # mismatched-charts.txt below) rather than failing this job outright --
+        # one chart's stale marker must never block every other chart's
+        # release. The ::error annotation still surfaces it (red in the Actions
+        # UI) so it doesn't go unnoticed indefinitely.
+        : > mismatched-charts.txt
         for d in ${CHARTS_PATH}*/ ; do
             script="${d}install.sh"
             chart="${d}Chart.yaml"
@@ -32,13 +38,12 @@ runs:
             [ -n "$marker" ] || continue
             chart_version=$(awk '/^version:/{print $2}' "$chart")
             if [ "$marker" != "$chart_version" ]; then
-              echo "::error file=${script}::INSTALL_SH_CHART_VERSION=${marker} does not match ${chart}'s version: ${chart_version}"
-              check_status=1
+              echo "::error file=${script}::INSTALL_SH_CHART_VERSION=${marker} does not match ${chart}'s version: ${chart_version} -- skipping this chart's publish, other charts are unaffected"
+              echo "$d" >> mismatched-charts.txt
             else
               echo "${script}: INSTALL_SH_CHART_VERSION matches Chart.yaml (${chart_version})"
             fi
         done
-        exit $check_status
       env:
         CHARTS_PATH: ${{ inputs.chartsPath }}
 
@@ -49,6 +54,10 @@ runs:
         for d in ${CHARTS_PATH}*/ ; do
             if [[ ! -f "${d}Chart.yaml" ]]; then
                 echo "${d}Chart.yaml not found. Skipping."
+                continue
+            fi
+            if grep -qxF "$d" mismatched-charts.txt 2>/dev/null; then
+                echo "${d}: skipping package/publish, install.sh version marker mismatch (see previous step)"
                 continue
             fi
             echo "$d"
