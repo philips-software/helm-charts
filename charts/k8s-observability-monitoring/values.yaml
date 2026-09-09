@@ -157,16 +157,22 @@ telemetryServices:
   node-exporter:
     deploy: false
 
-# -- Common collector settings (applies to all Alloy instances managed by operator)
+# -- Common collector settings (applies to all Alloy instances managed by operator).
+# NOTE: collectorCommon.alloy is merged at the *top level* of each Alloy custom resource's spec
+# (siblings: alloy, controller, ...) -- see grafana/k8s-monitoring-helm collector.alloy.values.
+# That means resources must be nested under an inner `alloy:` key (collectorCommon.alloy.alloy.resources),
+# not collectorCommon.alloy.resources directly, or they silently land on an unknown top-level field and
+# are dropped -- each managed collector then falls back to its preset's resources instead.
 collectorCommon:
   alloy:
-    resources:
-      requests:
-        cpu: 100m
-        memory: 256Mi
-      limits:
-        memory: 512Mi
-    # -- Controller settings for pod scheduling
+    alloy:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          memory: 1Gi
+    # -- Controller settings for pod scheduling and autoscaling
     controller:
       # -- Node affinity to prevent DaemonSets from scheduling on Fargate nodes.
       # Fargate doesn't support DaemonSets, so we exclude nodes with eks.amazonaws.com/compute-type=fargate.
@@ -179,6 +185,26 @@ collectorCommon:
                     operator: NotIn
                     values:
                       - fargate
+      # -- VerticalPodAutoscaler for upstream-managed collectors (alloy-metrics, alloy-logs,
+      # alloy-receiver), using the Alloy Operator's native VPA support -- no custom template needed.
+      # Disabled by default: unlike customAlloy (opt-in feature, so its VPA default-on only affects
+      # clusters that already enabled it), alloy-metrics/alloy-logs are core collectors enabled on
+      # every install, and this requires the VPA CRD to be present in the cluster. Enable per-cluster
+      # once the VPA CRD is confirmed installed.
+      autoscaling:
+        vertical:
+          enabled: false
+          updatePolicy:
+            updateMode: "Auto"
+          resourcePolicy:
+            containerPolicies:
+              - containerName: alloy
+                controlledResources:
+                  - memory
+                minAllowed:
+                  memory: 256Mi
+                maxAllowed:
+                  memory: 4Gi
 
 # -- Per-collector settings (overrides collectorCommon for specific collectors)
 # Available collectors: alloy-logs, alloy-metrics, alloy-receiver
@@ -218,6 +244,23 @@ customAlloy:
     extraMetricProcessingRules: ""
   kubelet:
     enabled: false
+  # -- Liveness probe for the alloy container. timeoutSeconds defaults to 5 (not
+  # Kubernetes' implicit 1s) because this single binary also runs OTLP export
+  # queues/retries and (when clustering is enabled) gossip -- a busy retry loop
+  # against a slow/unhealthy destination can otherwise delay the health handler
+  # past a 1s budget and trip the probe even though alloy itself is fine.
+  livenessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  # -- Readiness probe for the alloy container. Same timeoutSeconds rationale
+  # as livenessProbe above.
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 3
   resources:
     requests:
       cpu: 100m
