@@ -64,7 +64,7 @@ dex:
   image:
     repository: ghcr.io/philips-forks/dex
     # renovate: datasource=docker depName=ghcr.io/philips-forks/dex
-    tag: "v2.45.1-dip.6"
+    tag: "v2.45.1-dip.11"
 
 # Upstream Dex Helm chart configuration
 dexChart:
