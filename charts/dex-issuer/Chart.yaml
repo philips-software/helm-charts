@@ -2,7 +2,7 @@ apiVersion: v2
 name: dex-issuer
 description: Deploys Dex (OpenID Connect issuer) with its Postgres storage, gRPC mTLS PKI, and Crossplane connector-management plane
 type: application
-version: 0.5.0
+version: 0.5.1
 # renovate: datasource=docker depName=ghcr.io/philips-forks/dex
 appVersion: "v2.45.1-dip.12"
 maintainers:
