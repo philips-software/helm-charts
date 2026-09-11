@@ -109,7 +109,26 @@ rbac:
   #   - apiGroups: ["custom.example.com"]
   #     resources: ["myresources"]
   #     verbs: ["get", "list", "watch"]
-  additionalRules: []
+  #
+  # Lease (coordination.k8s.io) is included by default: the built-in `view`
+  # ClusterRole this chart binds to (see clusterrole-view binding) has no
+  # rules for coordination.k8s.io at all, so without this, get_resource/
+  # list_resources can't read leader-election or kube-node-lease Leases.
+  # Read-only access is low-risk: a Lease's spec is a narrow, fixed schema
+  # (holderIdentity, leaseDurationSeconds, renewTime, leaseTransitions) with
+  # no field for arbitrary/sensitive data — unlike Secrets, which stay
+  # excluded from `view` by design. holderIdentity is just a pod/node name,
+  # already visible via this chart's existing (much broader) Pod/Node read
+  # access, so this adds no meaningfully new information disclosure, only
+  # operational value (diagnosing leader-election churn/flapping).
+  #
+  # NOTE: a per-cluster values file that sets its own rbac.additionalRules
+  # REPLACES this default list wholesale (Helm doesn't merge arrays) — if
+  # you add cluster-specific rules there, include this Lease rule too.
+  additionalRules:
+    - apiGroups: ["coordination.k8s.io"]
+      resources: ["leases"]
+      verbs: ["get", "list", "watch"]
 
 # Feature flags for optional functionality
 features:
