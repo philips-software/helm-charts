@@ -128,7 +128,7 @@ curl -fsSL .../install.sh | CLUSTER_NAME=edge AGENTLESS=true bash
 | Variable | Default | Description |
 |----------|---------|--------------|
 | `READ_ONLY` | `true` (when nothing set) | Explicit `true` always forces read-only, regardless of `WRITE_MODE`. Accepted as a synonym of `WRITE_MODE=false`. |
-| `WRITE_MODE` | *(empty)* | Set `true` to enable every mutating feature (`workloadRestart`, `workloadScale`, `podEvict`, `podResize`, `nodeclaimDelete`, `pvResize`, `autoRemediate`, `securityhubWrite` if requested) except `getResource` (wildcard-read, opt-in separately). With nothing set at all the installer defaults to read-only. |
+| `WRITE_MODE` | *(empty)* | Set `true` to enable every mutating feature (`workloadRestart`, `workloadScale`, `podEvict`, `podResize`, `nodeclaimDelete`, `pvResize`, `autoRemediate`, `securityhubWrite` if requested) as well as `getResource` (read-only, but included by default in both modes — see `features.getResource` below for its defense-in-depth layers). With nothing set at all the installer defaults to read-only. |
 | `FEATURES` | *(derived from `READ_ONLY`)* | Raw override of the `features.*` Helm values as a comma-separated `key=value` list, e.g. `FEATURES=getResource=true,argocd=true`. Rarely needed directly — prefer `WRITE_MODE`/`READ_ONLY` and the AWS task-group flags below. |
 
 ### AWS-backed task groups (CloudWatch RCA / GuardDuty / Security Hub)

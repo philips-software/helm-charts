@@ -163,7 +163,7 @@ set -euo pipefail
 # in lockstep with Chart.yaml's version on every release that touches this
 # script. `install.sh verify` uses it to know which signed OCI chart to check
 # itself against — see that function for the full explanation.
-INSTALL_SH_CHART_VERSION="0.28.0"
+INSTALL_SH_CHART_VERSION="0.29.0"
 
 # Unconditional, un-suppressible proof of life: the very first thing this
 # script does, before parsing a single config default or touching the
@@ -270,10 +270,17 @@ fi
 if [ "$READ_ONLY" = "true" ]; then
   : "${FEATURES:=getResource=true,argocd=true,configmapRead=true,httpRequest=true,workloadRestart=false,workloadScale=false,podEvict=false,podResize=false,nodeclaimDelete=false,pvResize=false,autoRemediate=false}"
 else
-  # Write mode: enable every feature EXCEPT the arbitrary resource reader
-  # (getResource). getResource grants wildcard read RBAC, so it stays off and
-  # is set explicitly to false so a re-run also disables it (declarative).
-  : "${FEATURES:=getResource=false,argocd=true,autoRemediate=true,configmapRead=true,httpRequest=true,nodeclaimDelete=true,podEvict=true,podResize=true,pvResize=true,workloadRestart=true,workloadScale=true}"
+  # Write mode: enable every feature, including the arbitrary resource
+  # reader (getResource) — matches the chart's own values.yaml default
+  # (true) since chart 0.67.0. getResource's wildcard read is already
+  # defense-in-depth (binds the built-in `view` ClusterRole rather than a
+  # true wildcard grant, code-level Secret denylist regardless of RBAC,
+  # and secret-shaped value redaction — see values.yaml's features.getResource
+  # comment), so it's no longer treated as a separate, more sensitive
+  # opt-in than the rest of write mode. Explicit here (not just relying on
+  # the chart default) so a re-run also enables it declaratively on an
+  # existing install.
+  : "${FEATURES:=getResource=true,argocd=true,autoRemediate=true,configmapRead=true,httpRequest=true,nodeclaimDelete=true,podEvict=true,podResize=true,pvResize=true,workloadRestart=true,workloadScale=true}"
 fi
 
 # CloudWatch RCA + Cost Explorer tasks. These need AWS credentials, provided via
