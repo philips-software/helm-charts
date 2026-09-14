@@ -1,40 +1,47 @@
 # Default values for centcom-satellite
 
+# -- Number of pod replicas
 replicaCount: 2
 
 image:
+  # -- Container image repository
   repository: ghcr.io/loafoe/centcom-satellite
+  # -- Image pull policy
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion
+  # -- Overrides the image tag whose default is the chart appVersion
   tag: ""
 
+# -- Secrets for pulling the image from a private registry
 imagePullSecrets: []
+# -- Overrides the chart's name
 nameOverride: ""
+# -- Overrides the full generated release name
 fullnameOverride: ""
 
 # SPIRE/SPIFFE configuration for workload identity
 spire:
-  # Enable SPIRE authentication (required for both mTLS and JWT modes)
+  # -- Enable SPIRE authentication (required for both mTLS and JWT modes)
   enabled: true
-  # SPIRE controller manager className (must match your SPIRE installation)
+  # -- SPIRE controller manager className (must match your SPIRE installation).
   # Common values: "spire-release-spire", "spire-system-spire"
   className: "spire-release-spire"
-  # SPIRE agent socket path (env var passed to the application)
+  # -- SPIRE agent socket path (env var passed to the application)
   agentSocket: "unix:///spiffe-workload-api/spire-agent.sock"
-  # Mount path for the SPIRE socket inside the container
+  # -- Mount path for the SPIRE socket inside the container
   socketMountPath: "/spiffe-workload-api"
-  # Host path for SPIRE socket (used when csi.enabled=false)
+  # -- Host path for SPIRE socket (used when csi.enabled=false)
   hostSocketPath: "/run/spire/agent-sockets"
   # CSI driver configuration (recommended for clusters with spiffe-csi-driver)
   csi:
+    # -- Enable the SPIFFE CSI driver volume mount for the agent socket (recommended over hostPath)
     enabled: true
-  # Trust domains to accept (supports federation with multiple domains)
+  # -- Trust domains to accept (supports federation with multiple domains).
   # Example: ["example.org", "partner.com"]
   trustDomains: []
-  # Skip creating the federated ClusterSPIFFEID (use when ALL callers are in the
+  # -- Skip creating the federated ClusterSPIFFEID (use when ALL callers are in the
   # same trust domain as this agent — federation with self is invalid)
   skipFederation: false
-  # The agent's OWN trust domain. When a caller lives in the same trust domain
+  # -- The agent's OWN trust domain. When a caller lives in the same trust domain
   # as this agent, list that domain in trustDomains (so it's accepted) AND set
   # it here, so the federated ClusterSPIFFEID excludes it from federatesWith
   # (SPIRE cannot federate a trust domain with itself). Leave empty when every
@@ -42,94 +49,147 @@ spire:
   # the same time, without disabling federation entirely (skipFederation).
   # Example: "rpi.loafoe.com"
   localTrustDomain: ""
-  # Legacy single trust domain (use trustDomains for new deployments)
+  # -- Legacy single trust domain (use trustDomains for new deployments).
   # Kept for backward compatibility
   trustDomain: ""
-  # List of allowed SPIFFE IDs (empty = allow all from configured trust domains)
+  # -- List of allowed SPIFFE IDs (empty = allow all from configured trust domains).
   # Example: ["spiffe://example.org/ai-agent", "spiffe://partner.com/service"]
   allowedSPIFFEIDs: []
-  # Enable X.509 mTLS (requires direct pod-to-pod communication)
+  # -- Enable X.509 mTLS (requires direct pod-to-pod communication).
   # When false, only JWT-SVID authentication is used (works behind gateways)
   mtlsEnabled: false
   # JWT-SVID authentication (works behind TLS-terminating gateways)
   jwt:
-    # Enable JWT-SVID validation
+    # -- Enable JWT-SVID validation
     enabled: false
-    # Expected JWT audiences (at least one required when jwt.enabled=true)
+    # -- Expected JWT audiences (at least one required when jwt.enabled=true).
     # Example: ["centcom-satellite", "https://centcom-satellite.example.org"]
     audiences: []
+    # -- How the JWT trust bundle is obtained. "workload_api" (default) fetches
+    # it from the local SPIRE Workload API via the agent socket below —
+    # requires a local SPIRE Agent (CSI driver or hostPath). "federation"
+    # fetches it from a SPIFFE Federation Bundle Endpoint over HTTPS instead
+    # — no local SPIRE Agent required, so the chart skips the agent-socket
+    # volume/mount entirely. This is what makes ECS/Fargate-style targets
+    # (or any cluster without a SPIRE Agent DaemonSet) viable. Requires
+    # spire.mtlsEnabled=false — federation mode has no X.509 identity source.
+    bundleSource: "workload_api"
+    # -- Map of trust domain -> federation bundle endpoint URL. Required, with
+    # one entry per domain in spire.trustDomains, when bundleSource is
+    # "federation". Example:
+    #   federationBundleEndpoints:
+    #     example.org: "https://spire-server.example.org/bundle"
+    federationBundleEndpoints: {}
+    # -- Optional path (inside the container) of a PEM file of root CAs to
+    # trust when fetching from federationBundleEndpoints. This chart has no
+    # built-in mechanism to mount an extra file into the container, so this
+    # is only useful if the image already has the file baked in, or via a
+    # separately managed volume/volumeMount layered on with a Helm
+    # post-renderer or a chart fork. Empty (default) uses the system trust
+    # store, the common case for an endpoint behind a normal ALB/ingress
+    # with a publicly trusted certificate, which needs nothing
+    # set here.
+    federationCABundlePath: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
+  # -- Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use
+  # -- The name of the service account to use
   name: ""
 
 # RBAC configuration
 rbac:
-  # Create ClusterRole and ClusterRoleBinding
+  # -- Create ClusterRole and ClusterRoleBinding
   create: true
-  # Additional RBAC rules to add to the ClusterRole
+  # -- Additional RBAC rules to add to the ClusterRole.
   # Example:
   # additionalRules:
   #   - apiGroups: ["custom.example.com"]
   #     resources: ["myresources"]
   #     verbs: ["get", "list", "watch"]
-  additionalRules: []
+  #
+  # Lease (coordination.k8s.io) is included by default: the built-in `view`
+  # ClusterRole this chart binds to (see clusterrole-view binding) has no
+  # rules for coordination.k8s.io at all, so without this, get_resource/
+  # list_resources can't read leader-election or kube-node-lease Leases.
+  # Read-only access is low-risk: a Lease's spec is a narrow, fixed schema
+  # (holderIdentity, leaseDurationSeconds, renewTime, leaseTransitions) with
+  # no field for arbitrary/sensitive data — unlike Secrets, which stay
+  # excluded from `view` by design. holderIdentity is just a pod/node name,
+  # already visible via this chart's existing (much broader) Pod/Node read
+  # access, so this adds no meaningfully new information disclosure, only
+  # operational value (diagnosing leader-election churn/flapping).
+  #
+  # NOTE: a per-cluster values file that sets its own rbac.additionalRules
+  # REPLACES this default list wholesale (Helm doesn't merge arrays) — if
+  # you add cluster-specific rules there, include this Lease rule too.
+  additionalRules:
+    - apiGroups: ["coordination.k8s.io"]
+      resources: ["leases"]
+      verbs: ["get", "list", "watch"]
 
 # Feature flags for optional functionality
 features:
-  # Enable get_resource task for fetching arbitrary Kubernetes resources
-  # When enabled, also grants wildcard read RBAC permissions
-  # Note: Secret access is blocked in code for security
-  getResource: false
-  # Enable workload_restart task for rolling restarts of deployments/statefulsets/daemonsets
+  # Enable get_resource task for fetching arbitrary Kubernetes resources.
+  # Enabled by default - defense in depth across three independent layers:
+  # 1. RBAC: binds the built-in `view` ClusterRole (excludes Secrets by design)
+  #    instead of a wildcard grant - see clusterrolebinding-view.yaml.
+  # 2. Denylist: Secret is always blocked in code regardless of RBAC; add more
+  #    group+kind pairs via features.resourceAccessDeny.
+  # 3. Redaction: secret-shaped values (high-entropy/PEM/inline-secret/
+  #    secret-key-name) are masked in the returned object graph.
+  # -- Enable get_resource task for fetching arbitrary Kubernetes resources
+  getResource: true
+  # -- Additional group+kind pairs get_resource refuses to read, on top of the
+  # non-negotiable default (Secret). Empty by default. Example:
+  # resourceAccessDeny:
+  #   - group: "external-secrets.io"
+  #     kind: "SecretStore"
+  resourceAccessDeny: []
+  # -- Enable workload_restart task for rolling restarts of deployments/statefulsets/daemonsets.
   # When enabled, grants patch permission on apps workloads and read on PDBs
   workloadRestart: false
-  # Enable workload_scale task for scaling deployments/statefulsets
+  # -- Enable workload_scale task for scaling deployments/statefulsets.
   # When enabled, grants scale subresource access and read on HPAs
   workloadScale: false
-  # Enable pod_evict task for evicting/deleting pods
+  # -- Enable pod_evict task for evicting/deleting pods.
   # When enabled, grants eviction create, pod delete, and read on PDBs
   podEvict: false
-  # Enable pod_resize task for in-place pod memory resize (KEP-1287)
+  # -- Enable pod_resize task for in-place pod memory resize (KEP-1287).
   # Requires Kubernetes 1.27+ with InPlacePodVerticalScaling feature gate
   podResize: false
-  # Pod resize safety limits
+  # -- Pod resize safety limits: max percentage change allowed per resize call
   podResizePercentageCap: 50
+  # -- Pod resize safety limits: max absolute memory value allowed per resize call
   podResizeAbsoluteCap: "4Gi"
-  # Enable nodeclaim_delete task for Karpenter node management
+  # -- Enable nodeclaim_delete task for Karpenter node management.
   # When enabled, grants get/delete on karpenter.sh nodeclaims
   nodeclaimDelete: false
-  # Enable Argo CD application introspection
+  # -- Enable Argo CD application introspection.
   # When enabled, grants get/list/watch on argoproj.io applications
   argocd: false
-  # Enable list_configmaps + get_configmap tasks for ConfigMap introspection
-  # When enabled, grants get/list on configmaps. get_configmap redacts
-  # secret-looking values (high-entropy/PEM/inline-secret/secret-key-name).
-  configmapRead: false
-  # Enable http_request task for making HTTP requests to cluster-internal services
-  # Useful for admin endpoints, ring management, config reloads, debugging
+  # -- Enable http_request task for making HTTP requests to cluster-internal services.
+  # Useful for admin endpoints, ring management, config reloads, debugging.
   # Only allows requests to cluster-internal addresses (pods, services)
   httpRequest: false
-  # Enable pv_resize task for resizing persistent volumes
+  # -- Enable pv_resize task for resizing persistent volumes.
   # When enabled, grants patch permission on PVCs
   pvResize: false
-  # Enable auto-remediation workflows orchestrated by centcom
+  # -- Enable auto-remediation workflows orchestrated by centcom
   # (e.g. PV usage alerting and automatic resize). Sets AUTO_REMEDIATE_ENABLED.
   autoRemediate: false
-  # Enable CloudWatch RCA tasks (7 tasks: describe/list/tag APIs for alarms,
+  # -- Enable CloudWatch RCA tasks (7 tasks: describe/list/tag APIs for alarms,
   # metrics, log groups, Cost Explorer). Sets CLOUDWATCH_RCA_ENABLED. Requires
   # AWS credentials via IRSA (aws.irsa) or ambient credentials.
   cloudwatchRca: false
-  # Enable GuardDuty tasks (5 tasks: list detectors, findings statistics, list/get
+  # -- Enable GuardDuty tasks (5 tasks: list detectors, findings statistics, list/get
   # findings, and a list+hydrate composite). Sets GUARDDUTY_ENABLED. Independently
   # toggleable from cloudwatchRca. Requires AWS credentials via IRSA (aws.irsa) or
   # ambient credentials; attaches the read-only GuardDuty policy to the IRSA role.
   guardduty: false
-  # Enable Security Hub read tasks (list standards, get findings, get findings
+  # -- Enable Security Hub read tasks (list standards, get findings, get findings
   # statistics). Sets SECURITYHUB_ENABLED. Independently toggleable from guardduty
   # and cloudwatchRca — Security Hub aggregates findings from more products
   # (GuardDuty, Inspector, Macie, IAM Access Analyzer, Config, custom
@@ -137,7 +197,7 @@ features:
   # (aws.irsa) or ambient credentials; attaches the read-only Security Hub
   # policy to the IRSA role.
   securityhub: false
-  # Enable the securityhub_update_findings write task (BatchUpdateFindings —
+  # -- Enable the securityhub_update_findings write task (BatchUpdateFindings —
   # sets a finding's Workflow.Status and/or Note). Sets SECURITYHUB_WRITE_ENABLED.
   # This is a read+write capability, not a write-only add-on: enabling it also
   # sets SECURITYHUB_ENABLED and attaches the read-only Security Hub policy —
@@ -158,9 +218,9 @@ features:
 # their own policies to the same role rather than a new role.
 aws:
   irsa:
-    # Create Crossplane IAM Role (+ per-feature Policy/Attachment) and annotate the SA for IRSA
+    # -- Create Crossplane IAM Role (+ per-feature Policy/Attachment) and annotate the SA for IRSA
     enabled: false
-    # Prefix for the AWS-facing IAM resource names (Role, Policy). Unlike a
+    # -- Prefix for the AWS-facing IAM resource names (Role, Policy). Unlike a
     # Kubernetes object name, an IAM role/policy name is GLOBAL PER AWS ACCOUNT:
     # two clusters that share one account and both install this chart would
     # otherwise collide on the identical role/policy name (and role ARN). Set
@@ -169,31 +229,58 @@ aws:
     # Empty == no prefix (role/policy named after the release), preserving the
     # behaviour of installs that predate this option.
     namePrefix: ""
-    # AWS account ID (used to compute the role ARN stamped on the ServiceAccount)
+    # -- AWS account ID (used to compute the role ARN stamped on the ServiceAccount)
     accountId: ""
-    # Cluster OIDC issuer host (no scheme), e.g. k3s-issuer.dip-ce-k3s-eu.hsp.philips.com
+    # -- Cluster OIDC issuer host (no scheme), e.g. k3s-issuer.dip-ce-k3s-eu.hsp.philips.com
     oidcIssuer: ""
-    # Token audience expected in the IRSA trust policy
+    # -- Token audience expected in the IRSA trust policy
     audience: "sts.amazonaws.com"
-    # Crossplane ClusterProviderConfig name
+    # -- Crossplane ClusterProviderConfig name
     providerConfigRef: default
-    # AWS region the SDK uses for CloudWatch/Logs calls (Cost Explorer is us-east-1 in code)
+    # -- AWS region the SDK uses for CloudWatch/Logs calls (Cost Explorer is us-east-1 in code)
     region: ""
-    # IAM path and extra tags applied to the created role/policies
+    # -- IAM path applied to the created role/policies
     path: /
+    # -- Extra tags applied to the created role/policies
     tags: {}
-    # Bring-your-own role: when set, skip building the ARN from accountId and just
+    # -- Bring-your-own role: when set, skip building the ARN from accountId and just
     # annotate the SA with this ARN (Crossplane resources still render if enabled).
     roleArnOverride: ""
-    # Additional pre-existing managed-policy ARNs to attach to the generic role.
+    # -- Additional pre-existing managed-policy ARNs to attach to the generic role.
     # Use this to grant IAM for task groups beyond the built-in CloudWatch RCA
     # policy without defining a new role, e.g.:
     #   extraPolicyArns:
     #     - arn:aws:iam::123456789012:policy/centcom-satellite-extra
     extraPolicyArns: []
 
+  # Cross-account AWS AssumeRole: when set, all AWS data-retrieval/write tasks
+  # (cw_*, cost_explorer, guardduty_*, securityhub_*) operate against a
+  # *different* AWS account via STS AssumeRole, while Kubernetes tasks keep
+  # using the local in-cluster identity. Requires aws.irsa.enabled=true — the
+  # source-account sts:AssumeRole permission is granted to the same generic
+  # IRSA role via an additional Crossplane Policy/RolePolicyAttachment,
+  # scoped to roleArn only (never "*", to avoid letting this satellite assume
+  # any role in any account that trusts it).
+  assumeRole:
+    # -- Target IAM role ARN in a different AWS account. Empty (default)
+    # disables the feature entirely — every AWS task keeps using the base
+    # IRSA identity, byte-for-byte unchanged.
+    roleArn: ""
+    # -- Optional STS ExternalId, passed to AssumeRole for confused-deputy
+    # protection. Only needed if the target role's trust policy requires one.
+    externalId: ""
+    # -- STS RoleSessionName, visible in the target account's CloudTrail.
+    sessionName: "centcom-satellite"
+    # -- Overrides the AWS region used for AssumeRole'd API calls. Only applies
+    # while roleArn is set — a cluster-less satellite's pod region has no
+    # necessary relationship to the target account's region, so this can't
+    # fall back to aws.irsa.region (which describes the pod's own cluster).
+    region: ""
+
+# -- Extra annotations to add to the pod
 podAnnotations: {}
 
+# -- Pod-level securityContext
 podSecurityContext:
   runAsNonRoot: true
   runAsUser: 65532
@@ -202,6 +289,7 @@ podSecurityContext:
   seccompProfile:
     type: RuntimeDefault
 
+# -- Container-level securityContext
 securityContext:
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
@@ -210,10 +298,17 @@ securityContext:
       - ALL
 
 service:
+  # -- Kubernetes Service type
   type: ClusterIP
+  # -- Port serving the main HTTP API (used by centcom / clients)
   port: 8080
+  # -- Port serving Prometheus metrics at /metrics
   metricsPort: 9090
 
+# -- Container resource requests/limits. The initial memory.limit is
+# sized for small/medium clusters; large clusters (thousands of pods, see
+# observability.logLevel and vpa above) should raise this — install.sh's
+# discover_memory tiers it automatically from cluster-wide pod count.
 resources:
   limits:
     cpu: 100m
@@ -231,73 +326,106 @@ resources:
 # otelEndpoint additionally exports spans to an OTLP collector. Sampling
 # decisions made upstream by centcom are honoured (ParentBased sampler).
 observability:
+  # -- Log verbosity (e.g. debug, info, warn, error)
   logLevel: info
+  # -- Log output format (json or console)
   logFormat: json
-  # OpenTelemetry OTLP collector endpoint for span export (host:port). When
+  # -- OpenTelemetry OTLP collector endpoint for span export (host:port). When
   # empty, spans are not exported but trace context is still propagated.
   otelEndpoint: ""
-  # Use plaintext (insecure) for the OTLP exporter. Set to false to use TLS.
+  # -- Use plaintext (insecure) for the OTLP exporter. Set to false to use TLS.
   # Maps to OTEL_EXPORTER_OTLP_INSECURE. Only applies when otelEndpoint is set.
   otelInsecure: true
+  # -- Service name reported on exported OTLP spans
   otelServiceName: centcom-satellite
+
+# Per-client-IP request throttling on the main HTTP server (port 8080).
+# Enabled by default with a generous limit: legitimate traffic (centcom
+# polling cluster_info every few seconds, a handful of concurrent tool
+# calls, log streaming) never approaches it. /healthz and /readyz are never
+# throttled regardless of this config. On rejection the satellite responds
+# 429 with Retry-After plus the RateLimit-Limit/Remaining/Reset headers, and
+# centcom's own client honors Retry-After and retries automatically.
+rateLimit:
+  # -- Enable per-client-IP request throttling on the main HTTP server
+  enabled: true
+  # -- Sustained requests/second allowed per client IP.
+  requestsPerSecond: 50
+  # -- Burst capacity above the sustained rate before throttling kicks in.
+  burst: 100
 
 # Prometheus ServiceMonitor (requires the Prometheus Operator CRDs).
 # Scrapes the metrics port (9090) at /metrics. The centcom-satellite exposes:
 #   centcom_satellite_http_* / tasks_* / auth_attempts_total / k8s_requests_* /
 #   log_stream_* / build_info, plus Go runtime + process collectors.
 serviceMonitor:
-  # Enable creation of a ServiceMonitor resource
+  # -- Enable creation of a ServiceMonitor resource
   enabled: false
-  # Namespace for the ServiceMonitor (defaults to the release namespace).
+  # -- Namespace for the ServiceMonitor (defaults to the release namespace).
   # Set this when your Prometheus watches a specific namespace.
   namespace: ""
-  # Scrape interval and per-scrape timeout
+  # -- Scrape interval
   interval: 30s
+  # -- Per-scrape timeout
   scrapeTimeout: 10s
-  # Extra labels on the ServiceMonitor. Often required so the Prometheus
+  # -- Extra labels on the ServiceMonitor. Often required so the Prometheus
   # Operator's serviceMonitorSelector picks it up, e.g. {release: kube-prometheus-stack}
   labels: {}
-  # Keep metric labels from the target instead of overwriting on conflict
+  # -- Keep metric labels from the target instead of overwriting on conflict
   honorLabels: false
-  # Service labels to copy onto scraped metrics as target labels
+  # -- Service labels to copy onto scraped metrics as target labels
   targetLabels: []
-  # Prometheus relabeling applied before scraping (relabel_configs)
+  # -- Prometheus relabeling applied before scraping (relabel_configs)
   relabelings: []
-  # Prometheus relabeling applied to scraped samples (metric_relabel_configs)
+  # -- Prometheus relabeling applied to scraped samples (metric_relabel_configs)
   metricRelabelings: []
 
+# -- Node selector for pod scheduling
 nodeSelector:
   kubernetes.io/os: linux
 
+# -- Tolerations for pod scheduling
 tolerations: []
 
+# -- Affinity rules for pod scheduling
 affinity: {}
 
 # Vertical Pod Autoscaler
 vpa:
+  # -- Enable creation of a VerticalPodAutoscaler resource (requires the VPA CRDs)
   enabled: true
+  # -- VPA update mode (e.g. Off, Initial, Auto, InPlaceOrRecreate)
   updateMode: InPlaceOrRecreate
-  # Enable in-place resize (requires K8s 1.27+ with InPlacePodVerticalScaling feature gate)
+  # -- Enable in-place resize (requires K8s 1.27+ with InPlacePodVerticalScaling feature gate)
   inPlaceResize: false
+  # -- Minimum replicas the VPA will allow while resizing
   minReplicas: 1
+  # -- Lower bound on resources the VPA will recommend
   minAllowed:
     cpu: 5m
     memory: 16Mi
+  # -- Upper bound on resources the VPA will recommend
   maxAllowed:
     cpu: 500m
     memory: 1Gi
 
 # HTTPRoute configuration for Gateway API
 httpRoute:
-  # Enable HTTPRoute for external access
+  # -- Enable HTTPRoute for external access
   enabled: false
-  # Hostname for the route
+  # -- Hostname for the route
   hostname: ""
   # Gateway reference
   gatewayRef:
+    # -- Name of the Gateway to attach to
     name: platform
+    # -- Namespace of the Gateway to attach to
     namespace: kube-system
-    # Use http listener when TLS is terminated at the load balancer
-    sectionName: http-0
-  # Optional annotations
+    # -- Empty (default) omits sectionName entirely, matching any listener on
+    # the Gateway. Only set this if the Gateway has multiple listeners and
+    # you need to pin to one by name — a stale/wrong name here fails the
+    # route with "No matching listener" (this default used to be the
+    # nonexistent "http-0"; every real install had to override it).
+    sectionName: ""
+  # -- Optional annotations on the HTTPRoute
   annotations: {}

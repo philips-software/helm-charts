@@ -21,6 +21,17 @@ a[href^="/auth/placeholder"] {
   display: none;
 }
 
+/* Upstream's own icon rule (main.css .dex-btn-icon) floats the icon as a
+ * separate 36px chip with a margin on every side, so it now reads as pasted
+ * onto the button rather than being part of it. Flush left again, full
+ * button height, rounded to match the button's own left corner. */
+.dex-btn-icon {
+  align-self: stretch;
+  border-radius: 6px 0 0 6px;
+  height: auto;
+  margin: 0;
+}
+
 .dex-btn-icon--hsdp {
   background-color: transparent;
   background-image: url(../static/img/oidc-icon.svg);
@@ -86,12 +97,16 @@ a[href^="/auth/placeholder"] {
   padding: 30px;
 }
 
+/* A width rather than a minimum: the button has to be the same size whatever
+ * the connector is called, and it has to give way on a screen too narrow to
+ * hold it rather than push out of the panel. */
 .theme-btn-provider {
   background-color: #262628;
   border: 1px solid rgba(204, 204, 220, 0.2);
   border-radius: 6px;
   color: #ffffff;
-  min-width: 270px;
+  max-width: 100%;
+  width: 270px;
   cursor: pointer;
   transition: color var(--transition-fast), background-color var(--transition-fast);
 }

@@ -1,3 +1,4 @@
+{{- $needsAgentSocket := eq (include "centcom-satellite.needsAgentSocket" .) "true" -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -48,6 +49,12 @@ spec:
               value: {{ .Values.observability.logLevel | quote }}
             - name: LOG_FORMAT
               value: {{ .Values.observability.logFormat | quote }}
+            - name: RATE_LIMIT_ENABLED
+              value: {{ (default dict .Values.rateLimit).enabled | default true | quote }}
+            - name: RATE_LIMIT_REQUESTS_PER_SECOND
+              value: {{ (default dict .Values.rateLimit).requestsPerSecond | default 50 | quote }}
+            - name: RATE_LIMIT_BURST
+              value: {{ (default dict .Values.rateLimit).burst | default 100 | quote }}
             {{- if .Values.observability.otelEndpoint }}
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: {{ .Values.observability.otelEndpoint | quote }}
@@ -59,8 +66,10 @@ spec:
             {{- if .Values.spire.enabled }}
             - name: SPIRE_ENABLED
               value: "true"
+            {{- if $needsAgentSocket }}
             - name: SPIRE_AGENT_SOCKET
               value: {{ .Values.spire.agentSocket | quote }}
+            {{- end }}
             {{- if .Values.spire.trustDomains }}
             - name: SPIRE_TRUST_DOMAINS
               value: {{ .Values.spire.trustDomains | join "," | quote }}
@@ -81,11 +90,29 @@ spec:
             - name: SPIRE_JWT_AUDIENCES
               value: {{ .Values.spire.jwt.audiences | join "," | quote }}
             {{- end }}
+            - name: SPIRE_JWT_BUNDLE_SOURCE
+              value: {{ .Values.spire.jwt.bundleSource | default "workload_api" | quote }}
+            {{- if eq .Values.spire.jwt.bundleSource "federation" }}
+            {{- if .Values.spire.jwt.federationBundleEndpoints }}
+            - name: SPIRE_FEDERATION_BUNDLE_ENDPOINTS
+              value: {{ $pairs := list }}{{ range $td, $url := .Values.spire.jwt.federationBundleEndpoints }}{{ $pairs = append $pairs (printf "%s=%s" $td $url) }}{{ end }}{{ join "," $pairs | quote }}
+            {{- end }}
+            {{- if .Values.spire.jwt.federationCABundlePath }}
+            - name: SPIRE_FEDERATION_CA_BUNDLE_PATH
+              value: {{ .Values.spire.jwt.federationCABundlePath | quote }}
             {{- end }}
             {{- end }}
-            {{- if .Values.features.getResource }}
+            {{- end }}
+            {{- end }}
             - name: GET_RESOURCE_ENABLED
-              value: "true"
+              value: {{ .Values.features.getResource | quote }}
+            {{- if .Values.features.resourceAccessDeny }}
+            {{- $pairs := list }}
+            {{- range .Values.features.resourceAccessDeny }}
+            {{- $pairs = append $pairs (printf "%s/%s" .group .kind) }}
+            {{- end }}
+            - name: RESOURCE_ACCESS_DENY
+              value: {{ join "," $pairs | quote }}
             {{- end }}
             {{- if .Values.features.workloadRestart }}
             - name: WORKLOAD_RESTART_ENABLED
@@ -113,10 +140,6 @@ spec:
             {{- end }}
             {{- if .Values.features.argocd }}
             - name: FEATURES_ARGOCD
-              value: "true"
-            {{- end }}
-            {{- if .Values.features.configmapRead }}
-            - name: FEATURES_CONFIGMAP_READ
               value: "true"
             {{- end }}
             {{- if .Values.features.httpRequest }}
@@ -151,6 +174,22 @@ spec:
             - name: AWS_REGION
               value: {{ .Values.aws.irsa.region | quote }}
             {{- end }}
+            {{- if and .Values.aws.assumeRole .Values.aws.assumeRole.roleArn }}
+            - name: AWS_ASSUME_ROLE_ARN
+              value: {{ .Values.aws.assumeRole.roleArn | quote }}
+            {{- if .Values.aws.assumeRole.externalId }}
+            - name: AWS_ASSUME_ROLE_EXTERNAL_ID
+              value: {{ .Values.aws.assumeRole.externalId | quote }}
+            {{- end }}
+            {{- if .Values.aws.assumeRole.sessionName }}
+            - name: AWS_ASSUME_ROLE_SESSION_NAME
+              value: {{ .Values.aws.assumeRole.sessionName | quote }}
+            {{- end }}
+            {{- if .Values.aws.assumeRole.region }}
+            - name: AWS_ASSUME_ROLE_REGION
+              value: {{ .Values.aws.assumeRole.region | quote }}
+            {{- end }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /healthz
@@ -176,13 +215,13 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.spire.enabled }}
+          {{- if $needsAgentSocket }}
           volumeMounts:
             - name: spire-agent-socket
               mountPath: {{ .Values.spire.socketMountPath | default "/spiffe-workload-api" }}
               readOnly: true
           {{- end }}
-      {{- if .Values.spire.enabled }}
+      {{- if $needsAgentSocket }}
       volumes:
         - name: spire-agent-socket
           {{- if .Values.spire.csi.enabled }}

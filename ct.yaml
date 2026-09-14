@@ -8,11 +8,13 @@ chart-repos:
 excluded-charts:
   - agentgateway-bootstrap
   - centcom-satellite
+  - clickhouse-operator-bootstrap
   - cloudnative-pg-bootstrap
   - cloudnative-pg-operator
   - crossplane-providers
   - grafana
   - k8s-observability-monitoring
+  - langfuse-bootstrap
   - loki-bootstrap
   - mimir-bootstrap
   - otlp-gateway-bootstrap

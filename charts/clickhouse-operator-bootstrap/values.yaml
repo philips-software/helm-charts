@@ -1,0 +1,24 @@
+# Upstream ClickHouse Operator Helm chart configuration
+clickhouseOperatorChart:
+  # OCI repository for the operator's Helm chart
+  repoURL: oci://ghcr.io/clickhouse/clickhouse-operator-helm
+  # renovate: datasource=docker depName=ghcr.io/clickhouse/clickhouse-operator-helm
+  version: 0.0.7
+
+# ArgoCD project name
+argoProject: default
+
+# ClickHouse Operator controller configuration
+operator:
+  # Namespace the operator (and its CRDs' webhook/cert-manager resources) run in.
+  # Cluster-scoped — install once per cluster.
+  namespace: clickhouse-operator-system
+  # Namespaces the operator watches for ClickHouseCluster/KeeperCluster CRs.
+  # Empty watches all namespaces (upstream default).
+  watchNamespaces: []
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi

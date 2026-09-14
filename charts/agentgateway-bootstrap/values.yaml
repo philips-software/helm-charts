@@ -7,25 +7,25 @@ mode: kubernetes
 agentgatewayCrdsChart:
   # Repository URL for agentgateway-crds chart
   repoURL: oci://cr.agentgateway.dev/charts
-  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway-crds
   # Version for agentgateway-crds chart
-  version: 1.4.1
+  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway-crds
+  version: 1.5.0
 
 # Upstream agentgateway Helm chart configuration
 agentgatewayChart:
   # Repository URL for agentgateway chart
   repoURL: oci://cr.agentgateway.dev/charts
-  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway
   # Version for agentgateway chart
-  version: 1.4.1
+  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway
+  version: 1.5.0
 
 # Upstream agentgateway-standalone Helm chart configuration
 agentgatewayStandaloneChart:
   # Repository URL for agentgateway-standalone chart
   repoURL: oci://cr.agentgateway.dev/charts
-  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway-standalone
   # Version for agentgateway-standalone chart
-  version: 1.4.1
+  # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway-standalone
+  version: 1.5.0
 
 # Standalone mode specific configuration
 standalone:
@@ -34,6 +34,14 @@ standalone:
   service:
     # Service type for standalone deployment
     type: ClusterIP
+  # Override the agentgateway-standalone image (e.g. to run a locally-patched
+  # build). Leave repository unset to use the upstream agentgateway-standalone
+  # chart's own default (cr.agentgateway.dev/agentgateway, tagged at the
+  # chart's appVersion).
+  image:
+    registry: ""
+    repository: ""
+    tag: ""
 
 # ArgoCD project name
 argoProject: default
@@ -76,6 +84,15 @@ bedrock:
     path: /bedrock
     openAiPath: /v1/chat/completions
 
+# OpenRouter LLM Provider configuration (standalone mode only - the
+# kubernetes-mode Gateway/AgentgatewayBackend path never wired OpenRouter).
+# Independent of bedrock.enabled: both can be on at once in standalone mode.
+openrouter:
+  # Enable an OpenRouter provider + deepseek/deepseek-v4-flash model in the
+  # standalone chart's static config. The API key is read at deploy time from
+  # the agentgateway-openrouter-secret Secret (see agentgateway-standalone-helm.yaml).
+  enabled: true
+
 # Postgres database for LLM cost tracking (agentgateway's request-logging DB, which
 # powers its cost dashboard and Analytics UI). Provisions a plain CNPG Cluster
 # directly - no Crossplane, no external-secrets dependency. CNPG generates its own
@@ -87,8 +104,9 @@ database:
   enabled: true
   # Cluster resource name. Defaults to "<gateway.name>-db" if unset.
   clusterName: ""
-  # Number of CNPG instances (1 = no HA, single replica).
-  instances: 1
+  # Number of CNPG instances (1 = no HA, single replica; 2+ = HA with automatic
+  # failover). Matches the DIP Postgres composition's default of 2.
+  instances: 2
   # Database (and owner role) name.
   databaseName: agentgateway
   # Database owner password.
@@ -103,6 +121,19 @@ database:
       memory: 128Mi
     limits:
       memory: 512Mi
+  backup:
+    # CNPG VolumeSnapshot backups (CSI snapshots of the PGDATA PVC), no
+    # Crossplane/S3/Barman dependency - consistent with this chart's
+    # plain-CNPG design. Off by default because className is cluster-specific.
+    volumeSnapshot:
+      enabled: false
+      # VolumeSnapshotClass to use (must support the cluster's StorageClass CSI driver).
+      className: ""
+      # Hot (online) backup via pg_backup_start/stop; false pauses WAL first for a cold snapshot.
+      online: true
+      # Cron schedule for a ScheduledBackup (method: volumeSnapshot). Leave empty to
+      # disable scheduling - on-demand backups can still be triggered with a Backup CR.
+      schedule: ""
 
 # Kubernetes Gateway resource configuration
 gateway:
@@ -154,6 +185,68 @@ ui:
     type: ClusterIP
     port: 15000
     targetPort: 15000
+  # Browser-based OIDC login for the Admin UI (standalone mode only). Protects
+  # UI traffic once it's attached to an externally-reachable gateway/HTTPRoute -
+  # enable this before exposing the UI beyond the cluster-internal admin port.
+  # The client secret is read at deploy time from the agentgateway-oidc-secret
+  # Secret (key clientSecret; see agentgateway-standalone-helm.yaml), and the
+  # browser session cookie is signed with OIDC_COOKIE_SECRET from the
+  # <release>-oidc Secret the upstream chart already wires in unconditionally.
+  oidc:
+    enabled: false
+    # OIDC issuer URL (used for discovery + ID token validation).
+    issuer: ""
+    # OAuth2 client ID registered with the issuer.
+    clientId: ""
+    # Absolute callback URI the gateway handles for the OIDC code exchange
+    # (e.g. https://<ui-hostname>/oauth/callback). Must match a redirect URI
+    # registered with the issuer.
+    redirectURI: ""
+    # Additional OAuth2 scopes to request. `openid` is always included.
+    scopes: []
+  # Restrict Admin UI access to specific JWT groups claim values, on top of
+  # oidc above (oidc.enabled must be true for this to have any effect - it
+  # renders a ui.policies.authorization CEL rule requiring at least one of
+  # these strings to appear in the `groups` claim, e.g. Dex group slugs like
+  # "philips-internal:some-group" or "urn:iamr:<org>:<group>"). Leave empty
+  # to allow any authenticated user through OIDC with no group restriction.
+  authorization:
+    groups: []
+
+# Standalone-mode direct OTLP trace export: agentgateway's own process exports
+# spans straight to an OTLP HTTP receiver (e.g. Langfuse's /api/public/otel).
+# Separate from `tracing.*` below, which only applies to `mode: kubernetes`
+# (an AgentgatewayPolicy pointing at a Gateway API backendRef) and is dead
+# code in standalone mode.
+standaloneTracing:
+  enabled: false
+  # OTLP HTTP receiver origin ONLY (scheme+host, e.g. https://langfuse.example.com)
+  # - NOT the full ingestion path. agentgateway's `path` below is joined as an
+  # absolute path and REPLACES otlpEndpoint's own path component entirely
+  # (confirmed empirically: otlpEndpoint with a path + a `path` value produces
+  # scheme+host+path, dropping otlpEndpoint's path) - so put the full ingestion
+  # path (e.g. Langfuse's /api/public/otel/v1/traces) in `path`, not here.
+  otlpEndpoint: ""
+  # grpc or http - Langfuse's OTLP receiver requires http.
+  otlpProtocol: http
+  # Full absolute ingestion path - see otlpEndpoint note above. Langfuse:
+  # /api/public/otel/v1/traces.
+  path: /v1/traces
+  # true (or a 0.0-1.0 ratio) to sample all traces.
+  randomSampling: true
+  # Static, non-secret headers sent with every OTLP export (e.g. vendor
+  # ingestion-version headers). Values are compiled as CEL expressions (same
+  # engine as frontendPolicies.accessLog), so a literal string MUST be a CEL
+  # string literal - wrap it in embedded double quotes, e.g. '"4"', not just "4".
+  headers: {}
+  # Secret holding the sensitive Authorization header value's bearer token
+  # (just the base64 "publicKey:secretKey" part, no "Basic " prefix - the
+  # rendered config template adds that), injected as env var OTLP_AUTH_HEADER
+  # and referenced via ${OTLP_AUTH_HEADER} in the rendered config. Leave name
+  # empty if the OTLP receiver needs no auth.
+  authHeaderSecret:
+    name: ""
+    key: "OTLP_AUTH_HEADER"
 
 # OpenTelemetry Tracing configuration
 tracing:

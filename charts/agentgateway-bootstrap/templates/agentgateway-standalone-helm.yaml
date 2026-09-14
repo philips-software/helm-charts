@@ -25,32 +25,129 @@ spec:
               url: {{ printf "postgresql://%s:${DB_PASSWORD}@%s-rw:5432/%s" (.Values.database.databaseName | default "agentgateway") (include "agentgateway-bootstrap.postgresClusterName" .) (.Values.database.databaseName | default "agentgateway") | quote }}
             storage:
               mode: hybrid
+            {{- if .Values.standaloneTracing.enabled }}
+            tracing:
+              otlpEndpoint: {{ .Values.standaloneTracing.otlpEndpoint | quote }}
+              otlpProtocol: {{ .Values.standaloneTracing.otlpProtocol | default "http" | quote }}
+              {{- if .Values.standaloneTracing.path }}
+              path: {{ .Values.standaloneTracing.path | quote }}
+              {{- end }}
+              {{- if .Values.standaloneTracing.randomSampling }}
+              randomSampling: {{ .Values.standaloneTracing.randomSampling }}
+              {{- end }}
+              {{- if or .Values.standaloneTracing.headers .Values.standaloneTracing.authHeaderSecret.name }}
+              headers:
+                {{- range $k, $v := .Values.standaloneTracing.headers }}
+                {{ $k }}: {{ $v | quote }}
+                {{- end }}
+                {{- if .Values.standaloneTracing.authHeaderSecret.name }}
+                Authorization: '"Basic ${OTLP_AUTH_HEADER}"'
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- if .Values.ui.oidc.enabled }}
+          ui:
+            policies:
+              oidc:
+                issuer: {{ .Values.ui.oidc.issuer | quote }}
+                clientId: {{ .Values.ui.oidc.clientId | quote }}
+                clientSecret: ${OIDC_CLIENT_SECRET}
+                redirectURI: {{ .Values.ui.oidc.redirectURI | quote }}
+                {{- if .Values.ui.oidc.scopes }}
+                scopes:
+                  {{- toYaml .Values.ui.oidc.scopes | nindent 18 }}
+                {{- end }}
+              {{- if .Values.ui.authorization.groups }}
+              {{- $exprs := list }}
+              {{- range .Values.ui.authorization.groups }}
+              {{- $exprs = append $exprs (printf "%q in jwt.groups" .) }}
+              {{- end }}
+              authorization:
+                rules:
+                  - require: {{ join " || " $exprs | quote }}
+              {{- end }}
+          {{- end }}
           llm:
             policies:
               apiKey:
                 mode: strict
+                keys: []
             providers:
+              {{- if .Values.bedrock.enabled }}
+              - name: bedrock
+                provider: bedrock
+                params:
+                  awsRegion: {{ include "agentgateway-bootstrap.substituteVars" (dict "str" .Values.bedrock.region "ctx" .) | quote }}
+              {{- end }}
+              {{- if .Values.openrouter.enabled }}
               - name: openrouter
                 provider: openrouter
                 params:
                   apiKey: ${OPENROUTER_API_KEY}
+              {{- end }}
             models:
+              {{- if .Values.bedrock.enabled }}
+              - name: {{ .Values.bedrock.model | quote }}
+                provider:
+                  reference: bedrock
+              {{- end }}
+              {{- if .Values.openrouter.enabled }}
               - name: deepseek/deepseek-v4-flash
                 provider:
                   reference: openrouter
+              {{- end }}
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
+        {{- if or .Values.standalone.image.registry .Values.standalone.image.repository .Values.standalone.image.tag }}
+        image:
+          {{- if .Values.standalone.image.registry }}
+          registry: {{ .Values.standalone.image.registry | quote }}
+          {{- end }}
+          {{- if .Values.standalone.image.repository }}
+          repository: {{ .Values.standalone.image.repository | quote }}
+          {{- end }}
+          {{- if .Values.standalone.image.tag }}
+          tag: {{ .Values.standalone.image.tag | quote }}
+          {{- end }}
+        {{- end }}
+        {{- if and .Values.bedrock.enabled (eq .Values.bedrock.auth.type "irsa") .Values.bedrock.auth.roleArn }}
+        serviceAccount:
+          # Reuse the same ServiceAccount name the kubernetes-mode dataplane used
+          # (named after gateway.name), since the IAM role's trust policy is
+          # scoped to that exact `system:serviceaccount:<ns>:<name>` subject.
+          name: {{ .Values.gateway.name | default "agentgateway-gw" | quote }}
+          annotations:
+            eks.amazonaws.com/role-arn: {{ .Values.bedrock.auth.roleArn | quote }}
+        {{- end }}
         extraEnv:
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: {{ printf "%s-credentials" (include "agentgateway-bootstrap.postgresClusterName" .) | quote }}
                 key: password
+          {{- if .Values.openrouter.enabled }}
           - name: OPENROUTER_API_KEY
             valueFrom:
               secretKeyRef:
                 name: agentgateway-openrouter-secret
                 key: apiKey
                 optional: true
+          {{- end }}
+          {{- if .Values.ui.oidc.enabled }}
+          - name: OIDC_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: agentgateway-oidc-secret
+                key: clientSecret
+                optional: true
+          {{- end }}
+          {{- if and .Values.standaloneTracing.enabled .Values.standaloneTracing.authHeaderSecret.name }}
+          - name: OTLP_AUTH_HEADER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.standaloneTracing.authHeaderSecret.name | quote }}
+                key: {{ .Values.standaloneTracing.authHeaderSecret.key | default "OTLP_AUTH_HEADER" | quote }}
+                optional: true
+          {{- end }}
         gateway:
           service:
             type: {{ .Values.standalone.service.type | default "ClusterIP" }}

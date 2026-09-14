@@ -12,7 +12,14 @@
     {{- $federated = append $federated . }}
   {{- end }}
 {{- end }}
-{{- if and .Values.spire.enabled $federated (not .Values.spire.skipFederation) }}
+{{- /*
+A ClusterSPIFFEID is only ever fulfilled by workload attestation from a
+local SPIRE Agent — pointless (and unfulfillable) when this deployment
+runs with no local agent at all (spire.jwt.bundleSource=federation and
+mTLS disabled). See centcom-satellite.needsAgentSocket.
+*/}}
+{{- $needsAgentSocket := eq (include "centcom-satellite.needsAgentSocket" .) "true" }}
+{{- if and $needsAgentSocket $federated (not .Values.spire.skipFederation) }}
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterSPIFFEID
 metadata:

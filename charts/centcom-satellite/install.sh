@@ -4,6 +4,23 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/philips-software/helm-charts/main/charts/centcom-satellite/install.sh | bash
 #
+# Don't trust a fetched copy sight-unseen — verify it against the signed
+# chart it shipped in before running it:
+#
+#   curl -fsSL .../install.sh -o install.sh
+#   bash install.sh verify
+#
+# This pulls the exact chart version this script embeds (see
+# INSTALL_SH_CHART_VERSION below) from oci://ghcr.io/philips-software/helm-charts,
+# cosign-verifies its signature (keyless, GitHub Actions OIDC identity —
+# requires the `cosign` CLI), extracts the install.sh bundled inside that
+# signed chart, and diffs it byte-for-byte against the copy you just fetched.
+# A match means what you're about to run is exactly what CI built and signed
+# for that release — not a tampered or stale copy from some other source.
+# Requires `helm` and `cosign` on PATH; not meaningful piped straight from
+# curl (there's no on-disk file yet to check) — fetch-then-verify-then-run,
+# same discipline as reviewing the script by eye, just automated.
+#
 # Deploys centcom-satellite to the *current* kubectl cluster and wires it up to centcom
 # via SPIRE federation. It auto-discovers everything it can from the target
 # cluster (SPIRE class name, Gateway, base domain, cluster name) and falls back
@@ -14,9 +31,18 @@
 #   CLUSTER_NAME=edge BASE_DOMAIN=example.com \
 #     curl -fsSL .../install.sh | bash
 #
-# For an observe-only agent (all mutating tasks disabled), set READ_ONLY=true:
+# Defaults to READ-ONLY: every mutating task (workload restart/scale, pod
+# evict/resize, PVC resize, NodeClaim delete, Security Hub write, PV-usage
+# auto-remediation) starts disabled, matching the software's own defaults —
+# a plain `curl | bash` with no env vars produces an agent that can observe
+# and report but cannot change anything. To opt into a fully-mutating agent
+# instead, set WRITE_MODE=true (or flip on individual features.* flags
+# yourself via a values file and `helm upgrade --install` — see the docs):
 #
-#   curl -fsSL .../install.sh | READ_ONLY=true bash
+#   curl -fsSL .../install.sh | WRITE_MODE=true bash
+#
+# READ_ONLY=true is still accepted as an explicit synonym for the default,
+# for anyone who scripted against the old flag name.
 #
 # To enable the CloudWatch RCA + Cost Explorer tasks (read-only AWS data via
 # IRSA, all values auto-discovered), set CLOUDWATCH_RCA=true:
@@ -58,11 +84,129 @@
 #
 #   curl -fsSL .../install.sh | USE_INGRESS=true bash
 #
+# Routing mode is also auto-detected: leave both USE_INGRESS and
+# HTTPROUTE_ENABLED unset and, if the cluster has no Gateway API at all,
+# the installer switches to nginx Ingress by itself when an IngressClass is
+# available, or disables routing entirely (ClusterIP-only, with a warning)
+# if neither is available -- no need to know in advance what the target
+# cluster has. Set either flag explicitly to opt out of auto-detection.
+#
+# To force SPIRE-AGENT-LESS mode, set AGENTLESS=true. The satellite validates
+# incoming JWT-SVIDs against a trust bundle fetched (and kept live-refreshed)
+# directly from a SPIFFE Federation Bundle Endpoint over HTTPS — no local
+# SPIRE Agent socket, no ClusterFederatedTrustDomain CR, no CSI driver
+# dependency. It reuses the same MCP_BUNDLE_ENDPOINT already configured above
+# as the URL the satellite polls to keep its bundle current. This works even
+# on a cluster that DOES run a SPIRE Agent (the agent is simply not used) —
+# useful for proving out agent-less deployments (the real payoff target is
+# ECS/Fargate-style clusters with no agent at all). mTLS is incompatible with
+# this mode (no local X.509 identity source) and stays off, matching the
+# chart default. LOCAL_SPIFFE_ID is not supported together with AGENTLESS —
+# the same-trust-domain/no-self-federation logic it drives has no meaning
+# once every trust domain's bundle comes from an explicit URL fetch:
+#
+#   curl -fsSL .../install.sh | AGENTLESS=true bash
+#
+# AGENTLESS is also auto-detected: leave it unset and, if this cluster has
+# no SPIRE controller-manager at all (the clusterspiffeids CRD), the
+# installer switches to AGENTLESS mode by itself -- no need to know in
+# advance whether the target cluster runs SPIRE. Pass AGENTLESS=false
+# explicitly to opt out of auto-detection and force the workload-API path
+# regardless (useful to see the real "SPIRE not installed" error instead).
+#
+# ServiceMonitor and VerticalPodAutoscaler are auto-detected the same way:
+# each needs its own CRD (the Prometheus Operator's, the VPA's) present on
+# the target cluster, and each defaults to enabled -- installing the chart
+# on a cluster missing either CRD would otherwise fail outright with "no
+# matches for kind ...". Pass SERVICEMONITOR_ENABLED=true|false or
+# VPA_ENABLED=true|false explicitly to skip auto-detection and force either
+# one regardless of what the cluster has.
+#
+# To hand this off to someone else (an operator without your shell env, a
+# change-ticket reviewer, a GitOps PR) instead of running the install
+# yourself, set VALUES_ONLY=true. The script still connects to the target
+# cluster and runs every auto-discovery step above (SPIRE class, Gateway,
+# IRSA account/region/OIDC issuer, memory tier, ...) exactly as it would for
+# a real install, but instead of applying anything it dry-runs the resolved
+# `helm upgrade --install` through Helm itself, writes the resulting merged
+# values.yaml to disk (default: <release-name>-values.yaml, override with
+# VALUES_FILE=...), and prints the plain `helm upgrade --install -f <file>`
+# command on stdout. Nothing in the cluster changes -- no ClusterFederatedTrustDomain,
+# no Ingress, no Helm release, no resource adoption:
+#
+#   curl -fsSL .../install.sh | VALUES_ONLY=true bash
+#
+# The AGENTLESS-mode federation bundle fetch and the nginx Ingress fallback
+# (USE_INGRESS=true) are both plain kubectl manifests applied outside the
+# Helm chart, not part of values.yaml -- render_values_only() prints a note
+# reminding you to apply those yourself (or just drop VALUES_ONLY) if either
+# is in play.
+#
+# If the install fails, the [FATAL] line at the end names the exact failing
+# command and line number already. For even more detail (every command the
+# script runs, as it runs it), re-run with TRACE=true:
+#
+#   curl -fsSL .../install.sh | TRACE=true AGENTLESS=true bash
+#
 # Progress/diagnostic logs go to stderr; only the copy/paste onboarding snippet
 # goes to stdout. When stdout is not a terminal (a runner is capturing it) the
 # two are merged so the logs are not lost — override with LOG_STDOUT=true|false.
 #
+# If `curl -fsSL ... | bash` ever produces ZERO output (not even this banner
+# below), the script never ran at all — that's a curl/network/proxy failure
+# upstream of bash, not something this script can detect or report on. Rule
+# that out first: `curl -fsSL <url> -o /tmp/install.sh && bash /tmp/install.sh`
+# separates the two steps so a fetch failure surfaces on its own.
 set -euo pipefail
+
+# The chart version this exact copy of install.sh shipped in. Bumped by hand
+# in lockstep with Chart.yaml's version on every release that touches this
+# script. `install.sh verify` uses it to know which signed OCI chart to check
+# itself against — see that function for the full explanation.
+INSTALL_SH_CHART_VERSION="0.29.0"
+
+# Unconditional, un-suppressible proof of life: the very first thing this
+# script does, before parsing a single config default or touching the
+# LOG_STDOUT stderr/stdout split below. A customer who reports "no output at
+# all" from `curl -fsSL ... | bash` is otherwise nearly impossible to
+# diagnose — was the script fetched? did it start? did it die before its
+# first log line? Printing to BOTH streams, before any of that machinery
+# exists yet, means this line survives even a `set -e` failure one statement
+# later or a stdout-only log capture.
+printf 'centcom-satellite installer: starting (bash %s, pid %s)\n' "${BASH_VERSION:-?}" "$$"
+printf 'centcom-satellite installer: starting (bash %s, pid %s)\n' "${BASH_VERSION:-?}" "$$" >&2
+
+# TRACE=true: full bash -x command tracing, for a customer to re-run when the
+# summary below isn't enough. Plain xtrace, unlike errtrace/ERR (see below),
+# has no effect on set -e's exemption rules — zero risk, standard bash.
+if [ "${TRACE:-false}" = "true" ]; then
+  set -x
+fi
+
+# Global safety net: guarantee a message with the failing command on ANY
+# exit with a non-zero status, including one `set -e` triggers silently deep
+# inside a function with no `die "..."` around it.
+#
+# This is errtrace (-E) + a trap on ERR, which earlier caused a nasty
+# regression and was reverted once already: on bash 3.2 (macOS's stock
+# /bin/bash, still common), enabling errtrace together with an ERR trap
+# that itself calls `exit` breaks the normal "a command executed in a && or
+# || list, or in an if-test, doesn't trigger set -e" exemptions SCRIPT-WIDE,
+# turning every intentionally-guarded `cmd || true` / `cmd && var=true` /
+# `if ! cmd; then` idiom in this script into a fresh silent-exit bug.
+#
+# The fix that makes this safe: the ERR trap below is PURELY PASSIVE — it
+# only ever records $BASH_COMMAND/$LINENO into variables, never calls exit
+# or otherwise touches control flow. Verified empirically that a passive ERR
+# trap does NOT reproduce the regression, while an ERR trap that calls exit
+# does. The actual reporting (and the only `exit`) happens in the separate
+# EXIT trap, which fires exactly once at real process exit regardless of
+# which function was on the stack.
+set -E
+ERR_LAST_CMD=""
+ERR_LAST_LINE=""
+trap 'ERR_LAST_CMD="$BASH_COMMAND"; ERR_LAST_LINE="$LINENO"' ERR
+trap 'ec=$?; if [ "$ec" -ne 0 ]; then printf "\n[FATAL] install.sh exited with status %s%s\n" "$ec" "${ERR_LAST_CMD:+ — last command (line ${ERR_LAST_LINE}): ${ERR_LAST_CMD}}" >&2; printf "[hint] re-run with TRACE=true for full command tracing\n" >&2; fi' EXIT
 
 # ============================================================================
 # BAKED-IN DEFAULTS  --  edit these, or override per-run with env vars
@@ -84,6 +228,16 @@ set -euo pipefail
 : "${LOCAL_SPIFFE_ID:=}"        # e.g. spiffe://rpi.loafoe.com/ns/centcom/sa/centcom
 : "${LOCAL_TRUST_DOMAIN:=}"     # e.g. rpi.loafoe.com (auto-discovered if empty and LOCAL_SPIFFE_ID set)
 
+# Force SPIRE-agent-less mode (JWT-SVID validation via federation bundle
+# fetch instead of the local Workload API). See the AGENTLESS block in the
+# usage comment above. AGENTLESS_EXPLICIT tracks whether the operator passed
+# this at all (vs. left it at the default) -- discover() uses that below to
+# auto-detect AGENTLESS when the operator expressed no opinion, without ever
+# overriding an explicit AGENTLESS=true or AGENTLESS=false.
+AGENTLESS_EXPLICIT=true
+[ -z "${AGENTLESS+x}" ] && AGENTLESS_EXPLICIT=false
+: "${AGENTLESS:=false}"
+
 # Install target
 : "${NAMESPACE:=centcom-satellite}"
 : "${RELEASE_NAME:=centcom-satellite}"
@@ -91,9 +245,23 @@ set -euo pipefail
 : "${CHART_VERSION:=}"        # empty = latest
 : "${IMAGE_TAG:=}"            # empty = chart default appVersion
 
-# Read-only mode: disable every mutating task, keep all introspection/read
-# tasks enabled. Set READ_ONLY=true for an observe-only agent.
-: "${READ_ONLY:=false}"
+# Read-only vs write mode: two independent knobs resolved into one decision so
+# both spellings work and nothing needs to change for anyone already scripting
+# against READ_ONLY. Precedence: an explicit "false" on either variable wins
+# over an unset/default on the other, so READ_ONLY=false and WRITE_MODE=true
+# are equivalent ways to opt into a mutating agent. With nothing set at all,
+# the default is READ-ONLY — this changed 2026-09 (previously defaulted to
+# write mode); see docs/centcom/02-security.md in the innovation-day repo for
+# why. Set WRITE_MODE=true (or READ_ONLY=false) for a fully-mutating agent.
+: "${READ_ONLY:=}"
+: "${WRITE_MODE:=}"
+if [ "$READ_ONLY" = "true" ] || [ "$WRITE_MODE" = "false" ]; then
+  READ_ONLY=true   # an explicit read-only request always wins over a conflicting write request
+elif [ "$WRITE_MODE" = "true" ] || [ "$READ_ONLY" = "false" ]; then
+  READ_ONLY=false
+else
+  READ_ONLY=true    # nothing set -> safe default
+fi
 
 # Feature flags (helm --set features.*). Edit to taste. An explicit FEATURES
 # always wins; otherwise the default is chosen by READ_ONLY. In read-only mode
@@ -102,10 +270,17 @@ set -euo pipefail
 if [ "$READ_ONLY" = "true" ]; then
   : "${FEATURES:=getResource=true,argocd=true,configmapRead=true,httpRequest=true,workloadRestart=false,workloadScale=false,podEvict=false,podResize=false,nodeclaimDelete=false,pvResize=false,autoRemediate=false}"
 else
-  # Write mode: enable every feature EXCEPT the arbitrary resource reader
-  # (getResource). getResource grants wildcard read RBAC, so it stays off and
-  # is set explicitly to false so a re-run also disables it (declarative).
-  : "${FEATURES:=getResource=false,argocd=true,autoRemediate=true,configmapRead=true,httpRequest=true,nodeclaimDelete=true,podEvict=true,podResize=true,pvResize=true,workloadRestart=true,workloadScale=true}"
+  # Write mode: enable every feature, including the arbitrary resource
+  # reader (getResource) — matches the chart's own values.yaml default
+  # (true) since chart 0.67.0. getResource's wildcard read is already
+  # defense-in-depth (binds the built-in `view` ClusterRole rather than a
+  # true wildcard grant, code-level Secret denylist regardless of RBAC,
+  # and secret-shaped value redaction — see values.yaml's features.getResource
+  # comment), so it's no longer treated as a separate, more sensitive
+  # opt-in than the rest of write mode. Explicit here (not just relying on
+  # the chart default) so a re-run also enables it declaratively on an
+  # existing install.
+  : "${FEATURES:=getResource=true,argocd=true,autoRemediate=true,configmapRead=true,httpRequest=true,nodeclaimDelete=true,podEvict=true,podResize=true,pvResize=true,workloadRestart=true,workloadScale=true}"
 fi
 
 # CloudWatch RCA + Cost Explorer tasks. These need AWS credentials, provided via
@@ -254,7 +429,16 @@ fi
 #     has a broken http-to-https-redirect that causes loops. The chart has no
 #     Ingress template, so the installer applies the Ingress directly (same
 #     pattern as the federation CRD) and sets httpRoute.enabled=false.
+# USE_INGRESS_EXPLICIT / HTTPROUTE_ENABLED_EXPLICIT: whether the operator
+# picked a routing mode by hand (either flag) vs. left both at their
+# defaults. discover() below auto-picks between HTTPRoute/Ingress/no-route
+# based on what the cluster actually has ONLY when neither was set -- an
+# explicit choice of either always wins over auto-detection.
+USE_INGRESS_EXPLICIT=true
+[ -z "${USE_INGRESS+x}" ] && USE_INGRESS_EXPLICIT=false
 : "${USE_INGRESS:=false}"
+HTTPROUTE_ENABLED_EXPLICIT=true
+[ -z "${HTTPROUTE_ENABLED+x}" ] && HTTPROUTE_ENABLED_EXPLICIT=false
 : "${HTTPROUTE_ENABLED:=true}"
 : "${GATEWAY_NAME:=}"         # auto: a Gateway literally named "gateway", else first
 : "${GATEWAY_NAMESPACE:=}"    # auto: namespace of the chosen Gateway
@@ -274,8 +458,17 @@ fi
 : "${SPIRE_CLASSNAME:=}"      # auto: most common ClusterSPIFFEID className
 : "${JWT_AUDIENCE:=}"         # auto: centcom-satellite-<cluster-name>
 
-# Behaviour
+# Behaviour. Both of these are auto-detected against the target cluster in
+# discover() below (ServiceMonitor needs the Prometheus Operator CRD,
+# VerticalPodAutoscaler needs the VPA CRD) UNLESS the operator passes an
+# explicit value here, which always wins over auto-detection either way.
+# *_ENABLED_EXPLICIT track whether that happened, mirroring AGENTLESS_EXPLICIT.
+SERVICEMONITOR_ENABLED_EXPLICIT=true
+[ -z "${SERVICEMONITOR_ENABLED+x}" ] && SERVICEMONITOR_ENABLED_EXPLICIT=false
 : "${SERVICEMONITOR_ENABLED:=true}"
+VPA_ENABLED_EXPLICIT=true
+[ -z "${VPA_ENABLED+x}" ] && VPA_ENABLED_EXPLICIT=false
+: "${VPA_ENABLED:=true}"
 : "${REPLICA_COUNT:=2}"
 
 # Memory sizing. The satellite holds Kubernetes list/get responses in memory
@@ -293,6 +486,8 @@ fi
 : "${MEMORY_LIMIT:=}"         # auto: from pod-count tier table
 : "${VPA_MAX_MEMORY:=}"       # auto: from pod-count tier table
 : "${DRY_RUN:=false}"         # true = print helm/kubectl actions, change nothing
+: "${VALUES_ONLY:=false}"     # true = render values.yaml + print the helm command, change nothing (see render_values_only)
+: "${VALUES_FILE:=}"          # output path for VALUES_ONLY; empty = <release-name>-values.yaml
 : "${WAIT_TIMEOUT:=180s}"
 : "${COUNTDOWN:=}"            # pre-install review countdown (s); empty = auto from reading time
 : "${ASSUME_YES:=false}"     # true = skip the countdown entirely (CI / unattended)
@@ -310,6 +505,12 @@ fi
 # Ingress fallback disables the chart's Gateway API HTTPRoute.
 if [ "$USE_INGRESS" = "true" ]; then
   HTTPROUTE_ENABLED=false
+fi
+
+# AGENTLESS + LOCAL_SPIFFE_ID is not a supported combination — fail fast
+# rather than silently ignoring one of them. See the AGENTLESS usage comment.
+if [ "$AGENTLESS" = "true" ] && [ -n "$LOCAL_SPIFFE_ID" ]; then
+  die "AGENTLESS=true is not supported together with LOCAL_SPIFFE_ID"
 fi
 
 # The AWS documentation placeholder account. Never a real account — if IRSA
@@ -359,8 +560,20 @@ esac
 # preflight: fail fast on missing tools / unreachable cluster
 # ---------------------------------------------------------------------------
 preflight() {
+  log "checking prerequisites (kubectl, helm)"
   command -v kubectl >/dev/null 2>&1 || die "kubectl not found in PATH"
   command -v helm    >/dev/null 2>&1 || die "helm not found in PATH"
+
+  # The discovery logic below is built entirely out of standard POSIX text
+  # tools -- normally a safe assumption, but not guaranteed on every target
+  # (a minimal/hardened image, a locked-down jump host, a container missing
+  # coreutils). Missing one of these would otherwise surface as a cryptic
+  # mid-pipeline failure deep inside discover() ("command not found" buried
+  # in a [FATAL] line) instead of a clear, immediate message here.
+  local tool
+  for tool in awk cat cut grep head sed sort tail tr uniq wc; do
+    command -v "$tool" >/dev/null 2>&1 || die "$tool not found in PATH (required by this script's cluster-discovery logic)"
+  done
 
   local hv
   hv=$(helm version --short 2>/dev/null || true)
@@ -369,7 +582,13 @@ preflight() {
     *) die "helm 3.x or newer required (found: ${hv:-unknown})" ;;
   esac
 
-  kubectl version >/dev/null 2>&1 \
+  # A hung/unreachable API server here would otherwise block silently
+  # forever (both streams redirected to /dev/null): the customer sees the
+  # startup banner and then literally nothing, indistinguishable from the
+  # script never having started. --request-timeout bounds it so this either
+  # succeeds or dies with a clear message within 15s, never hangs.
+  log "checking cluster connectivity (kubectl version, 15s timeout)"
+  kubectl version --request-timeout=15s >/dev/null 2>&1 \
     || die "cannot reach a Kubernetes cluster (check your kubeconfig / current-context)"
 }
 
@@ -378,11 +597,72 @@ preflight() {
 # ---------------------------------------------------------------------------
 discover() {
   CTX=$(kubectl config current-context 2>/dev/null) || die "no current kube-context"
+  log "discovering cluster configuration (context: ${CTX})"
 
   # Bind all subsequent kubectl and helm calls to $CTX so that parallel context
-  # switches in another shell don't target the wrong cluster.
-  kubectl() { command kubectl --context "$CTX" "$@"; }
+  # switches in another shell don't target the wrong cluster. --request-timeout
+  # bounds every one of the many discovery calls below (SPIRE className,
+  # Gateway/Ingress, IRSA, pod count for memory sizing, ...) so a slow or
+  # half-unreachable API server fails one specific call fast instead of
+  # hanging the whole install with no explanation.
+  kubectl() { command kubectl --context "$CTX" --request-timeout=20s "$@"; }
   helm()    { command helm --kube-context "$CTX" "$@"; }
+
+  # Auto-detect: if the operator expressed no opinion on AGENTLESS at all
+  # (see AGENTLESS_EXPLICIT above), and this cluster has no SPIRE
+  # controller-manager -- the clusterspiffeids CRD the workload-API path
+  # fundamentally depends on -- fall back to AGENTLESS mode automatically
+  # instead of requiring AGENTLESS=true to be passed by hand. An explicit
+  # AGENTLESS=true or AGENTLESS=false always wins over this. Skipped when
+  # LOCAL_SPIFFE_ID is set: that combination is unsupported (see the
+  # top-level die() near AGENTLESS_EXPLICIT's definition), which was already
+  # checked before AGENTLESS had a chance to change here -- letting
+  # auto-detection flip it now would silently slide past that guard.
+  if [ "$AGENTLESS_EXPLICIT" != "true" ] && [ -z "$LOCAL_SPIFFE_ID" ] \
+    && ! kubectl get crd clusterspiffeids.spire.spiffe.io >/dev/null 2>&1; then
+    log "no SPIRE controller-manager detected on this cluster (clusterspiffeids CRD not found) — falling back to AGENTLESS mode automatically (pass AGENTLESS=false to force the workload-API path instead)"
+    AGENTLESS=true
+  fi
+
+  # Auto-detect: ServiceMonitor and VerticalPodAutoscaler each need their own
+  # CRD present on the target cluster (the Prometheus Operator's, the VPA's).
+  # `helm install` fails outright ("no matches for kind ...") if either CRD
+  # is missing and the chart tries to render that resource anyway, so -- same
+  # pattern as AGENTLESS above -- default each to the cluster's own
+  # capability unless the operator said otherwise explicitly.
+  if [ "$SERVICEMONITOR_ENABLED_EXPLICIT" != "true" ] \
+    && ! kubectl get crd servicemonitors.monitoring.coreos.com >/dev/null 2>&1; then
+    log "no Prometheus Operator detected on this cluster (servicemonitors CRD not found) — disabling ServiceMonitor automatically (pass SERVICEMONITOR_ENABLED=true to force it)"
+    SERVICEMONITOR_ENABLED=false
+  fi
+  if [ "$VPA_ENABLED_EXPLICIT" != "true" ] \
+    && ! kubectl get crd verticalpodautoscalers.autoscaling.k8s.io >/dev/null 2>&1; then
+    log "no VPA controller detected on this cluster (verticalpodautoscalers CRD not found) — disabling VPA automatically (pass VPA_ENABLED=true to force it)"
+    VPA_ENABLED=false
+  fi
+
+  # Auto-detect routing mode: only when the operator picked neither
+  # USE_INGRESS nor HTTPROUTE_ENABLED explicitly. Gateway API HTTPRoute is
+  # the default, but a cluster without the Gateway API CRD can't use it at
+  # all -- the Gateway-discovery block below would otherwise die() trying
+  # to find a Gateway that can never exist. Prefer nginx Ingress if an
+  # IngressClass is available; otherwise fall back to no external route at
+  # all (ClusterIP-only) with a clear warning, rather than dying -- that's
+  # still a valid, working deployment (see the in-cluster endpoint URL in
+  # `helm install`'s NOTES), just unreachable from outside the cluster.
+  if [ "$USE_INGRESS_EXPLICIT" != "true" ] && [ "$HTTPROUTE_ENABLED_EXPLICIT" != "true" ] \
+    && ! kubectl get crd gateways.gateway.networking.k8s.io >/dev/null 2>&1; then
+    HTTPROUTE_ENABLED=false
+    local ingressclasses
+    ingressclasses=$(kubectl get ingressclass \
+      -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
+    if [ -n "$ingressclasses" ]; then
+      log "no Gateway API detected on this cluster (gateways CRD not found) — falling back to nginx Ingress automatically (pass HTTPROUTE_ENABLED=true to force Gateway API instead)"
+      USE_INGRESS=true
+    else
+      warn "no Gateway API and no IngressClass detected on this cluster — centcom-satellite will be ClusterIP-only (no external endpoint). Install an ingress controller and re-run with USE_INGRESS=true, or install Gateway API, to expose it externally."
+    fi
+  fi
 
   # CLUSTER_NAME: prefer hsp-addons resourcePrefix (stable), fall back to kube-context
   if [ -z "$CLUSTER_NAME" ]; then
@@ -404,9 +684,13 @@ discover() {
   # the spire-server config.
   if [ -n "$LOCAL_SPIFFE_ID" ] && [ -z "$LOCAL_TRUST_DOMAIN" ]; then
     LOCAL_TRUST_DOMAIN=$(printf '%s' "$LOCAL_SPIFFE_ID" | sed -n 's#^spiffe://\([^/]*\)/.*#\1#p')
+    # || true: grep -o exits 1 (not an error, just "no match") when the
+    # config has no trust_domain line — without the guard that propagates
+    # through pipefail and set -e straight past the die() below, with no
+    # message at all.
     [ -n "$LOCAL_TRUST_DOMAIN" ] || LOCAL_TRUST_DOMAIN=$(kubectl get cm -n spire-system \
       -o jsonpath='{range .items[*]}{.data.server\.conf}{"\n"}{end}' 2>/dev/null \
-      | grep -o 'trust_domain[ "]*=[ "]*[^"]*' | head -1 | sed 's/.*[ "]=[ "]*//')
+      | grep -o 'trust_domain[ "]*=[ "]*[^"]*' | head -1 | sed 's/.*[ "]=[ "]*//') || true
     [ -n "$LOCAL_TRUST_DOMAIN" ] || die "LOCAL_SPIFFE_ID set but could not determine LOCAL_TRUST_DOMAIN; set it explicitly"
   fi
 
@@ -415,23 +699,44 @@ discover() {
   RELEASE_EXISTS=false
   helm status "$RELEASE_NAME" -n "$NAMESPACE" >/dev/null 2>&1 && RELEASE_EXISTS=true
 
-  # SPIRE className: most common across existing ClusterSPIFFEIDs
-  if [ -z "$SPIRE_CLASSNAME" ]; then
-    SPIRE_CLASSNAME=$(kubectl get clusterspiffeids \
-      -o jsonpath='{range .items[*]}{.spec.className}{"\n"}{end}' 2>/dev/null \
-      | grep -v '^$' | sort | uniq -c | sort -rn | head -1 | awk '{print $2}')
+  # SPIRE className: only meaningful for the (federated) ClusterSPIFFEID the
+  # chart renders for the workload-API/local-agent path -- it's never read
+  # by the chart at all once bundleSource=federation (needsAgentSocket is
+  # false), which is exactly what AGENTLESS=true forces. Skipping this
+  # entirely under AGENTLESS also means the script no longer assumes the
+  # clusterspiffeids CRD (i.e. a SPIRE Agent/controller-manager) exists on
+  # the target cluster at all -- which AGENTLESS is explicitly saying it
+  # doesn't. || true below: grep -v exits 1 (not an error, just "no
+  # non-blank line") when there are zero ClusterSPIFFEIDs yet (e.g. a fresh
+  # SPIRE install) -- without the guard, pipefail propagates that through
+  # set -e and the script dies right here instead of reaching the die()
+  # message below, which exists specifically for this exact "not found" case.
+  if [ "$AGENTLESS" != "true" ]; then
+    if [ -z "$SPIRE_CLASSNAME" ]; then
+      SPIRE_CLASSNAME=$(kubectl get clusterspiffeids \
+        -o jsonpath='{range .items[*]}{.spec.className}{"\n"}{end}' 2>/dev/null \
+        | grep -v '^$' | sort | uniq -c | sort -rn | head -1 | awk '{print $2}') || true
+    fi
+    [ -n "$SPIRE_CLASSNAME" ] || die "could not discover SPIRE className; set SPIRE_CLASSNAME=..."
   fi
-  [ -n "$SPIRE_CLASSNAME" ] || die "could not discover SPIRE className; set SPIRE_CLASSNAME=..."
 
   if [ "$HTTPROUTE_ENABLED" = "true" ]; then
     # Gateway: prefer one named "gateway" or "platform", else the first one
     if [ -z "$GATEWAY_NAME" ]; then
       local gw
+      # || true: if the Gateway API CRD isn't installed at all, `kubectl get
+      # gateways` exits non-zero even with stderr redirected -- unguarded,
+      # that kills the script right here instead of reaching the die()
+      # below, written specifically to give a clear message for exactly
+      # this "no Gateway found" case (same class of bug as SPIRE_CLASSNAME).
       gw=$(kubectl get gateways -A \
-        -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}' 2>/dev/null)
+        -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
       local pick
       pick=$(printf '%s\n' "$gw" | awk -F/ '$2=="gateway" || $2=="platform"{print;exit}')
-      [ -n "$pick" ] || pick=$(printf '%s\n' "$gw" | grep -v '^$' | head -1)
+      # || true: same grep-exit-1-on-no-match hazard as SPIRE_CLASSNAME above
+      # -- if the cluster has zero Gateways at all, $gw is empty and this
+      # would otherwise die silently instead of hitting the die() below.
+      [ -n "$pick" ] || pick=$(printf '%s\n' "$gw" | grep -v '^$' | head -1) || true
       [ -n "$pick" ] || die "no Gateway found; set GATEWAY_NAME/GATEWAY_NAMESPACE or HTTPROUTE_ENABLED=false"
       GATEWAY_NAMESPACE="${pick%%/*}"
       GATEWAY_NAME="${pick##*/}"
@@ -669,8 +974,17 @@ discover_irsa() {
     # IRSA_PROVIDER_CONFIG: the Crossplane ClusterProviderConfig the chart's
     # IAM resources reference. Prefer one named "default", else the first.
     if [ -z "$IRSA_PROVIDER_CONFIG" ]; then
-      if ! kubectl get crd clusterproviderconfigs.aws.upbound.io >/dev/null 2>&1 \
-        && ! kubectl get crd clusterproviderconfigs.aws.m.upbound.io >/dev/null 2>&1; then
+      # Checks both Crossplane AWS provider CRD naming generations (the
+      # historical aws.upbound.io and the newer aws.m.upbound.io "family"
+      # provider). Written as `cmd && var=true` rather than `if ! cmd1 && !
+      # cmd2; then die; fi` — bash 3.2 (macOS's stock /bin/bash) does not
+      # reliably honor the "commands in an if-test are exempt from set -e"
+      # rule for a negated && compound nested this many function calls deep,
+      # and silently exits the whole script with no message at all.
+      local aws_provider_crd_found=false
+      kubectl get crd clusterproviderconfigs.aws.upbound.io   >/dev/null 2>&1 && aws_provider_crd_found=true
+      kubectl get crd clusterproviderconfigs.aws.m.upbound.io >/dev/null 2>&1 && aws_provider_crd_found=true
+      if [ "$aws_provider_crd_found" != "true" ]; then
         die "IRSA needs the AWS Crossplane provider (ClusterProviderConfig CRD not found). Install it, or pass IRSA_ROLE_ARN=<arn> to bring your own role."
       fi
       local pcs
@@ -693,19 +1007,31 @@ summarize() {
   _row "🎯" "target"       "${CLUSTER_NAME}  \033[2m(context: ${CTX})\033[0m"
   _row "📦" "release"      "${RELEASE_NAME}  →  ns/${NAMESPACE}"
   _row "🏷️ " "chart"        "${CHART##*/}${CHART_VERSION:+ @ ${CHART_VERSION}}  \033[2m(image: ${IMAGE_TAG:-chart default})\033[0m"
-  _row "🔐" "spire class"  "${SPIRE_CLASSNAME}"
+  if [ "$AGENTLESS" != "true" ]; then
+    _row "🔐" "spire class"  "${SPIRE_CLASSNAME}"
+  fi
   _row "🤝" "trusts mcp"   "${MCP_TRUST_DOMAIN}"
   _row "🪪 " "spiffe id"    "${MCP_SPIFFE_ID}"
   _row "🌐" "federation"   "${MCP_FEDERATION_NAME}  →  ${MCP_BUNDLE_ENDPOINT}"
   _row "🎫" "jwt audience" "${JWT_AUDIENCE}"
-  if [ "$USE_INGRESS" = "true" ]; then
-    _row "🌉" "ingress"     "${HOSTNAME_FQDN}  \033[2m(class ${INGRESS_CLASS}, issuer ${CLUSTER_ISSUER:-none})\033[0m"
-  elif [ "$HTTPROUTE_ENABLED" = "true" ]; then
-    _row "🛣️ " "httproute"    "$(printf '%s  (gw %s/%s, section: %s)' "$HOSTNAME_FQDN" "$GATEWAY_NAMESPACE" "$GATEWAY_NAME" "${GATEWAY_SECTION:-none (all listeners)}")"
-  else
-    _row "🛣️ " "route"        "disabled"
+  if [ "$AGENTLESS" = "true" ]; then
+    local agentless_why="forced via AGENTLESS=true"
+    [ "$AGENTLESS_EXPLICIT" = "true" ] || agentless_why="auto-detected: no SPIRE controller-manager on this cluster"
+    _row "🛰️ " "spire mode"   "\033[1;35mAGENT-LESS\033[0m \033[2m(${agentless_why}; JWT bundle fetched via HTTPS from ${MCP_BUNDLE_ENDPOINT}, no local agent socket)\033[0m"
   fi
-  _row "📊" "monitoring"   "serviceMonitor=${SERVICEMONITOR_ENABLED}"
+  local route_auto=""
+  [ "$USE_INGRESS_EXPLICIT" = "true" ] || [ "$HTTPROUTE_ENABLED_EXPLICIT" = "true" ] || route_auto=" (auto)"
+  if [ "$USE_INGRESS" = "true" ]; then
+    _row "🌉" "ingress"     "${HOSTNAME_FQDN}  \033[2m(class ${INGRESS_CLASS}, issuer ${CLUSTER_ISSUER:-none})${route_auto}\033[0m"
+  elif [ "$HTTPROUTE_ENABLED" = "true" ]; then
+    _row "🛣️ " "httproute"    "$(printf '%s  (gw %s/%s, section: %s)%s' "$HOSTNAME_FQDN" "$GATEWAY_NAMESPACE" "$GATEWAY_NAME" "${GATEWAY_SECTION:-none (all listeners)}" "$route_auto")"
+  else
+    _row "🛣️ " "route"        "disabled${route_auto}"
+  fi
+  local sm_suffix="" vpa_suffix=""
+  [ "$SERVICEMONITOR_ENABLED_EXPLICIT" = "true" ] || sm_suffix=" (auto)"
+  [ "$VPA_ENABLED_EXPLICIT" = "true" ] || vpa_suffix=" (auto)"
+  _row "📊" "monitoring"   "serviceMonitor=${SERVICEMONITOR_ENABLED}${sm_suffix}  vpa=${VPA_ENABLED}${vpa_suffix}"
   if [ -n "$MEMORY_LIMIT" ]; then
     _row "🧠" "memory"       "limit ${MEMORY_LIMIT}, vpa max ${VPA_MAX_MEMORY}  \033[2m(auto: ${POD_COUNT:-?} pods)\033[0m"
   else
@@ -726,7 +1052,9 @@ summarize() {
     fi
   fi
   if [ "$READ_ONLY" = "true" ]; then
-    _row "👁️ " "mode"         "\033[1;33mREAD-ONLY\033[0m \033[2m(mutating tasks disabled; introspection only)\033[0m"
+    _row "👁️ " "mode"         "\033[1;32mREAD-ONLY (default)\033[0m \033[2m(mutating tasks disabled; introspection only)\033[0m"
+  else
+    _row "✏️ " "mode"         "\033[1;31mWRITE\033[0m \033[2m(mutating tasks enabled — set WRITE_MODE=false, or just drop the flag, for read-only)\033[0m"
   fi
   if [ "$RELEASE_EXISTS" = "true" ]; then
     _row "♻️ " "action"       "reconcile existing release \033[2m(idempotent — no change if already current)\033[0m"
@@ -734,6 +1062,7 @@ summarize() {
     _row "🌱" "action"       "fresh install"
   fi
   [ "$DRY_RUN" = "true" ] && _row "🧪" "mode"        "\033[1;33mDRY RUN — nothing will change\033[0m"
+  [ "$VALUES_ONLY" = "true" ] && _row "📄" "mode"        "\033[1;33mVALUES ONLY — rendering values.yaml, nothing will change\033[0m"
   printf '  \033[2m────────────────────────────────────────────────────────────\033[0m\n' >&2
   printf '\n' >&2
 }
@@ -795,6 +1124,15 @@ confirm_countdown() {
 # configure_federation: ensure the ClusterFederatedTrustDomain exists
 # ---------------------------------------------------------------------------
 configure_federation() {
+  # Agent-less mode fetches the trust bundle itself via HTTPS (see deploy());
+  # it needs neither the ClusterFederatedTrustDomain CR nor the SPIRE CRD it
+  # depends on.
+  if [ "$AGENTLESS" = "true" ]; then
+    log "skipping ClusterFederatedTrustDomain — AGENTLESS=true fetches the bundle directly"
+    _SKIP_FEDERATION=true
+    return 0
+  fi
+
   if ! kubectl get crd clusterfederatedtrustdomains.spire.spiffe.io >/dev/null 2>&1; then
     die "SPIRE CRD clusterfederatedtrustdomains.spire.spiffe.io not found — is SPIRE installed?"
   fi
@@ -875,8 +1213,10 @@ spec:
               number: 8080
 EOF
 )
-  # drop the empty issuer line if no issuer was resolved
-  manifest=$(printf '%s\n' "$manifest" | grep -v '^$')
+  # drop the empty issuer line if no issuer was resolved. || true: guards
+  # the same grep-exit-1-on-no-match hazard as above, in case $manifest is
+  # ever entirely blank (not expected in practice, but free to guard).
+  manifest=$(printf '%s\n' "$manifest" | grep -v '^$') || true
 
   if [ "$DRY_RUN" = "true" ]; then
     printf '\033[2m# kubectl apply -f - <<EOF\n%s\nEOF\033[0m\n' "$manifest" >&2
@@ -941,48 +1281,81 @@ adopt_orphans() {
 }
 
 # ---------------------------------------------------------------------------
-# deploy: helm upgrade --install with resolved values
+# build_helm_args: populate the global HELM_ARGS array with every
+# `helm upgrade --install ...` argument this installer resolves from the
+# target cluster (SPIRE/JWT, memory sizing, IRSA, HTTPRoute, feature flags).
+# Shared by deploy() (which runs it) and render_values_only() (which instead
+# dry-runs it to dump the resulting values.yaml) so the two paths can never
+# drift apart.
 # ---------------------------------------------------------------------------
-deploy() {
-  local -a args=(
+build_helm_args() {
+  HELM_ARGS=(
     upgrade --install "$RELEASE_NAME" "$CHART"
     --namespace "$NAMESPACE" --create-namespace
     --set "replicaCount=${REPLICA_COUNT}"
     --set "spire.csi.enabled=true"
-    --set "spire.className=${SPIRE_CLASSNAME}"
     --set "spire.allowedSPIFFEIDs[0]=${MCP_SPIFFE_ID}"
     --set "spire.jwt.enabled=true"
     --set "spire.jwt.audiences[0]=${JWT_AUDIENCE}"
     --set "serviceMonitor.enabled=${SERVICEMONITOR_ENABLED}"
   )
 
-  [ -n "$CHART_VERSION" ] && args+=( --version "$CHART_VERSION" )
-  [ -n "$IMAGE_TAG" ]     && args+=( --set "image.tag=${IMAGE_TAG}" )
+  [ -n "$CHART_VERSION" ] && HELM_ARGS+=( --version "$CHART_VERSION" )
+  [ -n "$IMAGE_TAG" ]     && HELM_ARGS+=( --set "image.tag=${IMAGE_TAG}" )
+
+  # className only matters for the (federated) ClusterSPIFFEID the chart
+  # renders on the workload-API/local-agent path; it's not read at all once
+  # AGENTLESS leaves it unset (see discover(), which skips discovering it
+  # entirely in that mode).
+  [ -n "$SPIRE_CLASSNAME" ] && HELM_ARGS+=( --set "spire.className=${SPIRE_CLASSNAME}" )
 
   # Pod-count-derived memory sizing (see discover_memory). Set the initial limit
   # to survive the cold-start burst before VPA reacts, a matching burstable
   # request (half the limit), and raise the VPA ceiling so scale-up isn't capped
   # at the chart's 1Gi. Left empty on clusters where discovery couldn't run.
   if [ -n "$MEMORY_LIMIT" ]; then
-    args+=(
+    HELM_ARGS+=(
       --set "resources.limits.memory=${MEMORY_LIMIT}"
       --set "resources.requests.memory=$(half_mem "$MEMORY_LIMIT")"
     )
   fi
-  [ -n "$VPA_MAX_MEMORY" ] && args+=( --set "vpa.maxAllowed.memory=${VPA_MAX_MEMORY}" )
+  [ -n "$VPA_MAX_MEMORY" ] && HELM_ARGS+=( --set "vpa.maxAllowed.memory=${VPA_MAX_MEMORY}" )
+  # Always set explicitly (declarative reconcile): a re-run without
+  # VPA_ENABLED=true also disables an existing VerticalPodAutoscaler on a
+  # cluster that's since lost its VPA controller, same as every other
+  # auto-detected toggle in this script.
+  HELM_ARGS+=( --set "vpa.enabled=${VPA_ENABLED}" )
 
   # Always set trustDomains (needed for JWT caller validation), but skip
   # federation ClusterSPIFFEID when installing on the same cluster as centcom
-  args+=( --set "spire.trustDomains[0]=${MCP_TRUST_DOMAIN}" )
+  # (or, below, when AGENTLESS=true also sets _SKIP_FEDERATION).
+  HELM_ARGS+=( --set "spire.trustDomains[0]=${MCP_TRUST_DOMAIN}" )
   if [ "${_SKIP_FEDERATION:-}" = "true" ]; then
-    args+=( --set "spire.skipFederation=true" )
+    HELM_ARGS+=( --set "spire.skipFederation=true" )
+  fi
+
+  # Agent-less mode: fetch the JWT trust bundle straight from the federation
+  # bundle endpoint over HTTPS instead of the local SPIRE Workload API. The
+  # chart skips the agent-socket volume/mount entirely once bundleSource is
+  # "federation" (centcom-satellite.needsAgentSocket). Reuses
+  # MCP_BUNDLE_ENDPOINT — the same URL the CR-based path would otherwise hand
+  # to SPIRE itself — as the URL the satellite fetches/refreshes on its own.
+  # Dots in the trust-domain key must be escaped for `helm --set`'s dotted-path
+  # syntax, or they'd be parsed as nested map keys instead of a literal key.
+  if [ "$AGENTLESS" = "true" ]; then
+    local td_escaped
+    td_escaped=$(printf '%s' "$MCP_TRUST_DOMAIN" | sed 's/\./\\./g')
+    HELM_ARGS+=(
+      --set "spire.jwt.bundleSource=federation"
+      --set "spire.jwt.federationBundleEndpoints.${td_escaped}=${MCP_BUNDLE_ENDPOINT}"
+    )
   fi
 
   # Optional LOCAL caller (same trust domain as this agent): add it to the
   # accept-list at index 1 and mark its domain as local so the chart excludes
   # it from federatesWith (no self-federation). The remote MCP stays federated.
   if [ -n "$LOCAL_SPIFFE_ID" ]; then
-    args+=(
+    HELM_ARGS+=(
       --set "spire.allowedSPIFFEIDs[1]=${LOCAL_SPIFFE_ID}"
       --set "spire.trustDomains[1]=${LOCAL_TRUST_DOMAIN}"
       --set "spire.localTrustDomain=${LOCAL_TRUST_DOMAIN}"
@@ -993,7 +1366,7 @@ deploy() {
   local IFS=','
   local f
   for f in $FEATURES; do
-    [ -n "$f" ] && args+=( --set "features.${f}" )
+    [ -n "$f" ] && HELM_ARGS+=( --set "features.${f}" )
   done
   unset IFS
 
@@ -1002,15 +1375,15 @@ deploy() {
   # only annotate the SA; otherwise Crossplane provisions the generic role +
   # attaches the policy for each enabled task group.
   if [ "$IRSA_ENABLED" = "true" ]; then
-    args+=(
+    HELM_ARGS+=(
       --set "aws.irsa.enabled=true"
       --set "aws.irsa.region=${IRSA_REGION}"
       --set "aws.irsa.audience=${IRSA_AUDIENCE}"
     )
     if [ -n "$IRSA_ROLE_ARN" ]; then
-      args+=( --set "aws.irsa.roleArnOverride=${IRSA_ROLE_ARN}" )
+      HELM_ARGS+=( --set "aws.irsa.roleArnOverride=${IRSA_ROLE_ARN}" )
     else
-      args+=(
+      HELM_ARGS+=(
         # --set-string: a 12-digit account id without a leading zero would
         # otherwise be parsed as an int64 and break %s formatting in the chart.
         --set-string "aws.irsa.accountId=${IRSA_ACCOUNT_ID}"
@@ -1021,16 +1394,16 @@ deploy() {
       # don't collide. Only meaningful when Crossplane creates the role (this
       # branch); a BYO role ARN needs no name. Skipped when empty (opt-out).
       [ -n "$IRSA_NAME_PREFIX" ] && \
-        args+=( --set "aws.irsa.namePrefix=${IRSA_NAME_PREFIX}" )
+        HELM_ARGS+=( --set "aws.irsa.namePrefix=${IRSA_NAME_PREFIX}" )
     fi
   else
     # Declarative disable so a re-run without CLOUDWATCH_RCA also tears down IRSA.
-    args+=( --set "aws.irsa.enabled=false" )
+    HELM_ARGS+=( --set "aws.irsa.enabled=false" )
   fi
 
   # HTTPRoute exposure
   if [ "$HTTPROUTE_ENABLED" = "true" ]; then
-    args+=(
+    HELM_ARGS+=(
       --set "httpRoute.enabled=true"
       --set "httpRoute.hostname=${HOSTNAME_FQDN}"
       --set "httpRoute.gatewayRef.name=${GATEWAY_NAME}"
@@ -1041,10 +1414,18 @@ deploy() {
     # listener causes redirect loops in setups with an all-listener
     # http-to-https-redirect route. Pass empty string to actively clear any
     # value Helm might otherwise carry over.
-    args+=( --set "httpRoute.gatewayRef.sectionName=${GATEWAY_SECTION}" )
+    HELM_ARGS+=( --set "httpRoute.gatewayRef.sectionName=${GATEWAY_SECTION}" )
   else
-    args+=( --set "httpRoute.enabled=false" )
+    HELM_ARGS+=( --set "httpRoute.enabled=false" )
   fi
+}
+
+# ---------------------------------------------------------------------------
+# deploy: helm upgrade --install with resolved values (build_helm_args above)
+# ---------------------------------------------------------------------------
+deploy() {
+  build_helm_args
+  local -a args=( "${HELM_ARGS[@]}" )
 
   # Force past server-side-apply field-manager conflicts. Helm refuses to change
   # a field another manager owns (classic case: someone ran `kubectl scale`, which
@@ -1070,6 +1451,64 @@ deploy() {
     printf '\033[2m# helm %s\033[0m\n' "${args[*]}" >&2
   else
     helm "${args[@]}" >&2 || die "helm install failed"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# render_values_only: VALUES_ONLY=true path. Runs the exact same resolved
+# `helm upgrade --install` this installer would otherwise apply, but as a
+# `--dry-run --debug` so nothing in the cluster changes (no federation CR, no
+# Ingress, no adoption, no actual helm release) — then extracts Helm's own
+# "COMPUTED VALUES:" block (the full chart defaults merged with every --set
+# override resolved above) into a values file, and prints the equivalent
+# plain `helm upgrade --install -f <file>` command so the operator can review
+# the file and run that command by hand whenever they're ready.
+# ---------------------------------------------------------------------------
+render_values_only() {
+  build_helm_args
+  local -a args=( "${HELM_ARGS[@]}" --dry-run --debug )
+
+  local out
+  log "rendering resolved values (VALUES_ONLY=true — no cluster changes)"
+  out=$(helm "${args[@]}" 2>&1) || die "helm dry-run failed while rendering values:
+${out}"
+
+  local values_file="${VALUES_FILE:-${RELEASE_NAME}-values.yaml}"
+  # COMPUTED VALUES: is Helm's own dump of the full chart defaults merged with
+  # every --set override above — exactly what would be installed. HOOKS: is
+  # the next fixed section in `helm --dry-run --debug` output, so it's a safe
+  # end marker regardless of chart content.
+  awk '/^COMPUTED VALUES:$/{flag=1;next} /^HOOKS:$/{flag=0} flag' <<<"$out" \
+    | sed -e '/./,$!d' > "$values_file"
+
+  if [ ! -s "$values_file" ]; then
+    die "could not extract COMPUTED VALUES from helm dry-run output — helm version too old? (need 3.x)"
+  fi
+
+  log "wrote resolved values to ${values_file}"
+  printf '\n' >&2
+  printf '  \033[1;32m✅ values rendered — nothing was changed on the cluster.\033[0m\n' >&2
+  printf '  \033[2m📄 %s\033[0m\n' "$values_file" >&2
+  printf '\n' >&2
+  printf '  \033[1mRun this yourself when ready:\033[0m\n' >&2
+  printf '  \033[2m────────────────────────────────────────────────────────────\033[0m\n' >&2
+  # Goes to stdout: the copy/paste command, plain values-file form (no --set
+  # flags — they're already baked into the rendered file above).
+  cat <<EOF
+helm upgrade --install ${RELEASE_NAME} ${CHART}${CHART_VERSION:+ --version ${CHART_VERSION}} \\
+  --namespace ${NAMESPACE} --create-namespace \\
+  -f ${values_file} \\
+  --wait --timeout ${WAIT_TIMEOUT}
+EOF
+  printf '  \033[2m────────────────────────────────────────────────────────────\033[0m\n' >&2
+  printf '\n' >&2
+  if [ "$AGENTLESS" != "true" ]; then
+    printf '  \033[1;33mNote:\033[0m the ClusterFederatedTrustDomain and (if USE_INGRESS=true) the nginx\n' >&2
+    printf '  Ingress this script would otherwise apply are NOT included above — they are\n' >&2
+    printf '  plain kubectl manifests, not part of the chart. Re-run without VALUES_ONLY,\n' >&2
+    printf '  or apply them yourself; see configure_federation()/configure_ingress() in\n' >&2
+    printf '  this script for the exact manifests.\n' >&2
+    printf '\n' >&2
   fi
 }
 
@@ -1152,6 +1591,12 @@ main() {
   preflight
   discover
   summarize
+
+  if [ "$VALUES_ONLY" = "true" ]; then
+    render_values_only
+    return 0
+  fi
+
   confirm_countdown
   configure_federation
   adopt_orphans
@@ -1161,5 +1606,67 @@ main() {
   verify
   done_msg
 }
+
+# self_verify checks THIS SCRIPT's own integrity against the signed chart it
+# shipped in — unrelated to verify() above, which checks the *deployment's*
+# rollout status. Invoked as `bash install.sh verify` (or `./install.sh verify`
+# on a saved, executable copy), not via the pipe form.
+self_verify() {
+  case "$0" in
+    bash|-bash|sh|-sh)
+      echo "verify needs a saved copy of this script on disk, not a piped 'curl | bash -s verify' — fetch it first:" >&2
+      echo "  curl -fsSL https://raw.githubusercontent.com/philips-software/helm-charts/main/charts/centcom-satellite/install.sh -o install.sh" >&2
+      echo "  bash install.sh verify" >&2
+      exit 1
+      ;;
+  esac
+  local script_path="$0"
+  local chart_ref="ghcr.io/philips-software/helm-charts/centcom-satellite:${INSTALL_SH_CHART_VERSION}"
+
+  command -v helm >/dev/null 2>&1 || { echo "verify requires helm on PATH" >&2; exit 1; }
+  command -v cosign >/dev/null 2>&1 || { echo "verify requires cosign on PATH (https://docs.sigstore.dev/cosign/installation/)" >&2; exit 1; }
+
+  echo "Verifying signature of ${chart_ref} ..." >&2
+  if ! cosign verify "$chart_ref" \
+      --certificate-identity-regexp="https://github.com/philips-software/helm-charts/.*" \
+      --certificate-oidc-issuer="https://token.actions.githubusercontent.com" \
+      >/dev/null 2>&1; then
+    echo "❌ signature verification FAILED for ${chart_ref}" >&2
+    echo "   Either this chart version was never signed, or something is wrong — do not trust this script." >&2
+    exit 1
+  fi
+  echo "✅ chart signature verified (built and signed by philips-software/helm-charts CI)" >&2
+
+  local tmpdir
+  tmpdir=$(mktemp -d)
+  trap 'rm -rf "$tmpdir"' EXIT
+
+  echo "Pulling oci://${chart_ref} ..." >&2
+  helm pull "oci://ghcr.io/philips-software/helm-charts/centcom-satellite" \
+    --version "$INSTALL_SH_CHART_VERSION" -d "$tmpdir" >/dev/null
+
+  tar -xzf "$tmpdir"/*.tgz -C "$tmpdir"
+  local canonical="$tmpdir/centcom-satellite/install.sh"
+  if [ ! -f "$canonical" ]; then
+    echo "❌ install.sh not found inside the signed chart — cannot compare" >&2
+    exit 1
+  fi
+
+  if cmp -s "$script_path" "$canonical"; then
+    echo "✅ MATCH: this script is byte-for-byte identical to the signed install.sh in chart ${INSTALL_SH_CHART_VERSION}" >&2
+    echo "   Safe to run." >&2
+    exit 0
+  else
+    echo "❌ MISMATCH: this script does NOT match the signed install.sh in chart ${INSTALL_SH_CHART_VERSION}" >&2
+    echo "   Do not run it. Diff against the canonical copy:" >&2
+    diff -u "$canonical" "$script_path" >&2 || true
+    exit 1
+  fi
+}
+
+if [ "${1:-}" = "verify" ]; then
+  self_verify
+  exit $?
+fi
 
 main "$@"

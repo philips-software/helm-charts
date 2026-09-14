@@ -23,7 +23,7 @@ spec:
         - /spec/replicas
   source:
     chart: loki
-    repoURL: https://grafana.github.io/helm-charts
+    repoURL: ghcr.io/grafana-community/helm-charts
     targetRevision: {{ .Values.lokiChart.version }}
     helm:
       releaseName: loki

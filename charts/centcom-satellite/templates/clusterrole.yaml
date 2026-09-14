@@ -6,10 +6,18 @@ metadata:
   labels:
     {{- include "centcom-satellite.labels" . | nindent 4 }}
 rules:
-  # PVC operations for resize
+  # PVC read access (list_pvcs, pv_usage, storage_status) — always granted.
+  # Write verbs (patch/update, needed only for pv_resize) are gated below,
+  # behind features.pvResize, same as every other mutating capability.
   - apiGroups: [""]
     resources: ["persistentvolumeclaims"]
-    verbs: ["get", "list", "watch", "patch", "update"]
+    verbs: ["get", "list", "watch"]
+{{- if .Values.features.pvResize }}
+  # PVC patch/update for the pv_resize task (opt-in via features.pvResize)
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["patch", "update"]
+{{- end }}
   # PV read access for status checking
   - apiGroups: [""]
     resources: ["persistentvolumes"]
@@ -38,6 +46,11 @@ rules:
   - apiGroups: [""]
     resources: ["pods/log"]
     verbs: ["get"]
+  # ConfigMap read access for list_configmaps metadata listing — always
+  # granted, same as the other list_* rules above.
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
   # Metrics API access for pod_resource_usage task
   - apiGroups: ["metrics.k8s.io"]
     resources: ["pods"]
@@ -49,6 +62,10 @@ rules:
   # Workload read access for cluster_health task (deployments, replicasets, daemonsets, statefulsets)
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+  # CronJob/Job read access for list_workloads task
+  - apiGroups: ["batch"]
+    resources: ["cronjobs", "jobs"]
     verbs: ["get", "list", "watch"]
   # Service read access for list_services task
   - apiGroups: [""]
@@ -92,13 +109,22 @@ rules:
   - apiGroups: ["autoscaling.k8s.io"]
     resources: ["verticalpodautoscalers"]
     verbs: ["get", "list", "watch"]
-{{- if .Values.features.getResource }}
-  # Generic resource read access for get_resource task (CRDs like Crossplane, cert-manager, etc.)
-  # Note: Secret access is explicitly blocked in centcom-satellite code for security
-  - apiGroups: ["*"]
-    resources: ["*"]
-    verbs: ["get", "list", "watch"]
-{{- end }}
+{{/*
+  Generic resource read access for get_resource (any CRD/kind by GVK) used to
+  be an apiGroups:["*"] resources:["*"] wildcard here — which, at the raw K8s
+  RBAC layer, includes secrets, leaving Secret protection entirely up to one
+  application-level kind check with no independent backstop. It's now a
+  separate ClusterRoleBinding to the built-in `view` ClusterRole instead (see
+  templates/clusterrolebinding-view.yaml), which excludes secrets natively.
+  Known consequence, verified against a real cluster rather than assumed:
+  cert-manager and Kyverno CRDs aggregate into the real `view` role and stay
+  readable; Crossplane CRDs (IAM roles, RDS, KMS, etc.) use Crossplane's own
+  aggregation label (rbac.crossplane.io/aggregate-to-view), not the
+  Kubernetes-native one `view` selects on, so they do NOT flow into `view`
+  and become unreadable via get_resource specifically — add a targeted rule
+  for the exact Crossplane API groups you need if that capability matters to
+  you; do not restore the wildcard to work around it.
+*/}}
 {{- if .Values.features.workloadRestart }}
   # Workload patch access for workload_restart task (rolling restart)
   - apiGroups: ["apps"]
@@ -154,12 +180,6 @@ rules:
   - apiGroups: ["argoproj.io"]
     resources: ["applications"]
     verbs: ["get", "list", "watch"]
-{{- end }}
-{{- if .Values.features.configmapRead }}
-  # ConfigMap read access for list_configmaps and get_configmap introspection
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get", "list"]
 {{- end }}
   # Crossplane EnvironmentConfig read access for AWS account ID detection
   # (optional, graceful degradation if CRDs not installed)

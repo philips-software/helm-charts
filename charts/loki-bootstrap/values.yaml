@@ -1,6 +1,6 @@
 lokiChart:
-  # renovate: datasource=helm depName=loki registryUrl=https://grafana.github.io/helm-charts
-  version: 7.1.0
+  # renovate: datasource=docker depName=ghcr.io/grafana-community/helm-charts/loki
+  version: 18.12.2
 
 compactorOrgmapper:
   package: ghcr.io/loafoe/compactor-orgmapper
@@ -180,6 +180,12 @@ vpa:
       maxAllowed:
         memory: 8Gi
     indexGateway:
+      enabled: true
+      minAllowed:
+        memory: 128Mi
+      maxAllowed:
+        memory: 1Gi
+    compactor:
       enabled: true
       minAllowed:
         memory: 128Mi
