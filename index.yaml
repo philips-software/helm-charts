@@ -3563,6 +3563,13 @@ entries:
     version: 0.0.14
   grafana:
   - apiVersion: v2
+    created: "2026-09-14T09:07:02.332619173Z"
+    digest: b7be2316af52878727d71c62a7055f43199e436417fab26a286d2e05e24232b7
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.78.2/grafana-0.78.2.tgz
+    version: 0.78.2
+  - apiVersion: v2
     created: "2026-08-30T21:28:24.725175305Z"
     digest: af690dd0cf8143335f1bc7c4c4f8076cf09ba569cb6c8b853a194ac5398df36f
     name: grafana
@@ -6250,4 +6257,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-09-13T11:01:13.505524396Z"
+generated: "2026-09-14T09:07:03.043628885Z"
