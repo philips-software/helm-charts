@@ -1,6 +1,6 @@
 # langfuse-bootstrap
 
-![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.17.0](https://img.shields.io/badge/AppVersion-4.17.0-informational?style=flat-square)
+![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.36.0](https://img.shields.io/badge/AppVersion-4.36.0-informational?style=flat-square)
 
 Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access via IRSA against an existing bucket.
 
@@ -25,8 +25,6 @@ Then browse to http://localhost:3000.
 Set `ingress.httpRoute.enabled: true` (required for a real OAuth callback URL) and `sso.enabled: true` to sign in via an external Dex/OIDC IdP. Prerequisite: register an OAuth2 client with that IdP first (see this repo's `dex-issuer` chart for the Crossplane `provider-dex` pattern), then set `sso.issuer` / `sso.clientId` / `credentials.ssoClientSecret` to the resulting values.
 
 Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land with no organization membership. An existing org owner manually invites/promotes specific users (e.g. `philips-internal:homelab` members) to `ADMIN` via the Langfuse UI after their first sign-in.
-
-If your issuer is itself a broker federating multiple upstream identity providers, the same person signing in via different upstream paths can get different provider-account ids on the same email, and NextAuth will refuse the second one with `OAuthAccountNotLinked` unless you set `sso.allowAccountLinking: true` (sets `AUTH_CUSTOM_ALLOW_ACCOUNT_LINKING`). Only enable this if every upstream IdP behind the issuer verifies the email claim — it links accounts by email match with no further confirmation.
 
 ## Values
 
@@ -73,7 +71,7 @@ If your issuer is itself a broker federating multiple upstream identity provider
 | ingress.httpRoute.host | string | `"langfuse"` |  |
 | ingress.httpRoute.sharedGatewayName | string | `"platform"` |  |
 | ingress.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
-| langfuse.image.tag | string | `"4.22.0"` |  |
+| langfuse.image.tag | string | `"4.36.0"` |  |
 | langfuse.nextauthUrl | string | `"http://localhost:3000"` |  |
 | langfuse.web.resources.limits.memory | string | `"2Gi"` |  |
 | langfuse.web.resources.requests.cpu | string | `"100m"` |  |
@@ -82,7 +80,7 @@ If your issuer is itself a broker federating multiple upstream identity provider
 | langfuse.worker.resources.requests.cpu | string | `"100m"` |  |
 | langfuse.worker.resources.requests.memory | string | `"1Gi"` |  |
 | langfuseChart.repoURL | string | `"oci://ghcr.io/langfuse/langfuse-k8s/charts"` |  |
-| langfuseChart.version | string | `"2.0.2"` |  |
+| langfuseChart.version | string | `"2.1.0"` |  |
 | namespace | string | `"langfuse-system"` |  |
 | redis.image.repository | string | `"valkey/valkey"` |  |
 | redis.image.tag | string | `"9.1"` |  |
