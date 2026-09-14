@@ -1,13 +1,23 @@
-{{- $needsIamRole := false }}
+{{- $needsIrsaRole := false }}
+{{- $needsPodIdentityRole := false }}
 {{- range concat .Values.providers .Values.extraProviders }}
+{{- $mode := .identityMode | default $.Values.package.identityMode | default "irsa" }}
 {{- if and (not (eq (.enabled | toString) "false")) (not .roleArn) (or (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) (.policy)) }}
-{{- $needsIamRole = true }}
+{{- if eq $mode "podIdentity" }}
+{{- $needsPodIdentityRole = true }}
+{{- else }}
+{{- $needsIrsaRole = true }}
 {{- end }}
 {{- end }}
-{{- if $needsIamRole }}
+{{- end }}
+{{- if $needsIrsaRole }}
 {{- include "crossplane-providers.validateOIDCConfig" . }}
 {{- end }}
+{{- if $needsPodIdentityRole }}
+{{- include "crossplane-providers.validatePodIdentityConfig" . }}
+{{- end }}
 {{- range concat .Values.providers .Values.extraProviders }}
+{{- $mode := .identityMode | default $.Values.package.identityMode | default "irsa" }}
 {{- if and (not (eq (.enabled | toString) "false")) (not .roleArn) (or (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) (.policy)) }}
 ---
 apiVersion: iam.aws.upbound.io/v1beta1
@@ -18,10 +28,27 @@ metadata:
     {{- include "crossplane-providers.labels" $ | nindent 4 }}
     crossplane.io/provider: {{ .name }}
   annotations:
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true  
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   forProvider:
     assumeRolePolicy: |
+      {{- if eq $mode "podIdentity" }}
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "pods.eks.amazonaws.com"
+            },
+            "Action": [
+              "sts:AssumeRole",
+              "sts:TagSession"
+            ]
+          }
+        ]
+      }
+      {{- else }}
       {
         "Version": "2012-10-17",
         "Statement": [
@@ -40,6 +67,7 @@ spec:
           }
         ]
       }
+      {{- end }}
     {{- if and (.managedPolicyArns) (gt (len .managedPolicyArns) 0) }}
     managedPolicyArns:
       {{- range .managedPolicyArns }}

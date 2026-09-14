@@ -1,6 +1,6 @@
 # crossplane-providers
 
-![Version: 0.0.33](https://img.shields.io/badge/Version-0.0.33-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.5.0](https://img.shields.io/badge/AppVersion-v2.5.0-informational?style=flat-square)
+![Version: 0.0.36](https://img.shields.io/badge/Version-0.0.36-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v2.7.0](https://img.shields.io/badge/AppVersion-v2.7.0-informational?style=flat-square)
 
 ## Overview
 
@@ -27,7 +27,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-providers
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.33"
+    version: "0.0.36"
     releaseName: crossplane-providers
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -53,7 +53,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-providers
-    targetRevision: "0.0.33"
+    targetRevision: "0.0.36"
     helm:
       valueFiles:
         - values.yaml
@@ -83,13 +83,17 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | environmentConfig.accountId | string | `""` |  |
+| environmentConfig.clusterName | string | `""` |  |
 | environmentConfig.oidcProvider | string | `""` |  |
 | environmentConfig.oidcProviderArn | string | `""` |  |
+| environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | extraProviders | list | `[]` |  |
+| package.identityMode | string | `"irsa"` |  |
 | package.namespace | string | `"crossplane-system"` |  |
+| package.protectProvider | bool | `true` |  |
 | package.registry | string | `"xpkg.crossplane.io/crossplane-contrib"` |  |
-| package.version | string | `"v2.5.0"` |  |
+| package.version | string | `"v2.7.0"` |  |
 | providers[0].enabled | bool | `true` |  |
 | providers[0].name | string | `"provider-family-aws"` |  |
 | providers[1].enabled | bool | `true` |  |

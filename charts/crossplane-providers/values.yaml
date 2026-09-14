@@ -25,9 +25,18 @@ environmentConfig:
   
   # OIDC Provider URL for your Kubernetes cluster (without https:// prefix)
   # This is used in the IAM trust policy for provider service accounts
+  # Required only when identityMode is "irsa" (the default).
   # Format: "oidc.eks.<region>.amazonaws.com/id/<cluster-id>"
   # Example: "oidc.eks.us-west-2.amazonaws.com/id/ABCDEF1234567890"
-  oidcProvider: "" 
+  oidcProvider: ""
+
+  # EKS cluster name. Required only when identityMode is "podIdentity"
+  # (used to create the PodIdentityAssociation).
+  clusterName: ""
+
+  # AWS region of the cluster. Required only when identityMode is "podIdentity"
+  # (the region the PodIdentityAssociation is created in).
+  region: ""
 
 # =============================================================================
 # CROSSPLANE PROVIDERS CONFIGURATION
@@ -46,6 +55,16 @@ package:
   # Kubernetes namespace where Crossplane is installed
   # This is typically "crossplane-system" for standard installations
   namespace: "crossplane-system"
+
+  # How provider ServiceAccounts obtain AWS credentials. One of:
+  #   irsa        - IAM Roles for Service Accounts via OIDC (default). Requires
+  #                 environmentConfig.oidcProviderArn + oidcProvider.
+  #   podIdentity - EKS Pod Identity. Requires environmentConfig.clusterName +
+  #                 region; creates a PodIdentityAssociation per provider and
+  #                 omits the IRSA role-arn annotation.
+  # Can be overridden per provider with `identityMode` on a providers/
+  # extraProviders entry.
+  identityMode: "irsa"
 
   # When true, annotates each Provider with argocd.argoproj.io/sync-options: Delete=false
   # so ArgoCD will NOT prune the live Provider if the parent Application is deleted.
@@ -166,6 +185,14 @@ providers:
 #     enabled: true
 #     # No managedPolicyArns and no roleArn - will not create IAM role or IRSA annotation
 #     # Useful for providers that don't need AWS permissions
+#
+#   - name: provider-aws-ec2
+#     enabled: true
+#     # Override the chart-level package.identityMode for just this provider.
+#     # Requires environmentConfig.clusterName + region.
+#     identityMode: podIdentity
+#     policy: |
+#       { "Version": "2012-10-17", "Statement": [ ... ] }
 #
 # =============================================================================
 # IMPORTANT NOTES

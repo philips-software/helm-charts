@@ -1,4 +1,5 @@
 {{- range concat .Values.providers .Values.extraProviders }}
+{{- $mode := .identityMode | default $.Values.package.identityMode | default "irsa" }}
 {{- if not (eq (.enabled | toString) "false") }}
 ---
 apiVersion: pkg.crossplane.io/v1beta1
@@ -45,12 +46,18 @@ spec:
   {{- if or (.roleArn) (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) (.policy) }}
   serviceAccountTemplate:
     metadata:
+      {{- if eq $mode "podIdentity" }}
+      # Pin a stable ServiceAccount name so the PodIdentityAssociation can target
+      # it. Pod Identity does not use the IRSA role-arn annotation.
+      name: {{ .name }}
+      {{- else }}
       annotations:
         {{- if .roleArn }}
         eks.amazonaws.com/role-arn: {{ .roleArn }}
         {{- else }}
         eks.amazonaws.com/role-arn: arn:aws:iam::{{ $.Values.environmentConfig.accountId }}:role/{{ $.Values.environmentConfig.resourcePrefix }}-{{ .name }}
         {{- end }}
+      {{- end }}
   {{- end }}
 {{- end }}
 {{- end }}
