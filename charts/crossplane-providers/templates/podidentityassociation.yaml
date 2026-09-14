@@ -1,0 +1,34 @@
+{{- /*
+For providers using EKS Pod Identity (identityMode: podIdentity), map the
+provider's ServiceAccount to its IAM role via a PodIdentityAssociation. This is
+the Pod Identity equivalent of the IRSA role-arn annotation and is required for
+the provider to obtain AWS credentials.
+*/}}
+{{- range concat .Values.providers .Values.extraProviders }}
+{{- $mode := .identityMode | default $.Values.package.identityMode | default "irsa" }}
+{{- if and (not (eq (.enabled | toString) "false")) (eq $mode "podIdentity") (or (.roleArn) (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) (.policy)) }}
+---
+apiVersion: eks.aws.upbound.io/v1beta1
+kind: PodIdentityAssociation
+metadata:
+  name: {{ $.Values.environmentConfig.resourcePrefix }}-{{ .name }}
+  labels:
+    {{- include "crossplane-providers.labels" $ | nindent 4 }}
+    crossplane.io/provider: {{ .name }}
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  forProvider:
+    region: {{ $.Values.environmentConfig.region }}
+    clusterName: {{ $.Values.environmentConfig.clusterName }}
+    namespace: {{ $.Values.package.namespace }}
+    serviceAccount: {{ .name }}
+    {{- if .roleArn }}
+    roleArn: {{ .roleArn }}
+    {{- else }}
+    # Resolve the ARN from the Role created by iamrole.yaml (waits until ready).
+    roleArnRef:
+      name: {{ $.Values.environmentConfig.resourcePrefix }}-{{ .name }}
+    {{- end }}
+{{- end }}
+{{- end }}
