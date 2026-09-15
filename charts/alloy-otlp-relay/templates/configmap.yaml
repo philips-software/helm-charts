@@ -10,6 +10,7 @@ data:
     otelcol.receiver.otlp "default" {
       http {
         endpoint = "0.0.0.0:{{ .Values.receiver.http.port }}"
+        metrics_url_path = "{{ .Values.receiver.http.metricsPath }}"
       }
       output {
         {{- if .Values.metricsFilter.allowList }}

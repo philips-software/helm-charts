@@ -10,8 +10,15 @@ replicas: 3
 # -- OTLP/HTTP receiver settings. gRPC is intentionally not exposed.
 receiver:
   http:
-    # -- Port the OTLP/HTTP receiver listens on (serves POST /v1/metrics).
+    # -- Port the OTLP/HTTP receiver listens on.
     port: 4318
+    # -- Path the receiver accepts metrics on. Defaults to otlp-gateway's mirrored path
+    # rather than the OTLP-standard /v1/metrics: otlp-gateway's caddy-mirror plugin
+    # duplicates a request at whatever path it already rewrote for its own primary
+    # upstream (Mimir's native /otlp/v1/metrics), so that's the path this receiver needs
+    # to match when used as a mirror destination. Override to /v1/metrics for direct,
+    # non-mirrored OTLP callers.
+    metricsPath: /otlp/v1/metrics
 
 # -- Filters incoming metrics before they're forwarded.
 metricsFilter:
