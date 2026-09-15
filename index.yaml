@@ -745,6 +745,17 @@ entries:
   alloy-otlp-relay:
   - apiVersion: v2
     appVersion: 1.19.2
+    created: "2026-09-15T20:17:45.987797368Z"
+    description: Minimal Alloy instance that receives OTLP metrics, filters by an
+      exact-name allow-list, and forwards to a Mimir gateway with a tenant header
+    digest: 1ebbf386d0dd9c136385e4caa32a02d8418b7d93d8155dc9ac73d4e521dfe4ae
+    name: alloy-otlp-relay
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/alloy-otlp-relay-0.2.0/alloy-otlp-relay-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 1.19.2
     created: "2026-09-15T19:44:05.034782498Z"
     description: Minimal Alloy instance that receives OTLP metrics, filters by an
       exact-name allow-list, and forwards to a Mimir gateway with a tenant header
@@ -6339,4 +6350,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-09-15T19:44:05.536424339Z"
+generated: "2026-09-15T20:17:45.988667298Z"
