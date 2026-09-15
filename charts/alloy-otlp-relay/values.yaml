@@ -1,0 +1,46 @@
+# -- Non-root UID the container runs as. The upstream grafana/alloy image defaults to root,
+# so this must be set explicitly to satisfy the cluster's require-run-as-non-root-user policy.
+runAsUser: 10000
+
+# -- Number of Alloy replicas. Plain horizontal scaling behind the Service (round-robin) —
+# Alloy clustering is not used because this pipeline has no discovery/scrape work to
+# coordinate across peers; each replica independently receives, filters, and forwards.
+replicas: 3
+
+# -- OTLP/HTTP receiver settings. gRPC is intentionally not exposed.
+receiver:
+  http:
+    # -- Port the OTLP/HTTP receiver listens on (serves POST /v1/metrics).
+    port: 4318
+
+# -- Filters incoming metrics before they're forwarded.
+metricsFilter:
+  # -- Exact metric names to allow through. Empty list = pass all metrics through unfiltered.
+  allowList: []
+
+# -- Forwarding destination.
+mimir:
+  # -- Base OTLP endpoint for the Mimir gateway. The otlphttp exporter appends /v1/metrics itself.
+  url: "http://mimir-gateway.mimir-system.svc.cluster.local/otlp"
+  # -- Value injected as the X-Scope-OrgID header on every forwarded request.
+  tenantId: "long-term"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    # -- No CPU limit is set: only a memory limit, to avoid CPU throttling.
+    memory: 256Mi
+
+livenessProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 5
+  failureThreshold: 3

@@ -1,6 +1,6 @@
 # otlp-gateway
 
-![Version: 0.60.3](https://img.shields.io/badge/Version-0.60.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.61.0](https://img.shields.io/badge/Version-0.61.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 OTLP gateway is a reference implementation which creates a single otlphttp endpoint that proxies Loki, Tempo and Mimir OTLP endpoints
 It supports authentication and authorization using both static and JWT tokens and tokens through the [caddy-token](https://github.com/loafoe/caddy-token) plugin.
@@ -50,6 +50,22 @@ authn:
     mode: verify_if_given
 ```
 
+### Mirroring metrics traffic
+
+`/v1/metrics` requests can optionally be mirrored to a secondary destination (e.g. an
+`alloy-otlp-relay` instance) via the [caddy-mirror](https://github.com/loafoe/caddy-mirror)
+plugin, bundled in `caddy.container.image` from `v1.2.0` onward. Mirrored requests never affect
+the primary request: mirror responses are discarded, and on error the client still only ever
+sees mimir's response. Normal (non-mirrored) traffic is unaffected either way.
+
+```yaml
+mimir:
+  mirror:
+    enabled: true
+    destination: alloy-otlp-relay.alloy-long-term.svc.cluster.local:4318
+    samplePercent: 100
+```
+
 ## Values
 
 | Key | Type | Default | Description |
@@ -78,7 +94,7 @@ authn:
 | autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | billing.enabled | bool | `false` |  |
 | billing.tenantMapperUrl | string | `"http://tenant-mapper.starlift-observability.svc.cluster.local"` |  |
-| caddy.container.image | string | `"ghcr.io/loafoe/caddy-token:v1.1.3"` |  |
+| caddy.container.image | string | `"ghcr.io/loafoe/caddy-token:v1.2.0"` |  |
 | caddy.payloadsize.enabled | bool | `false` |  |
 | cors.allowedHeaders[0] | string | `"Authorization"` |  |
 | cors.allowedHeaders[1] | string | `"Content-Type"` |  |
@@ -107,6 +123,11 @@ authn:
 | loki.pathPrefix | string | `"/v1/logs"` |  |
 | loki.service | string | `"loki-gateway.loki-system.svc.cluster.local:80"` |  |
 | mimir.enabled | bool | `true` |  |
+| mimir.mirror.destination | string | `""` | Mirror destination for /v1/metrics requests, e.g. a bare host:port (alloy-otlp-relay.alloy-long-term.svc.cluster.local:4318) or a full URL. |
+| mimir.mirror.enabled | bool | `false` |  |
+| mimir.mirror.maxBodySize | string | `""` | Max request body size forwarded to the mirror. Requests over this size still reach mimir in full; the mirror receives them without a body. Empty uses the plugin default. |
+| mimir.mirror.samplePercent | string | `""` | Percentage of requests to mirror (0-100). Omit/empty mirrors 100%. |
+| mimir.mirror.timeout | string | `""` | Timeout for the mirror request. Caddy default is 5s if left empty. |
 | mimir.pathPrefix | string | `"/v1/metrics"` |  |
 | mimir.service | string | `"mimir-gateway.mimir-system.svc.cluster.local:80"` |  |
 | podDisruptionBudget.enabled | bool | `false` |  |

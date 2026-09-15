@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "alloy-otlp-relay.labels" . | nindent 4 }}
+data:
+  config.alloy: |
+    otelcol.receiver.otlp "default" {
+      http {
+        endpoint = "0.0.0.0:{{ .Values.receiver.http.port }}"
+      }
+      output {
+        {{- if .Values.metricsFilter.allowList }}
+        metrics = [otelcol.processor.filter.metrics_allowlist.input]
+        {{- else }}
+        metrics = [otelcol.exporter.otlphttp.mimir.input]
+        {{- end }}
+      }
+    }
+
+    {{- if .Values.metricsFilter.allowList }}
+    otelcol.processor.filter "metrics_allowlist" {
+      error_mode = "ignore"
+      metrics {
+        metric = [
+          {{- $names := list }}
+          {{- range .Values.metricsFilter.allowList }}
+          {{- $names = append $names (printf "name == \\\"%s\\\"" .) }}
+          {{- end }}
+          "not ({{ join " or " $names }})",
+        ]
+      }
+      output {
+        metrics = [otelcol.exporter.otlphttp.mimir.input]
+      }
+    }
+    {{- end }}
+
+    otelcol.exporter.otlphttp "mimir" {
+      client {
+        endpoint = "{{ .Values.mimir.url }}"
+        headers = {
+          "X-Scope-OrgID" = "{{ .Values.mimir.tenantId }}",
+        }
+        tls {
+          insecure = {{ if hasPrefix "http://" .Values.mimir.url }}true{{ else }}false{{ end }}
+        }
+      }
+      retry_on_failure {
+        enabled = true
+        initial_interval = "5s"
+        max_interval = "30s"
+        max_elapsed_time = "5m"
+      }
+      sending_queue {
+        enabled = true
+      }
+    }
+
+    logging {
+      level = "info"
+    }

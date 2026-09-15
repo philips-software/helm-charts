@@ -133,7 +133,7 @@ autoscaling:
 caddy:
   container:
     # renovate: datasource=docker depName=ghcr.io/loafoe/caddy-token
-    image: ghcr.io/loafoe/caddy-token:v1.1.3
+    image: ghcr.io/loafoe/caddy-token:v1.2.0
   payloadsize:
     # important: the payloadsize requires an image which includes the payloadsize plugin
     enabled: false
@@ -142,6 +142,21 @@ mimir:
   enabled: true
   pathPrefix: /v1/metrics
   service: mimir-gateway.mimir-system.svc.cluster.local:80
+  mirror:
+    # important: mirroring requires an image which includes the caddy-mirror plugin
+    # (see caddy.container.image). Mirrored requests never affect the primary request's
+    # outcome: mirror responses are discarded and the client only ever sees mimir's response.
+    enabled: false
+    # -- Mirror destination for /v1/metrics requests, e.g. a bare host:port
+    # (alloy-otlp-relay.alloy-long-term.svc.cluster.local:4318) or a full URL.
+    destination: ""
+    # -- Percentage of requests to mirror (0-100). Omit/empty mirrors 100%.
+    samplePercent: ""
+    # -- Timeout for the mirror request. Caddy default is 5s if left empty.
+    timeout: ""
+    # -- Max request body size forwarded to the mirror. Requests over this size still reach
+    # mimir in full; the mirror receives them without a body. Empty uses the plugin default.
+    maxBodySize: ""
 
 loki:
   enabled: true

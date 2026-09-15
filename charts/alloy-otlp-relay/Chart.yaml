@@ -1,0 +1,6 @@
+apiVersion: v2
+name: alloy-otlp-relay
+description: Minimal Alloy instance that receives OTLP metrics, filters by an exact-name allow-list, and forwards to a Mimir gateway with a tenant header
+type: application
+version: 0.1.0
+appVersion: "1.19.2"

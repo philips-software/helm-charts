@@ -143,6 +143,17 @@
       reverse_proxy {{ .Values.mimir.pathPrefix }} {
         to {{ .Values.mimir.service }}
         rewrite /otlp/v1/metrics
+        {{- if and .Values.mimir.mirror .Values.mimir.mirror.enabled }}
+        transport mirror {
+          to {{ .Values.mimir.mirror.destination }}{{ if .Values.mimir.mirror.samplePercent }} {{ .Values.mimir.mirror.samplePercent }}{{ end }}
+          {{- if .Values.mimir.mirror.timeout }}
+          timeout {{ .Values.mimir.mirror.timeout }}
+          {{- end }}
+          {{- if .Values.mimir.mirror.maxBodySize }}
+          max_body_size {{ .Values.mimir.mirror.maxBodySize }}
+          {{- end }}
+        }
+        {{- end }}
       }
 
       # mimir direct access
