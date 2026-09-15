@@ -742,6 +742,18 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/agentgateway-bootstrap-0.1.0/agentgateway-bootstrap-0.1.0.tgz
     version: 0.1.0
+  alloy-otlp-relay:
+  - apiVersion: v2
+    appVersion: 1.19.2
+    created: "2026-09-15T19:44:05.034782498Z"
+    description: Minimal Alloy instance that receives OTLP metrics, filters by an
+      exact-name allow-list, and forwards to a Mimir gateway with a tenant header
+    digest: 09d9d7f6667c49b17a3eef5dcb6efc5527c4740c40b06ae9e326d1b7dc9530e1
+    name: alloy-otlp-relay
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/alloy-otlp-relay-0.1.0/alloy-otlp-relay-0.1.0.tgz
+    version: 0.1.0
   centcom-satellite:
   - apiVersion: v2
     appVersion: v0.74.0
@@ -5593,6 +5605,16 @@ entries:
     version: 0.37.0
   otlp-gateway:
   - apiVersion: v2
+    created: "2026-09-15T19:44:05.535434014Z"
+    description: A Helm chart for Kubernetes to deploy an OTLP gateway with authentication
+      and authorization
+    digest: 2b81ca0405c55f4d2d82170b056e76041af589ebced962ed051983cd4d5f5951
+    name: otlp-gateway
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-0.61.0/otlp-gateway-0.61.0.tgz
+    version: 0.61.0
+  - apiVersion: v2
     created: "2026-07-16T12:39:08.378687581Z"
     description: A Helm chart for Kubernetes to deploy an OTLP gateway with authentication
       and authorization
@@ -6317,4 +6339,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-09-14T19:35:34.062902971Z"
+generated: "2026-09-15T19:44:05.536424339Z"
