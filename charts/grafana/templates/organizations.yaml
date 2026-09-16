@@ -8,7 +8,7 @@ kind: Organization
 metadata:
   name: {{ .organization.name | default (printf "%s-org" .name) }}
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "5"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   forProvider:
