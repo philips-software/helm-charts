@@ -106,12 +106,16 @@ grafana:
   # organization (auto-create via provider-gf's Organization resource):
   #   - name: my-tenant
   #     tenantId: my-tenant
+  #     retention:
+  #       logs: "30d"
   #     orgId: "5"                       # OR:
   #     organization:
-  #       displayName: "My Tenant"       # Grafana-visible org name
+  #       name: my-tenant-org             # Organization CR name (defaults to "<name>-org")
+  #       displayName: "My Tenant"       # Grafana-visible org name (defaults to tenant name)
   #       admins: []
   #       editors: []
   #       viewers: []
+  #       createUsers: true              # whether provider-gf may create missing SSO users
   tenants: []
   extraInitContainers: []
   extraVolumes: []

@@ -101,6 +101,8 @@ the tenant to it automatically:
 tenants:
   - name: acme
     tenantId: acme
+    retention:
+      logs: "30d"
     organization:
       displayName: "Acme Corp"
       admins: []
