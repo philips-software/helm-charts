@@ -91,6 +91,23 @@ The following SSO configuration maps OIDC groups to Grafana roles:
 
 Users not in any of these groups will have the 'None' role and no access.
 
+### Auto-creating Grafana orgs
+
+Set `organization` instead of `orgId` on a tenant entry to have this chart
+create the Grafana org via provider-gf's `Organization` resource, and wire
+the tenant to it automatically:
+
+```yaml
+tenants:
+  - name: acme
+    tenantId: acme
+    organization:
+      displayName: "Acme Corp"
+      admins: []
+```
+
+Requires `crossplaneProviders.gf.enabled: true`.
+
 ## Values
 
 | Key | Type | Default | Description |
@@ -170,7 +187,7 @@ Users not in any of these groups will have the 'None' role and no access.
 | grafana.ssoRoleAttributePath | string | `"contains(join(' ', groups), 'grafana-superadmins') && 'GrafanaAdmin' || contains(join(' ', groups), 'grafana-admins')  && 'Admin' || contains(join(' ', groups), 'grafana-editors') && 'Editor' || contains(join(' ', groups), 'grafana-viewers') && 'Viewer' || 'None'"` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
-| grafanaChart.version | string | `"13.2.2"` |  |
+| grafanaChart.version | string | `"13.2.4"` |  |
 | useCustomFqdn | bool | `true` |  |
 
 ----------------------------------------------
