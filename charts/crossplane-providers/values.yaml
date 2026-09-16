@@ -80,15 +80,6 @@ package:
 # - DeploymentRuntimeConfig (runtime configuration with optional IRSA)
 # - IAM Role (only if managedPolicyArns contains entries and no roleArn is specified)
 #
-# pinServiceAccountName: true pins the provider's runtime ServiceAccount to a
-# stable name (the provider's own `name`) instead of Crossplane's default
-# per-revision hash suffix (e.g. provider-orgmapper-1fdf19dc74a6, which
-# changes on every package upgrade). Use this for non-AWS providers that need
-# a durable ClusterRoleBinding -- e.g. to read another provider's CRDs -- that
-# must survive package upgrades without being re-created each time. Mutually
-# exclusive in practice with the AWS identity fields below (a provider using
-# roleArn/managedPolicyArns/policy for IRSA doesn't need this).
-#
 # Example usage:
 # extraProviders:
 #   - name: provider-aws-lambda
@@ -99,9 +90,6 @@ package:
 #     enabled: true
 #     managedPolicyArns:
 #       - "arn:aws:iam::aws:policy/AmazonAPIGatewayAdministrator"
-#   - name: provider-orgmapper
-#     enabled: true
-#     pinServiceAccountName: true
 extraProviders: []
 
 # List of AWS providers to deploy

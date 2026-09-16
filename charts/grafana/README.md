@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.78.5](https://img.shields.io/badge/Version-0.78.5-informational?style=flat-square)
+![Version: 0.78.6](https://img.shields.io/badge/Version-0.78.6-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -90,25 +90,6 @@ The following SSO configuration maps OIDC groups to Grafana roles:
 - grafana-viewers - Maps to Viewer role
 
 Users not in any of these groups will have the 'None' role and no access.
-
-### Auto-creating Grafana orgs
-
-Set `organization` instead of `orgId` on a tenant entry to have this chart
-create the Grafana org via provider-gf's `Organization` resource, and wire
-the tenant to it automatically:
-
-```yaml
-tenants:
-  - name: acme
-    tenantId: acme
-    retention:
-      logs: "30d"
-    organization:
-      displayName: "Acme Corp"
-      admins: []
-```
-
-Requires `crossplaneProviders.gf.enabled: true`.
 
 ## Values
 

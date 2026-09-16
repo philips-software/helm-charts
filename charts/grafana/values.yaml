@@ -102,20 +102,6 @@ grafana:
     host: gf
     sharedGatewayName: platform
     sharedGatewayNamespace: kube-system
-  # Each tenant needs exactly one of orgId (existing Grafana org) or
-  # organization (auto-create via provider-gf's Organization resource):
-  #   - name: my-tenant
-  #     tenantId: my-tenant
-  #     retention:
-  #       logs: "30d"
-  #     orgId: "5"                       # OR:
-  #     organization:
-  #       name: my-tenant-org             # Organization CR name (defaults to "<name>-org")
-  #       displayName: "My Tenant"       # Grafana-visible org name (defaults to tenant name)
-  #       admins: []
-  #       editors: []
-  #       viewers: []
-  #       createUsers: true              # whether provider-gf may create missing SSO users
   tenants: []
   extraInitContainers: []
   extraVolumes: []

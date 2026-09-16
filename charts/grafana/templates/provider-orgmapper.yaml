@@ -15,24 +15,19 @@ spec:
   source:
     repoURL: oci://ghcr.io/philips-software/helm-charts/crossplane-providers
     # renovate: datasource=docker depName=ghcr.io/philips-software/helm-charts/crossplane-providers
-    targetRevision: 0.0.37
+    targetRevision: 0.0.36
     path: .
     helm:
       valuesObject:
         providers: [] # Disable default providers
         package:
-          version: "v0.8.0"
+          version: "v0.9.0"
           registry: "ghcr.io/loafoe"
         extraProviders:
           # Orgmapper - Tenant management for Grafana
           - name: provider-orgmapper
             enabled: true
             debug: {{ .Values.crossplaneProviders.orgmapper.debug }}
-            # Pin a stable ServiceAccount name so the ClusterRoleBinding
-            # granting read access to provider-gf's Organization CRD
-            # (needed to resolve Tenant.organizationRef) survives provider
-            # upgrades instead of going stale on every image digest change.
-            pinServiceAccountName: true
   destination:
     server: https://kubernetes.default.svc
     namespace: crossplane-system

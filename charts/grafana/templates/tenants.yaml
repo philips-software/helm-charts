@@ -1,15 +1,6 @@
 {{- if .Values.crossplaneProviders.orgmapper.enabled }}
 {{- $tenants := .Values.tenants | default .Values.grafana.tenants }}
 {{- range $tenants }}
-{{- if and .orgId .organization }}
-{{- fail (printf "tenant %q: set either orgId or organization, not both" .name) }}
-{{- end }}
-{{- if not (or .orgId .organization) }}
-{{- fail (printf "tenant %q: one of orgId or organization is required" .name) }}
-{{- end }}
-{{- if and .organization (not $.Values.crossplaneProviders.gf.enabled) }}
-{{- fail (printf "tenant %q: organization requires crossplaneProviders.gf.enabled=true" .name) }}
-{{- end }}
 ---
 apiVersion: tenant.orgmapper.m.crossplane.io/v1alpha1
 kind: Tenant
@@ -21,13 +12,7 @@ metadata:
 spec:
   forProvider:
     tenantId: {{ .tenantId }}
-    {{- if .organization }}
-    organizationRef:
-      name: {{ include "grafana.orgName" . }}
-    displayName: {{ include "grafana.orgDisplayName" . | quote }}
-    {{- else }}
     orgId: {{ .orgId | quote }}
-    {{- end }}
     {{- with .viewerGroups }}
     viewerGroups:
       {{- toYaml . | nindent 6 }}

@@ -88,24 +88,6 @@ Generate the Grafana internal service URL (for in-cluster communication)
 {{- end }}
 
 {{/*
-Derive the Organization CR's resource name for a tenant (i.e. the value
-Tenant.spec.forProvider.organizationRef.name points at).
-Takes the tenant dict as context.
-*/}}
-{{- define "grafana.orgName" -}}
-{{- .organization.name | default (printf "%s-org" .name) }}
-{{- end }}
-
-{{/*
-Derive the Grafana-visible display name for a tenant's organization
-(Organization.spec.forProvider.name / Tenant.spec.forProvider.displayName).
-Takes the tenant dict as context.
-*/}}
-{{- define "grafana.orgDisplayName" -}}
-{{- .organization.displayName | default .name }}
-{{- end }}
-
-{{/*
 Validate required configuration values
 */}}
 {{- define "grafana.validateConfig" -}}
