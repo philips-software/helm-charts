@@ -6,13 +6,13 @@
 apiVersion: oss.gf.m.crossplane.io/v1alpha1
 kind: Organization
 metadata:
-  name: {{ .organization.name | default (printf "%s-org" .name) }}
+  name: {{ include "grafana.orgName" . }}
   annotations:
     argocd.argoproj.io/sync-wave: "5"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   forProvider:
-    name: {{ .organization.displayName | default .name | quote }}
+    name: {{ include "grafana.orgDisplayName" . | quote }}
     {{- with .organization.admins }}
     admins:
       {{- toYaml . | nindent 6 }}

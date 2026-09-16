@@ -23,10 +23,8 @@ spec:
     tenantId: {{ .tenantId }}
     {{- if .organization }}
     organizationRef:
-      name: {{ .organization.name | default (printf "%s-org" .name) }}
-    {{- with .organization.displayName }}
-    displayName: {{ . | quote }}
-    {{- end }}
+      name: {{ include "grafana.orgName" . }}
+    displayName: {{ include "grafana.orgDisplayName" . | quote }}
     {{- else }}
     orgId: {{ .orgId | quote }}
     {{- end }}
