@@ -9,7 +9,7 @@ metadata:
   name: {{ include "grafana.orgName" . }}
   annotations:
     argocd.argoproj.io/sync-wave: "5"
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true,Prune=false
 spec:
   forProvider:
     name: {{ include "grafana.orgDisplayName" . | quote }}
