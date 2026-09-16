@@ -21,7 +21,7 @@ spec:
       valuesObject:
         providers: [] # Disable default providers
         package:
-          version: "v0.6.0"
+          version: "v0.8.0"
           registry: "ghcr.io/loafoe"
         extraProviders:
           # Orgmapper - Tenant management for Grafana

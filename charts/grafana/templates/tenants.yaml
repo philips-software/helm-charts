@@ -11,7 +11,7 @@
 {{- fail (printf "tenant %q: organization requires crossplaneProviders.gf.enabled=true" .name) }}
 {{- end }}
 ---
-apiVersion: tenant.orgmapper.crossplane.io/v1alpha1
+apiVersion: tenant.orgmapper.m.crossplane.io/v1alpha1
 kind: Tenant
 metadata:
   name: {{ .name }}
