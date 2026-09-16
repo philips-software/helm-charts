@@ -1,0 +1,36 @@
+{{- if .Values.crossplaneProviders.orgmapper.enabled }}
+{{- $tenants := .Values.tenants | default .Values.grafana.tenants }}
+{{- range $tenants }}
+{{- if .organization }}
+---
+apiVersion: oss.gf.m.crossplane.io/v1alpha1
+kind: Organization
+metadata:
+  name: {{ .organization.name | default (printf "%s-org" .name) }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  forProvider:
+    name: {{ .organization.displayName | default .name | quote }}
+    {{- with .organization.admins }}
+    admins:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .organization.editors }}
+    editors:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .organization.viewers }}
+    viewers:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- if hasKey .organization "createUsers" }}
+    createUsers: {{ .organization.createUsers }}
+    {{- end }}
+  providerConfigRef:
+    name: default
+    kind: ProviderConfig
+{{- end }}
+{{- end }}
+{{- end }}
