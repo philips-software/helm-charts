@@ -2720,6 +2720,25 @@ entries:
   crossplane-providers:
   - apiVersion: v2
     appVersion: v2.7.0
+    created: "2026-09-16T20:13:54.01129405Z"
+    description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or
+      EKS Pod Identity configuration
+    digest: f0e1c2ed884ccb9d0ce1105146bcccd7305cac1eb99ddf5250a3eae6368b491f
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    - pod-identity
+    maintainers:
+    - name: Philips Software
+    name: crossplane-providers
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-providers-0.0.37/crossplane-providers-0.0.37.tgz
+    version: 0.0.37
+  - apiVersion: v2
+    appVersion: v2.7.0
     created: "2026-09-14T09:19:25.317297297Z"
     description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or
       EKS Pod Identity configuration
@@ -6364,4 +6383,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-09-16T19:38:28.533959613Z"
+generated: "2026-09-16T20:13:54.012591033Z"
