@@ -43,7 +43,17 @@ spec:
                   cpu: 40m
                   memory: 320Mi
                 {{- end }}
-  {{- if or (.roleArn) (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) (.policy) }}
+  {{- if .pinServiceAccountName }}
+  serviceAccountTemplate:
+    metadata:
+      # Pin a stable ServiceAccount name, independent of the package's
+      # per-revision hash suffix, so a durable ClusterRoleBinding (granting
+      # e.g. cross-provider RBAC this provider needs to read another
+      # provider's CRDs) survives package upgrades instead of going stale
+      # every time the provider's image digest -- and thus its default
+      # ServiceAccount name -- changes.
+      name: {{ .name }}
+  {{- else if or (.roleArn) (and (.managedPolicyArns) (gt (len .managedPolicyArns) 0)) (.policy) }}
   serviceAccountTemplate:
     metadata:
       {{- if eq $mode "podIdentity" }}
