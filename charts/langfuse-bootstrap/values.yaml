@@ -164,7 +164,7 @@ redis:
   image:
     repository: valkey/valkey
     # renovate: datasource=docker depName=valkey/valkey
-    tag: "9.1"
+    tag: "9.2"
   storage:
     size: 4Gi
     storageClass: ""
