@@ -182,7 +182,7 @@ crossplaneProviders:
     debug: false
     # Provider package version
     # renovate: datasource=docker depName=ghcr.io/loafoe/provider-gf
-    tag: "v0.10.0"
+    tag: "v0.11.0"
     datasources: []
 
 # Datasource configuration
