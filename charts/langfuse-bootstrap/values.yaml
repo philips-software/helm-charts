@@ -32,6 +32,9 @@ ingress:
     host: langfuse
     sharedGatewayName: platform
     sharedGatewayNamespace: kube-system
+    # Target a specific listener section on the gateway (e.g. "https").
+    # Leave empty to attach to any matching listener.
+    sectionName: ""
 
 # Namespace all langfuse-bootstrap resources (and the upstream chart) deploy into
 namespace: langfuse-system

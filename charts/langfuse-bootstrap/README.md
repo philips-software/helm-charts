@@ -1,6 +1,6 @@
 # langfuse-bootstrap
 
-![Version: 0.4.1](https://img.shields.io/badge/Version-0.4.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.36.0](https://img.shields.io/badge/AppVersion-4.36.0-informational?style=flat-square)
+![Version: 0.4.2](https://img.shields.io/badge/Version-0.4.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.36.0](https://img.shields.io/badge/AppVersion-4.36.0-informational?style=flat-square)
 
 Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access (IRSA or static credentials) against an existing bucket.
 
@@ -41,16 +41,16 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | clickhouse.cluster.nodeSelector | object | `{}` |  |
 | clickhouse.cluster.replicas | int | `1` |  |
 | clickhouse.cluster.replicas | int | `1` |  |
-| clickhouse.cluster.resources.limits.memory | string | `"2Gi"` |  |
 | clickhouse.cluster.resources.limits.memory | string | `"512Mi"` |  |
+| clickhouse.cluster.resources.limits.memory | string | `"2Gi"` |  |
 | clickhouse.cluster.resources.requests.cpu | string | `"100m"` |  |
 | clickhouse.cluster.resources.requests.cpu | string | `"500m"` |  |
 | clickhouse.cluster.resources.requests.memory | string | `"256Mi"` |  |
 | clickhouse.cluster.resources.requests.memory | string | `"1Gi"` |  |
 | clickhouse.cluster.storage.className | string | `""` |  |
 | clickhouse.cluster.storage.className | string | `""` |  |
-| clickhouse.cluster.storage.size | string | `"20Gi"` |  |
 | clickhouse.cluster.storage.size | string | `"5Gi"` |  |
+| clickhouse.cluster.storage.size | string | `"20Gi"` |  |
 | clickhouse.cluster.tolerations | list | `[]` |  |
 | clickhouse.cluster.tolerations | list | `[]` |  |
 | credentials.clickhousePassword | string | `"changeme-clickhouse-password-please-override"` |  |
@@ -75,6 +75,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | existingBucketName | string | `""` |  |
 | ingress.httpRoute.enabled | bool | `false` |  |
 | ingress.httpRoute.host | string | `"langfuse"` |  |
+| ingress.httpRoute.sectionName | string | `""` |  |
 | ingress.httpRoute.sharedGatewayName | string | `"platform"` |  |
 | ingress.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
 | langfuse.image.tag | string | `"4.36.0"` |  |
