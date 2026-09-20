@@ -165,7 +165,11 @@ clickhouse:
         memory: 1Gi
       limits:
         memory: 2Gi
-  keeper:
+    # Node selector, tolerations, and affinity for ClickHouse pods.
+    # Used to constrain scheduling (e.g. to specific node types).
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
     # Must be odd (1, 3, 5). 1 is a valid single-node Keeper; 3 for HA.
     replicas: 1
     image:
@@ -181,6 +185,10 @@ clickhouse:
         memory: 256Mi
       limits:
         memory: 512Mi
+    # Node selector, tolerations, and affinity for Keeper pods.
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
 
 # Self-managed Redis (Valkey) — Langfuse's queue/cache. Deployed directly by this
 # chart rather than toggling the upstream chart's bundled valkey-io/valkey subchart.
@@ -228,3 +236,4 @@ langfuse:
         memory: 1Gi
       limits:
         memory: 2Gi
+

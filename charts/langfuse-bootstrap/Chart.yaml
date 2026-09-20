@@ -3,7 +3,7 @@ name: langfuse-bootstrap
 description: A Helm chart for bootstrapping Langfuse (LLM engineering platform) with
   CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
 type: application
-version: 0.4.0
+version: 0.4.1
 appVersion: "4.36.0"
 keywords:
   - langfuse

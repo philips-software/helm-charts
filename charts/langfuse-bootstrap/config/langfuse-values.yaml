@@ -74,6 +74,18 @@ clickhouse:
       {{- end }}
     resources:
       {{- toYaml .Values.clickhouse.cluster.resources | nindent 6 }}
+    {{- with .Values.clickhouse.cluster.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.clickhouse.cluster.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.clickhouse.cluster.affinity }}
+    affinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
   keeper:
     enabled: true
     replicas: {{ .Values.clickhouse.keeper.replicas }}
@@ -87,6 +99,18 @@ clickhouse:
       {{- end }}
     resources:
       {{- toYaml .Values.clickhouse.keeper.resources | nindent 6 }}
+    {{- with .Values.clickhouse.keeper.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.clickhouse.keeper.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.clickhouse.keeper.affinity }}
+    affinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
 
 redis:
   deploy: false

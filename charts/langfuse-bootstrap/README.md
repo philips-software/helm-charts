@@ -1,6 +1,6 @@
 # langfuse-bootstrap
 
-![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.36.0](https://img.shields.io/badge/AppVersion-4.36.0-informational?style=flat-square)
+![Version: 0.4.1](https://img.shields.io/badge/Version-0.4.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.36.0](https://img.shields.io/badge/AppVersion-4.36.0-informational?style=flat-square)
 
 Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access (IRSA or static credentials) against an existing bucket.
 
@@ -31,22 +31,28 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argoProject | string | `"default"` |  |
+| clickhouse.cluster.affinity | object | `{}` |  |
+| clickhouse.cluster.affinity | object | `{}` |  |
 | clickhouse.cluster.image.repository | string | `"clickhouse/clickhouse-server"` |  |
+| clickhouse.cluster.image.repository | string | `"clickhouse/clickhouse-keeper"` |  |
 | clickhouse.cluster.image.tag | string | `"26.8"` |  |
+| clickhouse.cluster.image.tag | string | `"26.8"` |  |
+| clickhouse.cluster.nodeSelector | object | `{}` |  |
+| clickhouse.cluster.nodeSelector | object | `{}` |  |
+| clickhouse.cluster.replicas | int | `1` |  |
 | clickhouse.cluster.replicas | int | `1` |  |
 | clickhouse.cluster.resources.limits.memory | string | `"2Gi"` |  |
+| clickhouse.cluster.resources.limits.memory | string | `"512Mi"` |  |
+| clickhouse.cluster.resources.requests.cpu | string | `"100m"` |  |
 | clickhouse.cluster.resources.requests.cpu | string | `"500m"` |  |
+| clickhouse.cluster.resources.requests.memory | string | `"256Mi"` |  |
 | clickhouse.cluster.resources.requests.memory | string | `"1Gi"` |  |
 | clickhouse.cluster.storage.className | string | `""` |  |
+| clickhouse.cluster.storage.className | string | `""` |  |
 | clickhouse.cluster.storage.size | string | `"20Gi"` |  |
-| clickhouse.keeper.image.repository | string | `"clickhouse/clickhouse-keeper"` |  |
-| clickhouse.keeper.image.tag | string | `"26.8"` |  |
-| clickhouse.keeper.replicas | int | `1` |  |
-| clickhouse.keeper.resources.limits.memory | string | `"512Mi"` |  |
-| clickhouse.keeper.resources.requests.cpu | string | `"100m"` |  |
-| clickhouse.keeper.resources.requests.memory | string | `"256Mi"` |  |
-| clickhouse.keeper.storage.className | string | `""` |  |
-| clickhouse.keeper.storage.size | string | `"5Gi"` |  |
+| clickhouse.cluster.storage.size | string | `"5Gi"` |  |
+| clickhouse.cluster.tolerations | list | `[]` |  |
+| clickhouse.cluster.tolerations | list | `[]` |  |
 | credentials.clickhousePassword | string | `"changeme-clickhouse-password-please-override"` |  |
 | credentials.encryptionKey | string | `"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"` |  |
 | credentials.nextauthSecret | string | `"changeme-nextauth-secret-please-override"` |  |
