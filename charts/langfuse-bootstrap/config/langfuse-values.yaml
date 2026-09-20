@@ -130,15 +130,13 @@ s3:
   forcePathStyle: {{ .Values.s3.secretConfig.forcePathStyle | quote }}
   region: {{ .Values.s3.secretConfig.region | quote }}
   accessKeyId:
-    valueFrom:
-      secretKeyRef:
-        name: langfuse-credentials
-        key: s3-access-key-id
+    secretKeyRef:
+      name: langfuse-credentials
+      key: s3-access-key-id
   secretAccessKey:
-    valueFrom:
-      secretKeyRef:
-        name: langfuse-credentials
-        key: s3-secret-access-key
+    secretKeyRef:
+      name: langfuse-credentials
+      key: s3-secret-access-key
   {{- else }}
   region: {{ .Values.environmentConfig.region | quote }}
   forcePathStyle: false
