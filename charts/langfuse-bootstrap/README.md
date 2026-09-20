@@ -1,8 +1,8 @@
 # langfuse-bootstrap
 
-![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.36.0](https://img.shields.io/badge/AppVersion-4.36.0-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.36.0](https://img.shields.io/badge/AppVersion-4.36.0-informational?style=flat-square)
 
-Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access via IRSA against an existing bucket.
+Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access (IRSA or static credentials) against an existing bucket.
 
 ## Prerequisites
 
@@ -89,6 +89,12 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | redis.resources.requests.memory | string | `"128Mi"` |  |
 | redis.storage.size | string | `"4Gi"` |  |
 | redis.storage.storageClass | string | `""` |  |
+| s3.authType | string | `"irsa"` |  |
+| s3.secretConfig.accessKeyId | string | `""` |  |
+| s3.secretConfig.endpoint | string | `""` |  |
+| s3.secretConfig.forcePathStyle | bool | `true` |  |
+| s3.secretConfig.region | string | `"garage"` |  |
+| s3.secretConfig.secretAccessKey | string | `""` |  |
 | sso.allowAccountLinking | bool | `false` |  |
 | sso.clientId | string | `""` |  |
 | sso.disableUsernamePassword | bool | `false` |  |

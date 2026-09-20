@@ -135,4 +135,15 @@ Validate required configuration values
 {{- fail "sso.issuer is required when sso.enabled is true" }}
 {{- end }}
 {{- end }}
+{{- if eq .Values.s3.authType "secret" }}
+{{- if not .Values.s3.secretConfig.endpoint }}
+{{- fail "s3.secretConfig.endpoint is required when s3.authType is 'secret'" }}
+{{- end }}
+{{- if not .Values.s3.secretConfig.accessKeyId }}
+{{- fail "s3.secretConfig.accessKeyId is required when s3.authType is 'secret'" }}
+{{- end }}
+{{- if not .Values.s3.secretConfig.secretAccessKey }}
+{{- fail "s3.secretConfig.secretAccessKey is required when s3.authType is 'secret'" }}
+{{- end }}
+{{- end }}
 {{- end }}

@@ -33,8 +33,10 @@ langfuse:
   serviceAccount:
     create: true
     name: {{ include "langfuse-bootstrap.s3ServiceAccountName" . | quote }}
+    {{- if eq .Values.s3.authType "irsa" }}
     annotations:
       eks.amazonaws.com/role-arn: {{ printf "arn:aws:iam::%s:role/%s-irsa-role" (.Values.environmentConfig.accountId | toString) (include "langfuse-bootstrap.s3ServiceAccountName" .) | quote }}
+    {{- end }}
   web:
     resources:
       {{- toYaml .Values.langfuse.web.resources | nindent 6 }}
@@ -99,5 +101,21 @@ s3:
   deploy: false
   storageProvider: s3
   bucket: {{ include "langfuse-bootstrap.substituteVars" (dict "str" .Values.existingBucketName "ctx" .) | quote }}
+  {{- if eq .Values.s3.authType "secret" }}
+  endpoint: {{ .Values.s3.secretConfig.endpoint | quote }}
+  forcePathStyle: {{ .Values.s3.secretConfig.forcePathStyle | quote }}
+  region: {{ .Values.s3.secretConfig.region | quote }}
+  accessKeyId:
+    valueFrom:
+      secretKeyRef:
+        name: langfuse-credentials
+        key: s3-access-key-id
+  secretAccessKey:
+    valueFrom:
+      secretKeyRef:
+        name: langfuse-credentials
+        key: s3-secret-access-key
+  {{- else }}
   region: {{ .Values.environmentConfig.region | quote }}
   forcePathStyle: false
+  {{- end }}

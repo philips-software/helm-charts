@@ -41,6 +41,30 @@ namespace: langfuse-system
 # substitution, same as loki-bootstrap's existingBucketName.
 existingBucketName: ""
 
+# S3 authentication method for Langfuse uploads.
+#   "irsa" (default) — IAM Roles for Service Accounts (AWS EKS).
+#     Creates the S3IRSA Crossplane CR; Langfuse pods auth via the
+#     IRSA credential chain (AWS_ROLE_ARN / AWS_WEB_IDENTITY_TOKEN_FILE).
+#     Use with existingBucketName in an AWS environment.
+#   "secret" — static access/secret keys for any S3-compatible store
+#     (Garage, MinIO, SeaweedFS, etc.). Provide endpoint + credentials
+#     via s3.secretConfig below. S3IRSA is not created.
+s3:
+  authType: irsa
+
+  # Configuration for s3.authType: "secret" (ignored when authType is "irsa").
+  secretConfig:
+    # S3-compatible endpoint URL, e.g. "http://garage.garage.svc.cluster.local:3900"
+    endpoint: ""
+    # Region identifier (Garage defaults to "garage")
+    region: "garage"
+    # Force path-style addressing — required for Garage, MinIO, SeaweedFS
+    forcePathStyle: true
+    # Access key for the S3 user
+    accessKeyId: ""
+    # Secret key for the S3 user
+    secretAccessKey: ""
+
 # Static credentials referenced via secretKeyRef throughout the upstream chart's
 # valuesObject. MUST stay static (no runtime generation) — ArgoCD renders this
 # chart via `helm template`, which regenerates anything random on every sync,
@@ -164,7 +188,7 @@ redis:
   image:
     repository: valkey/valkey
     # renovate: datasource=docker depName=valkey/valkey
-    tag: "9.2"
+    tag: "9.1"
   storage:
     size: 4Gi
     storageClass: ""

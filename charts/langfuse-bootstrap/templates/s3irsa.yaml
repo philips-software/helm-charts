@@ -1,3 +1,4 @@
+{{- if eq .Values.s3.authType "irsa" -}}
 apiVersion: dip.io/v1alpha1
 kind: S3IRSA
 metadata:
@@ -14,3 +15,4 @@ spec:
     name: {{ include "langfuse-bootstrap.s3ServiceAccountName" . }}
   writeConnectionSecretToRef:
     name: {{ include "langfuse-bootstrap.s3ServiceAccountName" . }}
+{{- end -}}
