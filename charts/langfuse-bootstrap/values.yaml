@@ -232,6 +232,17 @@ langfuse:
       limits:
         # Next.js OOMs under 1Gi during startup migrations - confirmed live.
         memory: 2Gi
+    # Probe settings for langfuse-web. Increase initialDelaySeconds to allow
+    # ClickHouse init scripts to complete before health checks start killing
+    # the pod. Both livenessProbe and readinessProbe are configurable.
+    livenessProbe:
+      initialDelaySeconds: 45
+      timeoutSeconds: 10
+      failureThreshold: 6
+    readinessProbe:
+      initialDelaySeconds: 45
+      timeoutSeconds: 10
+      failureThreshold: 6
   worker:
     resources:
       requests:
@@ -239,4 +250,10 @@ langfuse:
         memory: 1Gi
       limits:
         memory: 2Gi
+    # Probe settings for langfuse-worker. Only livenessProbe is supported
+    # (no readinessProbe on the worker).
+    livenessProbe:
+      initialDelaySeconds: 60
+      timeoutSeconds: 10
+      failureThreshold: 8
 

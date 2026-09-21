@@ -40,9 +40,15 @@ langfuse:
   web:
     resources:
       {{- toYaml .Values.langfuse.web.resources | nindent 6 }}
+    livenessProbe:
+      {{- toYaml .Values.langfuse.web.livenessProbe | nindent 6 }}
+    readinessProbe:
+      {{- toYaml .Values.langfuse.web.readinessProbe | nindent 6 }}
   worker:
     resources:
       {{- toYaml .Values.langfuse.worker.resources | nindent 6 }}
+    livenessProbe:
+      {{- toYaml .Values.langfuse.worker.livenessProbe | nindent 6 }}
 
 postgresql:
   deploy: false

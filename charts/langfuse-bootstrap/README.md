@@ -1,6 +1,6 @@
 # langfuse-bootstrap
 
-![Version: 0.4.3](https://img.shields.io/badge/Version-0.4.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.36.0](https://img.shields.io/badge/AppVersion-4.36.0-informational?style=flat-square)
+![Version: 0.4.4](https://img.shields.io/badge/Version-0.4.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.36.0](https://img.shields.io/badge/AppVersion-4.36.0-informational?style=flat-square)
 
 Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access (IRSA or static credentials) against an existing bucket.
 
@@ -43,10 +43,10 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | clickhouse.cluster.replicas | int | `1` |  |
 | clickhouse.cluster.resources.limits.memory | string | `"512Mi"` |  |
 | clickhouse.cluster.resources.limits.memory | string | `"2Gi"` |  |
-| clickhouse.cluster.resources.requests.cpu | string | `"100m"` |  |
 | clickhouse.cluster.resources.requests.cpu | string | `"500m"` |  |
-| clickhouse.cluster.resources.requests.memory | string | `"256Mi"` |  |
+| clickhouse.cluster.resources.requests.cpu | string | `"100m"` |  |
 | clickhouse.cluster.resources.requests.memory | string | `"1Gi"` |  |
+| clickhouse.cluster.resources.requests.memory | string | `"256Mi"` |  |
 | clickhouse.cluster.storage.className | string | `""` |  |
 | clickhouse.cluster.storage.className | string | `""` |  |
 | clickhouse.cluster.storage.size | string | `"5Gi"` |  |
@@ -80,9 +80,18 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | ingress.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
 | langfuse.image.tag | string | `"4.36.0"` |  |
 | langfuse.nextauthUrl | string | `"http://localhost:3000"` |  |
+| langfuse.web.livenessProbe.failureThreshold | int | `6` |  |
+| langfuse.web.livenessProbe.initialDelaySeconds | int | `45` |  |
+| langfuse.web.livenessProbe.timeoutSeconds | int | `10` |  |
+| langfuse.web.readinessProbe.failureThreshold | int | `6` |  |
+| langfuse.web.readinessProbe.initialDelaySeconds | int | `45` |  |
+| langfuse.web.readinessProbe.timeoutSeconds | int | `10` |  |
 | langfuse.web.resources.limits.memory | string | `"2Gi"` |  |
 | langfuse.web.resources.requests.cpu | string | `"100m"` |  |
 | langfuse.web.resources.requests.memory | string | `"1Gi"` |  |
+| langfuse.worker.livenessProbe.failureThreshold | int | `8` |  |
+| langfuse.worker.livenessProbe.initialDelaySeconds | int | `60` |  |
+| langfuse.worker.livenessProbe.timeoutSeconds | int | `10` |  |
 | langfuse.worker.resources.limits.memory | string | `"2Gi"` |  |
 | langfuse.worker.resources.requests.cpu | string | `"100m"` |  |
 | langfuse.worker.resources.requests.memory | string | `"1Gi"` |  |
