@@ -217,6 +217,8 @@ langfuse:
   # is true, this is ignored - the URL is derived from ingress.httpRoute.host +
   # environmentConfig.clusterFqdn instead (required for SSO's OAuth callback to work).
   nextauthUrl: "http://localhost:3000"
+  # Number of old ReplicaSets to retain for rollback.
+  revisionHistoryLimit: 3
   image:
     # Application image tag for both langfuse-web and langfuse-worker (they
     # release in lockstep). Overrides the langfuse-k8s chart's own baked-in
