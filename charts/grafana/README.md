@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.78.6](https://img.shields.io/badge/Version-0.78.6-informational?style=flat-square)
+![Version: 0.78.7](https://img.shields.io/badge/Version-0.78.7-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -101,7 +101,7 @@ Users not in any of these groups will have the 'None' role and no access.
 | crossplaneProviders.gf.datasources | list | `[]` |  |
 | crossplaneProviders.gf.debug | bool | `false` |  |
 | crossplaneProviders.gf.enabled | bool | `true` |  |
-| crossplaneProviders.gf.tag | string | `"v0.10.0"` |  |
+| crossplaneProviders.gf.tag | string | `"v0.11.0"` |  |
 | crossplaneProviders.orgmapper.debug | bool | `false` |  |
 | crossplaneProviders.orgmapper.enabled | bool | `true` |  |
 | database.cnpg | bool | `true` |  |
@@ -164,13 +164,14 @@ Users not in any of these groups will have the 'None' role and no access.
 | grafana.resources.limits.memory | string | `"1Gi"` |  |
 | grafana.resources.requests.cpu | string | `"200m"` |  |
 | grafana.resources.requests.memory | string | `"256Mi"` |  |
+| grafana.shadowBundledPlugins | bool | `false` |  |
 | grafana.ssoAuthEnabled | bool | `false` |  |
 | grafana.ssoEmailAttributePath | string | `"email"` |  |
 | grafana.ssoLoginAttributePath | string | `"email"` |  |
 | grafana.ssoRoleAttributePath | string | `"contains(join(' ', groups), 'grafana-superadmins') && 'GrafanaAdmin' || contains(join(' ', groups), 'grafana-admins')  && 'Admin' || contains(join(' ', groups), 'grafana-editors') && 'Editor' || contains(join(' ', groups), 'grafana-viewers') && 'Viewer' || 'None'"` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
-| grafanaChart.version | string | `"13.2.4"` |  |
+| grafanaChart.version | string | `"13.2.5"` |  |
 | useCustomFqdn | bool | `true` |  |
 
 ----------------------------------------------

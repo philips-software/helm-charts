@@ -301,6 +301,10 @@ plugins:
   {{- toYaml .Values.grafana.plugins | nindent 2 }}
 {{- end }}
 
+{{- if .Values.grafana.shadowBundledPlugins }}
+shadowBundledPlugins: true
+{{- end }}
+
 {{- if .Values.grafana.extraInitContainers }}
 extraInitContainers:
   {{- toYaml .Values.grafana.extraInitContainers | nindent 2 }}

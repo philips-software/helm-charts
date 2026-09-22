@@ -91,6 +91,17 @@ grafana:
   # - yesoreyeram-infinity-datasource@3.0.0  # Specific version
   # - plugin-name@version@https://url/to/plugin.zip  # From URL
   plugins: []
+  # Shadow /usr/share/grafana/data/plugins-bundled with an emptyDir.
+  # The upstream image ships core datasource plugins (prometheus, loki,
+  # tempo, ...) under that path, which is read-only when
+  # containerSecurityContext.readOnlyRootFilesystem is true. Grafana's
+  # GF_PLUGINS_PREINSTALL_SYNC (driven by `plugins` above) prunes any
+  # bundled plugin not listed in `plugins`, and that prune fails on the
+  # read-only path, leaving the plugin unregistered. Enable this whenever
+  # `plugins` is non-empty and you still rely on any bundled plugin — list
+  # every bundled plugin you need (e.g. prometheus, loki, tempo) in
+  # `plugins` too, since only listed plugins survive the sync once shadowed.
+  shadowBundledPlugins: false
   ingress:
     enabled: false
     # Hostname for Grafana ingress (alphanumeric characters and hyphens only)
