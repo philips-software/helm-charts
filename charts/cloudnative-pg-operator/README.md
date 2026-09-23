@@ -10,7 +10,7 @@ A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 |-----|------|---------|-------------|
 | argoProject | string | `"common-bootstrap"` |  |
 | barmanCloudPlugin.enabled | bool | `true` |  |
-| barmanCloudPlugin.version | string | `"0.7.0"` |  |
+| barmanCloudPlugin.version | string | `"0.8.0"` |  |
 | cnpgChart.version | string | `"0.29.0"` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |

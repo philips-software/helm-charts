@@ -46,7 +46,7 @@ helm-docs -g charts/go-hello-world
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://fluent.github.io/helm-charts | fluent-bit | 0.55.0 |
+| https://fluent.github.io/helm-charts | fluent-bit | 0.56.0 |
 
 ## Values
 

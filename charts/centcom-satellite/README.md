@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.24.1](https://img.shields.io/badge/Version-0.24.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.70.0](https://img.shields.io/badge/AppVersion-v0.70.0-informational?style=flat-square)
+![Version: 0.31.0](https://img.shields.io/badge/Version-0.31.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.75.0](https://img.shields.io/badge/AppVersion-v0.75.0-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -128,7 +128,7 @@ curl -fsSL .../install.sh | CLUSTER_NAME=edge AGENTLESS=true bash
 | Variable | Default | Description |
 |----------|---------|--------------|
 | `READ_ONLY` | `true` (when nothing set) | Explicit `true` always forces read-only, regardless of `WRITE_MODE`. Accepted as a synonym of `WRITE_MODE=false`. |
-| `WRITE_MODE` | *(empty)* | Set `true` to enable every mutating feature (`workloadRestart`, `workloadScale`, `podEvict`, `podResize`, `nodeclaimDelete`, `pvResize`, `autoRemediate`, `securityhubWrite` if requested) as well as `getResource` (read-only, but included by default in both modes — see `features.getResource` below for its defense-in-depth layers). With nothing set at all the installer defaults to read-only. |
+| `WRITE_MODE` | *(empty)* | Set `true` to enable every mutating feature (`workloadRestart`, `workloadScale`, `podEvict`, `podResize`, `nodeclaimDelete`, `pvResize`, `autoRemediate`, `securityhubWrite` if requested) except `getResource` (wildcard-read, opt-in separately). With nothing set at all the installer defaults to read-only. |
 | `FEATURES` | *(derived from `READ_ONLY`)* | Raw override of the `features.*` Helm values as a comma-separated `key=value` list, e.g. `FEATURES=getResource=true,argocd=true`. Rarely needed directly — prefer `WRITE_MODE`/`READ_ONLY` and the AWS task-group flags below. |
 
 ### AWS-backed task groups (CloudWatch RCA / GuardDuty / Security Hub)
@@ -270,7 +270,7 @@ See `CROSS-ACCOUNT-ASSUMEROLE.md` in the innovation-day repo for the full onboar
 | rateLimit.burst | int | `100` | Burst capacity above the sustained rate before throttling kicks in. |
 | rateLimit.enabled | bool | `true` | Enable per-client-IP request throttling on the main HTTP server |
 | rateLimit.requestsPerSecond | int | `50` | Sustained requests/second allowed per client IP. |
-| rbac.additionalRules | list | `[]` | Additional RBAC rules to add to the ClusterRole. Example: additionalRules:   - apiGroups: ["custom.example.com"]     resources: ["myresources"]     verbs: ["get", "list", "watch"] |
+| rbac.additionalRules | list | `[{"apiGroups":["coordination.k8s.io"],"resources":["leases"],"verbs":["get","list","watch"]}]` | Additional RBAC rules to add to the ClusterRole. Example: additionalRules:   - apiGroups: ["custom.example.com"]     resources: ["myresources"]     verbs: ["get", "list", "watch"]  Lease (coordination.k8s.io) is included by default: the built-in `view` ClusterRole this chart binds to (see clusterrole-view binding) has no rules for coordination.k8s.io at all, so without this, get_resource/ list_resources can't read leader-election or kube-node-lease Leases. Read-only access is low-risk: a Lease's spec is a narrow, fixed schema (holderIdentity, leaseDurationSeconds, renewTime, leaseTransitions) with no field for arbitrary/sensitive data — unlike Secrets, which stay excluded from `view` by design. holderIdentity is just a pod/node name, already visible via this chart's existing (much broader) Pod/Node read access, so this adds no meaningfully new information disclosure, only operational value (diagnosing leader-election churn/flapping).  NOTE: a per-cluster values file that sets its own rbac.additionalRules REPLACES this default list wholesale (Helm doesn't merge arrays) — if you add cluster-specific rules there, include this Lease rule too. |
 | rbac.create | bool | `true` | Create ClusterRole and ClusterRoleBinding |
 | replicaCount | int | `2` | Number of pod replicas |
 | resources | object | `{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"10m","memory":"32Mi"}}` | Container resource requests/limits. The initial memory.limit is sized for small/medium clusters; large clusters (thousands of pods, see observability.logLevel and vpa above) should raise this — install.sh's discover_memory tiers it automatically from cluster-wide pod count. |

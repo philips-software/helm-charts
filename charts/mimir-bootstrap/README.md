@@ -46,7 +46,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | limits.maxGlobalExemplarsPerUser | int | `0` |  |
 | limits.maxLabelNamesPerSeries | int | `35` |  |
 | limits.outOfOrderTimeWindow | string | `"30m"` |  |
-| mimirChart.version | string | `"6.1.0"` |  |
+| mimirChart.version | string | `"6.2.0"` |  |
 | mimirProvider.alertmanagerUri | string | `"http://mimir-gateway.mimir-system.svc.cluster.local"` |  |
 | mimirProvider.credentials.authType | string | `"basic"` |  |
 | mimirProvider.credentials.passwordKey | string | `"password"` |  |
