@@ -95,6 +95,13 @@ bedrock:
     enabled: true
     path: /bedrock
     openAiPath: /v1/chat/completions
+  # Additional Bedrock model IDs beyond `model` above, all referencing the
+  # same `bedrock` provider (standalone mode only - kubernetes mode's
+  # AgentgatewayBackend only ever wired the single `model`). Add models here
+  # instead of hand-editing the live ConfigMap: `.Values.config` (when set)
+  # becomes the entire rendered config.yaml verbatim, so anything not
+  # expressed in values is lost the next time anything triggers a real sync.
+  extraModels: []
 
 # OpenRouter LLM Provider configuration (standalone mode only - the
 # kubernetes-mode Gateway/AgentgatewayBackend path never wired OpenRouter).
@@ -104,6 +111,10 @@ openrouter:
   # standalone chart's static config. The API key is read at deploy time from
   # the agentgateway-openrouter-secret Secret (see agentgateway-standalone-helm.yaml).
   enabled: true
+  # Additional OpenRouter model names beyond deepseek/deepseek-v4-flash, all
+  # referencing the same `openrouter` provider. See bedrock.extraModels above
+  # for why this belongs in values rather than the live ConfigMap.
+  extraModels: []
 
 # Postgres database for LLM cost tracking (agentgateway's request-logging DB, which
 # powers its cost dashboard and Analytics UI). Provisions a plain CNPG Cluster

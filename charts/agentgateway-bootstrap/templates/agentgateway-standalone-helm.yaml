@@ -108,11 +108,21 @@ spec:
               - name: {{ .Values.bedrock.model | quote }}
                 provider:
                   reference: bedrock
+              {{- range .Values.bedrock.extraModels }}
+              - name: {{ . | quote }}
+                provider:
+                  reference: bedrock
+              {{- end }}
               {{- end }}
               {{- if .Values.openrouter.enabled }}
               - name: deepseek/deepseek-v4-flash
                 provider:
                   reference: openrouter
+              {{- range .Values.openrouter.extraModels }}
+              - name: {{ . | quote }}
+                provider:
+                  reference: openrouter
+              {{- end }}
               {{- end }}
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
         {{- if .Values.ui.oidc.enabled }}

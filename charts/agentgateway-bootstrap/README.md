@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.8.0](https://img.shields.io/badge/Version-0.8.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.5.0](https://img.shields.io/badge/AppVersion-1.5.0-informational?style=flat-square)
+![Version: 0.8.1](https://img.shields.io/badge/Version-0.8.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.5.0](https://img.shields.io/badge/AppVersion-1.5.0-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -100,6 +100,7 @@ To actually recover production data with this, either point `database.clusterNam
 | bedrock.auth.secretName | string | `"bedrock-secret"` |  |
 | bedrock.auth.type | string | `"irsa"` |  |
 | bedrock.enabled | bool | `true` |  |
+| bedrock.extraModels | list | `[]` |  |
 | bedrock.model | string | `"amazon.nova-micro-v1:0"` |  |
 | bedrock.region | string | `"us-east-1"` |  |
 | bedrock.route.enabled | bool | `true` |  |
@@ -146,6 +147,7 @@ To actually recover production data with this, either point `database.clusterNam
 | monitoring.serviceMonitor.enabled | bool | `true` |  |
 | monitoring.serviceMonitor.interval | string | `"15s"` |  |
 | openrouter.enabled | bool | `true` |  |
+| openrouter.extraModels | list | `[]` |  |
 | promptLogging.enabled | bool | `false` |  |
 | proxy.logLevel | string | `"info"` |  |
 | standalone.gatewayPort | int | `4000` |  |
