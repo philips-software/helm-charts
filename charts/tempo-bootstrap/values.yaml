@@ -38,6 +38,11 @@ kafkaNodePool:
   enabled: true
   labels:
     workload: tempo-kafka
+  # The taint key applied to the dedicated Kafka nodes (and tolerated by the
+  # Kafka StatefulSet). Defaults to the platform-wide "dedicated node" key so
+  # cluster infra pods with an Exists toleration for it (e.g. trivy-operator's
+  # node-collector) can still be scheduled here.
+  taintKey: cilium.hsp.philips.com/dedicated
   nodeClassRefName: bottlerocket-v2
   resources:
     limits:

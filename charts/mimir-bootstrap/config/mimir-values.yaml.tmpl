@@ -100,7 +100,7 @@ kafka:
     {{ $key }}: {{ $value }}
     {{- end }}
   tolerations:
-  - key: cilium.hsp.philips.com/dedicated
+  - key: {{ .Values.kafkaNodePool.taintKey | default "cilium.hsp.philips.com/dedicated" }}
     operator: Equal
     value: kafka
     effect: NoSchedule
