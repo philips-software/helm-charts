@@ -52,10 +52,13 @@ spec:
         operator: Gt
         values:
         - "1"
-      # Permanent taints to reserve nodes for tempo kafka workloads only
+      # Permanent taints to reserve nodes for tempo kafka workloads.
+      # Reuses the platform-wide "dedicated node" taint key so cluster-wide
+      # infra pods that already carry an Exists toleration for it (e.g.
+      # trivy-operator's node-collector) can still be scheduled here.
       taints:
       - effect: NoSchedule
-        key: workload
+        key: cilium.hsp.philips.com/dedicated
         value: tempo-kafka
       terminationGracePeriod: 24h
   weight: 5

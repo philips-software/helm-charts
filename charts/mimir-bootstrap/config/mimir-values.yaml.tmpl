@@ -100,7 +100,7 @@ kafka:
     {{ $key }}: {{ $value }}
     {{- end }}
   tolerations:
-  - key: workload
+  - key: cilium.hsp.philips.com/dedicated
     operator: Equal
     value: kafka
     effect: NoSchedule
