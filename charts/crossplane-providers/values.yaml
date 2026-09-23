@@ -46,7 +46,7 @@ package:
   # Version tag for all AWS providers
   # This should match a valid Crossplane provider version
   # renovate: datasource=github-releases depName=crossplane-contrib/provider-upjet-aws
-  version: "v2.8.0"
+  version: "v2.8.1"
   
   # Container registry where provider images are hosted
   # Default is the official Crossplane Contrib registry
