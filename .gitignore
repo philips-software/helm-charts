@@ -3,3 +3,5 @@ charts/**/charts/*.tgz
 .claude/
 .antigravitycli/
 charts/**/tool-validation/
+.DS_Store
+**/superpowers/
