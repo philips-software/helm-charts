@@ -45,8 +45,18 @@ spec:
                 {{- end }}
               {{- end }}
             {{- end }}
+          gateways:
+            default:
+              port: {{ .Values.standalone.gatewayPort | default 4000 }}
           {{- if .Values.ui.oidc.enabled }}
           ui:
+            # Attaches the OIDC-gated UI to the same local gateway that
+            # serves LLM traffic (defined above), rather than treating "/"
+            # on that gateway as an unauthenticated LLM API call. Required
+            # by agentgateway whenever ui.policies.oidc is set ("ui.gateways
+            # must be set").
+            gateways:
+              - default
             policies:
               oidc:
                 issuer: {{ .Values.ui.oidc.issuer | quote }}
@@ -66,6 +76,14 @@ spec:
                 rules:
                   - require: {{ join " || " $exprs | quote }}
               {{- end }}
+          {{- end }}
+          {{- if .Values.promptLogging.enabled }}
+          frontendPolicies:
+            accessLog:
+              database:
+                add:
+                  gen_ai.prompt: llm.prompt
+                  gen_ai.completion: 'llm.completion.map(c, {"role":"assistant", "content": c})'
           {{- end }}
           llm:
             policies:
@@ -97,6 +115,15 @@ spec:
                   reference: openrouter
               {{- end }}
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
+        {{- if .Values.ui.oidc.enabled }}
+        # agentgateway-standalone's own top-level oidc.enabled (distinct
+        # from config.ui.policies.oidc above) - gates injecting
+        # OIDC_COOKIE_SECRET (from the <release>-oidc Secret the upstream
+        # chart wires in unconditionally), which agentgateway requires at
+        # startup whenever OIDC is configured.
+        oidc:
+          enabled: true
+        {{- end }}
         {{- if or .Values.standalone.image.registry .Values.standalone.image.repository .Values.standalone.image.tag }}
         image:
           {{- if .Values.standalone.image.registry }}
