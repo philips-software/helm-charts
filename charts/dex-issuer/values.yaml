@@ -104,9 +104,9 @@ provider:
   debug: true
   # Provider package version
   # renovate: datasource=docker depName=xpkg.upbound.io/loafoe/provider-dex
-  tag: "v1.13.0"
+  tag: "v1.14.0"
   # Container registry hosting the provider-dex package
-  registry: "xpkg.upbound.io/loafoe"
+  registry: "ghcr.io/loafoe"
   # crossplane-providers wrapper chart version
   # renovate: datasource=docker depName=ghcr.io/philips-software/helm-charts/crossplane-providers
   crossplaneProvidersVersion: 0.0.35
