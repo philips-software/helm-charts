@@ -1,13 +1,13 @@
 # tempo
 
-![Version: 0.43.3](https://img.shields.io/badge/Version-0.43.3-informational?style=flat-square)
+![Version: 0.43.5](https://img.shields.io/badge/Version-0.43.5-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.43.3 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.43.5 -n monitoring
 ```
 
 ## Values
@@ -30,6 +30,7 @@ helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstra
 | kafkaNodePool.nodeClassRefName | string | `"bottlerocket-v2"` |  |
 | kafkaNodePool.resources.limits.cpu | int | `4` |  |
 | kafkaNodePool.resources.limits.memory | string | `"16Gi"` |  |
+| kafkaNodePool.taintKey | string | `"cilium.hsp.philips.com/dedicated"` |  |
 | multitenancyEnabled | bool | `true` |  |
 | streamOverHTTPEnabled | bool | `true` |  |
 | tempoChart.version | string | `"3.7.0"` |  |
