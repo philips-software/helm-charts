@@ -129,10 +129,10 @@ spec:
             {{- if .Values.features.podResize }}
             - name: POD_RESIZE_ENABLED
               value: "true"
-            - name: POD_RESIZE_PERCENTAGE_CAP
-              value: {{ .Values.features.podResizePercentageCap | quote }}
-            - name: POD_RESIZE_ABSOLUTE_CAP
-              value: {{ .Values.features.podResizeAbsoluteCap | quote }}
+            - name: POD_RESIZE_MEMORY_ABSOLUTE_CAP
+              value: {{ .Values.features.podResizeMemoryAbsoluteCap | quote }}
+            - name: POD_RESIZE_CPU_ABSOLUTE_CAP
+              value: {{ .Values.features.podResizeCPUAbsoluteCap | quote }}
             {{- end }}
             {{- if .Values.features.nodeclaimDelete }}
             - name: NODECLAIM_DELETE_ENABLED

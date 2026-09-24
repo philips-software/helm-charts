@@ -157,13 +157,13 @@ features:
   # -- Enable pod_evict task for evicting/deleting pods.
   # When enabled, grants eviction create, pod delete, and read on PDBs
   podEvict: false
-  # -- Enable pod_resize task for in-place pod memory resize (KEP-1287).
+  # -- Enable pod_resize task for in-place pod memory/CPU resize (KEP-1287).
   # Requires Kubernetes 1.27+ with InPlacePodVerticalScaling feature gate
   podResize: false
-  # -- Pod resize safety limits: max percentage change allowed per resize call
-  podResizePercentageCap: 50
-  # -- Pod resize safety limits: max absolute memory value allowed per resize call
-  podResizeAbsoluteCap: "4Gi"
+  # -- Pod resize safety limit: max absolute memory value allowed per resize call (hard cap, no percentage-based cap)
+  podResizeMemoryAbsoluteCap: "20Gi"
+  # -- Pod resize safety limit: max absolute CPU value allowed per resize call (hard cap, no percentage-based cap)
+  podResizeCPUAbsoluteCap: "2"
   # -- Enable nodeclaim_delete task for Karpenter node management.
   # When enabled, grants get/delete on karpenter.sh nodeclaims
   nodeclaimDelete: false

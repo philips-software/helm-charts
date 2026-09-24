@@ -238,9 +238,9 @@ See `CROSS-ACCOUNT-ASSUMEROLE.md` in the innovation-day repo for the full onboar
 | features.httpRequest | bool | `false` | Enable http_request task for making HTTP requests to cluster-internal services. Useful for admin endpoints, ring management, config reloads, debugging. Only allows requests to cluster-internal addresses (pods, services) |
 | features.nodeclaimDelete | bool | `false` | Enable nodeclaim_delete task for Karpenter node management. When enabled, grants get/delete on karpenter.sh nodeclaims |
 | features.podEvict | bool | `false` | Enable pod_evict task for evicting/deleting pods. When enabled, grants eviction create, pod delete, and read on PDBs |
-| features.podResize | bool | `false` | Enable pod_resize task for in-place pod memory resize (KEP-1287). Requires Kubernetes 1.27+ with InPlacePodVerticalScaling feature gate |
-| features.podResizeAbsoluteCap | string | `"4Gi"` | Pod resize safety limits: max absolute memory value allowed per resize call |
-| features.podResizePercentageCap | int | `50` | Pod resize safety limits: max percentage change allowed per resize call |
+| features.podResize | bool | `false` | Enable pod_resize task for in-place pod memory/CPU resize (KEP-1287). Requires Kubernetes 1.27+ with InPlacePodVerticalScaling feature gate |
+| features.podResizeCPUAbsoluteCap | string | `"2"` | Pod resize safety limit: max absolute CPU value allowed per resize call (hard cap, no percentage-based cap) |
+| features.podResizeMemoryAbsoluteCap | string | `"20Gi"` | Pod resize safety limit: max absolute memory value allowed per resize call (hard cap, no percentage-based cap) |
 | features.pvResize | bool | `false` | Enable pv_resize task for resizing persistent volumes. When enabled, grants patch permission on PVCs |
 | features.resourceAccessDeny | list | `[]` | Additional group+kind pairs get_resource refuses to read, on top of the non-negotiable default (Secret). Empty by default. Example: resourceAccessDeny:   - group: "external-secrets.io"     kind: "SecretStore" |
 | features.securityhub | bool | `false` | Enable Security Hub read tasks (list standards, get findings, get findings statistics). Sets SECURITYHUB_ENABLED. Independently toggleable from guardduty and cloudwatchRca — Security Hub aggregates findings from more products (GuardDuty, Inspector, Macie, IAM Access Analyzer, Config, custom integrations) than GuardDuty alone. Requires AWS credentials via IRSA (aws.irsa) or ambient credentials; attaches the read-only Security Hub policy to the IRSA role. |
