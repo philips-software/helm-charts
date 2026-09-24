@@ -45,6 +45,22 @@ spec:
                 {{- end }}
               {{- end }}
             {{- end }}
+            {{- if .Values.bedrock.modelCatalogOverrides }}
+            modelCatalog:
+              - inline:
+                  providers:
+                    aws.bedrock:
+                      models:
+                        {{- range .Values.bedrock.modelCatalogOverrides }}
+                        {{ .name | quote }}:
+                          rates:
+                            {{- toYaml .rates | nindent 28 }}
+                          {{- if .tiers }}
+                          tiers:
+                            {{- toYaml .tiers | nindent 28 }}
+                          {{- end }}
+                        {{- end }}
+            {{- end }}
           gateways:
             default:
               port: {{ .Values.standalone.gatewayPort | default 4000 }}

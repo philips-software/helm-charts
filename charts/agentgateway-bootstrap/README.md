@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.8.1](https://img.shields.io/badge/Version-0.8.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.5.0](https://img.shields.io/badge/AppVersion-1.5.0-informational?style=flat-square)
+![Version: 0.8.2](https://img.shields.io/badge/Version-0.8.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.5.0](https://img.shields.io/badge/AppVersion-1.5.0-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -102,6 +102,7 @@ To actually recover production data with this, either point `database.clusterNam
 | bedrock.enabled | bool | `true` |  |
 | bedrock.extraModels | list | `[]` |  |
 | bedrock.model | string | `"amazon.nova-micro-v1:0"` |  |
+| bedrock.modelCatalogOverrides | list | `[]` |  |
 | bedrock.region | string | `"us-east-1"` |  |
 | bedrock.route.enabled | bool | `true` |  |
 | bedrock.route.openAiPath | string | `"/v1/chat/completions"` |  |
