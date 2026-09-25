@@ -3,9 +3,12 @@ name: langfuse-bootstrap
 description: A Helm chart for bootstrapping Langfuse (LLM engineering platform) with
   CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
 type: application
-version: 0.4.5
-# renovate: datasource=docker depName=docker.langfuse.com/langfuse/langfuse
-appVersion: "4.36.0"
+version: 0.5.0
+# No longer renovate-tracked here: langfuse.image.tag now defaults empty
+# (see values.yaml) so the app version tracks whatever langfuseChart.version
+# bundles - bump appVersion by hand alongside a langfuseChart.version bump
+# to keep this label roughly current.
+appVersion: "4.38.0"
 keywords:
   - langfuse
   - llm

@@ -221,11 +221,17 @@ langfuse:
   revisionHistoryLimit: 3
   image:
     # Application image tag for both langfuse-web and langfuse-worker (they
-    # release in lockstep). Overrides the langfuse-k8s chart's own baked-in
-    # Chart.appVersion, which lags behind - tracked independently here since
-    # the app and the wrapper chart release on different cadences.
-    # renovate: datasource=docker depName=docker.langfuse.com/langfuse/langfuse
-    tag: "4.36.0"
+    # release in lockstep). Empty by default - the upstream langfuse-k8s
+    # chart's templates do
+    # `coalesce .Values.langfuse.web.image.tag .Values.langfuse.image.tag .Chart.AppVersion`,
+    # so leaving this unset means the app version tracks whatever
+    # langfuseChart.version bundles (its own Chart.appVersion). Set this to a
+    # specific tag only if you deliberately need to pin the app version
+    # independently of the wrapper chart version again (that was this
+    # field's original purpose, removed 2026-09-25 since it caused the app
+    # version to lag behind upstream Langfuse releases whenever
+    # langfuseChart.version itself wasn't bumped in lockstep).
+    tag: ""
   web:
     resources:
       requests:
