@@ -58,7 +58,7 @@ spiffe:
   collectors: []
   helper:
     # renovate: datasource=docker depName=ghcr.io/spiffe/spiffe-helper
-    image: ghcr.io/spiffe/spiffe-helper:0.10.0
+    image: ghcr.io/spiffe/spiffe-helper:0.12.1
     resources:
       requests:
         cpu: 1m
