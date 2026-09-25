@@ -5268,6 +5268,23 @@ entries:
     version: 0.1.0
   langfuse-bootstrap:
   - apiVersion: v2
+    created: "2026-09-25T14:25:38.015207969Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: 58ff4d11d416b072a302e5d3151599eafcde88999e7b841d8facae3fd50de436
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.5.1/langfuse-bootstrap-0.5.1.tgz
+    version: 0.5.1
+  - apiVersion: v2
     appVersion: 4.38.0
     created: "2026-09-25T14:14:51.553512482Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
@@ -6736,4 +6753,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-09-25T14:14:51.881500362Z"
+generated: "2026-09-25T14:25:38.645032265Z"
