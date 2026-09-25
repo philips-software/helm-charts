@@ -1,13 +1,13 @@
 # tempo
 
-![Version: 0.43.5](https://img.shields.io/badge/Version-0.43.5-informational?style=flat-square)
+![Version: 0.43.6](https://img.shields.io/badge/Version-0.43.6-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.43.5 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.43.6 -n monitoring
 ```
 
 ## Values
