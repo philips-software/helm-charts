@@ -40,7 +40,7 @@ imageCatalog:
 kyvernoPolicy:
   enabled: true
   # renovate: datasource=docker depName=ghcr.io/cloudnative-pg/cloudnative-pg
-  operatorImage: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.28.0"
+  operatorImage: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.30.1"
 
 barmanCloudPlugin:
   enabled: true
