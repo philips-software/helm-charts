@@ -25,7 +25,7 @@ spec:
       containers:
         - name: create-datasource
           # renovate: datasource=docker depName=alpine/k8s
-          image: alpine/k8s:1.29.2
+          image: alpine/k8s:1.37.0
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
