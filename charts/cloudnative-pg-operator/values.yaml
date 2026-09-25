@@ -35,7 +35,7 @@ imageCatalog:
   images:
     - major: 18
       # renovate: datasource=docker depName=ghcr.io/cloudnative-pg/postgresql
-      image: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:18.1-system-trixie"
+      image: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:18.6-system-trixie"
 
 kyvernoPolicy:
   enabled: true
