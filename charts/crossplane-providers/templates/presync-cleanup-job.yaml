@@ -31,6 +31,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: cleanup
+          # renovate: datasource=docker depName=alpine/k8s
           image: alpine/k8s:1.36.1
           securityContext:
             allowPrivilegeEscalation: false

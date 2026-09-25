@@ -48,6 +48,7 @@ grafana:
       # Enable Caddy sidecar for IP-based auto-login
       enabled: false
       # Caddy container image
+      # renovate: datasource=docker depName=caddy
       image: caddy:2-alpine
       # Username for auto-login from trusted IPs
       autoLoginUser: "viewer"

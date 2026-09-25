@@ -27,6 +27,28 @@
       matchPackageNames: ['ghcr.io/grafana-community/helm-charts/grafana'],
       pinDigests: false,
     },
+    {
+      // The Caddy sidecar intentionally floats on the "2-alpine" tag rather than
+      // a pinned patch version. Keep it on the 2.x stream: pick up any updates
+      // Docker Hub publishes under that tag, but never let it jump to 3.x.
+      matchPackageNames: ['caddy'],
+      matchUpdateTypes: ['major'],
+      enabled: false,
+    },
+    {
+      // Bump the chart's own version whenever its appVersion is bumped: a
+      // republished chart with unchanged version but different content is
+      // rejected by Helm repos, so appVersion and version must move together.
+      matchFileNames: ['charts/*/Chart.yaml'],
+      bumpVersions: [
+        {
+          name: 'Bump chart version alongside appVersion',
+          filePatterns: ['{{packageFileDir}}/Chart.yaml'],
+          matchStrings: ['version:\\s*"?(?<version>[^"\\s]+)"?'],
+          bumpType: 'patch',
+        },
+      ],
+    },
   ],
   customManagers: [
     {
@@ -50,8 +72,12 @@
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*targetRevision:\\s*"?(?<currentValue>[^"\\s]+)"?',
         // targetRevision with registryUrl
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*targetRevision:\\s*"?(?<currentValue>[^"\\s]+)"?',
-        // image: field with tag inline
-        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*image:\\s*\\S+?:(?<currentValue>\\S+)',
+        // image: field with tag inline (optionally quoted, e.g. ECR-mirrored paths
+        // with ${var} interpolation that get quoted to keep YAML happy)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*image:\\s*["\']?\\S+?:(?<currentValue>[^"\'\\s]+)["\']?',
+        // <name>Image: field with tag inline (e.g. operatorImage), same as above but
+        // for keys that aren't the bare "image:" field name
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*\\w+[Ii]mage:\\s*["\']?\\S+?:(?<currentValue>[^"\'\\s]+)["\']?',
         // tag: field (separated repository/tag format)
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*tag:\\s*"?(?<currentValue>[^"\\s]+)"?',
         // version: field with registryUrl (either order)

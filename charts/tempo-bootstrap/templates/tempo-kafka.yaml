@@ -84,6 +84,7 @@ spec:
         effect: NoSchedule
       containers:
         - name: kafka
+          # renovate: datasource=docker depName=apache/kafka-native
           image: docker.io/apache/kafka-native:4.1.0
           imagePullPolicy: IfNotPresent
           ports:

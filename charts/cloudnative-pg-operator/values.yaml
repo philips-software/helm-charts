@@ -34,10 +34,12 @@ imageCatalog:
   name: default
   images:
     - major: 18
+      # renovate: datasource=docker depName=ghcr.io/cloudnative-pg/postgresql
       image: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:18.1-system-trixie"
 
 kyvernoPolicy:
   enabled: true
+  # renovate: datasource=docker depName=ghcr.io/cloudnative-pg/cloudnative-pg
   operatorImage: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.28.0"
 
 barmanCloudPlugin:

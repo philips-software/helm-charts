@@ -57,6 +57,7 @@ spiffe:
   # alloy-receiver, alloy-metrics. Replaces the manual collectorCommon sidecar injection.
   collectors: []
   helper:
+    # renovate: datasource=docker depName=ghcr.io/spiffe/spiffe-helper
     image: ghcr.io/spiffe/spiffe-helper:0.10.0
     resources:
       requests:
