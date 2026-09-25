@@ -97,6 +97,13 @@ a[href^="/auth/placeholder"] {
   padding: 30px;
 }
 
+/* main.css's own .dex-container rule hardcodes dark text (#333) for a
+ * light-theme background; unstyled content (e.g. error.html's <p>) inherits
+ * it, going near-invisible on our dark .theme-panel. */
+.dex-container {
+  color: var(--color-text-light);
+}
+
 /* A width rather than a minimum: the button has to be the same size whatever
  * the connector is called, and it has to give way on a screen too narrow to
  * hold it rather than push out of the panel. */
