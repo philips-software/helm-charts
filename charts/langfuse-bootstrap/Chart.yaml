@@ -3,7 +3,7 @@ name: langfuse-bootstrap
 description: A Helm chart for bootstrapping Langfuse (LLM engineering platform) with
   CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
 type: application
-version: 0.5.1
+version: 0.5.2
 # appVersion intentionally omitted: it only ever fed this wrapper chart's own
 # app.kubernetes.io/version label (on redis/clickhouse/keeper/httproute/etc.
 # - see _helpers.tpl's `labels` template, guarded with `if .Chart.AppVersion`

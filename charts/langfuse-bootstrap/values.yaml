@@ -237,7 +237,7 @@ langfuse:
     # skip a renovate PR, and delete the stale branch afterward so renovate
     # can propose fresh updates again - don't just close the PR.
     # renovate: datasource=docker depName=docker.langfuse.com/langfuse/langfuse
-    tag: "4.38.0"
+    tag: "4.45.4"
   web:
     resources:
       requests:
