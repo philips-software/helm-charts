@@ -3,12 +3,15 @@ name: langfuse-bootstrap
 description: A Helm chart for bootstrapping Langfuse (LLM engineering platform) with
   CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
 type: application
-version: 0.5.0
-# No longer renovate-tracked here: langfuse.image.tag now defaults empty
-# (see values.yaml) so the app version tracks whatever langfuseChart.version
-# bundles - bump appVersion by hand alongside a langfuseChart.version bump
-# to keep this label roughly current.
-appVersion: "4.38.0"
+version: 0.5.1
+# appVersion intentionally omitted: it only ever fed this wrapper chart's own
+# app.kubernetes.io/version label (on redis/clickhouse/keeper/httproute/etc.
+# - see _helpers.tpl's `labels` template, guarded with `if .Chart.AppVersion`
+# so omitting it just drops the label rather than erroring), never the actual
+# langfuse-web/worker image tag (that comes from the upstream langfuse-k8s
+# chart's own Chart.AppVersion, a different chart context, via
+# langfuse.image.tag's coalesce fallback - see values.yaml). Hand-syncing it
+# here would only ever drift stale.
 keywords:
   - langfuse
   - llm

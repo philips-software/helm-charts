@@ -221,17 +221,23 @@ langfuse:
   revisionHistoryLimit: 3
   image:
     # Application image tag for both langfuse-web and langfuse-worker (they
-    # release in lockstep). Empty by default - the upstream langfuse-k8s
-    # chart's templates do
-    # `coalesce .Values.langfuse.web.image.tag .Values.langfuse.image.tag .Chart.AppVersion`,
-    # so leaving this unset means the app version tracks whatever
-    # langfuseChart.version bundles (its own Chart.appVersion). Set this to a
-    # specific tag only if you deliberately need to pin the app version
-    # independently of the wrapper chart version again (that was this
-    # field's original purpose, removed 2026-09-25 since it caused the app
-    # version to lag behind upstream Langfuse releases whenever
-    # langfuseChart.version itself wasn't bumped in lockstep).
-    tag: ""
+    # release in lockstep). Pinned + renovate-tracked again (reinstated
+    # 2026-09-25 - briefly defaulted empty so this would fall through to
+    # langfuseChart.version's own bundled Chart.AppVersion via the upstream
+    # chart's `coalesce .Values.langfuse.web.image.tag .Values.langfuse.image.tag
+    # .Chart.AppVersion`, but that just re-couples the app's release cadence
+    # to the wrapper chart's own, which lags - langfuseChart 2.1.2 only
+    # bundles app 4.38.0 while upstream Langfuse is several minor versions
+    # ahead). GOTCHA: if you ever close a renovate PR for this dependency
+    # instead of merging it, renovate will NOT propose that dependency's
+    # updates again on that branch - this is exactly how it silently went
+    # stale from 4.36.0 for weeks (PR #383 closed in favor of a manual bump,
+    # which orphaned the shared `renovate/docker.langfuse.com-langfuse-langfuse-4.x`
+    # branch and blocked every later 4.x proposal). Bump this by hand if you
+    # skip a renovate PR, and delete the stale branch afterward so renovate
+    # can propose fresh updates again - don't just close the PR.
+    # renovate: datasource=docker depName=docker.langfuse.com/langfuse/langfuse
+    tag: "4.38.0"
   web:
     resources:
       requests:
