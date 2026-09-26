@@ -3,7 +3,7 @@ clickhouseOperatorChart:
   # OCI repository for the operator's Helm chart
   repoURL: oci://ghcr.io/clickhouse/clickhouse-operator-helm
   # renovate: datasource=docker depName=ghcr.io/clickhouse/clickhouse-operator-helm
-  version: 0.0.7
+  version: 0.0.8
 
 # ArgoCD project name
 argoProject: default
