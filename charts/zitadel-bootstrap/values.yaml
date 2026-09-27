@@ -18,9 +18,11 @@ environmentConfig:
   # is true (e.g. "example.com"). Same convention as langfuse-bootstrap.
   clusterFqdn: ""
 
-# Public exposure via Gateway API. The upstream zitadel chart has its own
-# native HTTPRoute support (gateway.httpRoute / login.gateway.httpRoute) —
-# this chart just points both at the same shared Gateway.
+# Public exposure via Gateway API. This chart renders its own single
+# HTTPRoute (templates/httproute.yaml) rather than the upstream chart's
+# native gateway.httpRoute/login.gateway.httpRoute — those render as two
+# separate HTTPRoute objects on the same hostname, which some clusters'
+# admission policies reject (see the design spec's "Ingress" section).
 ingress:
   httpRoute:
     enabled: false

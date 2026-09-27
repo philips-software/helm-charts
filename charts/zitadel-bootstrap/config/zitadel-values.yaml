@@ -20,11 +20,32 @@ initJob:
   command: "zitadel"
 
 zitadel:
-  masterkey: {{ .Values.credentials.masterkey | quote }}
+  # masterkeySecretName (not the literal masterkey field) — see
+  # templates/credentials-secret.yaml. Avoids putting the masterkey in
+  # plaintext inside this Application's spec.source.helm.valuesObject,
+  # which is readable by anyone with read access to the Application object
+  # itself (e.g. via the ArgoCD UI's Parameters/Manifest view), a broader
+  # audience than Secret-read access.
+  masterkeySecretName: zitadel-credentials
   configmapConfig:
-    ExternalSecure: true
+    ExternalSecure: {{ .Values.ingress.httpRoute.enabled }}
     {{- if .Values.ingress.httpRoute.enabled }}
     ExternalDomain: {{ include "zitadel-bootstrap.host" . | quote }}
+    # The shared Gateway serves 443; without this the login v2 app builds
+    # its OAuth audience as "https://<host>:8080" (upstream's
+    # configmap_login.yaml default), which never matches the issuer the
+    # main API actually presents — every login-UI API call then fails
+    # token verification with "issuer does not match". Confirmed live.
+    ExternalPort: 443
+    {{- else }}
+    # Port-forward-friendly default (ingress disabled) — matches
+    # langfuse-bootstrap's equivalent nextauthUrl default. Only the main
+    # zitadel API/console is reachable this way; the split login v2 UI
+    # needs its own port-forward to zitadel-login:3000, which a plain
+    # single-service port-forward can't provide a matching origin for —
+    # see README "Signing in" for what actually works without ingress.
+    ExternalDomain: localhost
+    ExternalPort: 8080
     {{- end }}
     Database:
       Postgres:
@@ -41,15 +62,29 @@ zitadel:
         Human:
           UserName: {{ .Values.credentials.adminUsername | quote }}
           PasswordChangeRequired: true
-  secretConfig:
-    Database:
-      Postgres:
-        User:
-          Password: {{ .Values.credentials.postgresPassword | quote }}
-    FirstInstance:
-      Org:
-        Human:
-          Password: {{ .Values.credentials.adminPassword | quote }}
+
+# Postgres user password and the FirstInstance admin password travel as
+# env vars sourced from Secrets (not literal values in secretConfig,
+# which — like zitadel.masterkey above — would otherwise sit in plaintext
+# in this Application's valuesObject). ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+# reuses the CNPG-owned zitadel-db-credentials Secret directly (see
+# templates/postgres-secret.yaml); ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD
+# comes from templates/credentials-secret.yaml. Both env vars are ZITADEL's
+# own documented override mechanism (ZITADEL_<SECTION>_<KEY>, env always
+# wins over file-based config) — applied via the chart's global `env`,
+# which every zitadel workload (Deployment, init/setup Jobs) picks up via
+# the upstream chart's own zitadel.dbEnv helper.
+env:
+  - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: {{ include "zitadel-bootstrap.postgresClusterName" . }}-credentials
+        key: password
+  - name: ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: zitadel-credentials
+        key: adminPassword
 
 {{/*
 Ingress: deliberately NOT using the upstream chart's own gateway.httpRoute /
