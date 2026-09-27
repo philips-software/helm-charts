@@ -1,0 +1,73 @@
+# Rendered into the zitadel-helm ArgoCD Application's spec.source.helm.valuesObject.
+# Keys here are the UPSTREAM zitadel/zitadel chart's own values (charts.zitadel.com,
+# version {{ .Values.zitadelChart.version }}) — see its values.yaml / cmd/defaults.yaml
+# for the full schema. This file only sets what CNPG-owned Postgres + username/password
+# auth + Gateway API ingress need; everything else uses the upstream chart's defaults.
+
+# Bundled Bitnami postgresql subchart stays off — we bring our own CNPG cluster
+# (see templates/postgres-cluster.yaml), same convention as langfuse-bootstrap
+# and agentgateway-bootstrap. Never use Bitnami images.
+postgresql:
+  enabled: false
+
+# CNPG already creates the database and an owner role with full privileges on
+# it, so skip the upstream chart's own database/user/grant creation steps —
+# only run its internal schema init. Confirmed against zitadel/zitadel source
+# (cmd/initialise/verify_zitadel.go): this path connects with the User
+# credentials only, never Admin, so Database.Postgres.Admin.* below is
+# intentionally left unset (chart defaults, never contacted).
+initJob:
+  command: "zitadel"
+
+zitadel:
+  masterkey: {{ .Values.credentials.masterkey | quote }}
+  configmapConfig:
+    ExternalSecure: true
+    {{- if .Values.ingress.httpRoute.enabled }}
+    ExternalDomain: {{ include "zitadel-bootstrap.host" . | quote }}
+    {{- end }}
+    Database:
+      Postgres:
+        Host: {{ printf "%s-rw.%s.svc.cluster.local" (include "zitadel-bootstrap.postgresClusterName" .) .Values.namespace | quote }}
+        Port: 5432
+        Database: {{ .Values.database.databaseName | quote }}
+        User:
+          Username: {{ .Values.database.databaseName | quote }}
+          SSL:
+            Mode: disable
+    FirstInstance:
+      Org:
+        Name: {{ .Values.firstInstance.orgName | quote }}
+        Human:
+          UserName: {{ .Values.credentials.adminUsername | quote }}
+          PasswordChangeRequired: true
+  secretConfig:
+    Database:
+      Postgres:
+        User:
+          Password: {{ .Values.credentials.postgresPassword | quote }}
+    FirstInstance:
+      Org:
+        Human:
+          Password: {{ .Values.credentials.adminPassword | quote }}
+
+{{- if .Values.ingress.httpRoute.enabled }}
+gateway:
+  httpRoute:
+    enabled: true
+    parentRefs:
+      - name: {{ .Values.ingress.httpRoute.sharedGatewayName }}
+        namespace: {{ .Values.ingress.httpRoute.sharedGatewayNamespace }}
+    hostnames:
+      - {{ include "zitadel-bootstrap.host" . | quote }}
+
+login:
+  gateway:
+    httpRoute:
+      enabled: true
+      parentRefs:
+        - name: {{ .Values.ingress.httpRoute.sharedGatewayName }}
+          namespace: {{ .Values.ingress.httpRoute.sharedGatewayNamespace }}
+      hostnames:
+        - {{ include "zitadel-bootstrap.host" . | quote }}
+{{- end }}
