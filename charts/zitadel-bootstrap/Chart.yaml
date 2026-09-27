@@ -1,0 +1,13 @@
+apiVersion: v2
+name: zitadel-bootstrap
+description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with CNPG Postgres and Gateway API ingress
+type: application
+version: 0.1.0
+keywords:
+  - zitadel
+  - identity
+  - oidc
+  - iam
+  - sso
+  - argocd
+  - bootstrap

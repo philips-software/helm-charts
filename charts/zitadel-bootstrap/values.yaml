@@ -1,0 +1,71 @@
+# zitadel-bootstrap configuration
+
+# Upstream zitadel Helm chart configuration. Classic Helm repo, not OCI.
+zitadelChart:
+  repoURL: https://charts.zitadel.com
+  # renovate: datasource=helm depName=zitadel registryUrl=https://charts.zitadel.com
+  version: 10.0.6
+
+# ArgoCD project name
+argoProject: default
+
+# Environment configuration for cluster FQDN substitution
+environmentConfig:
+  resourcePrefix: ""
+  region: ""
+  accountId: ""
+  # Cluster FQDN, used to build the public hostname when ingress.httpRoute.enabled
+  # is true (e.g. "example.com"). Same convention as langfuse-bootstrap.
+  clusterFqdn: ""
+
+# Public exposure via Gateway API. The upstream zitadel chart has its own
+# native HTTPRoute support (gateway.httpRoute / login.gateway.httpRoute) —
+# this chart just points both at the same shared Gateway.
+ingress:
+  httpRoute:
+    enabled: false
+    # Host label; combined with environmentConfig.clusterFqdn forms the public
+    # URL, e.g. "zitadel" -> https://zitadel.${clusterFqdn}
+    host: zitadel
+    sharedGatewayName: platform
+    sharedGatewayNamespace: kube-system
+
+# Namespace all zitadel-bootstrap resources (and the upstream chart) deploy into
+namespace: zitadel-system
+
+# CNPG Postgres database for Zitadel
+database:
+  # Cluster resource name. Defaults to "zitadel-db" if unset.
+  clusterName: ""
+  instances: 1
+  databaseName: zitadel
+  storage:
+    size: 5Gi
+    # Leave empty to use the cluster's default StorageClass.
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+# Static credentials referenced directly in the upstream chart's valuesObject.
+# MUST stay static (no runtime generation) — ArgoCD renders this chart via
+# `helm template`, which regenerates anything random on every sync, rotating
+# the masterkey/passwords and locking out the running instance. Override every
+# field below for any real deployment; these are dev-only placeholders (same
+# convention as langfuse-bootstrap's credentials.postgresPassword default).
+credentials:
+  # Exactly 32 bytes, printable ASCII. Generate: tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+  masterkey: "changeme-please-override-32bytes"
+  # CNPG Postgres password for the zitadel role.
+  postgresPassword: "changeme-postgres-password-please-override"
+  # Standard username/password admin created on first install (IAM_OWNER).
+  adminUsername: "zitadel-admin"
+  # Must satisfy Zitadel's default password policy (upper+lower+digit).
+  adminPassword: "changeme-Admin-Password1!"
+
+# First-instance bootstrap (org + admin user created by the setup Job)
+firstInstance:
+  orgName: ZITADEL
