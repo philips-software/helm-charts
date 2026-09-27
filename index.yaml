@@ -6770,4 +6770,23 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.34.0/tempo-bootstrap-0.34.0.tgz
     version: 0.34.0
-generated: "2026-09-25T14:27:29.579543879Z"
+  zitadel-bootstrap:
+  - apiVersion: v2
+    created: "2026-09-27T20:04:40.544943012Z"
+    description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with
+      CNPG Postgres and Gateway API ingress
+    digest: 516b8e79101077eed64fbee5eda2a20fd818e900b13cc1ae5d354b2a6b17a601
+    keywords:
+    - zitadel
+    - identity
+    - oidc
+    - iam
+    - sso
+    - argocd
+    - bootstrap
+    name: zitadel-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-09-27T20:04:40.546228749Z"
