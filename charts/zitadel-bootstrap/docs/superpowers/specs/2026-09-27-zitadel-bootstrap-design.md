@@ -356,3 +356,40 @@ setup Job's logs).
   instance/replica defaults, same as `langfuse-bootstrap`'s initial
   defaults.
 - TLS to Postgres (`sslmode: disable`, in-cluster only).
+
+## Known follow-ups (found via post-deploy review, 2026-09-27)
+
+- **Unresolved**: the `zitadel` pod logs a recurring warning
+  (`token verifier repo: verify JWT access token ... issuer does not
+  match: Expected: https://<host>, got: login-client`, roughly every 5s).
+  `configmapConfig.ExternalPort: 443` was added on the theory this was the
+  upstream login-v2 app building its OAuth audience against the wrong
+  default port — verified that config change lands correctly in the
+  rendered manifest, but the exact warning persists unchanged afterward.
+  The `got: login-client` value (a literal username, not a URL with a
+  port) suggests a different mechanism than originally diagnosed — likely
+  something in the auto-generated `login-client` SystemAPIUser's JWT
+  profile assertion being checked against OIDC-issuer-URL rules somewhere.
+  Tested public routes (health check, root redirect, login page load) all
+  still return correct status codes with this warning present, so it does
+  not appear to block what this deployment tested — but no full
+  interactive browser OIDC login exchange has been performed. Treat as
+  PLAUSIBLE, not CONFIRMED, that login is fully clean end-to-end; verify
+  with a real browser sign-in before treating this chart as production-
+  ready, and if the warning turns out to matter, dig into
+  `internal/authz/repository/eventsourcing/eventstore/token_verifier.go`
+  in the `zitadel/zitadel` source (the log line's own caller path) next.
+- **Deferred, not fixed**: `database.clusterName`'s CNPG `Secret`/`Cluster`/
+  the chart's own `HTTPRoute` all apply directly into `.Values.namespace`
+  with nothing in this chart creating that namespace first — a genuinely
+  fresh `helm install` (not `upgrade --install` against a cluster where a
+  prior attempt already created it) fails until the namespace is
+  pre-created by hand. Same gap exists in `langfuse-bootstrap` — not a
+  regression, just never fixed there either. Documented in the README's
+  Prerequisites rather than code-fixed.
+- **Deferred, not fixed**: `credentials.adminPassword`'s complexity
+  (upper+lower+digit) is only checked for non-emptiness at `helm template`
+  time, not validated against Zitadel's actual password policy — a
+  policy-violating password only surfaces as a live setup-Job failure
+  (exactly what happened once during this chart's own initial deploy).
+  Adding a `regexMatch`-based check to `validateConfig` would close this.
