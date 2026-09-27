@@ -34,10 +34,13 @@ charts/zitadel-bootstrap/
     postgres-cluster.yaml             # CNPG Cluster (bootstrap.initdb)
     postgres-secret.yaml              # static basic-auth Secret, owner role
     zitadel-helm.yaml                 # ArgoCD Application -> upstream chart
+    httproute.yaml                    # single HTTPRoute, two path rules — see "Ingress" below
   README.md / README.md.gotmpl
 ```
 
-No custom HTTPRoute template is needed — see "Ingress" below.
+A custom `httproute.yaml` IS needed after all — see "Ingress" below (revised
+2026-09-27 after live testing; the upstream chart's native Gateway API
+support doesn't work on this cluster's Kyverno policy set).
 
 ## ArgoCD Application source
 
@@ -121,27 +124,24 @@ zitadel:
           Username: {{ .Values.database.databaseName | quote }}
           SSL:
             Mode: disable
-        Admin:
-          Username: {{ .Values.database.databaseName | quote }}
-          ExistingDatabase: {{ .Values.database.databaseName | quote }}
-          SSL:
-            Mode: disable
   secretConfig:
     Database:
       Postgres:
         User:
           Password: {{ .Values.credentials.postgresPassword | quote }}
-        Admin:
-          Password: {{ .Values.credentials.postgresPassword | quote }}
 ```
 
-The CNPG owner role acts as both "User" (runtime connections) and "Admin"
-(the `zitadel init` schema-creation step) — confirmed against
-`zitadel/zitadel`'s `cmd/initialise/init.go`: `initJob.command: "zitadel"`
-only runs `verifyZitadel` (schema/table creation), skipping
-`VerifyUser`/`VerifyDatabase`/`VerifyGrant`, so the Admin connection never
-needs superuser, just ownership of its own database — which CNPG already
-grants.
+`Database.Postgres.Admin.*` is deliberately left unset (chart defaults,
+`postgres`/`postgres` — never contacted). Traced through
+`zitadel/zitadel`'s source at `cmd/initialise/`: `initJob.command: "zitadel"`
+maps to the `newZitadel` subcommand, whose handler
+(`verify_zitadel.go`'s `verifyZitadel`) calls
+`database.Connect(config, false)` — the `useAdmin=false` connects with
+**User**, not Admin, credentials. `database`/`user`/`grant` (the only steps
+that use the Admin connection, per `init.go`'s `InitAll`) are the ones this
+`command` override skips. So the CNPG owner role only ever needs to be the
+User — Admin is genuinely dead configuration in this setup, not just
+harmless.
 
 `sslmode: disable` matches how `langfuse-bootstrap`/`agentgateway-bootstrap`
 already connect to their own in-cluster CNPG clusters (no TLS CA wiring in
@@ -194,41 +194,75 @@ that regenerating would break, so that's fine).
 
 ## Ingress
 
-The upstream chart has **native** Gateway API support
-(`gateway.httpRoute`, `login.gateway.httpRoute`, `gateway.grpcRoute`) —
-unlike `langfuse-k8s`, no custom `httproute.yaml` template is needed here.
-Our `ingress.httpRoute` toggle sets both of the upstream chart's own
-HTTPRoute blocks to point at the same shared `platform` Gateway
-(`kube-system`), same convention as `langfuse-bootstrap`'s
-`ingress.httpRoute.{host,sharedGatewayName,sharedGatewayNamespace}` +
-`environmentConfig.clusterFqdn`:
+**Revised 2026-09-27 after live testing on `dip-ce-k3s-eu`** — the original
+design below relied on the upstream chart's native Gateway API support
+(`gateway.httpRoute` + `login.gateway.httpRoute`, two separate `HTTPRoute`
+objects on the same hostname). That failed live: `dip-ce-k3s-eu` enforces a
+cluster-wide Kyverno policy, `unique-gateway-route-hostnames`, that
+admission-denies a second `HTTPRoute` object claiming a hostname already
+used by another `HTTPRoute` on the same `Gateway` — even with
+non-overlapping path rules. The main route (`gateway.httpRoute`) synced
+fine; the login route (`login.gateway.httpRoute`) was denied on every
+retry with exactly that policy name in the error.
+
+**Actual approach**: both upstream native blocks stay unset (chart
+defaults, `false`) — `gateway`/`login.gateway` are never referenced in
+`config/zitadel-values.yaml` at all. This chart instead ships its own
+`templates/httproute.yaml`: **one** `HTTPRoute` object with two path
+rules under the one hostname, same pattern `langfuse-bootstrap` uses (it
+has no upstream native support to lean on in the first place):
 
 ```yaml
-# config/zitadel-values.yaml
+# templates/httproute.yaml
+{{- if .Values.ingress.httpRoute.enabled -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: zitadel-httproute   # NOT "zitadel" — see naming note below
+  namespace: {{ .Values.namespace }}
+spec:
+  parentRefs:
+    - name: {{ .Values.ingress.httpRoute.sharedGatewayName }}
+      namespace: {{ .Values.ingress.httpRoute.sharedGatewayNamespace }}
+  hostnames:
+    - {{ include "zitadel-bootstrap.host" . | quote }}
+  rules:
+    - matches:
+        - path: {type: PathPrefix, value: /ui/v2/login}
+      backendRefs:
+        - {name: zitadel-login, port: 3000}
+    - matches:
+        - path: {type: PathPrefix, value: /}
+      backendRefs:
+        - {name: zitadel, port: 8080}
+{{- end }}
+```
+
+```yaml
+# config/zitadel-values.yaml — only ExternalDomain/ExternalSecure, no gateway/login blocks
 {{- if .Values.ingress.httpRoute.enabled }}
 zitadel:
   configmapConfig:
-    ExternalDomain: {{ include "zitadel-bootstrap.host" . }}
+    ExternalDomain: {{ include "zitadel-bootstrap.host" . | quote }}
     ExternalSecure: true
-gateway:
-  httpRoute:
-    enabled: true
-    parentRefs:
-      - name: {{ .Values.ingress.httpRoute.sharedGatewayName }}
-        namespace: {{ .Values.ingress.httpRoute.sharedGatewayNamespace }}
-    hostnames:
-      - {{ include "zitadel-bootstrap.host" . }}
-login:
-  gateway:
-    httpRoute:
-      enabled: true
-      parentRefs:
-        - name: {{ .Values.ingress.httpRoute.sharedGatewayName }}
-          namespace: {{ .Values.ingress.httpRoute.sharedGatewayNamespace }}
-      hostnames:
-        - {{ include "zitadel-bootstrap.host" . }}
 {{- end }}
 ```
+
+**Naming trap, also found live**: this HTTPRoute must NOT be named
+`zitadel` — that's the exact name the upstream chart's own (disabled)
+`gateway.httpRoute` template would use for its main route. Even after
+disabling that upstream block, ArgoCD's `prune: true` automated sync
+still remembered having once created `HTTPRoute/zitadel-system/zitadel`
+(from an earlier sync, before the block was disabled) and deleted it on
+the next reconcile — prune matches by resource identity (kind/namespace/
+name), not by the live object's Helm-release ownership annotations, so it
+deleted *our* differently-owned object just because it shared that name.
+Named it `zitadel-httproute` instead, matching `langfuse-bootstrap`'s own
+`<name>-httproute` convention — which exists for exactly this reason.
+
+`gateway.grpcRoute` stays disabled by default — browser access to the
+Console UI and Login UI only needs HTTPRoute (Zitadel's v2 APIs speak
+Connect-protocol/grpc-web over plain HTTP too); a native gRPC client would
 
 `gateway.grpcRoute` stays disabled by default — browser access to the
 Console UI and Login UI only needs HTTPRoute (Zitadel's v2 APIs speak

@@ -51,23 +51,16 @@ zitadel:
         Human:
           Password: {{ .Values.credentials.adminPassword | quote }}
 
-{{- if .Values.ingress.httpRoute.enabled }}
-gateway:
-  httpRoute:
-    enabled: true
-    parentRefs:
-      - name: {{ .Values.ingress.httpRoute.sharedGatewayName }}
-        namespace: {{ .Values.ingress.httpRoute.sharedGatewayNamespace }}
-    hostnames:
-      - {{ include "zitadel-bootstrap.host" . | quote }}
-
-login:
-  gateway:
-    httpRoute:
-      enabled: true
-      parentRefs:
-        - name: {{ .Values.ingress.httpRoute.sharedGatewayName }}
-          namespace: {{ .Values.ingress.httpRoute.sharedGatewayNamespace }}
-      hostnames:
-        - {{ include "zitadel-bootstrap.host" . | quote }}
-{{- end }}
+{{/*
+Ingress: deliberately NOT using the upstream chart's own gateway.httpRoute /
+login.gateway.httpRoute (both default off, left unset here). Each renders as
+a SEPARATE HTTPRoute object; pointing both at the same hostname on the same
+shared Gateway trips dip-ce-k3s-eu's cluster-wide Kyverno policy
+"unique-gateway-route-hostnames" (two distinct HTTPRoute objects may not
+claim the same hostname on one Gateway, even with non-overlapping path
+rules — verified live: the login one got admission-denied while the main
+one, created first, succeeded). This chart's own templates/httproute.yaml
+instead renders ONE HTTPRoute with two path rules under the one hostname,
+which the policy allows. See the design spec's "Ingress" section (updated
+2026-09-27 after this was caught live) for the full story.
+*/}}
