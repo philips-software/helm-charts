@@ -83,7 +83,7 @@ spec:
       containers:
         - name: wire-database-url
           # renovate: datasource=docker depName=alpine/k8s
-          image: alpine/k8s:1.37.0
+          image: alpine/k8s:1.37.1
           imagePullPolicy: IfNotPresent
           securityContext:
             allowPrivilegeEscalation: false
