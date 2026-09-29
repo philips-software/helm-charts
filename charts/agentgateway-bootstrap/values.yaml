@@ -141,10 +141,11 @@ openrouter:
 
 # Postgres database for LLM cost tracking (agentgateway's request-logging DB, which
 # powers its cost dashboard and Analytics UI). Provisions a plain CNPG Cluster
-# directly - no Crossplane, no external-secrets dependency. CNPG generates its own
-# <clusterName>-app Secret (with a combined `uri` key) since bootstrap.initdb.secret
-# is left unset; a Job (separate from this values block) reads that key and wires it
-# into AgentgatewayParameters.spec.rawConfig.database.url.
+# directly - no Crossplane, no external-secrets dependency. The owner password is
+# generated once by postgres-credentials-init into the <clusterName>-credentials
+# Secret (consumed by CNPG's bootstrap.initdb.secret); in kubernetes mode the
+# postgres-config-job reads that same Secret and wires the connection URL into
+# AgentgatewayParameters.spec.rawConfig.database.url.
 database:
   # Provision a CNPG Cluster for agentgateway's request-logging database.
   enabled: true

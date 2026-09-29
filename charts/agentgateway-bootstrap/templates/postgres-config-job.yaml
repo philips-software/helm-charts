@@ -104,8 +104,10 @@ spec:
               value: {{ include "agentgateway-bootstrap.postgresClusterName" . | quote }}
             - name: PARAMS_NAME
               value: {{ printf "%s-params" .Values.gateway.name | quote }}
-            - name: APP_SECRET_NAME
-              value: {{ printf "%s-app" (include "agentgateway-bootstrap.postgresClusterName" .) | quote }}
+            - name: CRED_SECRET
+              value: {{ printf "%s-credentials" (include "agentgateway-bootstrap.postgresClusterName" .) | quote }}
+            - name: DB_NAME
+              value: {{ .Values.database.databaseName | default "agentgateway" | quote }}
           command:
             - /bin/sh
             - -c
@@ -115,13 +117,20 @@ spec:
               kubectl wait --for=condition=Ready cluster.postgresql.cnpg.io/"$CLUSTER_NAME" \
                 -n "$NAMESPACE" --timeout=300s
 
-              echo "Reading connection URI from $APP_SECRET_NAME..."
-              DATABASE_URL=$(kubectl get secret "$APP_SECRET_NAME" -n "$NAMESPACE" \
-                -o jsonpath='{.data.uri}' | base64 -d)
-              if [ -z "$DATABASE_URL" ]; then
-                echo "ERROR: decoded database URL is empty" >&2
+              # Build the URL from the OWNER credentials (the Secret the
+              # postgres-credentials-init Job owns and CNPG's
+              # bootstrap.initdb.secret consumes). Deliberately NOT from CNPG's
+              # <cluster>-app Secret: its `uri`/`password` can diverge from the
+              # actual role password (observed stale on a live cluster) and would
+              # wire a broken DB connection into the dataplane.
+              echo "Reading owner credentials from $CRED_SECRET..."
+              DB_USER=$(kubectl get secret "$CRED_SECRET" -n "$NAMESPACE" -o jsonpath='{.data.username}' | base64 -d)
+              DB_PASS=$(kubectl get secret "$CRED_SECRET" -n "$NAMESPACE" -o jsonpath='{.data.password}' | base64 -d)
+              if [ -z "$DB_USER" ] || [ -z "$DB_PASS" ]; then
+                echo "ERROR: username/password missing in $CRED_SECRET" >&2
                 exit 1
               fi
+              DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@${CLUSTER_NAME}-rw.${NAMESPACE}.svc.cluster.local:5432/${DB_NAME}"
 
               echo "Patching AgentgatewayParameters/$PARAMS_NAME with config.database.url..."
               PATCH=$(jq -n --arg url "$DATABASE_URL" '{spec:{rawConfig:{config:{database:{url:$url}},database:null}}}')
