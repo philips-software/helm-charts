@@ -106,6 +106,17 @@ spec:
             {{- end }}
             - name: GET_RESOURCE_ENABLED
               value: {{ .Values.features.getResource | quote }}
+            {{- /* Nil-safe like the read RBAC block in clusterrole.yaml: defaults
+              true even when the key is absent (e.g. after --reuse-values from a
+              chart version that predates this flag). */}}
+            {{- $helmAppEnabled := true }}
+            {{- if hasKey .Values.features "helmApplication" }}
+            {{- $helmAppEnabled = .Values.features.helmApplication }}
+            {{- end }}
+            - name: HELM_APPLICATION_ENABLED
+              value: {{ $helmAppEnabled | quote }}
+            - name: HELM_APPLICATION_WRITE_ENABLED
+              value: {{ .Values.features.helmApplicationWrite | quote }}
             {{- if .Values.features.resourceAccessDeny }}
             {{- $pairs := list }}
             {{- range .Values.features.resourceAccessDeny }}
