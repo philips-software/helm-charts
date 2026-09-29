@@ -882,6 +882,29 @@ entries:
   centcom-satellite:
   - apiVersion: v2
     appVersion: v0.76.0
+    created: "2026-09-29T22:18:58.119799426Z"
+    description: A lightweight Kubernetes helper service for webhook-triggered cluster
+      operations
+    digest: 0d45e5c0401013bb1c7dbddf23de621132f87832bb8760032251d068437c1f9a
+    home: https://github.com/loafoe/centcom-satellite
+    keywords:
+    - kubernetes
+    - pvc
+    - resize
+    - spire
+    - spiffe
+    maintainers:
+    - email: andy.lo-a-foe@philips.com
+      name: Andy Lo-A-Foe
+    name: centcom-satellite
+    sources:
+    - https://github.com/loafoe/centcom-satellite
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/centcom-satellite-0.35.0/centcom-satellite-0.35.0.tgz
+    version: 0.35.0
+  - apiVersion: v2
+    appVersion: v0.76.0
     created: "2026-09-29T21:57:51.05741582Z"
     description: A lightweight Kubernetes helper service for webhook-triggered cluster
       operations
@@ -6960,4 +6983,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-29T21:57:51.058471324Z"
+generated: "2026-09-29T22:18:58.121466621Z"
