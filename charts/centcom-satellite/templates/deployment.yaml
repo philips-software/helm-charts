@@ -106,15 +106,11 @@ spec:
             {{- end }}
             - name: GET_RESOURCE_ENABLED
               value: {{ .Values.features.getResource | quote }}
-            {{- /* Nil-safe like the read RBAC block in clusterrole.yaml: defaults
-              true even when the key is absent (e.g. after --reuse-values from a
-              chart version that predates this flag). */}}
-            {{- $helmAppEnabled := true }}
-            {{- if hasKey .Values.features "helmApplication" }}
-            {{- $helmAppEnabled = .Values.features.helmApplication }}
-            {{- end }}
-            - name: HELM_APPLICATION_ENABLED
-              value: {{ $helmAppEnabled | quote }}
+            {{- /* Only a single write-side Go flag exists (HELM_APPLICATION_WRITE_ENABLED,
+              gating apply/delete/sync together - fixed in code review: apply used to be
+              gated by an always-on flag on the mistaken premise that its own optimistic-
+              concurrency check made it safe by default). features.helmApplication (read)
+              only controls RBAC for get_resource/list_resources - no Go flag needed for it. */}}
             - name: HELM_APPLICATION_WRITE_ENABLED
               value: {{ .Values.features.helmApplicationWrite | quote }}
             {{- if .Values.features.resourceAccessDeny }}
