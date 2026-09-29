@@ -75,12 +75,19 @@ s3:
 # Credentials are NOT configured in values. This chart owns no secret material:
 #
 #   * Generatable secrets (salt, encryption-key, nextauth-secret,
-#     clickhouse-password, redis-password in `langfuse-credentials`, and the CNPG
-#     role password in `<database.clusterName|langfuse-db>-credentials`) are
-#     created by the pre-install/pre-upgrade Job `langfuse-credentials-init`,
-#     which generates a random value only when the key is absent and preserves
-#     it byte-for-byte otherwise. Re-syncing therefore never rotates salt or
+#     clickhouse-password, redis-password in `langfuse-credentials`) are created
+#     by the pre-install/pre-upgrade Job `langfuse-credentials-init`, which
+#     generates a random value only when the key is absent and preserves it
+#     byte-for-byte otherwise. Re-syncing therefore never rotates salt or
 #     encryption-key (which would invalidate hashed API keys / encrypted data).
+#   * The CNPG application-user password is NOT configured here and no
+#     `bootstrap.initdb.secret` is set: CNPG generates and owns it and publishes
+#     it in `<database.clusterName|langfuse-db>-app` (keys incl. `username`,
+#     `password`, `uri`), which the upstream chart reads via
+#     `postgresql.auth.existingSecret`. This keeps the role password and the
+#     Secret consumers read in lockstep - setting `bootstrap.initdb.secret` is a
+#     known footgun, as CNPG would use it for the role while generating
+#     `<cluster>-app` with a different password.
 #   * Non-generatable secrets (SSO OAuth2 client secret, S3 static access keys)
 #     are read from PRE-EXISTING out-of-band Secrets referenced by
 #     `sso.existingSecret` / `s3.secretConfig.existingSecret`.

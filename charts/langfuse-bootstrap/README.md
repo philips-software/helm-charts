@@ -1,6 +1,6 @@
 # langfuse-bootstrap
 
-![Version: 0.6.0](https://img.shields.io/badge/Version-0.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.7.0](https://img.shields.io/badge/Version-0.7.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access (IRSA or static credentials) against an existing bucket.
 
@@ -10,11 +10,27 @@ This chart stores **no secret material in its values**. Credentials are split in
 
 1. **Generated in-cluster** by the pre-install/pre-upgrade Job `langfuse-credentials-init`
    (also an ArgoCD `PreSync` hook): `salt`, `encryption-key`, `nextauth-secret`,
-   `clickhouse-password`, `redis-password` in the `langfuse-credentials` Secret, and the
-   CNPG role `username`/`password` in `<database.clusterName|langfuse-db>-credentials`.
+   `clickhouse-password`, `redis-password` in the `langfuse-credentials` Secret.
    A value is generated **only when its key is absent**; existing values are preserved
    byte-for-byte. Re-syncing therefore never rotates `salt`/`encryption-key` (which would
    invalidate hashed API keys and encrypted data).
+
+   The CNPG application-user password is **not** handled by that Job and **not** in values.
+   This chart sets no `bootstrap.initdb.secret`: CNPG generates and owns the password and
+   publishes it in the `<database.clusterName|langfuse-db>-app` Secret (keys incl. `username`,
+   `password`, `uri`), which the upstream chart reads via `postgresql.auth.existingSecret`.
+   This keeps the role password and the Secret consumers read in lockstep. (Setting an
+   explicit `bootstrap.initdb.secret` is a known footgun: CNPG uses it for the role but still
+   generates `<cluster>-app` with a *different* password, and the two then diverge.)
+   Rotate via CNPG's own mechanism - e.g. delete the `<cluster>-app` Secret so the operator
+   regenerates it and reconciles the role - and do not hand-edit that Secret.
+
+   > **Upgrading from a chart that did set `bootstrap.initdb.secret`:** CNPG reads
+   > `bootstrap.initdb` only during `initdb`. Removing the field from an already-bootstrapped
+   > cluster makes the operator create `<cluster>-app` with a **fresh** password and
+   > immediately reconcile the role to it, so the old password stops working at once. Repoint
+   > every consumer to `<cluster>-app` in the **same** change, and delete the now-stale
+   > `<cluster>-credentials` Secret. Verified against CNPG 1.28.1.
 
 2. **Provided out-of-band** in pre-existing Secrets this chart only references:
    - `sso.existingSecret` (key `sso.existingSecretKey`, default `clientSecret`) — OAuth2
@@ -109,7 +125,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | ingress.httpRoute.sectionName | string | `""` |  |
 | ingress.httpRoute.sharedGatewayName | string | `"platform"` |  |
 | ingress.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
-| langfuse.image.tag | string | `"4.45.4"` |  |
+| langfuse.image.tag | string | `"4.46.0"` |  |
 | langfuse.nextauthUrl | string | `"http://localhost:3000"` |  |
 | langfuse.revisionHistoryLimit | int | `3` |  |
 | langfuse.web.livenessProbe.failureThreshold | int | `6` |  |
@@ -128,7 +144,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | langfuse.worker.resources.requests.cpu | string | `"100m"` |  |
 | langfuse.worker.resources.requests.memory | string | `"1Gi"` |  |
 | langfuseChart.repoURL | string | `"oci://ghcr.io/langfuse/langfuse-k8s/charts"` |  |
-| langfuseChart.version | string | `"2.1.2"` |  |
+| langfuseChart.version | string | `"2.1.3"` |  |
 | namespace | string | `"langfuse-system"` |  |
 | redis.image.repository | string | `"valkey/valkey"` |  |
 | redis.image.tag | string | `"9.2"` |  |

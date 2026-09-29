@@ -61,7 +61,7 @@ postgresql:
   auth:
     username: {{ .Values.database.databaseName | quote }}
     database: {{ .Values.database.databaseName | quote }}
-    existingSecret: {{ printf "%s-credentials" (include "langfuse-bootstrap.postgresClusterName" .) | quote }}
+    existingSecret: {{ printf "%s-app" (include "langfuse-bootstrap.postgresClusterName" .) | quote }}
     secretKeys:
       userPasswordKey: password
 
