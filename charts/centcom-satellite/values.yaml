@@ -177,6 +177,12 @@ features:
   # enabling this alone with getResource:false leaves RBAC present but no
   # task registered to use it.
   helmApplication: true
+  # -- Enable HelmApplication create/update/patch/delete (write path for
+  # helm_application_apply/_delete/_sync — Applications view deploy/sync/
+  # delete). Independently toggleable from features.helmApplication (which
+  # only grants read); opt-in per cluster, off by default like other
+  # write-capable features (pvResize, podEvict, etc).
+  helmApplicationWrite: false
   # -- Enable http_request task for making HTTP requests to cluster-internal services.
   # Useful for admin endpoints, ring management, config reloads, debugging.
   # Only allows requests to cluster-internal addresses (pods, services)

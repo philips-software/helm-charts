@@ -196,6 +196,16 @@ rules:
     resources: ["helmapplications"]
     verbs: ["get", "list", "watch"]
 {{- end }}
+{{- if .Values.features.helmApplicationWrite }}
+  # HelmApplication create/update/patch/delete for helm_application_apply/
+  # _delete/_sync — Applications view write path (opt-in per cluster).
+  # Default false, so no nil-safety needed here (unlike the read flag above
+  # whose default is true) — an absent key already evaluates falsy, which
+  # matches the intended default.
+  - apiGroups: ["dip.io"]
+    resources: ["helmapplications"]
+    verbs: ["create", "update", "patch", "delete"]
+{{- end }}
   # Crossplane EnvironmentConfig read access for AWS account ID detection
   # (optional, graceful degradation if CRDs not installed)
   - apiGroups: ["apiextensions.crossplane.io"]
