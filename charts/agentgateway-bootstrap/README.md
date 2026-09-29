@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.8.2](https://img.shields.io/badge/Version-0.8.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.5.0](https://img.shields.io/badge/AppVersion-1.5.0-informational?style=flat-square)
+![Version: 0.9.0](https://img.shields.io/badge/Version-0.9.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.5.0](https://img.shields.io/badge/AppVersion-1.5.0-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -10,6 +10,26 @@ This chart supports two deployment modes via the `mode` value:
 
 - **`kubernetes`** (default): Deploys upstream `agentgateway-crds` and `agentgateway` (controller) charts via ArgoCD Applications.
 - **`standalone`**: Deploys upstream `agentgateway-standalone` chart via ArgoCD Application.
+
+## Database credentials
+
+The CNPG database owner password is **not** configured in values. The
+`postgres-credentials-init` pre-install/pre-upgrade (ArgoCD `PreSync`) Job creates the
+`<database.clusterName|gateway.name>-db-credentials` Secret once with a random password and
+preserves it byte-for-byte on every later sync, so re-syncing never rotates the password. It is
+consumed by the CNPG Cluster's `bootstrap.initdb.secret` and by the standalone dataplane's
+`DB_PASSWORD` env.
+
+To rotate it: delete the Secret's `password` key, re-run the Job, then rotate the CNPG role
+(`ALTER ROLE <database.databaseName> PASSWORD '<new>'`).
+
+All other secrets this chart references are pre-existing/out-of-band - it creates no Secret
+templates:
+
+- `agentgateway-openrouter-secret` (key `apiKey`)
+- `agentgateway-oidc-secret` (key `clientSecret`) and `agentgateway-standalone-oidc` (key `OIDC_COOKIE_SECRET`)
+- `bedrock.secretName` (when `bedrock.auth.type` is `secret`)
+- `standaloneTracing.authHeaderSecret`
 
 ## Database Backup & Restore
 
@@ -120,7 +140,6 @@ To actually recover production data with this, either point `database.clusterNam
 | database.databaseName | string | `"agentgateway"` |  |
 | database.enabled | bool | `true` |  |
 | database.instances | int | `2` |  |
-| database.password | string | `"agentgateway123"` |  |
 | database.resources.limits.memory | string | `"512Mi"` |  |
 | database.resources.requests.cpu | string | `"50m"` |  |
 | database.resources.requests.memory | string | `"128Mi"` |  |

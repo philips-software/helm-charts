@@ -155,8 +155,12 @@ database:
   instances: 2
   # Database (and owner role) name.
   databaseName: agentgateway
-  # Database owner password.
-  password: "agentgateway123"
+  # NOTE: the owner password is NOT configured here. The postgres-credentials-init
+  # pre-install/pre-upgrade (ArgoCD PreSync) Job generates it once into the
+  # <clusterName>-credentials Secret and preserves it on later syncs - see
+  # templates/postgres-credentials-init-job.yaml. To rotate it, delete the
+  # Secret's `password` key, re-run the Job, then rotate the CNPG role
+  # (`ALTER ROLE <databaseName> PASSWORD '<new>'`).
   storage:
     size: 5Gi
     # Leave empty to use the cluster's default StorageClass.
