@@ -181,7 +181,15 @@ rules:
     resources: ["applications"]
     verbs: ["get", "list", "watch"]
 {{- end }}
-{{- if .Values.features.helmApplication }}
+{{- /*
+  Nil-safe: features.helmApplication defaults to enabled even when the key
+  is entirely absent from .Values.features (e.g. a fleet satellite upgraded
+  via `helm upgrade --reuse-values` from a chart version that predates this
+  flag - Helm's --reuse-values takes the OLD release's coalesced values
+  wholesale, which never had this key, rather than merging in the new
+  chart's default). An explicit `helmApplication: false` is still honored.
+*/}}
+{{- if or (not (hasKey .Values.features "helmApplication")) .Values.features.helmApplication }}
   # HelmApplication read access (dip.io Crossplane composite) for
   # get_resource/list_resources — Applications view read path.
   - apiGroups: ["dip.io"]
