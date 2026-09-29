@@ -134,16 +134,16 @@ Validate required configuration values
 {{- if not .Values.sso.issuer }}
 {{- fail "sso.issuer is required when sso.enabled is true" }}
 {{- end }}
+{{- if not .Values.sso.existingSecret }}
+{{- fail "sso.existingSecret is required when sso.enabled is true (pre-existing Secret holding the OAuth2 client secret; see README)" }}
+{{- end }}
 {{- end }}
 {{- if eq .Values.s3.authType "secret" }}
 {{- if not .Values.s3.secretConfig.endpoint }}
 {{- fail "s3.secretConfig.endpoint is required when s3.authType is 'secret'" }}
 {{- end }}
-{{- if not .Values.s3.secretConfig.accessKeyId }}
-{{- fail "s3.secretConfig.accessKeyId is required when s3.authType is 'secret'" }}
-{{- end }}
-{{- if not .Values.s3.secretConfig.secretAccessKey }}
-{{- fail "s3.secretConfig.secretAccessKey is required when s3.authType is 'secret'" }}
+{{- if not .Values.s3.secretConfig.existingSecret }}
+{{- fail "s3.secretConfig.existingSecret is required when s3.authType is 'secret' (pre-existing Secret holding accessKeyId/secretAccessKey; see README)" }}
 {{- end }}
 {{- end }}
 {{- end }}

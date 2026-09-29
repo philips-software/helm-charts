@@ -1,8 +1,31 @@
 # langfuse-bootstrap
 
-![Version: 0.4.5](https://img.shields.io/badge/Version-0.4.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 4.36.0](https://img.shields.io/badge/AppVersion-4.36.0-informational?style=flat-square)
+![Version: 0.6.0](https://img.shields.io/badge/Version-0.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access (IRSA or static credentials) against an existing bucket.
+
+## Credentials
+
+This chart stores **no secret material in its values**. Credentials are split in two:
+
+1. **Generated in-cluster** by the pre-install/pre-upgrade Job `langfuse-credentials-init`
+   (also an ArgoCD `PreSync` hook): `salt`, `encryption-key`, `nextauth-secret`,
+   `clickhouse-password`, `redis-password` in the `langfuse-credentials` Secret, and the
+   CNPG role `username`/`password` in `<database.clusterName|langfuse-db>-credentials`.
+   A value is generated **only when its key is absent**; existing values are preserved
+   byte-for-byte. Re-syncing therefore never rotates `salt`/`encryption-key` (which would
+   invalidate hashed API keys and encrypted data).
+
+2. **Provided out-of-band** in pre-existing Secrets this chart only references:
+   - `sso.existingSecret` (key `sso.existingSecretKey`, default `clientSecret`) — OAuth2
+     client secret. Required when `sso.enabled` is true.
+   - `s3.secretConfig.existingSecret` (keys `accessKeyId`/`secretAccessKey`) — static S3
+     keys. Required when `s3.authType` is `secret`.
+
+   Create those before the first sync (same model as `grafana`'s `grafana-sso-creds`).
+
+> The target `namespace` must already exist before install, since the init Job and its
+> RBAC are created there.
 
 ## Prerequisites
 
@@ -22,7 +45,22 @@ Then browse to http://localhost:3000.
 
 ## SSO (optional)
 
-Set `ingress.httpRoute.enabled: true` (required for a real OAuth callback URL) and `sso.enabled: true` to sign in via an external Dex/OIDC IdP. Prerequisite: register an OAuth2 client with that IdP first (see this repo's `dex-issuer` chart for the Crossplane `provider-dex` pattern), then set `sso.issuer` / `sso.clientId` / `credentials.ssoClientSecret` to the resulting values.
+Set `ingress.httpRoute.enabled: true` (required for a real OAuth callback URL) and `sso.enabled: true` to sign in via an external Dex/OIDC IdP. Prerequisite: register an OAuth2 client with that IdP first (see this repo's `dex-issuer` chart for the Crossplane `provider-dex` pattern), then set `sso.issuer` / `sso.clientId` and create the out-of-band Secret referenced by `sso.existingSecret`:
+
+```bash
+kubectl -n langfuse-system create secret generic langfuse-sso-creds \
+  --from-literal=clientSecret=<client-secret-from-dex>
+```
+
+## S3 static credentials (optional)
+
+When `s3.authType: secret` (Garage/MinIO/SeaweedFS), create the out-of-band Secret referenced by `s3.secretConfig.existingSecret`:
+
+```bash
+kubectl -n langfuse-system create secret generic langfuse-s3-creds \
+  --from-literal=accessKeyId=<key-id> \
+  --from-literal=secretAccessKey=<secret>
+```
 
 Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land with no organization membership. An existing org owner manually invites/promotes specific users (e.g. `philips-internal:homelab` members) to `ADMIN` via the Langfuse UI after their first sign-in.
 
@@ -32,34 +70,27 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 |-----|------|---------|-------------|
 | argoProject | string | `"default"` |  |
 | clickhouse.cluster.affinity | object | `{}` |  |
-| clickhouse.cluster.affinity | object | `{}` |  |
 | clickhouse.cluster.image.repository | string | `"clickhouse/clickhouse-server"` |  |
-| clickhouse.cluster.image.repository | string | `"clickhouse/clickhouse-keeper"` |  |
-| clickhouse.cluster.image.tag | string | `"26.8"` |  |
-| clickhouse.cluster.image.tag | string | `"26.8"` |  |
-| clickhouse.cluster.nodeSelector | object | `{}` |  |
+| clickhouse.cluster.image.tag | string | `"26.9"` |  |
 | clickhouse.cluster.nodeSelector | object | `{}` |  |
 | clickhouse.cluster.replicas | int | `1` |  |
-| clickhouse.cluster.replicas | int | `1` |  |
-| clickhouse.cluster.resources.limits.memory | string | `"512Mi"` |  |
 | clickhouse.cluster.resources.limits.memory | string | `"2Gi"` |  |
 | clickhouse.cluster.resources.requests.cpu | string | `"500m"` |  |
-| clickhouse.cluster.resources.requests.cpu | string | `"100m"` |  |
 | clickhouse.cluster.resources.requests.memory | string | `"1Gi"` |  |
-| clickhouse.cluster.resources.requests.memory | string | `"256Mi"` |  |
 | clickhouse.cluster.storage.className | string | `""` |  |
-| clickhouse.cluster.storage.className | string | `""` |  |
-| clickhouse.cluster.storage.size | string | `"5Gi"` |  |
 | clickhouse.cluster.storage.size | string | `"20Gi"` |  |
 | clickhouse.cluster.tolerations | list | `[]` |  |
-| clickhouse.cluster.tolerations | list | `[]` |  |
-| credentials.clickhousePassword | string | `"changeme-clickhouse-password-please-override"` |  |
-| credentials.encryptionKey | string | `"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"` |  |
-| credentials.nextauthSecret | string | `"changeme-nextauth-secret-please-override"` |  |
-| credentials.postgresPassword | string | `"changeme-postgres-password-please-override"` |  |
-| credentials.redisPassword | string | `"changeme-redis-password-please-override"` |  |
-| credentials.salt | string | `"changeme-langfuse-salt-please-override"` |  |
-| credentials.ssoClientSecret | string | `"changeme-sso-client-secret-please-override"` |  |
+| clickhouse.keeper.affinity | object | `{}` |  |
+| clickhouse.keeper.image.repository | string | `"clickhouse/clickhouse-keeper"` |  |
+| clickhouse.keeper.image.tag | string | `"26.9"` |  |
+| clickhouse.keeper.nodeSelector | object | `{}` |  |
+| clickhouse.keeper.replicas | int | `1` |  |
+| clickhouse.keeper.resources.limits.memory | string | `"512Mi"` |  |
+| clickhouse.keeper.resources.requests.cpu | string | `"100m"` |  |
+| clickhouse.keeper.resources.requests.memory | string | `"256Mi"` |  |
+| clickhouse.keeper.storage.className | string | `""` |  |
+| clickhouse.keeper.storage.size | string | `"5Gi"` |  |
+| clickhouse.keeper.tolerations | list | `[]` |  |
 | database.clusterName | string | `""` |  |
 | database.databaseName | string | `"langfuse"` |  |
 | database.instances | int | `1` |  |
@@ -78,7 +109,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | ingress.httpRoute.sectionName | string | `""` |  |
 | ingress.httpRoute.sharedGatewayName | string | `"platform"` |  |
 | ingress.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
-| langfuse.image.tag | string | `"4.36.0"` |  |
+| langfuse.image.tag | string | `"4.45.4"` |  |
 | langfuse.nextauthUrl | string | `"http://localhost:3000"` |  |
 | langfuse.revisionHistoryLimit | int | `3` |  |
 | langfuse.web.livenessProbe.failureThreshold | int | `6` |  |
@@ -97,25 +128,28 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | langfuse.worker.resources.requests.cpu | string | `"100m"` |  |
 | langfuse.worker.resources.requests.memory | string | `"1Gi"` |  |
 | langfuseChart.repoURL | string | `"oci://ghcr.io/langfuse/langfuse-k8s/charts"` |  |
-| langfuseChart.version | string | `"2.1.1"` |  |
+| langfuseChart.version | string | `"2.1.2"` |  |
 | namespace | string | `"langfuse-system"` |  |
 | redis.image.repository | string | `"valkey/valkey"` |  |
-| redis.image.tag | string | `"9.1"` |  |
+| redis.image.tag | string | `"9.2"` |  |
 | redis.resources.limits.memory | string | `"512Mi"` |  |
 | redis.resources.requests.cpu | string | `"50m"` |  |
 | redis.resources.requests.memory | string | `"128Mi"` |  |
 | redis.storage.size | string | `"4Gi"` |  |
 | redis.storage.storageClass | string | `""` |  |
 | s3.authType | string | `"irsa"` |  |
-| s3.secretConfig.accessKeyId | string | `""` |  |
+| s3.secretConfig.accessKeyIdKey | string | `"accessKeyId"` |  |
 | s3.secretConfig.endpoint | string | `""` |  |
+| s3.secretConfig.existingSecret | string | `""` |  |
 | s3.secretConfig.forcePathStyle | bool | `true` |  |
 | s3.secretConfig.region | string | `"garage"` |  |
-| s3.secretConfig.secretAccessKey | string | `""` |  |
+| s3.secretConfig.secretAccessKeyKey | string | `"secretAccessKey"` |  |
 | sso.allowAccountLinking | bool | `false` |  |
 | sso.clientId | string | `""` |  |
 | sso.disableUsernamePassword | bool | `false` |  |
 | sso.enabled | bool | `false` |  |
+| sso.existingSecret | string | `""` |  |
+| sso.existingSecretKey | string | `"clientSecret"` |  |
 | sso.issuer | string | `""` |  |
 | sso.name | string | `"SSO"` |  |
 | sso.scope | string | `"openid email profile groups"` |  |

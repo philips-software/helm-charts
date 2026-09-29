@@ -63,33 +63,30 @@ s3:
     region: "garage"
     # Force path-style addressing — required for Garage, MinIO, SeaweedFS
     forcePathStyle: true
-    # Access key for the S3 user
-    accessKeyId: ""
-    # Secret key for the S3 user
-    secretAccessKey: ""
+    # Name of a PRE-EXISTING Secret holding the static access key id and secret
+    # access key. This chart does NOT create it and NO key material is read from
+    # values — create it out-of-band (same model as grafana's grafana-sso-creds).
+    # Required when authType is "secret".
+    existingSecret: ""
+    # Keys within existingSecret
+    accessKeyIdKey: accessKeyId
+    secretAccessKeyKey: secretAccessKey
 
-# Static credentials referenced via secretKeyRef throughout the upstream chart's
-# valuesObject. MUST stay static (no runtime generation) — ArgoCD renders this
-# chart via `helm template`, which regenerates anything random on every sync,
-# rotating salt/encryptionKey and breaking hashed API keys / encrypted data.
-# Override every field below for any real deployment; these are dev-only placeholders
-# (same convention as agentgateway-bootstrap's database.password default).
-credentials:
-  # Salt used to hash API keys.
-  salt: "changeme-langfuse-salt-please-override"
-  # 256-bit (64 hex char) key for encrypting sensitive data. Generate via `openssl rand -hex 32`.
-  encryptionKey: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-  # NextAuth session secret.
-  nextauthSecret: "changeme-nextauth-secret-please-override"
-  # CNPG Postgres password for the langfuse role.
-  postgresPassword: "changeme-postgres-password-please-override"
-  # ClickHouse password for the built-in "default" user.
-  clickhousePassword: "changeme-clickhouse-password-please-override"
-  # Redis/Valkey AUTH password.
-  redisPassword: "changeme-redis-password-please-override"
-  # Dex OAuth2 client secret for SSO. Only used when sso.enabled is true - see
-  # the sso block below for how to obtain it.
-  ssoClientSecret: "changeme-sso-client-secret-please-override"
+# Credentials are NOT configured in values. This chart owns no secret material:
+#
+#   * Generatable secrets (salt, encryption-key, nextauth-secret,
+#     clickhouse-password, redis-password in `langfuse-credentials`, and the CNPG
+#     role password in `<database.clusterName|langfuse-db>-credentials`) are
+#     created by the pre-install/pre-upgrade Job `langfuse-credentials-init`,
+#     which generates a random value only when the key is absent and preserves
+#     it byte-for-byte otherwise. Re-syncing therefore never rotates salt or
+#     encryption-key (which would invalidate hashed API keys / encrypted data).
+#   * Non-generatable secrets (SSO OAuth2 client secret, S3 static access keys)
+#     are read from PRE-EXISTING out-of-band Secrets referenced by
+#     `sso.existingSecret` / `s3.secretConfig.existingSecret`.
+#
+# The namespace holding these Secrets (`.Values.namespace`) must already exist
+# before install so the init Job (and its RBAC) can be created there.
 
 # Single Sign-On via an external Dex (or other OIDC) IdP.
 #
@@ -115,6 +112,13 @@ sso:
   name: "SSO"
   # OAuth2 client id from the Client registered with your Dex/IdP (see above).
   clientId: ""
+  # Name of a PRE-EXISTING Secret holding the OAuth2 client secret. This chart
+  # does NOT create it and no secret material is read from values — create it
+  # out-of-band (same model as grafana's grafana-sso-creds). Required when
+  # sso.enabled is true.
+  existingSecret: ""
+  # Key within existingSecret holding the client secret.
+  existingSecretKey: clientSecret
   scope: "openid email profile groups"
   # Set true to disable email/password sign-in entirely (server-side enforced,
   # not just hidden in the UI) once SSO is verified working - existing
@@ -173,6 +177,7 @@ clickhouse:
     nodeSelector: {}
     tolerations: []
     affinity: {}
+  keeper:
     # Must be odd (1, 3, 5). 1 is a valid single-node Keeper; 3 for HA.
     replicas: 1
     image:

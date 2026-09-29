@@ -15,8 +15,8 @@ langfuse:
         clientId: {{ .Values.sso.clientId | quote }}
         clientSecret:
           secretKeyRef:
-            name: langfuse-credentials
-            key: sso-client-secret
+            name: {{ .Values.sso.existingSecret | quote }}
+            key: {{ .Values.sso.existingSecretKey | default "clientSecret" | quote }}
         issuer: {{ .Values.sso.issuer | quote }}
         name: {{ .Values.sso.name | quote }}
         scope: {{ .Values.sso.scope | quote }}
@@ -141,12 +141,12 @@ s3:
   region: {{ .Values.s3.secretConfig.region | quote }}
   accessKeyId:
     secretKeyRef:
-      name: langfuse-credentials
-      key: s3-access-key-id
+      name: {{ .Values.s3.secretConfig.existingSecret | quote }}
+      key: {{ .Values.s3.secretConfig.accessKeyIdKey | default "accessKeyId" | quote }}
   secretAccessKey:
     secretKeyRef:
-      name: langfuse-credentials
-      key: s3-secret-access-key
+      name: {{ .Values.s3.secretConfig.existingSecret | quote }}
+      key: {{ .Values.s3.secretConfig.secretAccessKeyKey | default "secretAccessKey" | quote }}
   {{- else }}
   region: {{ .Values.environmentConfig.region | quote }}
   forcePathStyle: false

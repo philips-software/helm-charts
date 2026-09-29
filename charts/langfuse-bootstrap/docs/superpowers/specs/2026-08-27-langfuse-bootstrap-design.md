@@ -105,20 +105,13 @@ langfuse:
 ```
 Our `templates/s3irsa.yaml` creates the matching `S3IRSA` CR (`metadata.name` == `spec.serviceAccount.name` == `${resourcePrefix}-langfuse`, matching the 1:1 naming `loki-bootstrap` uses), which provisions the IAM role at the predictable `<name>-irsa-role` ARN — no `writeConnectionSecretToRef` consumption needed since there are no static keys to read (S3IRSA's connection secret carries only bucket metadata).
 
-## Credential Pinning (critical — GitOps footgun avoided)
+## Credential Handling (critical — GitOps footgun avoided, no secrets in values)
 Upstream's README explicitly warns: tools that render via `helm template` (which is what ArgoCD does) cannot use Helm's `lookup`, so any left-empty "auto-generate on first install" value (`langfuse.salt`, `langfuse.encryptionKey`, `langfuse.nextauth.secret`, and the bundled datastores' auto-generated passwords) gets **regenerated on every sync** — rotating `salt` breaks all hashed API keys, rotating `encryptionKey` makes previously encrypted data unreadable. This is the same class of bug as the Grafana image-renderer token-drift issue seen elsewhere in this fleet.
 
-Fix: one Secret (`langfuse-credentials`) templated from plain `values.yaml` string fields — same static-default convention as `agentgateway-bootstrap`'s `database.password: "agentgateway123"` — referenced via `secretKeyRef` everywhere upstream supports it. Values are stable across every ArgoCD sync because they come from the values file, not from randomness at render time.
-```yaml
-credentials:
-  salt: "changeme-langfuse-salt"
-  encryptionKey: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-  nextauthSecret: "changeme-nextauth-secret"
-  postgresPassword: "changeme-postgres-password"
-  clickhousePassword: "changeme-clickhouse-password"
-  redisPassword: "changeme-redis-password"
-```
-Documented in `values.yaml` comments: override every `credentials.*` field for any real deployment; the checked-in defaults are dev-only placeholders (same spirit as agentgateway's hardcoded default DB password).
+**Superseded (2026-09-29):** the original fix pinned everything as static strings in `values.yaml`, which kept the secrets stable but put them in Helm values and *clobbered the live Secrets on every upgrade* (the chart rendered `langfuse-credentials`/`langfuse-db-credentials` directly from values). That is a GitOps anti-pattern. The chart now owns no secret material at all:
+
+* **Generatable secrets** (`salt`, `encryption-key`, `nextauth-secret`, `clickhouse-password`, `redis-password`, and the CNPG role `username`/`password`) are created by `templates/credentials-init-job.yaml` — a pre-install/pre-upgrade (and ArgoCD `PreSync`) Job that generates a random value **only when the key is absent** and preserves existing values byte-for-byte. Randomness happens in-cluster via `kubectl`, not at template time, so the `helm template`/`lookup` problem disappears and re-syncs are idempotent. This mirrors grafana's `grafana-admin-initializer`.
+* **Non-generatable secrets** (SSO OAuth2 client secret, static S3 access keys) are read from **pre-existing out-of-band Secrets** the chart only references — `sso.existingSecret` (key `sso.existingSecretKey`) and `s3.secretConfig.existingSecret` (keys `accessKeyId`/`secretAccessKey`) — exactly like grafana's `grafana-sso-creds`. The chart does not create them and no key material is read from values.
 
 Wired into the upstream chart's `valuesObject` as:
 ```yaml
@@ -128,10 +121,19 @@ langfuse:
   encryptionKey:
     secretKeyRef: { name: langfuse-credentials, key: encryption-key }
   nextauth:
-    url: "http://localhost:3000"   # ClusterIP + port-forward; revisit if/when ingress is added
     secret:
       secretKeyRef: { name: langfuse-credentials, key: nextauth-secret }
+  auth:
+    providers:
+      custom:
+        clientSecret:
+          secretKeyRef: { name: <sso.existingSecret>, key: <sso.existingSecretKey> }
+s3:
+  accessKeyId:
+    secretKeyRef: { name: <s3.secretConfig.existingSecret>, key: accessKeyId }
 ```
+
+Migration for existing clusters: the live Secrets are correct to begin with, so annotate them `helm.sh/resource-policy: keep` (and `argocd.argoproj.io/sync-options: Prune=false` under ArgoCD) before upgrading so Helm/ArgoCD does not prune them when the values-bound Secret templates are removed; the init Job then sees them and preserves every value. The non-generatable entries are copied once into the new `langfuse-sso-creds`/`langfuse-s3-creds` Secrets (one-time extraction).
 
 ## UI Exposure
 ClusterIP only (`langfuse.web.service.type: ClusterIP`, upstream default) — verify the goal via `kubectl port-forward svc/langfuse-web 3000:3000 -n langfuse-system` and browsing to `http://localhost:3000`. No Ingress/HTTPRoute in this chart; revisit as a separate concern once auth/TLS/DNS are decided.

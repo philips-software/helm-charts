@@ -4,6 +4,29 @@
 
 Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access (IRSA or static credentials) against an existing bucket.
 
+## Credentials
+
+This chart stores **no secret material in its values**. Credentials are split in two:
+
+1. **Generated in-cluster** by the pre-install/pre-upgrade Job `langfuse-credentials-init`
+   (also an ArgoCD `PreSync` hook): `salt`, `encryption-key`, `nextauth-secret`,
+   `clickhouse-password`, `redis-password` in the `langfuse-credentials` Secret, and the
+   CNPG role `username`/`password` in `<database.clusterName|langfuse-db>-credentials`.
+   A value is generated **only when its key is absent**; existing values are preserved
+   byte-for-byte. Re-syncing therefore never rotates `salt`/`encryption-key` (which would
+   invalidate hashed API keys and encrypted data).
+
+2. **Provided out-of-band** in pre-existing Secrets this chart only references:
+   - `sso.existingSecret` (key `sso.existingSecretKey`, default `clientSecret`) — OAuth2
+     client secret. Required when `sso.enabled` is true.
+   - `s3.secretConfig.existingSecret` (keys `accessKeyId`/`secretAccessKey`) — static S3
+     keys. Required when `s3.authType` is `secret`.
+
+   Create those before the first sync (same model as `grafana`'s `grafana-sso-creds`).
+
+> The target `namespace` must already exist before install, since the init Job and its
+> RBAC are created there.
+
 ## Prerequisites
 
 - `clickhouse-operator-bootstrap` installed cluster-wide (provides the `ClickHouseCluster`/`KeeperCluster` CRDs this chart's upstream dependency renders against).
@@ -22,7 +45,22 @@ Then browse to http://localhost:3000.
 
 ## SSO (optional)
 
-Set `ingress.httpRoute.enabled: true` (required for a real OAuth callback URL) and `sso.enabled: true` to sign in via an external Dex/OIDC IdP. Prerequisite: register an OAuth2 client with that IdP first (see this repo's `dex-issuer` chart for the Crossplane `provider-dex` pattern), then set `sso.issuer` / `sso.clientId` / `credentials.ssoClientSecret` to the resulting values.
+Set `ingress.httpRoute.enabled: true` (required for a real OAuth callback URL) and `sso.enabled: true` to sign in via an external Dex/OIDC IdP. Prerequisite: register an OAuth2 client with that IdP first (see this repo's `dex-issuer` chart for the Crossplane `provider-dex` pattern), then set `sso.issuer` / `sso.clientId` and create the out-of-band Secret referenced by `sso.existingSecret`:
+
+```bash
+kubectl -n langfuse-system create secret generic langfuse-sso-creds \
+  --from-literal=clientSecret=<client-secret-from-dex>
+```
+
+## S3 static credentials (optional)
+
+When `s3.authType: secret` (Garage/MinIO/SeaweedFS), create the out-of-band Secret referenced by `s3.secretConfig.existingSecret`:
+
+```bash
+kubectl -n langfuse-system create secret generic langfuse-s3-creds \
+  --from-literal=accessKeyId=<key-id> \
+  --from-literal=secretAccessKey=<secret>
+```
 
 Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land with no organization membership. An existing org owner manually invites/promotes specific users (e.g. `philips-internal:homelab` members) to `ADMIN` via the Langfuse UI after their first sign-in.
 
