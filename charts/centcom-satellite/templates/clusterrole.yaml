@@ -181,6 +181,13 @@ rules:
     resources: ["applications"]
     verbs: ["get", "list", "watch"]
 {{- end }}
+{{- if .Values.features.helmApplication }}
+  # HelmApplication read access (dip.io Crossplane composite) for
+  # get_resource/list_resources — Applications view read path.
+  - apiGroups: ["dip.io"]
+    resources: ["helmapplications"]
+    verbs: ["get", "list", "watch"]
+{{- end }}
   # Crossplane EnvironmentConfig read access for AWS account ID detection
   # (optional, graceful degradation if CRDs not installed)
   - apiGroups: ["apiextensions.crossplane.io"]

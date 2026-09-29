@@ -170,6 +170,13 @@ features:
   # -- Enable Argo CD application introspection.
   # When enabled, grants get/list/watch on argoproj.io applications
   argocd: false
+  # -- Enable HelmApplication (dip.io Crossplane composite) read access for
+  # get_resource/list_resources — Applications view read path. Requires
+  # features.getResource to also be true (get_resource/list_resources are
+  # the tasks that actually serve reads; this flag only grants RBAC) —
+  # enabling this alone with getResource:false leaves RBAC present but no
+  # task registered to use it.
+  helmApplication: true
   # -- Enable http_request task for making HTTP requests to cluster-internal services.
   # Useful for admin endpoints, ring management, config reloads, debugging.
   # Only allows requests to cluster-internal addresses (pods, services)
