@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.9.0](https://img.shields.io/badge/Version-0.9.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.5.0](https://img.shields.io/badge/AppVersion-1.5.0-informational?style=flat-square)
+![Version: 0.10.0](https://img.shields.io/badge/Version-0.10.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.5.0](https://img.shields.io/badge/AppVersion-1.5.0-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -13,15 +13,22 @@ This chart supports two deployment modes via the `mode` value:
 
 ## Database credentials
 
-The CNPG database owner password is **not** configured in values. The
-`postgres-credentials-init` pre-install/pre-upgrade (ArgoCD `PreSync`) Job creates the
-`<database.clusterName|gateway.name>-db-credentials` Secret once with a random password and
-preserves it byte-for-byte on every later sync, so re-syncing never rotates the password. It is
-consumed by the CNPG Cluster's `bootstrap.initdb.secret` and by the standalone dataplane's
-`DB_PASSWORD` env.
+The CNPG database owner password is **not** configured in values and the chart sets **no**
+`bootstrap.initdb.secret`. CNPG generates and owns the application user's password and
+publishes it in the `<database.clusterName|gateway.name>-db-app` Secret (keys `uri`, `username`,
+`password`, …). All consumers read that Secret:
 
-To rotate it: delete the Secret's `password` key, re-run the Job, then rotate the CNPG role
-(`ALTER ROLE <database.databaseName> PASSWORD '<new>'`).
+- the standalone dataplane's `DB_PASSWORD` env, and
+- the kubernetes-mode `postgres-config-job`, which wires `uri` into
+  `AgentgatewayParameters.spec.rawConfig.database.url`.
+
+This keeps the CNPG role password and the Secret CNPG exposes in lockstep. (Setting an explicit
+`bootstrap.initdb.secret` is a known footgun: CNPG uses it for the role but still generates a
+`<cluster>-app` Secret with a different password, which then diverges.) Re-syncing never rotates
+the password.
+
+Rotate via CNPG's own mechanism (e.g. the `kubectl cnpg` plugin, or delete the `<cluster>-app`
+Secret so the operator regenerates it and reconciles the role) - do not hand-edit that Secret.
 
 All other secrets this chart references are pre-existing/out-of-band - it creates no Secret
 templates:

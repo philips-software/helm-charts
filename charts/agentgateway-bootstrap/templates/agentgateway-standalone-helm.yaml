@@ -175,7 +175,7 @@ spec:
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ printf "%s-credentials" (include "agentgateway-bootstrap.postgresClusterName" .) | quote }}
+                name: {{ printf "%s-app" (include "agentgateway-bootstrap.postgresClusterName" .) | quote }}
                 key: password
           {{- if .Values.openrouter.enabled }}
           - name: OPENROUTER_API_KEY

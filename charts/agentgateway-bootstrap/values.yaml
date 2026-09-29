@@ -142,10 +142,11 @@ openrouter:
 # Postgres database for LLM cost tracking (agentgateway's request-logging DB, which
 # powers its cost dashboard and Analytics UI). Provisions a plain CNPG Cluster
 # directly - no Crossplane, no external-secrets dependency. The owner password is
-# generated once by postgres-credentials-init into the <clusterName>-credentials
-# Secret (consumed by CNPG's bootstrap.initdb.secret); in kubernetes mode the
-# postgres-config-job reads that same Secret and wires the connection URL into
-# AgentgatewayParameters.spec.rawConfig.database.url.
+# generated and owned by CNPG itself, published in the <clusterName>-app Secret
+# (bootstrap.initdb.secret is deliberately NOT set, so the role password and that
+# Secret cannot diverge). The standalone dataplane reads <clusterName>-app/`password`;
+# in kubernetes mode the postgres-config-job reads <clusterName>-app/`uri` and wires
+# it into AgentgatewayParameters.spec.rawConfig.database.url.
 database:
   # Provision a CNPG Cluster for agentgateway's request-logging database.
   enabled: true
@@ -156,12 +157,11 @@ database:
   instances: 2
   # Database (and owner role) name.
   databaseName: agentgateway
-  # NOTE: the owner password is NOT configured here. The postgres-credentials-init
-  # pre-install/pre-upgrade (ArgoCD PreSync) Job generates it once into the
-  # <clusterName>-credentials Secret and preserves it on later syncs - see
-  # templates/postgres-credentials-init-job.yaml. To rotate it, delete the
-  # Secret's `password` key, re-run the Job, then rotate the CNPG role
-  # (`ALTER ROLE <databaseName> PASSWORD '<new>'`).
+  # NOTE: the owner password is NOT configured here. CNPG generates and owns it
+  # and exposes it in the <clusterName>-app Secret. Rotate via CNPG's own
+  # mechanism (e.g. the `kubectl cnpg` plugin, or delete the <clusterName>-app
+  # Secret so the operator regenerates it and reconciles the role) - do not
+  # hand-edit that Secret.
   storage:
     size: 5Gi
     # Leave empty to use the cluster's default StorageClass.
