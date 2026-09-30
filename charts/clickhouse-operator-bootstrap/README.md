@@ -1,6 +1,6 @@
 # clickhouse-operator-bootstrap
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.7](https://img.shields.io/badge/AppVersion-0.0.7-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Installs the [ClickHouse Kubernetes Operator](https://github.com/ClickHouse/clickhouse-operator) cluster-wide via an ArgoCD `Application`. Install once per cluster before any chart that renders `ClickHouseCluster`/`KeeperCluster` CRs (e.g. `langfuse-bootstrap`).
 
@@ -14,7 +14,7 @@ Installs the [ClickHouse Kubernetes Operator](https://github.com/ClickHouse/clic
 |-----|------|---------|-------------|
 | argoProject | string | `"default"` |  |
 | clickhouseOperatorChart.repoURL | string | `"oci://ghcr.io/clickhouse/clickhouse-operator-helm"` |  |
-| clickhouseOperatorChart.version | string | `"0.0.7"` |  |
+| clickhouseOperatorChart.version | string | `"0.0.8"` |  |
 | operator.namespace | string | `"clickhouse-operator-system"` |  |
 | operator.resources.limits.memory | string | `"256Mi"` |  |
 | operator.resources.requests.cpu | string | `"10m"` |  |

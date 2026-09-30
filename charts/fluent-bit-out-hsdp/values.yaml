@@ -10,7 +10,7 @@ fluent-bit:
   initContainers:
     - name: copy-plugin
       # renovate: datasource=docker depName=ghcr.io/philips-software/fluent-bit-out-hsdp
-      image: ghcr.io/philips-software/fluent-bit-out-hsdp:2.6.0
+      image: ghcr.io/philips-software/fluent-bit-out-hsdp:v2.6.0
       command: ['cp', '/plugins/out_hsdp.so', '/out']
       volumeMounts:
         - mountPath: /out

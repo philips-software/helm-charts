@@ -6,9 +6,12 @@ keywords:
   - fluent-bit
   - fluentd
   - hsdp
-version: 0.13.0
-# renovate: datasource=docker depName=ghcr.io/philips-software/fluent-bit-out-hsdp
-appVersion: 2.6.0
+version: 0.14.0
+# appVersion intentionally omitted: this chart has no templates/ of its own
+# (it vendors fluent-bit as a Helm dependency below), so appVersion was never
+# referenced by anything -- it only duplicated, and had already drifted from,
+# the real image tag in values.yaml's `image:` field (also renovate-tracked,
+# independently, under the same depName).
 icon: https://fluentbit.io/images/logo.svg
 home: https://github.com/philips-software/fluent-bit-out-hsdp
 sources:

@@ -2,5 +2,8 @@ apiVersion: v2
 name: alloy-otlp-relay
 description: Minimal Alloy instance that receives OTLP metrics, filters by an exact-name allow-list, and forwards to a Mimir gateway with a tenant header
 type: application
-version: 0.2.0
-appVersion: "1.19.2"
+version: 0.3.0
+# appVersion intentionally omitted: it was never kept in sync with the real
+# grafana/alloy image tag (renovate-tracked directly on templates/deployment.yaml)
+# and isn't referenced by any template in this chart, so it only ever
+# duplicated -- and drifted from -- the actual deployed version.

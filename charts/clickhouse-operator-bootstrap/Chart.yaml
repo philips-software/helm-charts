@@ -2,8 +2,13 @@ apiVersion: v2
 name: clickhouse-operator-bootstrap
 description: A Helm chart for bootstrapping the ClickHouse Kubernetes Operator
 type: application
-version: 0.1.0
-appVersion: "0.0.7"
+version: 0.2.0
+# appVersion intentionally omitted: it was frozen at "0.0.7" with no renovate
+# tracking while the real, actually-deployed version is
+# clickhouseOperatorChart.version in values.yaml (renovate-tracked, used
+# directly as the ArgoCD Application targetRevision) -- already at 0.0.8.
+# appVersion only ever fed the wrapper chart's own app.kubernetes.io/version
+# label and had already drifted from reality.
 keywords:
   - clickhouse
   - operator
