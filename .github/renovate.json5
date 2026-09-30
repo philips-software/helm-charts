@@ -36,6 +36,16 @@
       enabled: false,
     },
     {
+      // philips-forks/dex tags are "v<upstream-version>-dip.<build>", e.g.
+      // v2.45.1-dip.17. Default docker versioning treats "-dip.N" as an opaque
+      // compatibility suffix and can only ever offer a digest pin, never a real
+      // version bump -- so values.yaml silently drifted from the latest build
+      // (stuck at dip.13 while dip.17 was current). Parse the build number
+      // explicitly so Renovate can compare and bump it.
+      matchPackageNames: ['ghcr.io/philips-forks/dex'],
+      versioning: 'regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-dip\\.(?<build>\\d+)$',
+    },
+    {
       // Bump the chart's own version whenever its appVersion is bumped: a
       // republished chart with unchanged version but different content is
       // rejected by Helm repos, so appVersion and version must move together.
