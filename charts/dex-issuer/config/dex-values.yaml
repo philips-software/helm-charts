@@ -74,6 +74,10 @@ config:
     dcr:
       enable: {{ .Values.dex.dcr.enabled }}
       secret: $DEX_DCR_SECRET
+{{- if .Values.dex.grantTypes }}
+    grantTypes:
+      {{- toYaml .Values.dex.grantTypes | nindent 6 }}
+{{- end }}
 {{- if .Values.dex.staticClients }}
   staticClients:
     {{- toYaml .Values.dex.staticClients | nindent 4 }}

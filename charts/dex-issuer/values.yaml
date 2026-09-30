@@ -42,6 +42,17 @@ dex:
   # Scope prefixes allowed for token introspection
   allowedScopePrefixes:
     - "hsp:iam:introspect"
+  # Explicit list of OAuth2 grant types to advertise/accept. Empty (default)
+  # means "whatever this Dex build's own unconfigured default is" - which is
+  # NOT necessarily "all grants the binary supports": e.g. client_credentials
+  # requires being listed here explicitly to become reachable, even though
+  # the grant handler exists unconditionally in the binary. Set explicitly
+  # any time a client needs a grant beyond the default set (confirmed live:
+  # authorization_code, refresh_token, device_code, token-exchange).
+  # Example: ["authorization_code", "refresh_token",
+  #   "urn:ietf:params:oauth:grant-type:device_code",
+  #   "urn:ietf:params:oauth:grant-type:token-exchange", "client_credentials"]
+  grantTypes: []
   # Token / signing key expiry
   expiry:
     signingKeys: "6h"
