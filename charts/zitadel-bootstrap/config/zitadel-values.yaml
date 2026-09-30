@@ -86,6 +86,50 @@ env:
         name: zitadel-credentials
         key: adminPassword
 
+# ---------------------------------------------------------------------------
+# Availability / sizing. See .Values.workloads in this chart's values.yaml.
+# ---------------------------------------------------------------------------
+
+# The upstream chart's own docs call replicaCount: 1 a testing default. With
+# Cilium Gateway API the zitadel clusters are EDS-only with no active health
+# checks, so a single NotReady replica is an immediate `503 no healthy
+# upstream` for the whole hostname — there is no second endpoint to fall back
+# to. Two replicas makes a single flap invisible to Envoy.
+replicaCount: {{ .Values.workloads.zitadel.replicaCount }}
+
+# No CPU limit on purpose: on a Pi a cpu limit turns normal load into CFS
+# throttling, which is the very thing that makes the probes miss their budget.
+# Memory limit only, matching database.resources above.
+resources:
+{{ toYaml .Values.workloads.zitadel.resources | indent 2 }}
+
+# The chart exposes initialDelaySeconds / periodSeconds / failureThreshold but
+# NOT timeoutSeconds (verified on 10.0.6 and 10.1.0 alike), so a 1s Kubernetes
+# default stands. Widening the tolerance below is the only supported lever.
+readinessProbe:
+  periodSeconds: {{ .Values.workloads.zitadel.probes.periodSeconds }}
+  failureThreshold: {{ .Values.workloads.zitadel.probes.failureThreshold }}
+livenessProbe:
+  periodSeconds: {{ .Values.workloads.zitadel.probes.periodSeconds }}
+  failureThreshold: {{ .Values.workloads.zitadel.probes.failureThreshold }}
+startupProbe:
+  periodSeconds: {{ .Values.workloads.zitadel.probes.periodSeconds }}
+  failureThreshold: {{ .Values.workloads.zitadel.probes.failureThreshold }}
+
+login:
+  replicaCount: {{ .Values.workloads.login.replicaCount }}
+  resources:
+{{ toYaml .Values.workloads.login.resources | indent 4 }}
+  readinessProbe:
+    periodSeconds: {{ .Values.workloads.login.probes.periodSeconds }}
+    failureThreshold: {{ .Values.workloads.login.probes.failureThreshold }}
+  livenessProbe:
+    periodSeconds: {{ .Values.workloads.login.probes.periodSeconds }}
+    failureThreshold: {{ .Values.workloads.login.probes.failureThreshold }}
+  startupProbe:
+    periodSeconds: {{ .Values.workloads.login.probes.periodSeconds }}
+    failureThreshold: {{ .Values.workloads.login.probes.failureThreshold }}
+
 {{/*
 Ingress: deliberately NOT using the upstream chart's own gateway.httpRoute /
 login.gateway.httpRoute (both default off, left unset here). Each renders as

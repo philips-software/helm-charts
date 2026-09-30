@@ -71,3 +71,63 @@ credentials:
 # First-instance bootstrap (org + admin user created by the setup Job)
 firstInstance:
   orgName: ZITADEL
+
+# Availability / resource settings for the two zitadel workloads, forwarded
+# into the upstream chart's valuesObject (replicaCount, resources, and the probe
+# knobs it does expose).
+#
+# Single-replica defaults are a deliberate upstream-chart default ("a single
+# replica is fine for testing") that becomes an availability problem once
+# combined with Cilium Gateway API's EDS-only, health-check-free routing: one
+# NotReady pod = instant `503 no healthy upstream` for the whole hostname.
+# Two replicas is the minimum that makes a single pod flap invisible to Envoy.
+workloads:
+  zitadel:
+    # Number of ZITADEL API/console pods. The chart provisions a shared machine
+    # key via its machinekey-writer init container, so >1 replica is supported.
+    replicaCount: 2
+    # CPU is intentionally left unlimited: a cpu limit on a Pi converts
+    # ordinary load into CFS throttling, which is exactly what makes the
+    # probes time out in the first place. Memory limit only — same convention
+    # as database.resources above.
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+    probes:
+      # NOTE ON `timeoutSeconds` (as of zitadelChart.version 10.0.6 / 10.1.0)
+      # ---------------------------------------------------------------------
+      # The upstream chart renders only initialDelaySeconds / periodSeconds /
+      # failureThreshold — checked in templates/deployment_zitadel.yaml and
+      # templates/deployment_login.yaml — so probe `timeoutSeconds` is never
+      # emitted and Kubernetes applies its 1s default. There is no way to set
+      # it through this chart today: a kustomize post-renderer is not an option
+      # either, because the ArgoCD Application CRD declares no `postRenderers`
+      # field (absent upstream in ArgoCD v3.4.1 too), so a server-side apply
+      # of one is rejected outright with "field not declared in schema".
+      #
+      # Nothing in this chart depends on that being fixed. periodSeconds x
+      # failureThreshold below is the only available lever for tolerating a slow
+      # response, and two replicas absorb a pod that flaps regardless.
+      #
+      # When an upstream chart release does render `timeoutSeconds`, this can
+      # simply be wired through here — no other change required. Until then the
+      # effective budget is 1s per attempt, 60s of consecutive failure overall.
+      periodSeconds: 10
+      failureThreshold: 6
+  login:
+    replicaCount: 2
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 768Mi
+    probes:
+      # Same note on `timeoutSeconds` as under workloads.zitadel.probes above.
+      # Additionally, login.startupProbe.enabled ships false, so the upstream
+      # chart renders no startup probe for this Deployment at all.
+      periodSeconds: 10
+      failureThreshold: 6
