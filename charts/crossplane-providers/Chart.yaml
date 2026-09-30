@@ -2,9 +2,13 @@ apiVersion: v2
 name: crossplane-providers
 description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or EKS Pod Identity configuration
 type: application
-version: 0.0.36
-# renovate: datasource=github-releases depName=crossplane-contrib/provider-upjet-aws
-appVersion: "v2.8.1"
+version: 0.0.37
+# appVersion intentionally omitted: the real, actually-deployed provider
+# version is package.version in values.yaml (renovate-tracked there too,
+# used directly by the provider package manifests). Both fields tracked the
+# same crossplane-contrib/provider-upjet-aws dependency independently, which
+# only risked drift, exactly like it did on dex-issuer -- appVersion here only
+# ever fed the wrapper chart's own app.kubernetes.io/version label.
 maintainers:
   - name: Philips Software
 keywords:
