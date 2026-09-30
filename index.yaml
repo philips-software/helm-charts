@@ -2,6 +2,24 @@ apiVersion: v1
 entries:
   agentgateway-bootstrap:
   - apiVersion: v2
+    created: "2026-09-30T08:54:40.198484799Z"
+    description: A Helm chart for bootstrapping agentgateway with Amazon Bedrock LLM
+      support
+    digest: 3c661f2da1f2d3719a48cd6a92c059aa4973aecfdc58a22e9fec5f837352db0b
+    keywords:
+    - agentgateway
+    - bedrock
+    - ai
+    - llm
+    - gateway-api
+    - argocd
+    - bootstrap
+    name: agentgateway-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/agentgateway-bootstrap-0.11.0/agentgateway-bootstrap-0.11.0.tgz
+    version: 0.11.0
+  - apiVersion: v2
     appVersion: 1.5.0
     created: "2026-09-29T15:04:18.23606818Z"
     description: A Helm chart for bootstrapping agentgateway with Amazon Bedrock LLM
@@ -857,6 +875,16 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/agentgateway-bootstrap-0.1.0/agentgateway-bootstrap-0.1.0.tgz
     version: 0.1.0
   alloy-otlp-relay:
+  - apiVersion: v2
+    created: "2026-09-30T08:54:40.436338068Z"
+    description: Minimal Alloy instance that receives OTLP metrics, filters by an
+      exact-name allow-list, and forwards to a Mimir gateway with a tenant header
+    digest: 41406e7f185327f647b2e8b20b22170236bb02db683f88056674df08c6abf1de
+    name: alloy-otlp-relay
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/alloy-otlp-relay-0.3.0/alloy-otlp-relay-0.3.0.tgz
+    version: 0.3.0
   - apiVersion: v2
     appVersion: 1.19.2
     created: "2026-09-15T20:17:45.987797368Z"
@@ -2031,6 +2059,20 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/centcom-satellite-0.1.0/centcom-satellite-0.1.0.tgz
     version: 0.1.0
   clickhouse-operator-bootstrap:
+  - apiVersion: v2
+    created: "2026-09-30T08:54:40.681481647Z"
+    description: A Helm chart for bootstrapping the ClickHouse Kubernetes Operator
+    digest: 11bc98d9393f4eba0d7c258a1ac42e721f3d5f3677ba88d539eb7484a52ee488
+    keywords:
+    - clickhouse
+    - operator
+    - argocd
+    - bootstrap
+    name: clickhouse-operator-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/clickhouse-operator-bootstrap-0.2.0/clickhouse-operator-bootstrap-0.2.0.tgz
+    version: 0.2.0
   - apiVersion: v2
     appVersion: 0.0.7
     created: "2026-08-27T16:20:05.33809789Z"
@@ -3819,6 +3861,30 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/dex-issuer-0.1.0/dex-issuer-0.1.0.tgz
     version: 0.1.0
   fluent-bit-out-hsdp:
+  - apiVersion: v2
+    created: "2026-09-30T08:54:41.145519291Z"
+    dependencies:
+    - name: fluent-bit
+      repository: https://fluent.github.io/helm-charts
+      version: 0.56.0
+    description: Installs the Fluentbit HSP out plugin.
+    digest: 8c907d8734588e9e60e31a2f80c0a7d523651fa27bc66eadf5fb29d2ec8153a6
+    home: https://github.com/philips-software/fluent-bit-out-hsdp
+    icon: https://fluentbit.io/images/logo.svg
+    keywords:
+    - logging
+    - fluent-bit
+    - fluentd
+    - hsdp
+    maintainers:
+    - email: andy.loafoe@gmail.com
+      name: loafoe
+    name: fluent-bit-out-hsdp
+    sources:
+    - https://github.com/philips-software/fluent-bit-out-hsdp/
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.14.0/fluent-bit-out-hsdp-0.14.0.tgz
+    version: 0.14.0
   - apiVersion: v2
     appVersion: 2.6.0
     created: "2026-02-26T09:52:26.49059151Z"
@@ -7023,4 +7089,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-30T08:49:00.537899976Z"
+generated: "2026-09-30T08:54:41.146632793Z"
