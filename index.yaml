@@ -3710,6 +3710,23 @@ entries:
     version: 0.0.3
   dex-issuer:
   - apiVersion: v2
+    created: "2026-10-01T07:48:09.486108671Z"
+    description: Deploys Dex (OpenID Connect issuer) with its Postgres storage, gRPC
+      mTLS PKI, and Crossplane connector-management plane
+    digest: 41df953ffb3b033bb4872d9cc0afb4f957cb40fbd1668be078c3667aefd10b99
+    keywords:
+    - dex
+    - oidc
+    - issuer
+    - crossplane
+    maintainers:
+    - name: Philips Software
+    name: dex-issuer
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/dex-issuer-0.11.0/dex-issuer-0.11.0.tgz
+    version: 0.11.0
+  - apiVersion: v2
     created: "2026-09-30T11:02:54.321481239Z"
     description: Deploys Dex (OpenID Connect issuer) with its Postgres storage, gRPC
       mTLS PKI, and Crossplane connector-management plane
@@ -7143,6 +7160,24 @@ entries:
     version: 0.34.0
   zitadel-bootstrap:
   - apiVersion: v2
+    created: "2026-10-01T07:48:09.858729596Z"
+    description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with
+      CNPG Postgres and Gateway API ingress
+    digest: 68f9d7f9f56978b4e7560f02cb324ec18d4e2561863813b528fa91e40d8c2be6
+    keywords:
+    - zitadel
+    - identity
+    - oidc
+    - iam
+    - sso
+    - argocd
+    - bootstrap
+    name: zitadel-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.2.0/zitadel-bootstrap-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
     created: "2026-09-27T20:04:40.544943012Z"
     description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with
       CNPG Postgres and Gateway API ingress
@@ -7160,4 +7195,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-01T07:14:58.450388101Z"
+generated: "2026-10-01T07:48:09.859748447Z"
