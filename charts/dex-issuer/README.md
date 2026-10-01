@@ -1,6 +1,6 @@
 # dex-issuer
 
-![Version: 0.11.0](https://img.shields.io/badge/Version-0.11.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.12.0](https://img.shields.io/badge/Version-0.12.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
@@ -38,11 +38,13 @@ is left orphaned, half-provisioned, forever retrying. Leave all three unset for 
 
 ## Theme
 
-`theme.enabled` (default `true`) mounts `files/theme/{styles.css,philips-logo.svg,logo.png}` as
-the `dex-theme` ConfigMap and into Dex via `dex.httpRoute`/`volumeMounts`. These files are bundled
-into the chart itself — there is no values-level override for their content. An adopter that needs
-different branding currently has to fork/patch this chart's `files/theme/` directory (or disable
-`theme.enabled` and manage the `dex-theme` ConfigMap and Dex volume mounts independently).
+`theme.enabled` (default `true`) mounts a ConfigMap with keys `styles.css`, `philips-logo.svg`,
+`logo.png` into Dex. By default this chart creates that ConfigMap itself from the bundled
+`files/theme/*`. Set `theme.existingConfigMap` to the name of your own ConfigMap (same three keys,
+same namespace as Dex) to use custom branding instead — this chart then skips creating its own
+ConfigMap and just points Dex's volume at yours, so no forking is needed. Manage that ConfigMap
+however you like (a kustomize `configMapGenerator`, a separate chart, …); this chart does not
+touch it.
 
 ## Static clients and DCR
 
@@ -130,6 +132,7 @@ omit `spec.tls`.
 | provider.registry | string | `"ghcr.io/loafoe"` |  |
 | provider.tag | string | `"v1.14.0"` |  |
 | theme.enabled | bool | `true` |  |
+| theme.existingConfigMap | string | `""` |  |
 | useCustomFqdn | bool | `false` |  |
 
 ----------------------------------------------

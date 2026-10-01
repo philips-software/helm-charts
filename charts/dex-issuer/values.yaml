@@ -173,6 +173,12 @@ pki:
 # ConfigMap. RI-specific connector hide-rules have been stripped from styles.css.
 theme:
   enabled: true
+  # Name of an existing ConfigMap (keys: styles.css, philips-logo.svg,
+  # logo.png) to mount into Dex instead of this chart's bundled theme. When
+  # set, this chart does not create its own dex-theme ConfigMap - manage it
+  # yourself (e.g. a kustomize configMapGenerator) so custom branding doesn't
+  # require forking this chart. Leave empty to use the bundled theme.
+  existingConfigMap: ""
 
 # Use custom FQDN instead of clusterFqdn (falls back to clusterFqdn if customFqdn is empty)
 useCustomFqdn: false

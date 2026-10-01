@@ -92,7 +92,7 @@ volumes:
 {{- if .Values.theme.enabled }}
   - name: styles-volume
     configMap:
-      name: dex-theme
+      name: {{ .Values.theme.existingConfigMap | default "dex-theme" }}
 {{- end }}
 {{- if eq (include "dex-issuer.mtlsEnabled" .) "true" }}
   - name: grpc-tls

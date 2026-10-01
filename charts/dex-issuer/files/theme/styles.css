@@ -15,8 +15,21 @@
   --transition-fast: 0.2s ease;
 }
 
+/* Hide the built-in placeholder connector button (Dex needs one connector to boot
+   on empty storage; real connectors are managed at runtime via the gRPC API). */
 a[href^="/auth/placeholder"] {
   display: none;
+}
+
+/* Upstream's own icon rule (main.css .dex-btn-icon) floats the icon as a
+ * separate 36px chip with a margin on every side, so it now reads as pasted
+ * onto the button rather than being part of it. Flush left again, full
+ * button height, rounded to match the button's own left corner. */
+.dex-btn-icon {
+  align-self: stretch;
+  border-radius: 6px 0 0 6px;
+  height: auto;
+  margin: 0;
 }
 
 .dex-btn-icon--hsdp {
@@ -37,31 +50,11 @@ a[href^="/auth/placeholder"] {
 }
 
 .theme-body {
-  /* centcom ".login-left" pane recreated on the grove palette (theme after cyber):
-     a diagonal gradient "cutover" base + a 30px square-grid pattern + amber
-     accent glows (#FEAC34 / #FFD783). Layers paint top-to-bottom, so the two
-     1px grid line-gradients and the radial glows sit over the opaque diagonal
-     gradient that forms the base. */
-  background-color: #111614;
-  background-image:
-    radial-gradient(circle at 10% 20%, rgba(254, 172, 52, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255, 215, 131, 0.06) 0%, transparent 45%),
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(135deg, #1b2620 0%, #080d0a 100%);
-  background-size:
-    100% 100%,
-    100% 100%,
-    30px 30px,
-    30px 30px,
-    100% 100%;
-  background-repeat:
-    no-repeat,
-    no-repeat,
-    repeat,
-    repeat,
-    no-repeat;
+  background-color: #111217;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjI2MSIgaGVpZ2h0PSIxMjcyIiB2aWV3Qm94PSIwIDAgMjI2MSAxMjcyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDApIj4KPHJlY3Qgd2lkdGg9IjIyNjEiIGhlaWdodD0iMTI3MiIgZmlsbD0iYmxhY2siLz4KPHJlY3QgeD0iLTExNDciIHk9Ii05MTYiIHdpZHRoPSI0NTMyIiBoZWlnaHQ9IjI1NzYiIGZpbGw9ImJsYWNrIi8+CjxlbGxpcHNlIG9wYWNpdHk9IjAuNSIgY3g9IjExMzAuNSIgY3k9Ii0xMDIuNSIgcng9IjQ0MjIuNSIgcnk9IjE0MzguNSIgZmlsbD0idXJsKCNwYWludDBfcmFkaWFsKSIvPgo8ZWxsaXBzZSBvcGFjaXR5PSIwLjMzIiBjeD0iMTM3MiIgY3k9Ii0xNTkuNSIgcng9IjE4MzIiIHJ5PSIxNDU1LjUiIGZpbGw9InVybCgjcGFpbnQxX3JhZGlhbCkiLz4KPGVsbGlwc2Ugb3BhY2l0eT0iMC43IiBjeD0iNDAwLjUiIGN5PSItNTA5IiByeD0iMTg2MC41IiByeT0iMTY3MyIgZmlsbD0idXJsKCNwYWludDJfcmFkaWFsKSIvPgo8ZWxsaXBzZSBvcGFjaXR5PSIwLjciIGN4PSI1MjAuNSIgY3k9Ii0zMDUiIHJ4PSI5ODAuNSIgcnk9IjcwMiIgZmlsbD0idXJsKCNwYWludDNfcmFkaWFsKSIvPgo8ZWxsaXBzZSBvcGFjaXR5PSIwLjUiIGN4PSI1MDAiIGN5PSItMTYwIiByeD0iMTA0OSIgcnk9IjI5MCIgZmlsbD0idXJsKCNwYWludDRfcmFkaWFsKSIvPgo8L2c+CjxkZWZzPgo8cmFkaWFsR3JhZGllbnQgaWQ9InBhaW50MF9yYWRpYWwiIGN4PSIwIiBjeT0iMCIgcj0iMSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIGdyYWRpZW50VHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTEzMC41IC0xMDIuNSkgcm90YXRlKDkwKSBzY2FsZSgxNDM4LjUgNDQyMi41KSI+CjxzdG9wIHN0b3AtY29sb3I9IiM0MzU0RTYiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMkUyNEFBIiBzdG9wLW9wYWNpdHk9IjAiLz4KPC9yYWRpYWxHcmFkaWVudD4KPHJhZGlhbEdyYWRpZW50IGlkPSJwYWludDFfcmFkaWFsIiBjeD0iMCIgY3k9IjAiIHI9IjEiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiBncmFkaWVudFRyYW5zZm9ybT0idHJhbnNsYXRlKDEzNzIgLTE1OS41KSByb3RhdGUoOTApIHNjYWxlKDE0NTUuNSAxODMyKSI+CjxzdG9wIHN0b3AtY29sb3I9IiNGODk3OTciLz4KPHN0b3Agb2Zmc2V0PSIwLjQ4NDM3NSIgc3RvcC1jb2xvcj0iI0Q2NzZFNiIgc3RvcC1vcGFjaXR5PSIwLjUiLz4KPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjNEY0NzdDIiBzdG9wLW9wYWNpdHk9IjAiLz4KPC9yYWRpYWxHcmFkaWVudD4KPHJhZGlhbEdyYWRpZW50IGlkPSJwYWludDJfcmFkaWFsIiBjeD0iMCIgY3k9IjAiIHI9IjEiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiBncmFkaWVudFRyYW5zZm9ybT0idHJhbnNsYXRlKDQwMC41IC01MDkpIHJvdGF0ZSg5MCkgc2NhbGUoMTY3MyAxODYwLjUpIj4KPHN0b3Agc3RvcC1jb2xvcj0iI0ZGOEEzNiIvPgo8c3RvcCBvZmZzZXQ9IjAuMzQ4OTU4IiBzdG9wLWNvbG9yPSIjRkI1QTY3IiBzdG9wLW9wYWNpdHk9IjAuNSIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM2ODEwNUYiIHN0b3Atb3BhY2l0eT0iMCIvPgo8L3JhZGlhbEdyYWRpZW50Pgo8cmFkaWFsR3JhZGllbnQgaWQ9InBhaW50M19yYWRpYWwiIGN4PSIwIiBjeT0iMCIgcj0iMSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIGdyYWRpZW50VHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTIwLjUgLTMwNSkgcm90YXRlKDkwKSBzY2FsZSg3MDIgOTgwLjUpIj4KPHN0b3Agc3RvcC1jb2xvcj0iI0ZGOEEzNiIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4MzNGNkUiIHN0b3Atb3BhY2l0eT0iMCIvPgo8L3JhZGlhbEdyYWRpZW50Pgo8cmFkaWFsR3JhZGllbnQgaWQ9InBhaW50NF9yYWRpYWwiIGN4PSIwIiBjeT0iMCIgcj0iMSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIGdyYWRpZW50VHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTAwIC0xNjApIHJvdGF0ZSg5MCkgc2NhbGUoMjkwIDEwNDkpIj4KPHN0b3Agb2Zmc2V0PSIwLjMxMzEzMSIgc3RvcC1jb2xvcj0iI0ZCQzU1QSIvPgo8c3RvcCBvZmZzZXQ9IjAuNTk3ODU0IiBzdG9wLWNvbG9yPSIjRkY4QTM2IiBzdG9wLW9wYWNpdHk9IjAuNSIvPgo8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNBNjNEOEYiIHN0b3Atb3BhY2l0eT0iMCIvPgo8L3JhZGlhbEdyYWRpZW50Pgo8Y2xpcFBhdGggaWQ9ImNsaXAwIj4KPHJlY3Qgd2lkdGg9IjIyNjEiIGhlaWdodD0iMTI3MiIgZmlsbD0id2hpdGUiLz4KPC9jbGlwUGF0aD4KPC9kZWZzPgo8L3N2Zz4K");
   background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
   background-attachment: fixed;
   color: var(--color-text-light);
   font-family: 'Source Sans Pro', Helvetica, sans-serif;
@@ -72,7 +65,7 @@ a[href^="/auth/placeholder"] {
   color: var(--color-text-light);
   font-size: 13px;
   font-weight: 100;
-  height: 40px;
+  height: 160px;
   overflow: hidden;
   padding: 0;
   margin-top: 40px;
@@ -86,9 +79,8 @@ a[href^="/auth/placeholder"] {
   overflow: hidden;
 }
 
-/* Logo removed: hide the (Philips) logo image entirely. */
 .theme-navbar__logo {
-  display: none;
+  max-height: 160px;
 }
 
 .theme-heading {
@@ -97,15 +89,6 @@ a[href^="/auth/placeholder"] {
   font-weight: 500;
   margin-bottom: 10px;
   margin-top: 0;
-  /* Replace the template's "Log in to DIP Services" with custom text.
-     The template hardcodes "Log in to {{ issuer }}"; we collapse the
-     original text and inject our own via ::after (CSS-only override). */
-  font-size: 0;
-}
-
-.theme-heading::after {
-  content: "loafoe.com SSO";
-  font-size: 20px;
 }
 
 .theme-panel {
@@ -121,12 +104,16 @@ a[href^="/auth/placeholder"] {
   color: var(--color-text-light);
 }
 
+/* A width rather than a minimum: the button has to be the same size whatever
+ * the connector is called, and it has to give way on a screen too narrow to
+ * hold it rather than push out of the panel. */
 .theme-btn-provider {
   background-color: #262628;
   border: 1px solid rgba(204, 204, 220, 0.2);
   border-radius: 6px;
   color: #ffffff;
-  min-width: 270px;
+  max-width: 100%;
+  width: 270px;
   cursor: pointer;
   transition: color var(--transition-fast), background-color var(--transition-fast);
 }
@@ -138,32 +125,6 @@ a[href^="/auth/placeholder"] {
 .theme-btn-provider:focus {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
-}
-
-/* v2.45.1-dip.10 restructured the provider button from
-     <a><button class="dex-btn theme-btn-provider">...</button></a>
-   to classes applied directly to the <a>, and upstream's own main.css shrank
-   the icon from a 40px square flush against the button's left edge
-   (border-radius: 8px 0 0 8px, no margin, height 40px) to an independently
-   rounded 36px chip with margin on every side. That reads as a smaller icon
-   floating inside the button instead of a block fused to its edge — the ".9
-   look" this restores. Scoped under .theme-btn-provider so it doesn't touch
-   the per-connector background-image rules (--hsdp, --github) above, which
-   still need to win on specificity. */
-.theme-btn-provider {
-  overflow: hidden;
-}
-
-.theme-btn-provider .dex-btn-icon {
-  align-self: stretch;
-  border-radius: 0;
-  flex: 0 0 40px;
-  height: auto;
-  margin: 0;
-}
-
-.theme-btn-provider .dex-btn-text {
-  padding: 6px 14px;
 }
 
 .theme-btn--primary {
