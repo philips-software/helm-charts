@@ -24,6 +24,26 @@ Cluster-specific details are injected through `environmentConfig`:
   becomes `<resourcePrefix>-dex`) so they do not clash within a shared AWS account.
 - `customFqdn` (optional): overrides `clusterFqdn` for the issuer when `useCustomFqdn` is true.
 
+## Adopting a pre-existing Postgres claim
+
+`database.claimName`, `database.identifier`, and `database.connectionSecretName` default to
+`"dex"`, `"<resourcePrefix>-dex"`, and `"dex-postgres-connection"` respectively. If this chart is
+replacing an existing, non-chart-managed Dex deployment that already has its own `Postgres` claim
+writing to a connection secret, set these three to match that claim's `metadata.name`,
+`spec.parameters.identifier`, and `spec.writeConnectionSecretToRef.name` exactly. The claim this
+chart renders then has the same identity as the existing one, so Crossplane reconciles it in place
+instead of creating a second claim that collides on `connectionSecretName` (the second claim's
+`writeConnectionSecretToRef` fails validation: a `Secret` can only have one owning controller) and
+is left orphaned, half-provisioned, forever retrying. Leave all three unset for a fresh install.
+
+## Theme
+
+`theme.enabled` (default `true`) mounts `files/theme/{styles.css,philips-logo.svg,logo.png}` as
+the `dex-theme` ConfigMap and into Dex via `dex.httpRoute`/`volumeMounts`. These files are bundled
+into the chart itself — there is no values-level override for their content. An adopter that needs
+different branding currently has to fork/patch this chart's `files/theme/` directory (or disable
+`theme.enabled` and manage the `dex-theme` ConfigMap and Dex volume mounts independently).
+
 ## Static clients and DCR
 
 No static OAuth clients ship by default; add them via `dex.staticClients`. Dynamic Client

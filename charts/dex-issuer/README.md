@@ -1,6 +1,6 @@
 # dex-issuer
 
-![Version: 0.9.0](https://img.shields.io/badge/Version-0.9.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.11.0](https://img.shields.io/badge/Version-0.11.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
@@ -23,6 +23,26 @@ Cluster-specific details are injected through `environmentConfig`:
 - `resourcePrefix` (**required**): prefixes account-global names (e.g. the Postgres identifier
   becomes `<resourcePrefix>-dex`) so they do not clash within a shared AWS account.
 - `customFqdn` (optional): overrides `clusterFqdn` for the issuer when `useCustomFqdn` is true.
+
+## Adopting a pre-existing Postgres claim
+
+`database.claimName`, `database.identifier`, and `database.connectionSecretName` default to
+`"dex"`, `"<resourcePrefix>-dex"`, and `"dex-postgres-connection"` respectively. If this chart is
+replacing an existing, non-chart-managed Dex deployment that already has its own `Postgres` claim
+writing to a connection secret, set these three to match that claim's `metadata.name`,
+`spec.parameters.identifier`, and `spec.writeConnectionSecretToRef.name` exactly. The claim this
+chart renders then has the same identity as the existing one, so Crossplane reconciles it in place
+instead of creating a second claim that collides on `connectionSecretName` (the second claim's
+`writeConnectionSecretToRef` fails validation: a `Secret` can only have one owning controller) and
+is left orphaned, half-provisioned, forever retrying. Leave all three unset for a fresh install.
+
+## Theme
+
+`theme.enabled` (default `true`) mounts `files/theme/{styles.css,philips-logo.svg,logo.png}` as
+the `dex-theme` ConfigMap and into Dex via `dex.httpRoute`/`volumeMounts`. These files are bundled
+into the chart itself — there is no values-level override for their content. An adopter that needs
+different branding currently has to fork/patch this chart's `files/theme/` directory (or disable
+`theme.enabled` and manage the `dex-theme` ConfigMap and Dex volume mounts independently).
 
 ## Static clients and DCR
 
@@ -58,15 +78,19 @@ omit `spec.tls`.
 | database.allocatedStorage | int | `20` |  |
 | database.barmanBackup.enabled | bool | `true` |  |
 | database.barmanBackup.retentionDays | int | `7` |  |
+| database.claimName | string | `""` |  |
 | database.cnpg | bool | `true` |  |
+| database.connectionSecretName | string | `""` |  |
 | database.enableSnapshots | bool | `true` |  |
 | database.engineVersion | string | `"18.1"` |  |
+| database.identifier | string | `""` |  |
 | database.size | string | `"xsmall"` |  |
 | dex.allowedScopePrefixes[0] | string | `"hsp:iam:introspect"` |  |
 | dex.dcr.enabled | bool | `true` |  |
 | dex.expiry.idTokens | string | `"8h"` |  |
 | dex.expiry.signingKeys | string | `"6h"` |  |
 | dex.frontendIssuer | string | `"DIP Services"` |  |
+| dex.grantTypes | list | `[]` |  |
 | dex.httpRoute.enabled | bool | `true` |  |
 | dex.httpRoute.host | string | `"issuer"` |  |
 | dex.httpRoute.sharedGatewayName | string | `"platform"` |  |
@@ -87,7 +111,7 @@ omit `spec.tls`.
 | dex.staticClientsSecret.name | string | `"dex-static-clients"` |  |
 | dexChart.releaseName | string | `"dex"` |  |
 | dexChart.repoURL | string | `"https://charts.dexidp.io"` |  |
-| dexChart.version | string | `"0.24.1"` |  |
+| dexChart.version | string | `"0.25.2"` |  |
 | environmentConfig.clusterFqdn | string | `""` |  |
 | environmentConfig.customFqdn | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |

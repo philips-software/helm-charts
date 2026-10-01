@@ -1,7 +1,10 @@
 apiVersion: dip.io/v1alpha1
 kind: Postgres
 metadata:
-  name: dex
+  # Overridable so an adopter with a pre-existing, non-chart-managed Postgres
+  # claim can set this to that claim's exact name and have this resource
+  # reconcile it in place instead of creating a second, colliding claim.
+  name: {{ .Values.database.claimName | default "dex" }}
   namespace: {{ .Release.Namespace }}
   annotations:
     "argocd.argoproj.io/sync-wave": "-1"
@@ -13,8 +16,11 @@ spec:
         provider: cnpg
 {{- end }}
   parameters:
-    # resourcePrefix-ed: the identifier is account-global and must not clash across clusters
-    identifier: {{ .Values.environmentConfig.resourcePrefix }}-dex
+    # resourcePrefix-ed by default: the identifier is account-global and must
+    # not clash across clusters. Overridable to adopt an existing claim's
+    # identifier verbatim -- changing an existing claim's identifier can make
+    # the postgres-cnpg composition recreate the underlying CNPG Cluster.
+    identifier: {{ .Values.database.identifier | default (printf "%s-dex" .Values.environmentConfig.resourcePrefix) }}
     size: {{ .Values.database.size }}
     allocatedStorage: {{ .Values.database.allocatedStorage }}
     engineVersion: {{ .Values.database.engineVersion | quote }}
@@ -29,4 +35,4 @@ spec:
       retentionDays: {{ .Values.database.barmanBackup.retentionDays }}
   {{- end }}
   writeConnectionSecretToRef:
-    name: dex-postgres-connection
+    name: {{ .Values.database.connectionSecretName | default "dex-postgres-connection" }}

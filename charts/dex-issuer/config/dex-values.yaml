@@ -5,22 +5,22 @@ envVars:
   - name: DEX_PG_HOST
     valueFrom:
       secretKeyRef:
-        name: dex-postgres-connection
+        name: {{ .Values.database.connectionSecretName | default "dex-postgres-connection" }}
         key: host
   - name: DEX_PG_DATABASE
     valueFrom:
       secretKeyRef:
-        name: dex-postgres-connection
+        name: {{ .Values.database.connectionSecretName | default "dex-postgres-connection" }}
         key: database
   - name: DEX_PG_USER
     valueFrom:
       secretKeyRef:
-        name: dex-postgres-connection
+        name: {{ .Values.database.connectionSecretName | default "dex-postgres-connection" }}
         key: username
   - name: DEX_PG_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: dex-postgres-connection
+        name: {{ .Values.database.connectionSecretName | default "dex-postgres-connection" }}
         key: password
 strategy:
   type: RollingUpdate

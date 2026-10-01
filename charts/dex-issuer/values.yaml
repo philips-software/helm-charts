@@ -105,6 +105,19 @@ database:
   barmanBackup:
     enabled: true
     retentionDays: 7
+  # Name of the Postgres claim (metadata.name). Defaults to "dex". Override
+  # to adopt a pre-existing, non-chart-managed Postgres claim in place
+  # instead of creating a second one that collides on connectionSecretName.
+  claimName: ""
+  # Postgres claim identifier (spec.parameters.identifier). Defaults to
+  # "<environmentConfig.resourcePrefix>-dex". Override to match an existing
+  # claim's identifier verbatim when adopting it via claimName above --
+  # changing an existing claim's identifier can make the postgres-cnpg
+  # composition recreate the underlying CNPG Cluster.
+  identifier: ""
+  # Name of the Secret the Postgres claim writes its connection details to,
+  # and that Dex reads DEX_PG_* from. Defaults to "dex-postgres-connection".
+  connectionSecretName: ""
 
 # Crossplane connector-management plane (provider-dex).
 # When enabled, deploys the self-signed PKI, the Dex gRPC server certificate,
