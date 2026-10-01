@@ -1,6 +1,6 @@
 # crossplane-providers
 
-![Version: 0.0.37](https://img.shields.io/badge/Version-0.0.37-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.0.38](https://img.shields.io/badge/Version-0.0.38-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 ## Overview
 
@@ -27,7 +27,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-providers
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.37"
+    version: "0.0.38"
     releaseName: crossplane-providers
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -53,7 +53,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-providers
-    targetRevision: "0.0.37"
+    targetRevision: "0.0.38"
     helm:
       valueFiles:
         - values.yaml

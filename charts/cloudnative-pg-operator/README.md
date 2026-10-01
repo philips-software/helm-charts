@@ -1,6 +1,6 @@
 # cloudnative-pg-operator
 
-![Version: 0.9.0](https://img.shields.io/badge/Version-0.9.0-informational?style=flat-square)
+![Version: 0.10.0](https://img.shields.io/badge/Version-0.10.0-informational?style=flat-square)
 
 A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 
@@ -10,17 +10,17 @@ A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 |-----|------|---------|-------------|
 | argoProject | string | `"common-bootstrap"` |  |
 | barmanCloudPlugin.enabled | bool | `true` |  |
-| barmanCloudPlugin.version | string | `"0.8.0"` |  |
-| cnpgChart.version | string | `"0.29.0"` |  |
+| barmanCloudPlugin.version | string | `"0.8.1"` |  |
+| cnpgChart.version | string | `"0.29.1"` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | environmentConfig.sharedServicesAccountId | string | `""` |  |
 | imageCatalog.enabled | bool | `true` |  |
-| imageCatalog.images[0].image | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:18.1-system-trixie"` |  |
+| imageCatalog.images[0].image | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:18.6-system-trixie"` |  |
 | imageCatalog.images[0].major | int | `18` |  |
 | imageCatalog.name | string | `"default"` |  |
 | kyvernoPolicy.enabled | bool | `true` |  |
-| kyvernoPolicy.operatorImage | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.28.0"` |  |
+| kyvernoPolicy.operatorImage | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.30.1"` |  |
 | operator.fullnameOverride | string | `"cloudnative-pg"` |  |
 | operator.hostNetwork | bool | `false` |  |
 | operator.namespace | string | `"cnpg-system"` |  |
