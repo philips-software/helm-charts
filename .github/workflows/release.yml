@@ -14,6 +14,7 @@ jobs:
 
     permissions:
       contents: write
+      issues: write
 
     steps:
       - name: Checkout
@@ -34,6 +35,52 @@ jobs:
       - name: Add dependency chart repos
         run: |
           helm repo add fluent https://fluent.github.io/helm-charts
+
+      - name: Install helm-docs
+        env:
+          # renovate: datasource=github-releases depName=norwoodj/helm-docs
+          HELM_DOCS_VERSION: 1.14.2
+        run: |
+          curl -fsSL "https://github.com/norwoodj/helm-docs/releases/download/v${HELM_DOCS_VERSION}/helm-docs_${HELM_DOCS_VERSION}_Linux_x86_64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin helm-docs
+          helm-docs --version
+
+      # The PR-time bumper (chart-version-bump.yml) and the PR-time guard
+      # (lint-test.yml) are both unreliable here: their runs get created but sit
+      # unassigned for hours and are auto-cancelled on merge, so bumps reached
+      # main with version: untouched and chart-releaser skipped the release.
+      # Re-check on the push, where this workflow is known to run.
+      - name: Bump chart versions missed at PR time
+        id: bump
+        run: |
+          bumped="$(.github/prepare-release.sh "${{ github.event.before }}")"
+          echo "charts=${bumped//$'\n'/, }" >> "$GITHUB_OUTPUT"
+
+      - name: Commit the version bump to main
+        id: push
+        if: steps.bump.outputs.charts != ''
+        continue-on-error: true
+        run: |
+          # Renovate merges in bursts, so another push to main can leave this
+          # checkout behind origin/main mid-run: rebase once before giving up.
+          git push origin "HEAD:main" || {
+            git pull --rebase --autostash origin main
+            git push origin "HEAD:main"
+          }
+
+      - name: Report chart versions left unreleased
+        if: steps.push.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHARTS: ${{ steps.bump.outputs.charts }}
+        run: |
+          # The bump is committed locally but main is protected against CI
+          # pushes, so nothing shipped. File it loudly instead of letting it rot
+          # the way the PR-time failures did.
+          echo "::error::Could not push the chart version bump to main. These charts changed but keep an already-released version:, so chart-releaser will skip them: ${CHARTS}"
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "chart version bump blocked on main (${GITHUB_SHA:0:8})" \
+            --body "$(printf 'The release run for `%s` bumped:\n\n%s\n\nbut could not push to main, so chart-releaser (skip_existing) skipped them.\n\nBump the version: in each chart and re-run, or allow the Actions app to push to main.' "$GITHUB_SHA" "${CHARTS}")" || true
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.7.0

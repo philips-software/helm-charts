@@ -46,14 +46,31 @@
       versioning: 'regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-dip\\.(?<build>\\d+)$',
     },
     {
-      // Bump the chart's own version whenever its appVersion is bumped: a
-      // republished chart with unchanged version but different content is
-      // rejected by Helm repos, so appVersion and version must move together.
-      matchFileNames: ['charts/*/Chart.yaml'],
+      // Every dependency bump inside a chart must move that chart's own
+      // version:. chart-releaser runs with skip_existing: true, so a chart
+      // republished with an unchanged version: is silently NOT released: the
+      // tag bump lands in main and never ships, with nothing on the PR to show
+      // for it. This rule covers every file the custom.regex manager touches:
+      // Chart.yaml (appVersion / upstream chart version) and values.yaml,
+      // templates/ and config/ (image tags).
+      //
+      // filePatterns resolve relative to the directory of the file holding the
+      // dependency, and both forms below normalise (minimatch resolves "..")
+      // to the one owning Chart.yaml -- deps in templates/ and config/ need the
+      // "../" form. Keep both patterns in a SINGLE rule on purpose: two rules
+      // matching the same chart in one branch would each bump it, stepping the
+      // version twice.
+      matchFileNames: [
+        'charts/*/Chart.yaml',
+        'charts/*/values.yaml',
+        'charts/*/values-*.yaml',
+        'charts/*/templates/**/*.y*ml',
+        'charts/*/config/**/*.y*ml',
+      ],
       bumpVersions: [
         {
-          name: 'Bump chart version alongside appVersion',
-          filePatterns: ['{{packageFileDir}}/Chart.yaml'],
+          name: 'Bump chart version alongside dependency update',
+          filePatterns: ['{{packageFileDir}}/Chart.yaml', '{{packageFileDir}}/../Chart.yaml'],
           matchStrings: ['version:\\s*"?(?<version>[^"\\s]+)"?'],
           bumpType: 'patch',
         },
