@@ -29,22 +29,30 @@
 (app_logic) {
 
   {{- if .Values.cors.enabled }}
+  {{- if .Values.cors.allowedOrigins }}
+  # Shared origin matcher - reused for the preflight response below and
+  # for tagging actual (non-preflight) responses with CORS headers
+  @cors_allowed_origin expression `
+    {{- $first := true }}
+    {{- range .Values.cors.allowedOrigins }}
+    {{- if $first }}{{- $first = false }}{{- else }} || {{ end }}{header.Origin}.matches("{{ . | replace "*" ".*" }}")
+    {{- end }}
+  `
+  {{- end }}
+
   # CORS preflight handler - must run before auth
   @cors_preflight method OPTIONS
   handle @cors_preflight {
     {{- if .Values.cors.allowedOrigins }}
-    @allowed_origin expression `
-      {{- $first := true }}
-      {{- range .Values.cors.allowedOrigins }}
-      {{- if $first }}{{- $first = false }}{{- else }} || {{ end }}{header.Origin}.matches("{{ . | replace "*" ".*" }}")
-      {{- end }}
-    `
-    header @allowed_origin Access-Control-Allow-Origin {header.Origin}
-    header @allowed_origin Access-Control-Allow-Methods "{{ .Values.cors.allowedMethods | join ", " }}"
-    header @allowed_origin Access-Control-Allow-Headers "{{ .Values.cors.allowedHeaders | join ", " }}"
-    header @allowed_origin Access-Control-Max-Age "{{ .Values.cors.maxAge }}"
-    header @allowed_origin Vary Origin
-    respond @allowed_origin 204
+    header @cors_allowed_origin Access-Control-Allow-Origin {header.Origin}
+    header @cors_allowed_origin Access-Control-Allow-Methods "{{ .Values.cors.allowedMethods | join ", " }}"
+    header @cors_allowed_origin Access-Control-Allow-Headers "{{ .Values.cors.allowedHeaders | join ", " }}"
+    header @cors_allowed_origin Access-Control-Max-Age "{{ .Values.cors.maxAge }}"
+    {{- if .Values.cors.allowCredentials }}
+    header @cors_allowed_origin Access-Control-Allow-Credentials "true"
+    {{- end }}
+    header @cors_allowed_origin Vary Origin
+    respond @cors_allowed_origin 204
     # Deny CORS for non-allowed origins
     respond 403
     {{- else }}
@@ -52,6 +60,16 @@
     respond 403
     {{- end }}
   }
+
+  {{- if .Values.cors.allowedOrigins }}
+  # Tag actual (non-preflight) responses with CORS headers too, regardless
+  # of which handle below ends up serving the request
+  header @cors_allowed_origin Access-Control-Allow-Origin {header.Origin}
+  {{- if .Values.cors.allowCredentials }}
+  header @cors_allowed_origin Access-Control-Allow-Credentials "true"
+  {{- end }}
+  header @cors_allowed_origin Vary Origin
+  {{- end }}
   {{- end }}
 
   handle /api/health {

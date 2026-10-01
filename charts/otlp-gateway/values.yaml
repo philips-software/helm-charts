@@ -90,6 +90,9 @@ cors:
   #   - "https://*.dev-eps-dcp.hsp.philips.com"
   #   - "https://localhost:4200"
   allowedOrigins: []
+  # Send Access-Control-Allow-Credentials: true (requires a specific
+  # allowedOrigins entry per request, not "*")
+  allowCredentials: false
   # Allowed methods for CORS preflight
   allowedMethods:
     - GET
