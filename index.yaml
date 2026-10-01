@@ -2195,6 +2195,15 @@ entries:
     version: 0.2.0
   cloudnative-pg-operator:
   - apiVersion: v2
+    created: "2026-10-01T18:06:19.286523509Z"
+    description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
+      policies
+    digest: 0e5c070a7165608cc779ee452942bd1ad3500d6dafc33f26702632fe9015fb68
+    name: cloudnative-pg-operator
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-0.10.0/cloudnative-pg-operator-0.10.0.tgz
+    version: 0.10.0
+  - apiVersion: v2
     created: "2026-06-30T08:17:02.155335997Z"
     description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
       policies
@@ -3109,6 +3118,24 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/crossplane-functions-0.0.2/crossplane-functions-0.0.2.tgz
     version: 0.0.2
   crossplane-providers:
+  - apiVersion: v2
+    created: "2026-10-01T18:06:19.51564507Z"
+    description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or
+      EKS Pod Identity configuration
+    digest: 088b49d42e08ebcd60195aacd8ffd691e0a18e8aa9ee3e0ebc06982d4083be98
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    - pod-identity
+    maintainers:
+    - name: Philips Software
+    name: crossplane-providers
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-providers-0.0.38/crossplane-providers-0.0.38.tgz
+    version: 0.0.38
   - apiVersion: v2
     appVersion: v2.7.0
     created: "2026-09-16T20:13:54.01129405Z"
@@ -4184,6 +4211,13 @@ entries:
     version: 0.0.14
   grafana:
   - apiVersion: v2
+    created: "2026-10-01T18:06:19.737625571Z"
+    digest: 3f6b941cb9a3073ec1c505c41fa7717791ba993121737ba9fa5fcad3cd7ffe5b
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.78.8/grafana-0.78.8.tgz
+    version: 0.78.8
+  - apiVersion: v2
     created: "2026-09-22T10:54:10.5990001Z"
     digest: a598e3692b5742e773957e75db4014eda55ee96735da14f069e7e8e5afcc568b
     name: grafana
@@ -4975,6 +5009,15 @@ entries:
     version: 0.0.1
   k8s-observability-monitoring:
   - apiVersion: v2
+    appVersion: 4.5.2
+    created: "2026-10-01T18:06:20.088187094Z"
+    description: Helm chart for k8s-observability-monitoring
+    digest: 6fa6fa9063458050dd4b15c341f3d402657fdc02608e10bff1d41dbaac0f5441
+    name: k8s-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-1.6.0/k8s-observability-monitoring-1.6.0.tgz
+    version: 1.6.0
+  - apiVersion: v2
     appVersion: 4.5.0
     created: "2026-09-09T06:39:25.930830937Z"
     description: Helm chart for k8s-observability-monitoring
@@ -5631,6 +5674,23 @@ entries:
     version: 0.1.0
   langfuse-bootstrap:
   - apiVersion: v2
+    created: "2026-10-01T18:06:20.39024285Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: cb3857a7ad2fbeec0b85d9add93e910a572bf21a0dcf079d860c7340e4b816f3
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.7.1/langfuse-bootstrap-0.7.1.tgz
+    version: 0.7.1
+  - apiVersion: v2
     created: "2026-09-29T16:40:10.742721927Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
       with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
@@ -5880,6 +5940,14 @@ entries:
     version: 0.1.0
   loki-bootstrap:
   - apiVersion: v2
+    created: "2026-10-01T18:06:20.674341698Z"
+    description: A Helm chart for bootstrapping Loki
+    digest: 3cbcf4df6c3621521b6a35c146c98603f647dacbfb957f83c1a482ee4bbfa6e5
+    name: loki-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.45.0/loki-bootstrap-0.45.0.tgz
+    version: 0.45.0
+  - apiVersion: v2
     created: "2026-08-31T08:14:48.048038022Z"
     description: A Helm chart for bootstrapping Loki
     digest: fb66574add8819638548a29c5b2c74dc3133582a23263cbd8c1685693758dd3d
@@ -6104,6 +6172,16 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.30.0/loki-bootstrap-0.30.0.tgz
     version: 0.30.0
   masterdata-datasource:
+  - apiVersion: v2
+    created: "2026-10-01T18:06:20.905099888Z"
+    description: A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database
+      for use as a datasource in Grafana
+    digest: 63966e3585bbe7c8990af44d3349bf625513b1c860da1b61b7c64705f94e4949
+    name: masterdata-datasource
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/masterdata-datasource-0.10.1/masterdata-datasource-0.10.1.tgz
+    version: 0.10.1
   - apiVersion: v2
     created: "2026-06-12T08:27:12.384656196Z"
     description: A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database
@@ -7222,4 +7300,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-01T14:38:48.644715126Z"
+generated: "2026-10-01T18:06:20.905938909Z"
