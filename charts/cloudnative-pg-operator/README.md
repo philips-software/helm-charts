@@ -1,8 +1,33 @@
 # cloudnative-pg-operator
 
-![Version: 0.10.0](https://img.shields.io/badge/Version-0.10.0-informational?style=flat-square)
+![Version: 0.11.0](https://img.shields.io/badge/Version-0.11.0-informational?style=flat-square)
 
 A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
+
+## PostgreSQL extensions (including pgvector)
+
+`imageCatalog.images[].image` pins the Postgres container flavor used by every `Cluster` in the
+fleet — the `kyvernoPolicy` `ClusterPolicy` forcibly strips `spec.imageName` and sets
+`spec.imageCatalogRef` on every `postgresql.cnpg.io/v1/Cluster` resource, so individual clusters
+cannot opt out of the catalog image.
+
+The default image uses the upstream [`standard`
+flavor](https://github.com/cloudnative-pg/postgres-containers), which bundles **pgvector**,
+PGAudit, Postgres Failover Slots and full locale data — no custom image build or extra chart
+logic is needed. Once a `Cluster` is running on this image, enable the extension per-database as
+usual:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+Do not pin a `system`-flavor image here: it is deprecated upstream and does not include
+pgvector. It also only exists to bundle Barman Cloud binaries, which this chart already replaces
+with `barmanCloudPlugin`.
+
+To add another PostgreSQL major version, append an entry to `imageCatalog.images` with the
+matching `major` and a `standard-<debian-codename>` tag. Keep the version meant for new clusters
+first in the list — the Kyverno policy always reads `imageCatalog.images[0].major`.
 
 ## Values
 
@@ -16,7 +41,7 @@ A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 | environmentConfig.resourcePrefix | string | `""` |  |
 | environmentConfig.sharedServicesAccountId | string | `""` |  |
 | imageCatalog.enabled | bool | `true` |  |
-| imageCatalog.images[0].image | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:18.6-system-trixie"` |  |
+| imageCatalog.images[0].image | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:18.6-standard-trixie"` |  |
 | imageCatalog.images[0].major | int | `18` |  |
 | imageCatalog.name | string | `"default"` |  |
 | kyvernoPolicy.enabled | bool | `true` |  |

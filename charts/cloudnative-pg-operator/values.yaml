@@ -33,9 +33,13 @@ imageCatalog:
   enabled: true
   name: default
   images:
+    # "standard" flavor (not "system", which is deprecated upstream and lacks
+    # extensions) bundles pgvector, pgaudit, failover slots and full locales.
+    # Backups go through barmanCloudPlugin, so the "system" flavor's bundled
+    # barman-cloud binaries aren't needed anyway.
     - major: 18
       # renovate: datasource=docker depName=ghcr.io/cloudnative-pg/postgresql
-      image: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:18.6-system-trixie"
+      image: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:18.6-standard-trixie"
 
 kyvernoPolicy:
   enabled: true

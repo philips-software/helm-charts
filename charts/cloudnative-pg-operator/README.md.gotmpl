@@ -1,0 +1,36 @@
+# cloudnative-pg-operator
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+{{ template "chart.description" . }}
+
+## PostgreSQL extensions (including pgvector)
+
+`imageCatalog.images[].image` pins the Postgres container flavor used by every `Cluster` in the
+fleet — the `kyvernoPolicy` `ClusterPolicy` forcibly strips `spec.imageName` and sets
+`spec.imageCatalogRef` on every `postgresql.cnpg.io/v1/Cluster` resource, so individual clusters
+cannot opt out of the catalog image.
+
+The default image uses the upstream [`standard`
+flavor](https://github.com/cloudnative-pg/postgres-containers), which bundles **pgvector**,
+PGAudit, Postgres Failover Slots and full locale data — no custom image build or extra chart
+logic is needed. Once a `Cluster` is running on this image, enable the extension per-database as
+usual:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+Do not pin a `system`-flavor image here: it is deprecated upstream and does not include
+pgvector. It also only exists to bundle Barman Cloud binaries, which this chart already replaces
+with `barmanCloudPlugin`.
+
+To add another PostgreSQL major version, append an entry to `imageCatalog.images` with the
+matching `major` and a `standard-<debian-codename>` tag. Keep the version meant for new clusters
+first in the list — the Kyverno policy always reads `imageCatalog.images[0].major`.
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}
