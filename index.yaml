@@ -2353,6 +2353,23 @@ entries:
     version: 0.1.0
   common-bootstrap:
   - apiVersion: v2
+    appVersion: 0.0.45
+    created: "2026-10-02T21:12:33.163611571Z"
+    description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
+      deploys crossplane-compositions, and uses HelmApplication CRs to bootstrap platform
+      components. '
+    digest: 80535893703f84cf4fd1af31cbac67dbb966115cca2492794572d17834edce48
+    keywords:
+    - crossplane
+    - common
+    - bootstrap
+    - argocd
+    name: common-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/common-bootstrap-1.4.9/common-bootstrap-1.4.9.tgz
+    version: 1.4.9
+  - apiVersion: v2
     appVersion: 0.0.44
     created: "2026-10-02T05:28:15.061956896Z"
     description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
@@ -7364,4 +7381,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-02T14:35:01.670212845Z"
+generated: "2026-10-02T21:12:33.165239506Z"
