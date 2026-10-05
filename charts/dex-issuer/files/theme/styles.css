@@ -21,6 +21,16 @@ a[href^="/auth/placeholder"] {
   display: none;
 }
 
+/* Hide the zitadel-service connector button - it exists only for machine/
+   service-account token exchange (centcom's cron service identity), never
+   for human browser login. Separate from the "zitadel" connector above
+   (which humans use) because it drops the "email" scope that machine
+   users don't carry - see innovation-day/AGENTS.md's "Service Identity
+   IDP Abstraction" section. */
+a[href^="/auth/zitadel-service"] {
+  display: none;
+}
+
 /* Upstream's own icon rule (main.css .dex-btn-icon) floats the icon as a
  * separate 36px chip with a margin on every side, so it now reads as pasted
  * onto the button rather than being part of it. Flush left again, full
