@@ -138,6 +138,22 @@ queryFrontend:
     limits:
       memory: 512Mi
 
+# Query Scheduler configuration
+queryScheduler:
+  replicas: 3
+
+# Index Gateway configuration
+indexGateway:
+  replicas: 3
+
+# Ruler configuration
+ruler:
+  replicas: 3
+
+# Compactor configuration
+compactor:
+  replicas: 1
+
 features:
   # Enable the CloudWatch kill job that removes CloudWatch ClusterOutputs
   # and ensures a null-output ClusterOutput exists

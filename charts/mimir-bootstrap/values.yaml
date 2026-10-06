@@ -81,8 +81,20 @@ limits:
   # Maximum number of exemplars stored per user (0 = disabled)
   maxGlobalExemplarsPerUser: 0
 
+# Gateway configuration
+gateway:
+  # -- Number of gateway replicas
+  replicas: 3
+
+# Distributor configuration
+distributor:
+  # -- Number of distributor replicas
+  replicas: 6
+
 # Query frontend configuration
 queryFrontend:
+  # -- Number of query-frontend replicas
+  replicas: 3
   resources:
     requests:
       cpu: 100m
@@ -92,6 +104,8 @@ queryFrontend:
 
 # Ingester configuration
 ingester:
+  # -- Number of ingester replicas
+  replicas: 9
   # -- Replication factor for ingested data.
   # RF=3 (default): Data replicated to 3 zones, can survive 2 zone failures.
   # RF=2: Data replicated to 2 zones, saves ~33% ingester memory but less durable.
@@ -114,6 +128,26 @@ querier:
       memory: 512Mi
     limits:
       memory: 1.5Gi
+
+# Admin-cache (memcached) configuration
+adminCache:
+  # -- Number of admin-cache replicas
+  replicas: 2
+
+# Chunks-cache (memcached) configuration
+chunksCache:
+  # -- Number of chunks-cache replicas
+  replicas: 2
+
+# Index-cache (memcached) configuration
+indexCache:
+  # -- Number of index-cache replicas
+  replicas: 2
+
+# Results-cache (memcached) configuration
+resultsCache:
+  # -- Number of results-cache replicas
+  replicas: 4
 
 store_gateway:
   persistentVolume:

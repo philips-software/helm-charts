@@ -21,7 +21,7 @@ backend:
           key: id
 
 queryScheduler:
-  replicas: 3
+  replicas: {{ .Values.queryScheduler.replicas }}
   resources:
     requests:
       cpu: 10m
@@ -55,7 +55,7 @@ ingester:
           key: id
 
 indexGateway:
-  replicas: 3
+  replicas: {{ .Values.indexGateway.replicas }}
   maxUnavailable: 1
   resources:
     requests:
@@ -73,7 +73,7 @@ indexGateway:
           key: id
 
 ruler:
-  replicas: 3
+  replicas: {{ .Values.ruler.replicas }}
   maxUnavailable: 1
   resources:
     requests:
@@ -91,7 +91,7 @@ ruler:
           key: id
 
 compactor:
-  replicas: 1
+  replicas: {{ .Values.compactor.replicas }}
   persistence:
     enabled: true
   resources:

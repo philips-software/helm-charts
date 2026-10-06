@@ -6,7 +6,7 @@ serviceAccount:
 
 gateway:
   enabled: true
-  replicas: 2
+  replicas: {{ .Values.gateway.replicas }}
   resources:
     requests:
       cpu: "120m"
@@ -23,7 +23,7 @@ ingest:
 
 blockBuilder:
   enabled: true
-  replicas: 3
+  replicas: {{ .Values.blockBuilder.replicas }}
   resources:
     requests:
       cpu: "120m"
@@ -41,7 +41,7 @@ blockBuilder:
 
 liveStore:
   enabled: true
-  replicas: 3
+  replicas: {{ .Values.liveStore.replicas }}
   resources:
     requests:
       cpu: "120m"
@@ -78,7 +78,7 @@ backendWorker:
           key: id
 
 distributor:
-  replicas: 2
+  replicas: {{ .Values.distributor.replicas }}
   resources:
     requests:
       cpu: "30m"
@@ -95,7 +95,7 @@ distributor:
           key: id
 
 querier:
-  replicas: 2
+  replicas: {{ .Values.querier.replicas }}
   resources:
     requests:
       cpu: "120m"
@@ -112,7 +112,7 @@ querier:
           key: id
 
 queryFrontend:
-  replicas: 2
+  replicas: {{ .Values.queryFrontend.replicas }}
   resources:
     requests:
       cpu: "120m"
@@ -131,7 +131,7 @@ queryFrontend:
 compactor:
   persistentVolume:
     size: 50Gi
-  replicas: 1
+  replicas: {{ .Values.compactor.replicas }}
   persistence:
     enabled: true
   resources:

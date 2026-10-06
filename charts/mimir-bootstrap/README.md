@@ -1,13 +1,13 @@
 # mimir
 
-![Version: 0.65.0](https://img.shields.io/badge/Version-0.65.0-informational?style=flat-square)
+![Version: 0.66.1](https://img.shields.io/badge/Version-0.66.1-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.65.0 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.66.1 -n monitoring
 ```
 
 ## Dependencies
@@ -18,17 +18,23 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| adminCache.replicas | int | `2` | Number of admin-cache replicas |
 | argoProject | string | `"default"` |  |
+| chunksCache.replicas | int | `2` | Number of chunks-cache replicas |
 | compactor.persistentVolume.size | string | `"80Gi"` | Size of the persistent volume for compactor |
 | compactor.resources.limits.memory | string | `"512Mi"` |  |
 | compactor.resources.requests.cpu | string | `"100m"` |  |
 | compactor.resources.requests.memory | string | `"256Mi"` |  |
 | compactorOrgmapper.package | string | `"ghcr.io/loafoe/compactor-orgmapper"` |  |
 | compactorOrgmapper.tag | string | `"v0.0.1"` |  |
+| distributor.replicas | int | `6` | Number of distributor replicas |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | existingBucketName | string | `""` |  |
+| gateway.replicas | int | `3` | Number of gateway replicas |
+| indexCache.replicas | int | `2` | Number of index-cache replicas |
 | ingester.persistentVolume.size | string | `"100Gi"` | Size of the persistent volume for each ingester replica |
+| ingester.replicas | int | `9` | Number of ingester replicas |
 | ingester.replicationFactor | int | `3` | Replication factor for ingested data. RF=3 (default): Data replicated to 3 zones, can survive 2 zone failures. RF=2: Data replicated to 2 zones, saves ~33% ingester memory but less durable. |
 | ingester.resources.limits.memory | string | `"8Gi"` |  |
 | ingester.resources.requests.cpu | string | `"200m"` |  |
@@ -42,6 +48,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | kafkaNodePool.nodeClassRefName | string | `"bottlerocket-v2"` |  |
 | kafkaNodePool.resources.limits.cpu | int | `4` |  |
 | kafkaNodePool.resources.limits.memory | string | `"16Gi"` |  |
+| kafkaNodePool.taintKey | string | `"cilium.hsp.philips.com/dedicated"` |  |
 | karpenter.doNotDisrupt | bool | `false` |  |
 | limits.maxGlobalExemplarsPerUser | int | `0` |  |
 | limits.maxLabelNamesPerSeries | int | `35` |  |
@@ -63,9 +70,11 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | querier.resources.limits.memory | string | `"1.5Gi"` |  |
 | querier.resources.requests.cpu | string | `"100m"` |  |
 | querier.resources.requests.memory | string | `"512Mi"` |  |
+| queryFrontend.replicas | int | `3` | Number of query-frontend replicas |
 | queryFrontend.resources.limits.memory | string | `"3Gi"` |  |
 | queryFrontend.resources.requests.cpu | string | `"100m"` |  |
 | queryFrontend.resources.requests.memory | string | `"512Mi"` |  |
+| resultsCache.replicas | int | `4` | Number of results-cache replicas |
 | ruler.maxRulesPerRuleGroup | int | `800` |  |
 | store_gateway.persistentVolume.size | string | `"10Gi"` | Size of the persistent volume for each store-gateway replica |
 | store_gateway.resources.limits.memory | string | `"3Gi"` |  |

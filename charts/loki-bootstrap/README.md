@@ -1,12 +1,13 @@
 # loki-bootstrap
 
-![Version: 0.45.0](https://img.shields.io/badge/Version-0.45.0-informational?style=flat-square)
+![Version: 0.45.2](https://img.shields.io/badge/Version-0.45.2-informational?style=flat-square)
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argoProject | string | `"default"` |  |
+| compactor.replicas | int | `1` |  |
 | compactorOrgmapper.package | string | `"ghcr.io/loafoe/compactor-orgmapper"` |  |
 | compactorOrgmapper.tag | string | `"v0.0.1"` |  |
 | distributor.replicas | int | `3` |  |
@@ -23,6 +24,7 @@
 | gateway.resources.limits.memory | string | `"128Mi"` |  |
 | gateway.resources.requests.cpu | string | `"50m"` |  |
 | gateway.resources.requests.memory | string | `"64Mi"` |  |
+| indexGateway.replicas | int | `3` |  |
 | ingester.replicas | int | `3` |  |
 | ingester.resources.limits.memory | string | `"10Gi"` |  |
 | ingester.resources.requests.cpu | string | `"500m"` |  |
@@ -40,7 +42,7 @@
 | loki.server.grpc_server_max_concurrent_streams | int | `1000` |  |
 | loki.server.grpc_server_max_recv_msg_size | int | `83886080` |  |
 | loki.server.grpc_server_max_send_msg_size | int | `83886080` |  |
-| lokiChart.version | string | `"18.13.7"` |  |
+| lokiChart.version | string | `"18.13.8"` |  |
 | multitenancyEnabled | bool | `true` |  |
 | patternIngester.extraArgs.grpc_max_recv_msg_size | int | `83886080` |  |
 | patternIngester.extraArgs.grpc_max_send_msg_size | int | `83886080` |  |
@@ -56,6 +58,8 @@
 | queryFrontend.resources.limits.memory | string | `"512Mi"` |  |
 | queryFrontend.resources.requests.cpu | string | `"10m"` |  |
 | queryFrontend.resources.requests.memory | string | `"256Mi"` |  |
+| queryScheduler.replicas | int | `3` |  |
+| ruler.replicas | int | `3` |  |
 | vpa.components.compactor.enabled | bool | `true` |  |
 | vpa.components.compactor.maxAllowed.memory | string | `"1Gi"` |  |
 | vpa.components.compactor.minAllowed.memory | string | `"128Mi"` |  |

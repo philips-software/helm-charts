@@ -30,6 +30,41 @@ streamOverHTTPEnabled: true
 
 multitenancyEnabled: true
 
+# Gateway configuration
+gateway:
+  # -- Number of gateway replicas
+  replicas: 2
+
+# Block-builder configuration
+blockBuilder:
+  # -- Number of block-builder replicas
+  replicas: 3
+
+# Live-store configuration
+liveStore:
+  # -- Number of live-store replicas
+  replicas: 3
+
+# Distributor configuration
+distributor:
+  # -- Number of distributor replicas
+  replicas: 2
+
+# Querier configuration
+querier:
+  # -- Number of querier replicas
+  replicas: 2
+
+# Query-frontend configuration
+queryFrontend:
+  # -- Number of query-frontend replicas
+  replicas: 2
+
+# Compactor configuration
+compactor:
+  # -- Number of compactor replicas
+  replicas: 1
+
 kafka:
   persistence:
     size: 100Gi
