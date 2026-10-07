@@ -1,4 +1,4 @@
 apiVersion: v2
 name: mimir-bootstrap
-version: 0.66.1
+version: 0.66.2
 description: A Helm chart for bootstrapping Mimir
