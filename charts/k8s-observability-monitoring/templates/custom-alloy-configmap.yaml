@@ -527,4 +527,14 @@ data:
       enabled = true
     }
     {{- end }}
+
+    {{- /* Raw Alloy config appended verbatim (no tpl: Alloy configs legitimately
+           contain "{{ }}" in loki.process templates). Lets users add extra
+           pipelines, e.g. prometheus.scrape of external targets, that forward
+           into otelcol.receiver.prometheus.default.receiver. */}}
+    {{- with .Values.customAlloy.extraConfig }}
+
+    // Extra config (customAlloy.extraConfig)
+    {{- . | nindent 4 }}
+    {{- end }}
 {{- end }}
