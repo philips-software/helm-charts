@@ -8,7 +8,7 @@ spec:
     budgets:
     - nodes: 10%
     consolidateAfter: 300s
-    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidationPolicy: {{ .Values.kafkaNodePool.consolidationPolicy | default "WhenEmpty" }}
   limits:
     amd.com/gpu: 0
     aws.amazon.com/neuron: 0
