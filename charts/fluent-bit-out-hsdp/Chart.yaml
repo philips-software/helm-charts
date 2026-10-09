@@ -6,7 +6,7 @@ keywords:
   - fluent-bit
   - fluentd
   - hsdp
-version: 0.14.0
+version: 0.14.1
 # appVersion intentionally omitted: this chart has no templates/ of its own
 # (it vendors fluent-bit as a Helm dependency below), so appVersion was never
 # referenced by anything -- it only duplicated, and had already drifted from,
@@ -22,5 +22,5 @@ maintainers:
 dependencies:
   - name: fluent-bit
     # renovate: datasource=helm depName=fluent-bit registryUrl=https://fluent.github.io/helm-charts
-    version: 0.56.0
+    version: 0.58.3
     repository: https://fluent.github.io/helm-charts
