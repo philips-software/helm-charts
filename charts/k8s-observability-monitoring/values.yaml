@@ -245,6 +245,15 @@ customAlloy:
     extraMetricProcessingRules: ""
   kubelet:
     enabled: false
+  # -- Raw Alloy configuration appended verbatim to the custom Alloy config.alloy.
+  # Use it to add pipelines the chart does not model, e.g. a prometheus.scrape
+  # of targets outside the cluster. Forward metrics to
+  # otelcol.receiver.prometheus.default.receiver to reuse the chart's OTLP
+  # pipeline (batching, auth, destinations). Not passed through tpl.
+  # When clustering.enabled is true, add `clustering { enabled = true }` to
+  # scrape blocks so the targets are sharded across replicas instead of being
+  # scraped once per replica.
+  extraConfig: ""
   # -- Liveness probe for the alloy container. timeoutSeconds defaults to 5 (not
   # Kubernetes' implicit 1s) because this single binary also runs OTLP export
   # queues/retries and (when clustering is enabled) gossip -- a busy retry loop
