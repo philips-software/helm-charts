@@ -4435,6 +4435,13 @@ entries:
     version: 0.0.14
   grafana:
   - apiVersion: v2
+    created: "2026-10-09T19:55:46.810714491Z"
+    digest: c1b2c0c3b799a296b4d2ce5818cac4e7245a36fceed9295deececbbea1db4f2a
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.79.2/grafana-0.79.2.tgz
+    version: 0.79.2
+  - apiVersion: v2
     created: "2026-10-09T19:55:23.797714257Z"
     digest: 357acbe9a3d8d7d353a970a277b43f4407e8736960860fd2a1c093f030b304e8
     name: grafana
@@ -5260,6 +5267,15 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/hsp-observability-monitoring-0.0.1/hsp-observability-monitoring-0.0.1.tgz
     version: 0.0.1
   k8s-observability-monitoring:
+  - apiVersion: v2
+    appVersion: 4.5.3
+    created: "2026-10-09T19:55:47.006980664Z"
+    description: Helm chart for k8s-observability-monitoring
+    digest: f38e3352a240c96911dc7799108283c1042aabe1f66d28eef4cbfb0c980afbe1
+    name: k8s-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-1.7.3/k8s-observability-monitoring-1.7.3.tgz
+    version: 1.7.3
   - apiVersion: v2
     appVersion: 4.5.3
     created: "2026-10-09T17:29:46.936537743Z"
@@ -7812,4 +7828,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-09T19:55:35.552441833Z"
+generated: "2026-10-09T19:55:47.007716123Z"
