@@ -10,7 +10,7 @@ grafana:
   connector: ""
   # SSO OIDC group to Grafana role mapping (JMESPath expression)
   # Maps groups from OIDC provider to Grafana roles
-  ssoRoleAttributePath: "contains(join(' ', groups), 'grafana-superadmins') && 'GrafanaAdmin' || contains(join(' ', groups), 'grafana-admins')  && 'Admin' || contains(join(' ', groups), 'grafana-editors') && 'Editor' || contains(join(' ', groups), 'grafana-viewers') && 'Viewer' || 'None'"
+  ssoRoleAttributePath: ""
   # SSO OIDC claim to use for login/username (JMESPath expression)
   ssoLoginAttributePath: "email"
   # SSO OIDC claim to use for email address (JMESPath expression)

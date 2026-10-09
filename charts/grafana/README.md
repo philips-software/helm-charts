@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.78.8](https://img.shields.io/badge/Version-0.78.8-informational?style=flat-square)
+![Version: 0.79.0](https://img.shields.io/badge/Version-0.79.0-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -168,10 +168,10 @@ Users not in any of these groups will have the 'None' role and no access.
 | grafana.ssoAuthEnabled | bool | `false` |  |
 | grafana.ssoEmailAttributePath | string | `"email"` |  |
 | grafana.ssoLoginAttributePath | string | `"email"` |  |
-| grafana.ssoRoleAttributePath | string | `"contains(join(' ', groups), 'grafana-superadmins') && 'GrafanaAdmin' || contains(join(' ', groups), 'grafana-admins')  && 'Admin' || contains(join(' ', groups), 'grafana-editors') && 'Editor' || contains(join(' ', groups), 'grafana-viewers') && 'Viewer' || 'None'"` |  |
+| grafana.ssoRoleAttributePath | string | `""` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
-| grafanaChart.version | string | `"13.2.7"` |  |
+| grafanaChart.version | string | `"13.3.1"` |  |
 | useCustomFqdn | bool | `true` |  |
 
 ----------------------------------------------
