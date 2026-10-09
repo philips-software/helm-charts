@@ -7603,6 +7603,24 @@ entries:
     version: 0.34.0
   zitadel-bootstrap:
   - apiVersion: v2
+    created: "2026-10-09T15:56:57.138466962Z"
+    description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with
+      CNPG Postgres and Gateway API ingress
+    digest: 4bbdfbea9cc287c94200052d83d90d272e98fc425337d4caa709dd7e77417e95
+    keywords:
+    - zitadel
+    - identity
+    - oidc
+    - iam
+    - sso
+    - argocd
+    - bootstrap
+    name: zitadel-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.2.2/zitadel-bootstrap-0.2.2.tgz
+    version: 0.2.2
+  - apiVersion: v2
     created: "2026-10-06T08:43:06.289064803Z"
     description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with
       CNPG Postgres and Gateway API ingress
@@ -7656,4 +7674,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-09T12:46:12.625357598Z"
+generated: "2026-10-09T15:56:57.139201706Z"
