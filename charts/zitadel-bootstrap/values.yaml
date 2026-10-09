@@ -4,7 +4,7 @@
 zitadelChart:
   repoURL: https://charts.zitadel.com
   # renovate: datasource=helm depName=zitadel registryUrl=https://charts.zitadel.com
-  version: 10.3.0
+  version: 10.4.0
 
 # ArgoCD project name
 argoProject: default
