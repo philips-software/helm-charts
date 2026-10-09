@@ -964,6 +964,29 @@ entries:
   centcom-satellite:
   - apiVersion: v2
     appVersion: v0.84.0
+    created: "2026-10-09T17:50:21.974612004Z"
+    description: A lightweight Kubernetes helper service for webhook-triggered cluster
+      operations
+    digest: 7f68011a6a319d1f32e9935f24ca11293606dc78e09503f93894894516c71c61
+    home: https://github.com/loafoe/centcom-satellite
+    keywords:
+    - kubernetes
+    - pvc
+    - resize
+    - spire
+    - spiffe
+    maintainers:
+    - email: andy.lo-a-foe@philips.com
+      name: Andy Lo-A-Foe
+    name: centcom-satellite
+    sources:
+    - https://github.com/loafoe/centcom-satellite
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/centcom-satellite-0.38.1/centcom-satellite-0.38.1.tgz
+    version: 0.38.1
+  - apiVersion: v2
+    appVersion: v0.84.0
     created: "2026-10-07T06:50:04.629332185Z"
     description: A lightweight Kubernetes helper service for webhook-triggered cluster
       operations
@@ -6199,6 +6222,14 @@ entries:
     version: 0.1.0
   loki-bootstrap:
   - apiVersion: v2
+    created: "2026-10-09T17:50:22.153656391Z"
+    description: A Helm chart for bootstrapping Loki
+    digest: 52d8f40455af1e1d7ad1874d69fcfecb25611ff847f15c7dbba2ca86f1450283
+    name: loki-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.45.4/loki-bootstrap-0.45.4.tgz
+    version: 0.45.4
+  - apiVersion: v2
     created: "2026-10-09T06:51:14.258982514Z"
     description: A Helm chart for bootstrapping Loki
     digest: 02da83945b451fe61987de4542d733bf73644f72c9ef5f66740f2350c65f6484
@@ -7683,4 +7714,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-09T17:29:46.936978349Z"
+generated: "2026-10-09T17:50:22.620332926Z"
