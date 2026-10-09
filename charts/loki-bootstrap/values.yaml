@@ -193,8 +193,11 @@ vpa:
       enabled: true
       minAllowed:
         memory: 150Mi
+      # Was 8Gi (53x minAllowed -- the widest min/max spread of any VPA in
+      # this repo against a 150Mi/250Mi baseline). Halved; still configurable
+      # per-cluster if more headroom is genuinely needed.
       maxAllowed:
-        memory: 8Gi
+        memory: 4Gi
     indexGateway:
       enabled: true
       minAllowed:

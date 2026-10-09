@@ -1,3 +1,4 @@
+{{- if and .Values.vpa.enabled .Values.vpa.components.backendWorker.enabled }}
 apiVersion: "autoscaling.k8s.io/v1"
 kind: VerticalPodAutoscaler
 metadata:
@@ -12,14 +13,13 @@ spec:
     name: tempo-backend-worker
   updatePolicy:
     minReplicas: 1
-    updateMode: Auto
+    updateMode: {{ .Values.vpa.updateMode | default "Auto" }}
   resourcePolicy:
     containerPolicies:
       - containerName: '*'
         minAllowed:
-          cpu: 10m
-          memory: 600Mi
+          {{- toYaml .Values.vpa.components.backendWorker.minAllowed | nindent 10 }}
         maxAllowed:
-          cpu: 1
-          memory: 12Gi
+          {{- toYaml .Values.vpa.components.backendWorker.maxAllowed | nindent 10 }}
         controlledResources: ["memory", "cpu"]
+{{- end }}

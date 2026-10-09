@@ -92,3 +92,89 @@ kafkaNodePool:
       memory: 16Gi
   expireAfter: 3600h  # half a year
 
+# Vertical Pod Autoscalers for Tempo components. Requires the VPA CRDs.
+# Previously hardcoded directly in the templates with no values.yaml
+# plumbing or enable toggle; now configurable per-component like the other
+# *-bootstrap charts.
+vpa:
+  # -- Enable VPA resources for Tempo components
+  enabled: true
+  # -- VPA update mode (e.g. Off, Initial, Auto, InPlaceOrRecreate)
+  updateMode: Auto
+  components:
+    backendScheduler:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 100Mi
+      maxAllowed:
+        cpu: 1
+        memory: 4Gi
+    backendWorker:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 600Mi
+      maxAllowed:
+        cpu: 1
+        memory: 12Gi
+    blockBuilder:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 200Mi
+      maxAllowed:
+        cpu: 2
+        memory: 8Gi
+    distributor:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 50Mi
+      maxAllowed:
+        cpu: 1
+        # Was 4Gi (80x minAllowed -- the widest min/max spread of any VPA in
+        # this repo). Halved; now configurable per-cluster if more headroom
+        # is genuinely needed.
+        memory: 2Gi
+    gateway:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 100Mi
+      maxAllowed:
+        cpu: 1
+        memory: 4Gi
+    liveStore:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 200Mi
+      maxAllowed:
+        cpu: 2
+        memory: 8Gi
+    metricsGenerator:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 100Mi
+      maxAllowed:
+        cpu: 1
+        memory: 4Gi
+    querier:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 100Mi
+      maxAllowed:
+        cpu: 1
+        memory: 4Gi
+    queryFrontend:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 100Mi
+      maxAllowed:
+        cpu: 1
+        memory: 4Gi
+

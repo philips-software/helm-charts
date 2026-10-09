@@ -1,3 +1,4 @@
+{{- if and .Values.vpa.enabled .Values.vpa.components.distributor.enabled }}
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
@@ -12,14 +13,13 @@ spec:
     name: "mimir-distributor"
   updatePolicy:
     minReplicas: 3
-    updateMode: Auto
+    updateMode: {{ .Values.vpa.updateMode | default "Auto" }}
   resourcePolicy:
     containerPolicies:
       - containerName: '*'
         minAllowed:
-          cpu: 350m
-          memory: 512Mi
+          {{- toYaml .Values.vpa.components.distributor.minAllowed | nindent 10 }}
         maxAllowed:
-          cpu: 1
-          memory: 8Gi
+          {{- toYaml .Values.vpa.components.distributor.maxAllowed | nindent 10 }}
         controlledResources: ["memory", "cpu"]
+{{- end }}

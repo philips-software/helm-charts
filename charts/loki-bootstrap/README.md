@@ -1,6 +1,6 @@
 # loki-bootstrap
 
-![Version: 0.45.2](https://img.shields.io/badge/Version-0.45.2-informational?style=flat-square)
+![Version: 0.45.4](https://img.shields.io/badge/Version-0.45.4-informational?style=flat-square)
 
 ## Values
 
@@ -42,7 +42,7 @@
 | loki.server.grpc_server_max_concurrent_streams | int | `1000` |  |
 | loki.server.grpc_server_max_recv_msg_size | int | `83886080` |  |
 | loki.server.grpc_server_max_send_msg_size | int | `83886080` |  |
-| lokiChart.version | string | `"18.13.8"` |  |
+| lokiChart.version | string | `"18.14.0"` |  |
 | multitenancyEnabled | bool | `true` |  |
 | patternIngester.extraArgs.grpc_max_recv_msg_size | int | `83886080` |  |
 | patternIngester.extraArgs.grpc_max_send_msg_size | int | `83886080` |  |
@@ -79,7 +79,7 @@
 | vpa.components.patternIngester.maxAllowed.memory | string | `"4Gi"` |  |
 | vpa.components.patternIngester.minAllowed.memory | string | `"512Mi"` |  |
 | vpa.components.querier.enabled | bool | `true` |  |
-| vpa.components.querier.maxAllowed.memory | string | `"8Gi"` |  |
+| vpa.components.querier.maxAllowed.memory | string | `"4Gi"` |  |
 | vpa.components.querier.minAllowed.memory | string | `"150Mi"` |  |
 | vpa.enabled | bool | `false` |  |
 | vpa.updateMode | string | `"InPlaceOrRecreate"` |  |

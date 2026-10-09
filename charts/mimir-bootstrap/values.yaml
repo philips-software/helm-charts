@@ -182,3 +182,49 @@ karpenter:
   # If true, stateful components (ingester, store-gateway, etc.) will be annotated
   # with karpenter.sh/do-not-disrupt: "true" to prevent consolidation.
   doNotDisrupt: false
+
+# Vertical Pod Autoscalers for Mimir components. Requires the VPA CRDs.
+# Previously hardcoded directly in the templates with no values.yaml
+# plumbing or enable toggle; now configurable per-component like the other
+# *-bootstrap charts.
+vpa:
+  # -- Enable VPA resources for Mimir components
+  enabled: true
+  # -- VPA update mode (e.g. Off, Initial, Auto, InPlaceOrRecreate)
+  updateMode: Auto
+  components:
+    distributor:
+      enabled: true
+      minAllowed:
+        cpu: 350m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 1
+        memory: 8Gi
+    ingester:
+      enabled: true
+      minAllowed:
+        cpu: 350m
+        memory: 2Gi
+      maxAllowed:
+        cpu: 1
+        memory: 16Gi
+    querier:
+      enabled: true
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 500m
+        memory: 2Gi
+    queryFrontend:
+      enabled: true
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 500m
+        # Was 2Gi, which sat below queryFrontend.resources.limits.memory (3Gi)
+        # above -- the VPA could never reach the already-configured static
+        # limit. Set with headroom above it instead.
+        memory: 4Gi

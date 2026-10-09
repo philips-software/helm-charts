@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.31.0](https://img.shields.io/badge/Version-0.31.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.75.0](https://img.shields.io/badge/AppVersion-v0.75.0-informational?style=flat-square)
+![Version: 0.38.1](https://img.shields.io/badge/Version-0.38.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.84.0](https://img.shields.io/badge/AppVersion-v0.84.0-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -235,6 +235,8 @@ See `CROSS-ACCOUNT-ASSUMEROLE.md` in the innovation-day repo for the full onboar
 | features.cloudwatchRca | bool | `false` | Enable CloudWatch RCA tasks (7 tasks: describe/list/tag APIs for alarms, metrics, log groups, Cost Explorer). Sets CLOUDWATCH_RCA_ENABLED. Requires AWS credentials via IRSA (aws.irsa) or ambient credentials. |
 | features.getResource | bool | `true` | Enable get_resource task for fetching arbitrary Kubernetes resources |
 | features.guardduty | bool | `false` | Enable GuardDuty tasks (5 tasks: list detectors, findings statistics, list/get findings, and a list+hydrate composite). Sets GUARDDUTY_ENABLED. Independently toggleable from cloudwatchRca. Requires AWS credentials via IRSA (aws.irsa) or ambient credentials; attaches the read-only GuardDuty policy to the IRSA role. |
+| features.helmApplication | bool | `true` | Enable HelmApplication (dip.io Crossplane composite) read access for get_resource/list_resources — Applications view read path. Requires features.getResource to also be true (get_resource/list_resources are the tasks that actually serve reads; this flag only grants RBAC) — enabling this alone with getResource:false leaves RBAC present but no task registered to use it. |
+| features.helmApplicationWrite | bool | `false` | Enable HelmApplication create/update/patch/delete (write path for helm_application_apply/_delete/_sync — Applications view deploy/sync/ delete). Independently toggleable from features.helmApplication (which only grants read); opt-in per cluster, off by default like other write-capable features (pvResize, podEvict, etc). |
 | features.httpRequest | bool | `false` | Enable http_request task for making HTTP requests to cluster-internal services. Useful for admin endpoints, ring management, config reloads, debugging. Only allows requests to cluster-internal addresses (pods, services) |
 | features.nodeclaimDelete | bool | `false` | Enable nodeclaim_delete task for Karpenter node management. When enabled, grants get/delete on karpenter.sh nodeclaims |
 | features.podEvict | bool | `false` | Enable pod_evict task for evicting/deleting pods. When enabled, grants eviction create, pod delete, and read on PDBs |
@@ -311,7 +313,7 @@ See `CROSS-ACCOUNT-ASSUMEROLE.md` in the innovation-day repo for the full onboar
 | vpa.enabled | bool | `true` | Enable creation of a VerticalPodAutoscaler resource (requires the VPA CRDs) |
 | vpa.inPlaceResize | bool | `false` | Enable in-place resize (requires K8s 1.27+ with InPlacePodVerticalScaling feature gate) |
 | vpa.maxAllowed | object | `{"cpu":"500m","memory":"1Gi"}` | Upper bound on resources the VPA will recommend |
-| vpa.minAllowed | object | `{"cpu":"5m","memory":"16Mi"}` | Lower bound on resources the VPA will recommend |
+| vpa.minAllowed | object | `{"cpu":"5m","memory":"32Mi"}` | at the largest tier (6Gi maxAllowed) a 16Mi floor was a 384x spread. 32Mi matches the chart's own baseline resources.requests.memory default. |
 | vpa.minReplicas | int | `1` | Minimum replicas the VPA will allow while resizing |
 | vpa.updateMode | string | `"InPlaceOrRecreate"` | VPA update mode (e.g. Off, Initial, Auto, InPlaceOrRecreate) |
 

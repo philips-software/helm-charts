@@ -413,10 +413,14 @@ vpa:
   inPlaceResize: false
   # -- Minimum replicas the VPA will allow while resizing
   minReplicas: 1
-  # -- Lower bound on resources the VPA will recommend
+  # -- Lower bound on resources the VPA will recommend. install.sh's
+  # discover_memory tiers maxAllowed (and the static limit) from cluster pod
+  # count but never touches this floor, so it stays fixed across every tier
+  # -- at the largest tier (6Gi maxAllowed) a 16Mi floor was a 384x spread.
+  # 32Mi matches the chart's own baseline resources.requests.memory default.
   minAllowed:
     cpu: 5m
-    memory: 16Mi
+    memory: 32Mi
   # -- Upper bound on resources the VPA will recommend
   maxAllowed:
     cpu: 500m
