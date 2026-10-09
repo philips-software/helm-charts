@@ -274,19 +274,25 @@ customAlloy:
   resources:
     requests:
       cpu: 100m
-      memory: 512Mi
-    limits:
       memory: 1Gi
+    limits:
+      memory: 2Gi
   # -- VerticalPodAutoscaler for customAlloy. Enabled by default: clustering
   # deployments outgrow the static requests under real metric volume and OOMKill
   # at fixed limits. VPA (memory-only) right-sizes them within min/maxAllowed.
+  # maxAllowed is deliberately capped well below the admission controller's old
+  # 8Gi ceiling: a single stale/transient memory peak (e.g. a WAL or ingest
+  # burst) could otherwise drive the recommender target -- and thus the live
+  # request/limit -- up to that ceiling and keep it there long after the spike
+  # passed, even though steady-state usage is under 1Gi. 2Gi still leaves
+  # headroom above observed usage for genuine growth before it needs revisiting.
   vpa:
     enabled: true
     updateMode: "InPlaceOrRecreate"
     minAllowed:
       memory: 512Mi
     maxAllowed:
-      memory: 8Gi
+      memory: 2Gi
 
 # -- Kyverno PolicyException configuration
 kyverno:
