@@ -17,7 +17,7 @@ agentgatewayChart:
   repoURL: oci://cr.agentgateway.dev/charts
   # Version for agentgateway chart
   # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway
-  version: v1.6.0
+  version: v2.2.1
 
 # Upstream agentgateway-standalone Helm chart configuration
 agentgatewayStandaloneChart:
