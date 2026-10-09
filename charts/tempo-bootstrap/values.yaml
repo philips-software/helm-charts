@@ -79,6 +79,13 @@ kafkaNodePool:
   # node-collector) can still be scheduled here.
   taintKey: cilium.hsp.philips.com/dedicated
   nodeClassRefName: bottlerocket-v2
+  # Consolidation policy for the dedicated Kafka node pool. This pool hosts
+  # the sole broker for live metrics ingestion, so nodes must never be torn
+  # down while still in use. "WhenEmptyOrUnderutilized" allows Karpenter to
+  # drain/replace nodes that look underutilized, which can disrupt the
+  # broker. Keep this as "WhenEmpty" (or set to "WhenEmptyOrUnderutilized"
+  # only if you fully understand the risk).
+  consolidationPolicy: WhenEmpty
   resources:
     limits:
       cpu: 4
