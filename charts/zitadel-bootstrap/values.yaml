@@ -39,6 +39,10 @@ namespace: zitadel-system
 database:
   # Cluster resource name. Defaults to "zitadel-db" if unset.
   clusterName: ""
+  # Bump to 2+ for failover HA (same as centcom's own CNPG cluster) - a
+  # replica exists and this chart automatically adds anti-affinity (see
+  # templates/postgres-cluster.yaml) so it lands on a different node than
+  # the primary. At 1 (the default here), there's nothing to fail over to.
   instances: 1
   databaseName: zitadel
   storage:
@@ -51,6 +55,14 @@ database:
       memory: 128Mi
     limits:
       memory: 512Mi
+  # Optional, additive PodDisruptionBudget across every instance of this
+  # cluster (templates/postgres-pdb.yaml) - separate from the
+  # "<cluster>-primary" PDB CNPG itself always creates unconditionally.
+  # Only renders when instances > 1; see that template's header comment for
+  # why a PDB at instances: 1 would have zero availability upside.
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
 
 # Static credentials referenced directly in the upstream chart's valuesObject.
 # MUST stay static (no runtime generation) — ArgoCD renders this chart via

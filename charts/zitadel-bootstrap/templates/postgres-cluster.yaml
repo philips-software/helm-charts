@@ -9,6 +9,16 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   instances: {{ .Values.database.instances }}
+  {{- if gt (int .Values.database.instances) 1 }}
+  # Only meaningful with a spare instance to land it on a different node -
+  # same podAntiAffinityType centcom's own CNPG cluster uses, so a replica
+  # actually survives losing whichever node the primary is on. CNPG itself
+  # already creates a "<cluster>-primary" PDB unconditionally (protects the
+  # primary from any voluntary eviction, even at instances: 1), independent
+  # of this.
+  affinity:
+    podAntiAffinityType: preferred
+  {{- end }}
   bootstrap:
     initdb:
       database: {{ .Values.database.databaseName | quote }}

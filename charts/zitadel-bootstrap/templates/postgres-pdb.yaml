@@ -1,0 +1,33 @@
+{{- /*
+Optional, additive PDB across every instance of this CNPG cluster. CNPG
+itself already creates its own "<cluster>-primary" PDB unconditionally
+(minAvailable: 1, selector cnpg.io/instanceRole: primary) regardless of
+instance count - that's why one already exists even at database.instances: 1
+- so this is not what makes the database HA.
+
+Real DB HA (the thing centcom's own CNPG cluster has and this one didn't)
+comes from database.instances > 1 plus the anti-affinity this chart adds
+automatically once instances > 1 (see postgres-cluster.yaml), so a replica
+exists and lands on a different node than the primary.
+
+This toggle exists for the same reason charts/centcom's own templates/pdb.yaml
+does: an explicit, documented lever, guarded the same way - at instances: 1
+there's no spare instance to fail over to, so a PDB here would only block
+Karpenter's voluntary node eviction (until it force-terminates) with zero
+availability upside. Skip rendering entirely rather than holding a node
+hostage for nothing.
+*/}}
+{{- if and .Values.database.podDisruptionBudget.enabled (gt (int .Values.database.instances) 1) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "zitadel-bootstrap.postgresClusterName" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "zitadel-bootstrap.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.database.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      cnpg.io/cluster: {{ include "zitadel-bootstrap.postgresClusterName" . }}
+{{- end }}
