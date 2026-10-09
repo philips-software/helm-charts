@@ -4169,6 +4169,30 @@ entries:
     version: 0.1.0
   fluent-bit-out-hsdp:
   - apiVersion: v2
+    created: "2026-10-09T19:54:51.940257444Z"
+    dependencies:
+    - name: fluent-bit
+      repository: https://fluent.github.io/helm-charts
+      version: 0.58.3
+    description: Installs the Fluentbit HSP out plugin.
+    digest: 02bb1b7282e838210794e432cf7aa4f01237142588f06793f95020f97e2e0550
+    home: https://github.com/philips-software/fluent-bit-out-hsdp
+    icon: https://fluentbit.io/images/logo.svg
+    keywords:
+    - logging
+    - fluent-bit
+    - fluentd
+    - hsdp
+    maintainers:
+    - email: andy.loafoe@gmail.com
+      name: loafoe
+    name: fluent-bit-out-hsdp
+    sources:
+    - https://github.com/philips-software/fluent-bit-out-hsdp/
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.14.1/fluent-bit-out-hsdp-0.14.1.tgz
+    version: 0.14.1
+  - apiVersion: v2
     created: "2026-09-30T08:54:41.145519291Z"
     dependencies:
     - name: fluent-bit
@@ -7748,4 +7772,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-09T19:54:31.849175421Z"
+generated: "2026-10-09T19:54:51.940822888Z"
