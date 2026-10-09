@@ -2,7 +2,7 @@ apiVersion: v2
 name: crossplane-providers
 description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or EKS Pod Identity configuration
 type: application
-version: 0.0.38
+version: 0.0.39
 # appVersion intentionally omitted: the real, actually-deployed provider
 # version is package.version in values.yaml (renovate-tracked there too,
 # used directly by the provider package manifests). Both fields tracked the
