@@ -5147,6 +5147,15 @@ entries:
     version: 0.0.1
   k8s-observability-monitoring:
   - apiVersion: v2
+    appVersion: 4.5.3
+    created: "2026-10-09T06:56:03.047451747Z"
+    description: Helm chart for k8s-observability-monitoring
+    digest: e7551473f78bb547aa2a6afa6fd61b6297b539165405cb1ec467629b641d6d80
+    name: k8s-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-1.7.1/k8s-observability-monitoring-1.7.1.tgz
+    version: 1.7.1
+  - apiVersion: v2
     appVersion: 4.5.2
     created: "2026-10-09T06:54:12.691927058Z"
     description: Helm chart for k8s-observability-monitoring
@@ -5820,6 +5829,23 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/k8sgpt-bootstrap-0.1.0/k8sgpt-bootstrap-0.1.0.tgz
     version: 0.1.0
   langfuse-bootstrap:
+  - apiVersion: v2
+    created: "2026-10-09T06:56:03.223277071Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: 224d1d15a3b138b3f0c28b978fedbe01229d47146d2b729ae57cb307187b5e6b
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.7.4/langfuse-bootstrap-0.7.4.tgz
+    version: 0.7.4
   - apiVersion: v2
     created: "2026-10-09T06:55:32.570634883Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
@@ -7587,4 +7613,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-09T06:55:43.758157487Z"
+generated: "2026-10-09T06:56:03.440337548Z"
