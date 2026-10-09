@@ -1,13 +1,13 @@
 # mimir
 
-![Version: 0.66.1](https://img.shields.io/badge/Version-0.66.1-informational?style=flat-square)
+![Version: 0.66.3](https://img.shields.io/badge/Version-0.66.3-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.66.1 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.66.3 -n monitoring
 ```
 
 ## Dependencies
@@ -42,6 +42,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | initOverrides.package | string | `"busybox"` |  |
 | initOverrides.tag | string | `"1.38.0"` |  |
 | kafka.persistence.size | string | `"100Gi"` |  |
+| kafkaNodePool.consolidationPolicy | string | `"WhenEmpty"` |  |
 | kafkaNodePool.enabled | bool | `true` |  |
 | kafkaNodePool.expireAfter | string | `"3600h"` |  |
 | kafkaNodePool.labels.workload | string | `"kafka"` |  |
@@ -53,7 +54,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | limits.maxGlobalExemplarsPerUser | int | `0` |  |
 | limits.maxLabelNamesPerSeries | int | `35` |  |
 | limits.outOfOrderTimeWindow | string | `"30m"` |  |
-| mimirChart.version | string | `"6.2.0"` |  |
+| mimirChart.version | string | `"6.2.1"` |  |
 | mimirProvider.alertmanagerUri | string | `"http://mimir-gateway.mimir-system.svc.cluster.local"` |  |
 | mimirProvider.credentials.authType | string | `"basic"` |  |
 | mimirProvider.credentials.passwordKey | string | `"password"` |  |
