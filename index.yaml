@@ -4335,6 +4335,13 @@ entries:
     version: 0.0.14
   grafana:
   - apiVersion: v2
+    created: "2026-10-09T06:51:29.636359607Z"
+    digest: 50f5bd5f77ff61efc64feb517883fb2c27c468e808c2088b867f56e109aa002d
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.78.10/grafana-0.78.10.tgz
+    version: 0.78.10
+  - apiVersion: v2
     created: "2026-10-02T14:35:01.668983343Z"
     digest: 92ce80884fe062db340092b25dcc8e5cef72326747b0475ad2b67c3e10b02b4e
     name: grafana
@@ -7538,4 +7545,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-09T06:51:14.259682964Z"
+generated: "2026-10-09T06:51:29.637202937Z"
