@@ -9,7 +9,7 @@ agentgatewayCrdsChart:
   repoURL: oci://cr.agentgateway.dev/charts
   # Version for agentgateway-crds chart
   # renovate: datasource=docker depName=cr.agentgateway.dev/charts/agentgateway-crds
-  version: v1.6.0
+  version: v2.2.1
 
 # Upstream agentgateway Helm chart configuration
 agentgatewayChart:
