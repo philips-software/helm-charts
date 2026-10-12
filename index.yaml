@@ -5432,6 +5432,15 @@ entries:
   k8s-observability-monitoring:
   - apiVersion: v2
     appVersion: 4.5.3
+    created: "2026-10-12T13:12:48.121769108Z"
+    description: Helm chart for k8s-observability-monitoring
+    digest: 6cb2df7305bbad06eda6e2d64ec61cb771df217ccff0477a5d65fabeb4eb7886
+    name: k8s-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-1.8.1/k8s-observability-monitoring-1.8.1.tgz
+    version: 1.8.1
+  - apiVersion: v2
+    appVersion: 4.5.3
     created: "2026-10-12T12:41:48.560059817Z"
     description: Helm chart for k8s-observability-monitoring
     digest: 6969193159c8898190c18b200bd78deb2eb2dfce2a1799ba312316480dd5f80a
@@ -8033,4 +8042,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-12T12:41:48.561273635Z"
+generated: "2026-10-12T13:12:48.122940652Z"
