@@ -158,15 +158,19 @@ telemetryServices:
   node-exporter:
     deploy: false
 
-# -- Toleration for the platform's "dedicated node" taint (e.g. the kafka-dedicated nodes
-# created by mimir-bootstrap/tempo-bootstrap's kafkaNodePool), so the DaemonSets this chart
-# deploys -- alloy-logs for node logs, and node-exporter for host metrics when enabled --
-# still land on those nodes. Defaults mirror kafkaNodePool.taintKey/value from those charts.
+# -- Toleration for the platform's "dedicated node" taint key (e.g. the kafka/tempo-kafka
+# dedicated nodes created by mimir-bootstrap/tempo-bootstrap's kafkaNodePool), so the
+# DaemonSets this chart deploys -- alloy-logs for node logs, and node-exporter for host
+# metrics when enabled -- still land on those nodes. Defaults to operator: Exists (no
+# value match) since different bootstrap charts taint their dedicated nodes with different
+# values under the same key (mimir-bootstrap: "kafka", tempo-bootstrap: "tempo-kafka") --
+# matching on the key alone covers all of them, including any added in the future, without
+# further chart changes. Set operator: Equal and value: <taint-value> to match one value only.
 dedicatedNodeToleration:
   enabled: true
   key: cilium.hsp.philips.com/dedicated
-  operator: Equal
-  value: kafka
+  operator: Exists
+  value: ""
   effect: NoSchedule
 
 # -- Common collector settings (applies to all Alloy instances managed by operator).

@@ -94,7 +94,9 @@ controller:
   tolerations:
     - key: {{ .Values.dedicatedNodeToleration.key | quote }}
       operator: {{ .Values.dedicatedNodeToleration.operator | quote }}
+      {{- if .Values.dedicatedNodeToleration.value }}
       value: {{ .Values.dedicatedNodeToleration.value | quote }}
+      {{- end }}
       effect: {{ .Values.dedicatedNodeToleration.effect | quote }}
 {{- end }}
 
