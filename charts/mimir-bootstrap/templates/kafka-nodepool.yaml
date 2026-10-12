@@ -48,7 +48,7 @@ spec:
       - key: karpenter.k8s.aws/instance-memory
         operator: Gt
         values:
-        - "4000"
+        - {{ .Values.kafkaNodePool.minInstanceMemoryMiB | default 8000 | quote }}
       - key: karpenter.k8s.aws/instance-cpu
         operator: Gt
         values:

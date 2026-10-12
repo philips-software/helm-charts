@@ -59,6 +59,15 @@ kafkaNodePool:
   # broker. Keep this as "WhenEmpty" (or set to "WhenEmptyOrUnderutilized"
   # only if you fully understand the risk).
   consolidationPolicy: WhenEmpty
+  # Minimum instance memory (MiB) Karpenter will pick for this nodepool.
+  # Was hardcoded to 4000, which qualifies instances like t4g.medium
+  # (4096Mi total) -- after mandatory per-node DaemonSets (CNI, kube-proxy,
+  # SPIRE agent, log shippers, etc.) claim their share, as little as ~1Gi
+  # was left allocatable, right at the edge of what the Kafka pod itself
+  # requests (1Gi), causing persistent "Insufficient memory" scheduling
+  # failures. Raised the default floor so Karpenter picks a larger instance
+  # with real headroom.
+  minInstanceMemoryMiB: 8000
   resources:
     limits:
       cpu: 4
