@@ -136,6 +136,7 @@ query_frontend:
   replicas: {{ .Values.queryFrontend.replicas }}
   extraArgs:
     query-frontend.max-cache-freshness: 30m
+    query-frontend.enable-remote-execution: {{ .Values.queryEngine.enableRemoteExecution | quote }}
   resources:
     requests:
       cpu: {{ .Values.queryFrontend.resources.requests.cpu }}
@@ -144,6 +145,10 @@ query_frontend:
       memory: {{ .Values.queryFrontend.resources.limits.memory }}
 
 querier:
+  extraArgs:
+    # Must match query_frontend's setting above -- same flag, registered on
+    # both components.
+    query-frontend.enable-remote-execution: {{ .Values.queryEngine.enableRemoteExecution | quote }}
   resources:
     requests:
       cpu: {{ .Values.querier.resources.requests.cpu }}

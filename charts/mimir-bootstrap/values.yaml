@@ -108,6 +108,18 @@ distributor:
   replicas: 6
 
 # Query frontend configuration
+# Mimir Query Engine (MQE) settings shared by query_frontend and querier --
+# the same flag is registered on both components and must match.
+queryEngine:
+  # -- [experimental] MQE remote execution requires every querier to report
+  # a compatible "query plan version" via the ring; this negotiation is
+  # flaky under churn (observed as intermittent 500s: "could not determine
+  # maximum supported query plan version ... at least one querier in the
+  # ring is not reporting a supported query plan version", even while the
+  # flagged querier was actively evaluating other queries successfully at
+  # the same time). Keep disabled until upstream stabilizes this.
+  enableRemoteExecution: false
+
 queryFrontend:
   # -- Number of query-frontend replicas
   replicas: 3
