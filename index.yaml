@@ -6812,6 +6812,14 @@ entries:
     version: 0.8.0
   mimir-bootstrap:
   - apiVersion: v2
+    created: "2026-10-12T11:31:52.572101775Z"
+    description: A Helm chart for bootstrapping Mimir
+    digest: a84e655e01834189f45750c7903e6ac4f6cf0934ea486ee1b35204c0e01bf5a1
+    name: mimir-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/mimir-bootstrap-0.66.7/mimir-bootstrap-0.66.7.tgz
+    version: 0.66.7
+  - apiVersion: v2
     created: "2026-10-12T11:26:37.453988846Z"
     description: A Helm chart for bootstrapping Mimir
     digest: dbec66635319d9af2cc3bac3d851c8f1fa1073f096304c598c69ed6d7f304b00
@@ -8016,4 +8024,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-12T11:26:37.455385861Z"
+generated: "2026-10-12T11:31:52.573098481Z"
