@@ -94,6 +94,18 @@ data:
     // Kube State Metrics Discovery
     discovery.kubernetes "kube_state_metrics" {
       role = "endpoints"
+      {{- if .Values.customAlloy.kubeStateMetrics.namespace }}
+      // Scope discovery to a single namespace so this cluster's own
+      // kube-state-metrics (if deployed via telemetryServices.kube-state-metrics)
+      // is the only match -- the discovery selector below is a cluster-wide
+      // label match with no namespace awareness, so without this, any other
+      // kube-state-metrics instance in the cluster (e.g. a platform-managed
+      // one) using the same conventional label gets scraped too, double
+      // counting every series.
+      namespaces {
+        names = [{{ .Values.customAlloy.kubeStateMetrics.namespace | quote }}]
+      }
+      {{- end }}
       selectors {
         role = "endpoints"
         label = "app.kubernetes.io/name=kube-state-metrics"

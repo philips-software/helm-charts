@@ -256,6 +256,13 @@ customAlloy:
     enabled: false
   kubeStateMetrics:
     extraMetricProcessingRules: ""
+    # -- Restrict kube-state-metrics discovery to a single namespace. Empty
+    # (default) discovers any kube-state-metrics-labeled endpoint cluster-wide,
+    # which double-counts every series if more than one instance exists (e.g.
+    # this chart's own, deployed via telemetryServices.kube-state-metrics,
+    # alongside a platform-managed one). Set to the namespace of the instance
+    # you want scraped once you have exactly one you intend to use.
+    namespace: ""
   nodeExporter:
     extraMetricProcessingRules: ""
   kubelet:
