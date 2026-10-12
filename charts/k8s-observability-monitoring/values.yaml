@@ -158,6 +158,17 @@ telemetryServices:
   node-exporter:
     deploy: false
 
+# -- Toleration for the platform's "dedicated node" taint (e.g. the kafka-dedicated nodes
+# created by mimir-bootstrap/tempo-bootstrap's kafkaNodePool), so the DaemonSets this chart
+# deploys -- alloy-logs for node logs, and node-exporter for host metrics when enabled --
+# still land on those nodes. Defaults mirror kafkaNodePool.taintKey/value from those charts.
+dedicatedNodeToleration:
+  enabled: true
+  key: cilium.hsp.philips.com/dedicated
+  operator: Equal
+  value: kafka
+  effect: NoSchedule
+
 # -- Common collector settings (applies to all Alloy instances managed by operator).
 # NOTE: collectorCommon.alloy is merged at the *top level* of each Alloy custom resource's spec
 # (siblings: alloy, controller, ...) -- see grafana/k8s-monitoring-helm collector.alloy.values.

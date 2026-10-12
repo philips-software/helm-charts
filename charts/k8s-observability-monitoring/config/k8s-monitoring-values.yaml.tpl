@@ -209,6 +209,13 @@ telemetryServices:
     deploy: {{ index .Values.telemetryServices "kube-state-metrics" "deploy" | default false }}
   node-exporter:
     deploy: {{ index .Values.telemetryServices "node-exporter" "deploy" | default false }}
+    {{- if and (index .Values.telemetryServices "node-exporter" "deploy") .Values.dedicatedNodeToleration.enabled }}
+    tolerations:
+      - key: {{ .Values.dedicatedNodeToleration.key | quote }}
+        operator: {{ .Values.dedicatedNodeToleration.operator | quote }}
+        value: {{ .Values.dedicatedNodeToleration.value | quote }}
+        effect: {{ .Values.dedicatedNodeToleration.effect | quote }}
+    {{- end }}
 
 # Collector Common
 {{- if .Values.collectorCommon }}
