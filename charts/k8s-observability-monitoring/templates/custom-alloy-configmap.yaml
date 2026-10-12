@@ -24,27 +24,30 @@ data:
       allow_arbitrary_file_access = true
       {{- end }}
 
-      // Exclude kube-state-metrics as it's handled separately below
+      // prometheus.operator.servicemonitors only accepts a single selector
+      // block (multiple selector blocks is a config error: "block
+      // 'selector' may only be specified once") -- all match_expression
+      // requirements, including the always-on kube-state-metrics exclusion
+      // below, must live inside this one block. They AND together.
       selector {
+        // Exclude kube-state-metrics as it's handled separately above
         match_expression {
           key = "app.kubernetes.io/name"
           operator = "NotIn"
           values = ["kube-state-metrics"]
         }
-      }
 
-      {{- /* Collect user-defined label expressions */ -}}
-      {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
-      {{- range .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
-      selector {
+        {{- /* Collect user-defined label expressions */ -}}
+        {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
+        {{- range .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
         match_expression {
           key = "{{ .key }}"
           operator = "{{ .operator }}"
           values = [{{ range $i, $v := .values }}{{ if $i }}, {{ end }}"{{ $v }}"{{ end }}]
         }
+        {{- end }}
+        {{- end }}
       }
-      {{- end }}
-      {{- end }}
 
       forward_to = [prometheus.relabel.service_monitors.receiver]
     }
