@@ -109,7 +109,7 @@ distributor:
 
 # Query frontend configuration
 # Mimir Query Engine (MQE) settings shared by query_frontend and querier --
-# the same flag is registered on both components and must match.
+# both components register and validate these flags, so they must match.
 queryEngine:
   # -- [experimental] MQE remote execution requires every querier to report
   # a compatible "query plan version" via the ring; this negotiation is
@@ -118,6 +118,10 @@ queryEngine:
   # ring is not reporting a supported query plan version", even while the
   # flagged querier was actively evaluating other queries successfully at
   # the same time). Keep disabled until upstream stabilizes this.
+  #
+  # Also gates use-mimir-query-engine-for-sharding, which defaults to true
+  # and requires remote execution to be enabled -- mismatched settings fail
+  # startup config validation, so both flags are driven by this one value.
   enableRemoteExecution: false
 
 queryFrontend:

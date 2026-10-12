@@ -137,6 +137,11 @@ query_frontend:
   extraArgs:
     query-frontend.max-cache-freshness: 30m
     query-frontend.enable-remote-execution: {{ .Values.queryEngine.enableRemoteExecution | quote }}
+    # use-mimir-query-engine-for-sharding defaults to true and requires
+    # remote execution to be enabled; mismatched settings fail startup
+    # config validation ("using MQE for sharding is only supported when ...
+    # remote execution is enabled"), so this must track the same value.
+    query-frontend.use-mimir-query-engine-for-sharding: {{ .Values.queryEngine.enableRemoteExecution | quote }}
   resources:
     requests:
       cpu: {{ .Values.queryFrontend.resources.requests.cpu }}
@@ -146,9 +151,10 @@ query_frontend:
 
 querier:
   extraArgs:
-    # Must match query_frontend's setting above -- same flag, registered on
-    # both components.
+    # Must match query_frontend's settings above -- same flags, registered
+    # on both components, and both validated at querier startup too.
     query-frontend.enable-remote-execution: {{ .Values.queryEngine.enableRemoteExecution | quote }}
+    query-frontend.use-mimir-query-engine-for-sharding: {{ .Values.queryEngine.enableRemoteExecution | quote }}
   resources:
     requests:
       cpu: {{ .Values.querier.resources.requests.cpu }}
