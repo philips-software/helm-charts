@@ -1,0 +1,145 @@
+# Rendered into the zitadel-helm ArgoCD Application's spec.source.helm.valuesObject.
+# Keys here are the UPSTREAM zitadel/zitadel chart's own values (charts.zitadel.com,
+# version {{ .Values.zitadelChart.version }}) — see its values.yaml / cmd/defaults.yaml
+# for the full schema. This file only sets what CNPG-owned Postgres + username/password
+# auth + Gateway API ingress need; everything else uses the upstream chart's defaults.
+
+# Bundled Bitnami postgresql subchart stays off — we bring our own CNPG cluster
+# (see templates/postgres-cluster.yaml), same convention as langfuse-bootstrap
+# and agentgateway-bootstrap. Never use Bitnami images.
+postgresql:
+  enabled: false
+
+# CNPG already creates the database and an owner role with full privileges on
+# it, so skip the upstream chart's own database/user/grant creation steps —
+# only run its internal schema init. Confirmed against zitadel/zitadel source
+# (cmd/initialise/verify_zitadel.go): this path connects with the User
+# credentials only, never Admin, so Database.Postgres.Admin.* below is
+# intentionally left unset (chart defaults, never contacted).
+initJob:
+  command: "zitadel"
+
+zitadel:
+  # masterkeySecretName (not the literal masterkey field) — see
+  # templates/credentials-secret.yaml. Avoids putting the masterkey in
+  # plaintext inside this Application's spec.source.helm.valuesObject,
+  # which is readable by anyone with read access to the Application object
+  # itself (e.g. via the ArgoCD UI's Parameters/Manifest view), a broader
+  # audience than Secret-read access.
+  masterkeySecretName: zitadel-credentials
+  configmapConfig:
+    ExternalSecure: {{ .Values.ingress.httpRoute.enabled }}
+    {{- if .Values.ingress.httpRoute.enabled }}
+    ExternalDomain: {{ include "zitadel-bootstrap.host" . | quote }}
+    # The shared Gateway serves 443; without this the login v2 app builds
+    # its OAuth audience as "https://<host>:8080" (upstream's
+    # configmap_login.yaml default), which never matches the issuer the
+    # main API actually presents — every login-UI API call then fails
+    # token verification with "issuer does not match". Confirmed live.
+    ExternalPort: 443
+    {{- else }}
+    # Port-forward-friendly default (ingress disabled) — matches
+    # langfuse-bootstrap's equivalent nextauthUrl default. Only the main
+    # zitadel API/console is reachable this way; the split login v2 UI
+    # needs its own port-forward to zitadel-login:3000, which a plain
+    # single-service port-forward can't provide a matching origin for —
+    # see README "Signing in" for what actually works without ingress.
+    ExternalDomain: localhost
+    ExternalPort: 8080
+    {{- end }}
+    Database:
+      Postgres:
+        Host: {{ printf "%s-rw.%s.svc.cluster.local" (include "zitadel-bootstrap.postgresClusterName" .) .Values.namespace | quote }}
+        Port: 5432
+        Database: {{ .Values.database.databaseName | quote }}
+        User:
+          Username: {{ .Values.database.databaseName | quote }}
+          SSL:
+            Mode: disable
+    FirstInstance:
+      Org:
+        Name: {{ .Values.firstInstance.orgName | quote }}
+        Human:
+          UserName: {{ .Values.credentials.adminUsername | quote }}
+          PasswordChangeRequired: true
+
+# Postgres user password and the FirstInstance admin password travel as
+# env vars sourced from Secrets (not literal values in secretConfig,
+# which — like zitadel.masterkey above — would otherwise sit in plaintext
+# in this Application's valuesObject). ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+# reuses the CNPG-owned zitadel-db-credentials Secret directly (see
+# templates/postgres-secret.yaml); ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD
+# comes from templates/credentials-secret.yaml. Both env vars are ZITADEL's
+# own documented override mechanism (ZITADEL_<SECTION>_<KEY>, env always
+# wins over file-based config) — applied via the chart's global `env`,
+# which every zitadel workload (Deployment, init/setup Jobs) picks up via
+# the upstream chart's own zitadel.dbEnv helper.
+env:
+  - name: ZITADEL_DATABASE_POSTGRES_USER_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: {{ include "zitadel-bootstrap.postgresClusterName" . }}-credentials
+        key: password
+  - name: ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: zitadel-credentials
+        key: adminPassword
+
+# ---------------------------------------------------------------------------
+# Availability / sizing. See .Values.workloads in this chart's values.yaml.
+# ---------------------------------------------------------------------------
+
+# The upstream chart's own docs call replicaCount: 1 a testing default. With
+# Cilium Gateway API the zitadel clusters are EDS-only with no active health
+# checks, so a single NotReady replica is an immediate `503 no healthy
+# upstream` for the whole hostname — there is no second endpoint to fall back
+# to. Two replicas makes a single flap invisible to Envoy.
+replicaCount: {{ .Values.workloads.zitadel.replicaCount }}
+
+# No CPU limit on purpose: on a Pi a cpu limit turns normal load into CFS
+# throttling, which is the very thing that makes the probes miss their budget.
+# Memory limit only, matching database.resources above.
+resources:
+{{ toYaml .Values.workloads.zitadel.resources | indent 2 }}
+
+# The chart exposes initialDelaySeconds / periodSeconds / failureThreshold but
+# NOT timeoutSeconds (verified on 10.0.6 and 10.1.0 alike), so a 1s Kubernetes
+# default stands. Widening the tolerance below is the only supported lever.
+readinessProbe:
+  periodSeconds: {{ .Values.workloads.zitadel.probes.periodSeconds }}
+  failureThreshold: {{ .Values.workloads.zitadel.probes.failureThreshold }}
+livenessProbe:
+  periodSeconds: {{ .Values.workloads.zitadel.probes.periodSeconds }}
+  failureThreshold: {{ .Values.workloads.zitadel.probes.failureThreshold }}
+startupProbe:
+  periodSeconds: {{ .Values.workloads.zitadel.probes.periodSeconds }}
+  failureThreshold: {{ .Values.workloads.zitadel.probes.failureThreshold }}
+
+login:
+  replicaCount: {{ .Values.workloads.login.replicaCount }}
+  resources:
+{{ toYaml .Values.workloads.login.resources | indent 4 }}
+  readinessProbe:
+    periodSeconds: {{ .Values.workloads.login.probes.periodSeconds }}
+    failureThreshold: {{ .Values.workloads.login.probes.failureThreshold }}
+  livenessProbe:
+    periodSeconds: {{ .Values.workloads.login.probes.periodSeconds }}
+    failureThreshold: {{ .Values.workloads.login.probes.failureThreshold }}
+  startupProbe:
+    periodSeconds: {{ .Values.workloads.login.probes.periodSeconds }}
+    failureThreshold: {{ .Values.workloads.login.probes.failureThreshold }}
+
+{{/*
+Ingress: deliberately NOT using the upstream chart's own gateway.httpRoute /
+login.gateway.httpRoute (both default off, left unset here). Each renders as
+a SEPARATE HTTPRoute object; pointing both at the same hostname on the same
+shared Gateway trips dip-ce-k3s-eu's cluster-wide Kyverno policy
+"unique-gateway-route-hostnames" (two distinct HTTPRoute objects may not
+claim the same hostname on one Gateway, even with non-overlapping path
+rules — verified live: the login one got admission-denied while the main
+one, created first, succeeded). This chart's own templates/httproute.yaml
+instead renders ONE HTTPRoute with two path rules under the one hostname,
+which the policy allows. See the design spec's "Ingress" section (updated
+2026-09-27 after this was caught live) for the full story.
+*/}}

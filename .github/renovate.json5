@@ -27,6 +27,55 @@
       matchPackageNames: ['ghcr.io/grafana-community/helm-charts/grafana'],
       pinDigests: false,
     },
+    {
+      // The Caddy sidecar intentionally floats on the "2-alpine" tag rather than
+      // a pinned patch version. Keep it on the 2.x stream: pick up any updates
+      // Docker Hub publishes under that tag, but never let it jump to 3.x.
+      matchPackageNames: ['caddy'],
+      matchUpdateTypes: ['major'],
+      enabled: false,
+    },
+    {
+      // philips-forks/dex tags are "v<upstream-version>-dip.<build>", e.g.
+      // v2.45.1-dip.17. Default docker versioning treats "-dip.N" as an opaque
+      // compatibility suffix and can only ever offer a digest pin, never a real
+      // version bump -- so values.yaml silently drifted from the latest build
+      // (stuck at dip.13 while dip.17 was current). Parse the build number
+      // explicitly so Renovate can compare and bump it.
+      matchPackageNames: ['ghcr.io/philips-forks/dex'],
+      versioning: 'regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-dip\\.(?<build>\\d+)$',
+    },
+    {
+      // Every dependency bump inside a chart must move that chart's own
+      // version:. chart-releaser runs with skip_existing: true, so a chart
+      // republished with an unchanged version: is silently NOT released: the
+      // tag bump lands in main and never ships, with nothing on the PR to show
+      // for it. This rule covers every file the custom.regex manager touches:
+      // Chart.yaml (appVersion / upstream chart version) and values.yaml,
+      // templates/ and config/ (image tags).
+      //
+      // filePatterns resolve relative to the directory of the file holding the
+      // dependency, and both forms below normalise (minimatch resolves "..")
+      // to the one owning Chart.yaml -- deps in templates/ and config/ need the
+      // "../" form. Keep both patterns in a SINGLE rule on purpose: two rules
+      // matching the same chart in one branch would each bump it, stepping the
+      // version twice.
+      matchFileNames: [
+        'charts/*/Chart.yaml',
+        'charts/*/values.yaml',
+        'charts/*/values-*.yaml',
+        'charts/*/templates/**/*.y*ml',
+        'charts/*/config/**/*.y*ml',
+      ],
+      bumpVersions: [
+        {
+          name: 'Bump chart version alongside dependency update',
+          filePatterns: ['{{packageFileDir}}/Chart.yaml', '{{packageFileDir}}/../Chart.yaml'],
+          matchStrings: ['version:\\s*"?(?<version>[^"\\s]+)"?'],
+          bumpType: 'patch',
+        },
+      ],
+    },
   ],
   customManagers: [
     {
@@ -50,8 +99,12 @@
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*targetRevision:\\s*"?(?<currentValue>[^"\\s]+)"?',
         // targetRevision with registryUrl
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*targetRevision:\\s*"?(?<currentValue>[^"\\s]+)"?',
-        // image: field with tag inline
-        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*image:\\s*\\S+?:(?<currentValue>\\S+)',
+        // image: field with tag inline (optionally quoted, e.g. ECR-mirrored paths
+        // with ${var} interpolation that get quoted to keep YAML happy)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*image:\\s*["\']?\\S+?:(?<currentValue>[^"\'\\s]+)["\']?',
+        // <name>Image: field with tag inline (e.g. operatorImage), same as above but
+        // for keys that aren't the bare "image:" field name
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*\\w+[Ii]mage:\\s*["\']?\\S+?:(?<currentValue>[^"\'\\s]+)["\']?',
         // tag: field (separated repository/tag format)
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*tag:\\s*"?(?<currentValue>[^"\\s]+)"?',
         // version: field with registryUrl (either order)

@@ -1,0 +1,32 @@
+{{- if .Values.ingress.httpRoute.enabled -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: zitadel-httproute
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "zitadel-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  parentRefs:
+    - name: {{ .Values.ingress.httpRoute.sharedGatewayName }}
+      namespace: {{ .Values.ingress.httpRoute.sharedGatewayNamespace }}
+  hostnames:
+    - {{ include "zitadel-bootstrap.host" . | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /ui/v2/login
+      backendRefs:
+        - name: zitadel-login
+          port: 3000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: zitadel
+          port: 8080
+{{- end }}

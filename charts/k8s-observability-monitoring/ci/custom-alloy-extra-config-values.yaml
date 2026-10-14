@@ -1,0 +1,35 @@
+clusterName: test-cluster
+destinations:
+  gw:
+    type: otlp
+    url: https://gw.example.com
+    protocol: http
+    auth:
+      type: none
+    metrics:
+      enabled: true
+customAlloy:
+  enabled: true
+  replaceUpstreamCollector: true
+  clustering:
+    enabled: true
+  # Example: scrape an exporter outside the cluster and feed it into the
+  # chart's OTLP pipeline. The clustering block shards targets across replicas.
+  extraConfig: |
+    prometheus.scrape "example_external" {
+      targets = [
+        {
+          "__address__" = "exporter.example.com:9100",
+          "service"     = "example",
+        },
+      ]
+
+      job_name        = "example-external"
+      scrape_interval = "30s"
+
+      clustering {
+        enabled = true
+      }
+
+      forward_to = [otelcol.receiver.prometheus.default.receiver]
+    }

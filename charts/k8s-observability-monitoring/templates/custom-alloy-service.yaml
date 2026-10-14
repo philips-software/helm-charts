@@ -30,6 +30,12 @@ metadata:
 spec:
   type: ClusterIP
   clusterIP: None
+  # Peer discovery for customAlloy.clustering uses this Service's DNS record
+  # (A/AAAA over all pods) to find other replicas. Without this, only Ready
+  # pods are published -- but a pod can't become Ready (readiness depends on
+  # cluster convergence) until it discovers peers through this very Service,
+  # so clustering can never converge from a cold start.
+  publishNotReadyAddresses: true
   ports:
     - name: http
       port: 12345

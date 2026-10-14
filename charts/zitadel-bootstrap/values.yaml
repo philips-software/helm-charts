@@ -1,0 +1,145 @@
+# zitadel-bootstrap configuration
+
+# Upstream zitadel Helm chart configuration. Classic Helm repo, not OCI.
+zitadelChart:
+  repoURL: https://charts.zitadel.com
+  # renovate: datasource=helm depName=zitadel registryUrl=https://charts.zitadel.com
+  version: 10.4.0
+
+# ArgoCD project name
+argoProject: default
+
+# Environment configuration for cluster FQDN substitution
+environmentConfig:
+  resourcePrefix: ""
+  region: ""
+  accountId: ""
+  # Cluster FQDN, used to build the public hostname when ingress.httpRoute.enabled
+  # is true (e.g. "example.com"). Same convention as langfuse-bootstrap.
+  clusterFqdn: ""
+
+# Public exposure via Gateway API. This chart renders its own single
+# HTTPRoute (templates/httproute.yaml) rather than the upstream chart's
+# native gateway.httpRoute/login.gateway.httpRoute — those render as two
+# separate HTTPRoute objects on the same hostname, which some clusters'
+# admission policies reject (see the design spec's "Ingress" section).
+ingress:
+  httpRoute:
+    enabled: false
+    # Host label; combined with environmentConfig.clusterFqdn forms the public
+    # URL, e.g. "zitadel" -> https://zitadel.${clusterFqdn}
+    host: zitadel
+    sharedGatewayName: platform
+    sharedGatewayNamespace: kube-system
+
+# Namespace all zitadel-bootstrap resources (and the upstream chart) deploy into
+namespace: zitadel-system
+
+# CNPG Postgres database for Zitadel
+database:
+  # Cluster resource name. Defaults to "zitadel-db" if unset.
+  clusterName: ""
+  # Bump to 2+ for failover HA (same as centcom's own CNPG cluster) - a
+  # replica exists and this chart automatically adds anti-affinity (see
+  # templates/postgres-cluster.yaml) so it lands on a different node than
+  # the primary. At 1 (the default here), there's nothing to fail over to.
+  instances: 1
+  databaseName: zitadel
+  storage:
+    size: 5Gi
+    # Leave empty to use the cluster's default StorageClass.
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  # Optional, additive PodDisruptionBudget across every instance of this
+  # cluster (templates/postgres-pdb.yaml) - separate from the
+  # "<cluster>-primary" PDB CNPG itself always creates unconditionally.
+  # Only renders when instances > 1; see that template's header comment for
+  # why a PDB at instances: 1 would have zero availability upside.
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+
+# Static credentials referenced directly in the upstream chart's valuesObject.
+# MUST stay static (no runtime generation) — ArgoCD renders this chart via
+# `helm template`, which regenerates anything random on every sync, rotating
+# the masterkey/passwords and locking out the running instance. Override every
+# field below for any real deployment; these are dev-only placeholders (same
+# convention as langfuse-bootstrap's credentials.postgresPassword default).
+credentials:
+  # Exactly 32 bytes, printable ASCII. Generate: tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+  masterkey: "changeme-please-override-32bytes"
+  # CNPG Postgres password for the zitadel role.
+  postgresPassword: "changeme-postgres-password-please-override"
+  # Standard username/password admin created on first install (IAM_OWNER).
+  adminUsername: "zitadel-admin"
+  # Must satisfy Zitadel's default password policy (upper+lower+digit).
+  adminPassword: "changeme-Admin-Password1!"
+
+# First-instance bootstrap (org + admin user created by the setup Job)
+firstInstance:
+  orgName: ZITADEL
+
+# Availability / resource settings for the two zitadel workloads, forwarded
+# into the upstream chart's valuesObject (replicaCount, resources, and the probe
+# knobs it does expose).
+#
+# Single-replica defaults are a deliberate upstream-chart default ("a single
+# replica is fine for testing") that becomes an availability problem once
+# combined with Cilium Gateway API's EDS-only, health-check-free routing: one
+# NotReady pod = instant `503 no healthy upstream` for the whole hostname.
+# Two replicas is the minimum that makes a single pod flap invisible to Envoy.
+workloads:
+  zitadel:
+    # Number of ZITADEL API/console pods. The chart provisions a shared machine
+    # key via its machinekey-writer init container, so >1 replica is supported.
+    replicaCount: 2
+    # CPU is intentionally left unlimited: a cpu limit on a Pi converts
+    # ordinary load into CFS throttling, which is exactly what makes the
+    # probes time out in the first place. Memory limit only — same convention
+    # as database.resources above.
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+    probes:
+      # NOTE ON `timeoutSeconds` (as of zitadelChart.version 10.0.6 / 10.1.0)
+      # ---------------------------------------------------------------------
+      # The upstream chart renders only initialDelaySeconds / periodSeconds /
+      # failureThreshold — checked in templates/deployment_zitadel.yaml and
+      # templates/deployment_login.yaml — so probe `timeoutSeconds` is never
+      # emitted and Kubernetes applies its 1s default. There is no way to set
+      # it through this chart today: a kustomize post-renderer is not an option
+      # either, because the ArgoCD Application CRD declares no `postRenderers`
+      # field (absent upstream in ArgoCD v3.4.1 too), so a server-side apply
+      # of one is rejected outright with "field not declared in schema".
+      #
+      # Nothing in this chart depends on that being fixed. periodSeconds x
+      # failureThreshold below is the only available lever for tolerating a slow
+      # response, and two replicas absorb a pod that flaps regardless.
+      #
+      # When an upstream chart release does render `timeoutSeconds`, this can
+      # simply be wired through here — no other change required. Until then the
+      # effective budget is 1s per attempt, 60s of consecutive failure overall.
+      periodSeconds: 10
+      failureThreshold: 6
+  login:
+    replicaCount: 2
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 768Mi
+    probes:
+      # Same note on `timeoutSeconds` as under workloads.zitadel.probes above.
+      # Additionally, login.startupProbe.enabled ships false, so the upstream
+      # chart renders no startup probe for this Deployment at all.
+      periodSeconds: 10
+      failureThreshold: 6

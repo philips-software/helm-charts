@@ -12,6 +12,11 @@ Authentication:
 {{- else if .Values.spire.jwt.enabled }}
   Mode: JWT-SVID
   Audiences: {{ .Values.spire.jwt.audiences | join ", " }}
+{{- if eq .Values.spire.jwt.bundleSource "federation" }}
+  Bundle source: federation (no local SPIRE Agent required)
+{{- else }}
+  Bundle source: workload_api (local SPIRE Agent required)
+{{- end }}
 {{- else }}
   Mode: SPIRE enabled (configure mTLS or JWT as needed)
 {{- end }}

@@ -1,0 +1,32 @@
+{{- include "zitadel-bootstrap.validateConfig" . -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zitadel-helm
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "zitadel-bootstrap.labels" . | nindent 4 }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: {{ .Values.argoProject }}
+  source:
+    chart: zitadel
+    repoURL: {{ .Values.zitadelChart.repoURL }}
+    targetRevision: {{ .Values.zitadelChart.version | quote }}
+    helm:
+      releaseName: zitadel
+      valuesObject:
+        {{- (tpl (.Files.Get "config/zitadel-values.yaml") .) | nindent 8 }}
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: {{ .Values.namespace }}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      prune: true
+      selfHeal: true

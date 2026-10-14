@@ -17,28 +17,37 @@ data:
         enabled = true
       }
       {{- end }}
+      {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.allowArbitraryFileAccess }}
+      // Required for kube-prometheus-stack's system ServiceMonitors (apiserver, kube-scheduler,
+      // kube-controller-manager, kube-etcd, coredns, kube-proxy, kubelet), which use
+      // bearerTokenFile pointing at Alloy's own mounted serviceaccount token.
+      allow_arbitrary_file_access = true
+      {{- end }}
 
-      // Exclude kube-state-metrics as it's handled separately below
+      // prometheus.operator.servicemonitors only accepts a single selector
+      // block (multiple selector blocks is a config error: "block
+      // 'selector' may only be specified once") -- all match_expression
+      // requirements, including the always-on kube-state-metrics exclusion
+      // below, must live inside this one block. They AND together.
       selector {
+        // Exclude kube-state-metrics as it's handled separately above
         match_expression {
           key = "app.kubernetes.io/name"
           operator = "NotIn"
           values = ["kube-state-metrics"]
         }
-      }
 
-      {{- /* Collect user-defined label expressions */ -}}
-      {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
-      {{- range .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
-      selector {
+        {{- /* Collect user-defined label expressions */ -}}
+        {{- if and .Values.prometheusOperatorObjects .Values.prometheusOperatorObjects.serviceMonitors .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
+        {{- range .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
         match_expression {
           key = "{{ .key }}"
           operator = "{{ .operator }}"
           values = [{{ range $i, $v := .values }}{{ if $i }}, {{ end }}"{{ $v }}"{{ end }}]
         }
+        {{- end }}
+        {{- end }}
       }
-      {{- end }}
-      {{- end }}
 
       forward_to = [prometheus.relabel.service_monitors.receiver]
     }
@@ -61,6 +70,9 @@ data:
     }
 
     // Prometheus Operator PodMonitors Discovery
+    // NOTE: allow_arbitrary_file_access is intentionally NOT set here -- this Alloy
+    // component doesn't support that attribute (unlike prometheus.operator.servicemonitors
+    // above); setting it makes Alloy fail config evaluation entirely (CrashLoopBackOff).
     prometheus.operator.podmonitors "pod_monitors" {
       {{- if .Values.customAlloy.clustering.enabled }}
       clustering {
@@ -71,6 +83,7 @@ data:
     }
 
     // Prometheus Operator Probes Discovery
+    // NOTE: allow_arbitrary_file_access is intentionally NOT set here -- see PodMonitors note above.
     prometheus.operator.probes "probes" {
       {{- if .Values.customAlloy.clustering.enabled }}
       clustering {
@@ -84,6 +97,18 @@ data:
     // Kube State Metrics Discovery
     discovery.kubernetes "kube_state_metrics" {
       role = "endpoints"
+      {{- if .Values.customAlloy.kubeStateMetrics.namespace }}
+      // Scope discovery to a single namespace so this cluster's own
+      // kube-state-metrics (if deployed via telemetryServices.kube-state-metrics)
+      // is the only match -- the discovery selector below is a cluster-wide
+      // label match with no namespace awareness, so without this, any other
+      // kube-state-metrics instance in the cluster (e.g. a platform-managed
+      // one) using the same conventional label gets scraped too, double
+      // counting every series.
+      namespaces {
+        names = [{{ .Values.customAlloy.kubeStateMetrics.namespace | quote }}]
+      }
+      {{- end }}
       selectors {
         role = "endpoints"
         label = "app.kubernetes.io/name=kube-state-metrics"
@@ -516,5 +541,15 @@ data:
     livedebugging {
       enabled = true
     }
+    {{- end }}
+
+    {{- /* Raw Alloy config appended verbatim (no tpl: Alloy configs legitimately
+           contain "{{ }}" in loki.process templates). Lets users add extra
+           pipelines, e.g. prometheus.scrape of external targets, that forward
+           into otelcol.receiver.prometheus.default.receiver. */}}
+    {{- with .Values.customAlloy.extraConfig }}
+
+    // Extra config (customAlloy.extraConfig)
+    {{- . | nindent 4 }}
     {{- end }}
 {{- end }}

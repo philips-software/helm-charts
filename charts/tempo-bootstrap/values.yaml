@@ -1,6 +1,6 @@
 tempoChart:
   # renovate: datasource=helm depName=tempo-distributed registryUrl=https://grafana-community.github.io/helm-charts
-  version: 3.0.6
+  version: 3.11.1
 
 compactorOrgmapper:
   package: ghcr.io/loafoe/compactor-orgmapper
@@ -30,6 +30,41 @@ streamOverHTTPEnabled: true
 
 multitenancyEnabled: true
 
+# Gateway configuration
+gateway:
+  # -- Number of gateway replicas
+  replicas: 2
+
+# Block-builder configuration
+blockBuilder:
+  # -- Number of block-builder replicas
+  replicas: 3
+
+# Live-store configuration
+liveStore:
+  # -- Number of live-store replicas
+  replicas: 3
+
+# Distributor configuration
+distributor:
+  # -- Number of distributor replicas
+  replicas: 2
+
+# Querier configuration
+querier:
+  # -- Number of querier replicas
+  replicas: 2
+
+# Query-frontend configuration
+queryFrontend:
+  # -- Number of query-frontend replicas
+  replicas: 2
+
+# Compactor configuration
+compactor:
+  # -- Number of compactor replicas
+  replicas: 1
+
 kafka:
   persistence:
     size: 100Gi
@@ -38,10 +73,108 @@ kafkaNodePool:
   enabled: true
   labels:
     workload: tempo-kafka
+  # The taint key applied to the dedicated Kafka nodes (and tolerated by the
+  # Kafka StatefulSet). Defaults to the platform-wide "dedicated node" key so
+  # cluster infra pods with an Exists toleration for it (e.g. trivy-operator's
+  # node-collector) can still be scheduled here.
+  taintKey: cilium.hsp.philips.com/dedicated
   nodeClassRefName: bottlerocket-v2
+  # Consolidation policy for the dedicated Kafka node pool. This pool hosts
+  # the sole broker for live metrics ingestion, so nodes must never be torn
+  # down while still in use. "WhenEmptyOrUnderutilized" allows Karpenter to
+  # drain/replace nodes that look underutilized, which can disrupt the
+  # broker. Keep this as "WhenEmpty" (or set to "WhenEmptyOrUnderutilized"
+  # only if you fully understand the risk).
+  consolidationPolicy: WhenEmpty
   resources:
     limits:
       cpu: 4
       memory: 16Gi
   expireAfter: 3600h  # half a year
+
+# Vertical Pod Autoscalers for Tempo components. Requires the VPA CRDs.
+# Previously hardcoded directly in the templates with no values.yaml
+# plumbing or enable toggle; now configurable per-component like the other
+# *-bootstrap charts.
+vpa:
+  # -- Enable VPA resources for Tempo components
+  enabled: true
+  # -- VPA update mode (e.g. Off, Initial, Auto, InPlaceOrRecreate)
+  updateMode: Auto
+  components:
+    backendScheduler:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 100Mi
+      maxAllowed:
+        cpu: 1
+        memory: 4Gi
+    backendWorker:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 600Mi
+      maxAllowed:
+        cpu: 1
+        memory: 12Gi
+    blockBuilder:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 200Mi
+      maxAllowed:
+        cpu: 2
+        memory: 8Gi
+    distributor:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 50Mi
+      maxAllowed:
+        cpu: 1
+        # Was 4Gi (80x minAllowed -- the widest min/max spread of any VPA in
+        # this repo). Halved; now configurable per-cluster if more headroom
+        # is genuinely needed.
+        memory: 2Gi
+    gateway:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 100Mi
+      maxAllowed:
+        cpu: 1
+        memory: 4Gi
+    liveStore:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 200Mi
+      maxAllowed:
+        cpu: 2
+        memory: 8Gi
+    metricsGenerator:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 100Mi
+      maxAllowed:
+        cpu: 1
+        memory: 4Gi
+    querier:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 100Mi
+      maxAllowed:
+        cpu: 1
+        memory: 4Gi
+    queryFrontend:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 100Mi
+      maxAllowed:
+        cpu: 1
+        memory: 4Gi
 

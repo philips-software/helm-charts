@@ -1,0 +1,12 @@
+clusterName: test-cluster
+customAlloy:
+  enabled: true
+  replaceUpstreamCollector: true
+prometheusOperatorObjects:
+  enabled: true
+  serviceMonitors:
+    labelExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - prometheus-node-exporter

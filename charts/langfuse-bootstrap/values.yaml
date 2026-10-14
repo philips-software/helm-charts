@@ -1,0 +1,285 @@
+# langfuse-bootstrap configuration
+
+# Upstream langfuse-k8s Helm chart configuration. Note this chart's own
+# version tracks the *wrapper* Helm chart release, not the Langfuse
+# application itself - the two version independently. See langfuse.image.tag
+# below to pin the actual application image tag.
+langfuseChart:
+  repoURL: oci://ghcr.io/langfuse/langfuse-k8s/charts
+  # renovate: datasource=docker depName=ghcr.io/langfuse/langfuse-k8s/charts/langfuse
+  version: 2.1.4
+
+# ArgoCD project name
+argoProject: default
+
+# Environment configuration for ${resourcePrefix}/${region}/${accountId} variable substitution
+environmentConfig:
+  resourcePrefix: ""
+  region: ""
+  accountId: ""
+  # Cluster FQDN, used to build the public hostname when ingress.httpRoute.enabled
+  # is true (e.g. "example.com"). Same value dex-issuer/grafana use.
+  clusterFqdn: ""
+
+# Public exposure via Gateway API. Disabled by default (ClusterIP + port-forward,
+# see README) - enable this when sso.enabled is true, since Dex must redirect back
+# to a real reachable URL that exactly matches the Client CR's redirectURIs.
+ingress:
+  httpRoute:
+    enabled: false
+    # Host label; combined with environmentConfig.clusterFqdn forms the public
+    # URL, e.g. "langfuse" -> https://langfuse.${clusterFqdn}
+    host: langfuse
+    sharedGatewayName: platform
+    sharedGatewayNamespace: kube-system
+    # Target a specific listener section on the gateway (e.g. "https").
+    # Leave empty to attach to any matching listener.
+    sectionName: ""
+
+# Namespace all langfuse-bootstrap resources (and the upstream chart) deploy into
+namespace: langfuse-system
+
+# Name of an existing S3 bucket for Langfuse event/media/export uploads.
+# Required and cannot be empty. Supports ${resourcePrefix}/${region}/${accountId}
+# substitution, same as loki-bootstrap's existingBucketName.
+existingBucketName: ""
+
+# S3 authentication method for Langfuse uploads.
+#   "irsa" (default) — IAM Roles for Service Accounts (AWS EKS).
+#     Creates the S3IRSA Crossplane CR; Langfuse pods auth via the
+#     IRSA credential chain (AWS_ROLE_ARN / AWS_WEB_IDENTITY_TOKEN_FILE).
+#     Use with existingBucketName in an AWS environment.
+#   "secret" — static access/secret keys for any S3-compatible store
+#     (Garage, MinIO, SeaweedFS, etc.). Provide endpoint + credentials
+#     via s3.secretConfig below. S3IRSA is not created.
+s3:
+  authType: irsa
+
+  # Configuration for s3.authType: "secret" (ignored when authType is "irsa").
+  secretConfig:
+    # S3-compatible endpoint URL, e.g. "http://garage.garage.svc.cluster.local:3900"
+    endpoint: ""
+    # Region identifier (Garage defaults to "garage")
+    region: "garage"
+    # Force path-style addressing — required for Garage, MinIO, SeaweedFS
+    forcePathStyle: true
+    # Name of a PRE-EXISTING Secret holding the static access key id and secret
+    # access key. This chart does NOT create it and NO key material is read from
+    # values — create it out-of-band (same model as grafana's grafana-sso-creds).
+    # Required when authType is "secret".
+    existingSecret: ""
+    # Keys within existingSecret
+    accessKeyIdKey: accessKeyId
+    secretAccessKeyKey: secretAccessKey
+
+# Credentials are NOT configured in values. This chart owns no secret material:
+#
+#   * Generatable secrets (salt, encryption-key, nextauth-secret,
+#     clickhouse-password, redis-password in `langfuse-credentials`) are created
+#     by the pre-install/pre-upgrade Job `langfuse-credentials-init`, which
+#     generates a random value only when the key is absent and preserves it
+#     byte-for-byte otherwise. Re-syncing therefore never rotates salt or
+#     encryption-key (which would invalidate hashed API keys / encrypted data).
+#   * The CNPG application-user password is NOT configured here and no
+#     `bootstrap.initdb.secret` is set: CNPG generates and owns it and publishes
+#     it in `<database.clusterName|langfuse-db>-app` (keys incl. `username`,
+#     `password`, `uri`), which the upstream chart reads via
+#     `postgresql.auth.existingSecret`. This keeps the role password and the
+#     Secret consumers read in lockstep - setting `bootstrap.initdb.secret` is a
+#     known footgun, as CNPG would use it for the role while generating
+#     `<cluster>-app` with a different password.
+#   * Non-generatable secrets (SSO OAuth2 client secret, S3 static access keys)
+#     are read from PRE-EXISTING out-of-band Secrets referenced by
+#     `sso.existingSecret` / `s3.secretConfig.existingSecret`.
+#
+# The namespace holding these Secrets (`.Values.namespace`) must already exist
+# before install so the init Job (and its RBAC) can be created there.
+
+# Single Sign-On via an external Dex (or other OIDC) IdP.
+#
+# Prerequisite (done once, outside this chart): register an OAuth2 client
+# with your Dex instance - see this repo's `dex-issuer` chart (Crossplane
+# provider-dex-managed Client CRs) for the pattern. Redirect URI must be
+# "https://<your langfuse host>/api/auth/callback/custom". Copy the
+# resulting client id/secret into sso.clientId / credentials.ssoClientSecret.
+#
+# Langfuse OSS has no native groups-claim-to-role mapping (confirmed against
+# the actual NextAuth signIn callback source - it only supports Google's `hd`
+# domain claim and EE per-domain SSO enforcement, nothing generic for
+# arbitrary `groups`). New SSO users land with no organization membership; an
+# existing org owner must manually invite/promote specific users to ADMIN via
+# the Langfuse UI after their first sign-in. The `groups` scope below still
+# puts the claim on the ID token for visibility/audit even though Langfuse
+# itself doesn't act on it.
+sso:
+  enabled: false
+  # OIDC issuer URL for your Dex/IdP instance. Required when sso.enabled is true.
+  issuer: ""
+  # Display name shown on the Langfuse sign-in page.
+  name: "SSO"
+  # OAuth2 client id from the Client registered with your Dex/IdP (see above).
+  clientId: ""
+  # Name of a PRE-EXISTING Secret holding the OAuth2 client secret. This chart
+  # does NOT create it and no secret material is read from values — create it
+  # out-of-band (same model as grafana's grafana-sso-creds). Required when
+  # sso.enabled is true.
+  existingSecret: ""
+  # Key within existingSecret holding the client secret.
+  existingSecretKey: clientSecret
+  scope: "openid email profile groups"
+  # Set true to disable email/password sign-in entirely (server-side enforced,
+  # not just hidden in the UI) once SSO is verified working - existing
+  # password accounts are locked out too, only SSO logins succeed.
+  disableUsernamePassword: false
+  # Sets AUTH_CUSTOM_ALLOW_ACCOUNT_LINKING. NextAuth normally refuses to
+  # attach a new OAuth identity to an existing user
+  # ("OAuthAccountNotLinked") unless the two sign-ins came from the exact
+  # same provider account. Enable this when your issuer is itself a broker
+  # federating multiple upstream identity providers (so the same person can
+  # get different provider account ids across sign-ins) - safe only because
+  # the upstream IdP(s) behind this issuer cryptographically verify the
+  # email claim. Do not enable for a provider that allows unverified email.
+  allowAccountLinking: false
+
+# CNPG Postgres database for Langfuse
+database:
+  # Cluster resource name. Defaults to "langfuse-db" if unset.
+  clusterName: ""
+  instances: 1
+  databaseName: langfuse
+  storage:
+    size: 5Gi
+    # Leave empty to use the cluster's default StorageClass.
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+# ClickHouse (rendered by the upstream langfuse chart itself via clickhouse.deploy:
+# true — this chart only sizes it and points auth at our credentials Secret;
+# the ClickHouse Operator must already be installed, see clickhouse-operator-bootstrap)
+clickhouse:
+  cluster:
+    # Single ClickHouse node by default. Bump for HA.
+    replicas: 1
+    image:
+      repository: clickhouse/clickhouse-server
+      # renovate: datasource=docker depName=clickhouse/clickhouse-server
+      tag: "26.9"
+    storage:
+      size: 20Gi
+      # Leave empty to use the cluster's default StorageClass.
+      className: ""
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
+    # Node selector, tolerations, and affinity for ClickHouse pods.
+    # Used to constrain scheduling (e.g. to specific node types).
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+  keeper:
+    # Must be odd (1, 3, 5). 1 is a valid single-node Keeper; 3 for HA.
+    replicas: 1
+    image:
+      repository: clickhouse/clickhouse-keeper
+      # renovate: datasource=docker depName=clickhouse/clickhouse-keeper
+      tag: "26.9"
+    storage:
+      size: 5Gi
+      className: ""
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+    # Node selector, tolerations, and affinity for Keeper pods.
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+# Self-managed Redis (Valkey) — Langfuse's queue/cache. Deployed directly by this
+# chart rather than toggling the upstream chart's bundled valkey-io/valkey subchart.
+redis:
+  image:
+    repository: valkey/valkey
+    # renovate: datasource=docker depName=valkey/valkey
+    tag: "9.2"
+  storage:
+    size: 4Gi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+# Langfuse application configuration
+langfuse:
+  # Canonical URL of the deployment. Defaults to the port-forward-friendly
+  # localhost URL, matching ClusterIP-only exposure. When ingress.httpRoute.enabled
+  # is true, this is ignored - the URL is derived from ingress.httpRoute.host +
+  # environmentConfig.clusterFqdn instead (required for SSO's OAuth callback to work).
+  nextauthUrl: "http://localhost:3000"
+  # Number of old ReplicaSets to retain for rollback.
+  revisionHistoryLimit: 3
+  image:
+    # Application image tag for both langfuse-web and langfuse-worker (they
+    # release in lockstep). Pinned + renovate-tracked again (reinstated
+    # 2026-09-25 - briefly defaulted empty so this would fall through to
+    # langfuseChart.version's own bundled Chart.AppVersion via the upstream
+    # chart's `coalesce .Values.langfuse.web.image.tag .Values.langfuse.image.tag
+    # .Chart.AppVersion`, but that just re-couples the app's release cadence
+    # to the wrapper chart's own, which lags - langfuseChart 2.1.2 only
+    # bundles app 4.38.0 while upstream Langfuse is several minor versions
+    # ahead). GOTCHA: if you ever close a renovate PR for this dependency
+    # instead of merging it, renovate will NOT propose that dependency's
+    # updates again on that branch - this is exactly how it silently went
+    # stale from 4.36.0 for weeks (PR #383 closed in favor of a manual bump,
+    # which orphaned the shared `renovate/docker.langfuse.com-langfuse-langfuse-4.x`
+    # branch and blocked every later 4.x proposal). Bump this by hand if you
+    # skip a renovate PR, and delete the stale branch afterward so renovate
+    # can propose fresh updates again - don't just close the PR.
+    # renovate: datasource=docker depName=docker.langfuse.com/langfuse/langfuse
+    tag: "4.56.0"
+  web:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 1Gi
+      limits:
+        # Next.js OOMs under 1Gi during startup migrations - confirmed live.
+        memory: 2Gi
+    # Probe settings for langfuse-web. Increase initialDelaySeconds to allow
+    # ClickHouse init scripts to complete before health checks start killing
+    # the pod. Both livenessProbe and readinessProbe are configurable.
+    livenessProbe:
+      initialDelaySeconds: 45
+      timeoutSeconds: 10
+      failureThreshold: 6
+    readinessProbe:
+      initialDelaySeconds: 45
+      timeoutSeconds: 10
+      failureThreshold: 6
+  worker:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
+    # Probe settings for langfuse-worker. Only livenessProbe is supported
+    # (no readinessProbe on the worker).
+    livenessProbe:
+      initialDelaySeconds: 60
+      timeoutSeconds: 10
+      failureThreshold: 8
+

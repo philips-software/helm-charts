@@ -8,6 +8,13 @@ grafana:
   # Optional SSO connector path to auto-select upstream IDP (e.g., "github", "google")
   # When set, appends to auth_url: ${issuerUrl}/auth/${connector}
   connector: ""
+  # SSO OIDC group to Grafana role mapping (JMESPath expression)
+  # Maps groups from OIDC provider to Grafana roles
+  ssoRoleAttributePath: ""
+  # SSO OIDC claim to use for login/username (JMESPath expression)
+  ssoLoginAttributePath: "email"
+  # SSO OIDC claim to use for email address (JMESPath expression)
+  ssoEmailAttributePath: "email"
   # Auth proxy configuration (for reverse proxy authentication)
   # See: https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/auth-proxy/
   authProxy:
@@ -41,6 +48,7 @@ grafana:
       # Enable Caddy sidecar for IP-based auto-login
       enabled: false
       # Caddy container image
+      # renovate: datasource=docker depName=caddy
       image: caddy:2-alpine
       # Username for auto-login from trusted IPs
       autoLoginUser: "viewer"
@@ -84,6 +92,17 @@ grafana:
   # - yesoreyeram-infinity-datasource@3.0.0  # Specific version
   # - plugin-name@version@https://url/to/plugin.zip  # From URL
   plugins: []
+  # Shadow /usr/share/grafana/data/plugins-bundled with an emptyDir.
+  # The upstream image ships core datasource plugins (prometheus, loki,
+  # tempo, ...) under that path, which is read-only when
+  # containerSecurityContext.readOnlyRootFilesystem is true. Grafana's
+  # GF_PLUGINS_PREINSTALL_SYNC (driven by `plugins` above) prunes any
+  # bundled plugin not listed in `plugins`, and that prune fails on the
+  # read-only path, leaving the plugin unregistered. Enable this whenever
+  # `plugins` is non-empty and you still rely on any bundled plugin — list
+  # every bundled plugin you need (e.g. prometheus, loki, tempo) in
+  # `plugins` too, since only listed plugins survive the sync once shadowed.
+  shadowBundledPlugins: false
   ingress:
     enabled: false
     # Hostname for Grafana ingress (alphanumeric characters and hyphens only)
@@ -113,7 +132,7 @@ grafana:
 
 grafanaChart:
   # renovate: datasource=docker depName=ghcr.io/grafana-community/helm-charts/grafana
-  version: 12.8.1
+  version: 13.5.0
   # Helm release name for Grafana
   releaseName: gf
 
@@ -175,7 +194,7 @@ crossplaneProviders:
     debug: false
     # Provider package version
     # renovate: datasource=docker depName=ghcr.io/loafoe/provider-gf
-    tag: "v0.10.0"
+    tag: "v0.11.0"
     datasources: []
 
 # Datasource configuration

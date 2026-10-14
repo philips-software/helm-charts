@@ -5,22 +5,22 @@ envVars:
   - name: DEX_PG_HOST
     valueFrom:
       secretKeyRef:
-        name: dex-postgres-connection
+        name: {{ .Values.database.connectionSecretName | default "dex-postgres-connection" }}
         key: host
   - name: DEX_PG_DATABASE
     valueFrom:
       secretKeyRef:
-        name: dex-postgres-connection
+        name: {{ .Values.database.connectionSecretName | default "dex-postgres-connection" }}
         key: database
   - name: DEX_PG_USER
     valueFrom:
       secretKeyRef:
-        name: dex-postgres-connection
+        name: {{ .Values.database.connectionSecretName | default "dex-postgres-connection" }}
         key: username
   - name: DEX_PG_PASSWORD
     valueFrom:
       secretKeyRef:
-        name: dex-postgres-connection
+        name: {{ .Values.database.connectionSecretName | default "dex-postgres-connection" }}
         key: password
 strategy:
   type: RollingUpdate
@@ -74,6 +74,10 @@ config:
     dcr:
       enable: {{ .Values.dex.dcr.enabled }}
       secret: $DEX_DCR_SECRET
+{{- if .Values.dex.grantTypes }}
+    grantTypes:
+      {{- toYaml .Values.dex.grantTypes | nindent 6 }}
+{{- end }}
 {{- if .Values.dex.staticClients }}
   staticClients:
     {{- toYaml .Values.dex.staticClients | nindent 4 }}
@@ -88,7 +92,7 @@ volumes:
 {{- if .Values.theme.enabled }}
   - name: styles-volume
     configMap:
-      name: dex-theme
+      name: {{ .Values.theme.existingConfigMap | default "dex-theme" }}
 {{- end }}
 {{- if eq (include "dex-issuer.mtlsEnabled" .) "true" }}
   - name: grpc-tls

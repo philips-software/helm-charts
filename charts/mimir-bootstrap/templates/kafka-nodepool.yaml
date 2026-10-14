@@ -8,7 +8,7 @@ spec:
     budgets:
     - nodes: 10%
     consolidateAfter: 300s
-    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidationPolicy: {{ .Values.kafkaNodePool.consolidationPolicy | default "WhenEmpty" }}
   limits:
     amd.com/gpu: 0
     aws.amazon.com/neuron: 0
@@ -48,15 +48,15 @@ spec:
       - key: karpenter.k8s.aws/instance-memory
         operator: Gt
         values:
-        - "4000"
+        - {{ .Values.kafkaNodePool.minInstanceMemoryMiB | default 8000 | quote }}
       - key: karpenter.k8s.aws/instance-cpu
         operator: Gt
         values:
         - "1"
-      # Permanent taints to reserve nodes for kafka workloads only
+      # Permanent taints to reserve nodes for kafka workloads.
       taints:
       - effect: NoSchedule
-        key: workload
+        key: {{ .Values.kafkaNodePool.taintKey | default "cilium.hsp.philips.com/dedicated" }}
         value: kafka
       terminationGracePeriod: 24h
   weight: 5

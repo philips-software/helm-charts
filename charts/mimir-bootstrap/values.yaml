@@ -1,6 +1,6 @@
 mimirChart:
   # renovate: datasource=helm depName=mimir-distributed registryUrl=https://grafana.github.io/helm-charts
-  version: 6.1.0
+  version: 6.2.1
 
 compactorOrgmapper:
   package: ghcr.io/loafoe/compactor-orgmapper
@@ -46,7 +46,28 @@ kafkaNodePool:
   enabled: true
   labels:
     workload: kafka
+  # The taint key applied to the dedicated Kafka nodes (and tolerated by the
+  # Kafka StatefulSet). Defaults to the platform-wide "dedicated node" key so
+  # cluster infra pods with an Exists toleration for it (e.g. trivy-operator's
+  # node-collector) can still be scheduled here.
+  taintKey: cilium.hsp.philips.com/dedicated
   nodeClassRefName: bottlerocket-v2
+  # Consolidation policy for the dedicated Kafka node pool. This pool hosts
+  # the sole broker for live metrics ingestion, so nodes must never be torn
+  # down while still in use. "WhenEmptyOrUnderutilized" allows Karpenter to
+  # drain/replace nodes that look underutilized, which can disrupt the
+  # broker. Keep this as "WhenEmpty" (or set to "WhenEmptyOrUnderutilized"
+  # only if you fully understand the risk).
+  consolidationPolicy: WhenEmpty
+  # Minimum instance memory (MiB) Karpenter will pick for this nodepool.
+  # Was hardcoded to 4000, which qualifies instances like t4g.medium
+  # (4096Mi total) -- after mandatory per-node DaemonSets (CNI, kube-proxy,
+  # SPIRE agent, log shippers, etc.) claim their share, as little as ~1Gi
+  # was left allocatable, right at the edge of what the Kafka pod itself
+  # requests (1Gi), causing persistent "Insufficient memory" scheduling
+  # failures. Raised the default floor so Karpenter picks a larger instance
+  # with real headroom.
+  minInstanceMemoryMiB: 8000
   resources:
     limits:
       cpu: 4
@@ -82,8 +103,36 @@ limits:
   # Maximum number of exemplars stored per user (0 = disabled)
   maxGlobalExemplarsPerUser: 0
 
+# Gateway configuration
+gateway:
+  # -- Number of gateway replicas
+  replicas: 3
+
+# Distributor configuration
+distributor:
+  # -- Number of distributor replicas
+  replicas: 6
+
 # Query frontend configuration
+# Mimir Query Engine (MQE) settings shared by query_frontend and querier --
+# both components register and validate these flags, so they must match.
+queryEngine:
+  # -- [experimental] MQE remote execution requires every querier to report
+  # a compatible "query plan version" via the ring; this negotiation is
+  # flaky under churn (observed as intermittent 500s: "could not determine
+  # maximum supported query plan version ... at least one querier in the
+  # ring is not reporting a supported query plan version", even while the
+  # flagged querier was actively evaluating other queries successfully at
+  # the same time). Keep disabled until upstream stabilizes this.
+  #
+  # Also gates use-mimir-query-engine-for-sharding, which defaults to true
+  # and requires remote execution to be enabled -- mismatched settings fail
+  # startup config validation, so both flags are driven by this one value.
+  enableRemoteExecution: false
+
 queryFrontend:
+  # -- Number of query-frontend replicas
+  replicas: 3
   resources:
     requests:
       cpu: 100m
@@ -93,6 +142,8 @@ queryFrontend:
 
 # Ingester configuration
 ingester:
+  # -- Number of ingester replicas
+  replicas: 9
   # -- Replication factor for ingested data.
   # RF=3 (default): Data replicated to 3 zones, can survive 2 zone failures.
   # RF=2: Data replicated to 2 zones, saves ~33% ingester memory but less durable.
@@ -115,6 +166,26 @@ querier:
       memory: 512Mi
     limits:
       memory: 1.5Gi
+
+# Admin-cache (memcached) configuration
+adminCache:
+  # -- Number of admin-cache replicas
+  replicas: 2
+
+# Chunks-cache (memcached) configuration
+chunksCache:
+  # -- Number of chunks-cache replicas
+  replicas: 2
+
+# Index-cache (memcached) configuration
+indexCache:
+  # -- Number of index-cache replicas
+  replicas: 2
+
+# Results-cache (memcached) configuration
+resultsCache:
+  # -- Number of results-cache replicas
+  replicas: 4
 
 store_gateway:
   persistentVolume:
@@ -142,3 +213,49 @@ karpenter:
   # If true, stateful components (ingester, store-gateway, etc.) will be annotated
   # with karpenter.sh/do-not-disrupt: "true" to prevent consolidation.
   doNotDisrupt: false
+
+# Vertical Pod Autoscalers for Mimir components. Requires the VPA CRDs.
+# Previously hardcoded directly in the templates with no values.yaml
+# plumbing or enable toggle; now configurable per-component like the other
+# *-bootstrap charts.
+vpa:
+  # -- Enable VPA resources for Mimir components
+  enabled: true
+  # -- VPA update mode (e.g. Off, Initial, Auto, InPlaceOrRecreate)
+  updateMode: Auto
+  components:
+    distributor:
+      enabled: true
+      minAllowed:
+        cpu: 350m
+        memory: 512Mi
+      maxAllowed:
+        cpu: 1
+        memory: 8Gi
+    ingester:
+      enabled: true
+      minAllowed:
+        cpu: 350m
+        memory: 2Gi
+      maxAllowed:
+        cpu: 1
+        memory: 16Gi
+    querier:
+      enabled: true
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 500m
+        memory: 2Gi
+    queryFrontend:
+      enabled: true
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 500m
+        # Was 2Gi, which sat below queryFrontend.resources.limits.memory (3Gi)
+        # above -- the VPA could never reach the already-configured static
+        # limit. Set with headroom above it instead.
+        memory: 4Gi

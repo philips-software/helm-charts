@@ -90,13 +90,25 @@ Validate required config values
 {{- end }}
 
 {{/*
-Validate OIDC config (only needed when rendering IAM roles)
+Validate OIDC config (only needed when rendering IRSA-mode IAM roles)
 */}}
 {{- define "crossplane-providers.validateOIDCConfig" -}}
 {{- if not .Values.environmentConfig.oidcProviderArn }}
-{{- fail "environmentConfig.oidcProviderArn is required when creating IAM roles" }}
+{{- fail "environmentConfig.oidcProviderArn is required when creating IRSA IAM roles (identityMode: irsa)" }}
 {{- end }}
 {{- if not .Values.environmentConfig.oidcProvider }}
-{{- fail "environmentConfig.oidcProvider is required when creating IAM roles" }}
+{{- fail "environmentConfig.oidcProvider is required when creating IRSA IAM roles (identityMode: irsa)" }}
+{{- end }}
+{{- end }}
+
+{{/*
+Validate Pod Identity config (only needed when a provider uses identityMode: podIdentity)
+*/}}
+{{- define "crossplane-providers.validatePodIdentityConfig" -}}
+{{- if not .Values.environmentConfig.clusterName }}
+{{- fail "environmentConfig.clusterName is required when using identityMode: podIdentity" }}
+{{- end }}
+{{- if not .Values.environmentConfig.region }}
+{{- fail "environmentConfig.region is required when using identityMode: podIdentity" }}
 {{- end }}
 {{- end }}

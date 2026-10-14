@@ -41,7 +41,7 @@ serviceAccount:
     eks.amazonaws.com/role-arn: arn:aws:iam::{{ .Values.environmentConfig.accountId }}:role/{{ .Values.environmentConfig.resourcePrefix }}-mimir-s3-irsa-role
 
 gateway:
-  replicas: 3
+  replicas: {{ .Values.gateway.replicas }}
   enabledNonEnterprise: true
   nginx:
     config:
@@ -100,7 +100,7 @@ kafka:
     {{ $key }}: {{ $value }}
     {{- end }}
   tolerations:
-  - key: workload
+  - key: {{ .Values.kafkaNodePool.taintKey | default "cilium.hsp.philips.com/dedicated" }}
     operator: Equal
     value: kafka
     effect: NoSchedule
@@ -112,7 +112,7 @@ distributor:
     distributor.ingestion-burst-size: 400000
     distributor.instance-limits.max-ingestion-rate: 0
     distributor.instance-limits.max-inflight-push-requests-bytes: 0
-  replicas: 6 # large.yaml says 12
+  replicas: {{ .Values.distributor.replicas }} # large.yaml says 12
   resources:
     requests:
       cpu: 200m
@@ -133,9 +133,15 @@ ruler:
       memory: {{ .Values.ruler.resources.limits.memory }}
 
 query_frontend:
-  replicas: 3
+  replicas: {{ .Values.queryFrontend.replicas }}
   extraArgs:
     query-frontend.max-cache-freshness: 30m
+    query-frontend.enable-remote-execution: {{ .Values.queryEngine.enableRemoteExecution | quote }}
+    # use-mimir-query-engine-for-sharding defaults to true and requires
+    # remote execution to be enabled; mismatched settings fail startup
+    # config validation ("using MQE for sharding is only supported when ...
+    # remote execution is enabled"), so this must track the same value.
+    query-frontend.use-mimir-query-engine-for-sharding: {{ .Values.queryEngine.enableRemoteExecution | quote }}
   resources:
     requests:
       cpu: {{ .Values.queryFrontend.resources.requests.cpu }}
@@ -144,6 +150,11 @@ query_frontend:
       memory: {{ .Values.queryFrontend.resources.limits.memory }}
 
 querier:
+  extraArgs:
+    # Must match query_frontend's settings above -- same flags, registered
+    # on both components, and both validated at querier startup too.
+    query-frontend.enable-remote-execution: {{ .Values.queryEngine.enableRemoteExecution | quote }}
+    query-frontend.use-mimir-query-engine-for-sharding: {{ .Values.queryEngine.enableRemoteExecution | quote }}
   resources:
     requests:
       cpu: {{ .Values.querier.resources.requests.cpu }}
@@ -185,7 +196,7 @@ ingester:
     {{- end }}
   persistentVolume:
     size: {{ .Values.ingester.persistentVolume.size }}
-  replicas: 9 # large.yaml says 27
+  replicas: {{ .Values.ingester.replicas }} # large.yaml says 27
   resources:
     requests:
       cpu: {{ .Values.ingester.resources.requests.cpu }}
@@ -340,7 +351,7 @@ mimir:
       type: RuntimeDefault
 admin-cache:
   enabled: true
-  replicas: 2
+  replicas: {{ .Values.adminCache.replicas }}
   resources:
     requests:
       cpu: 50m
@@ -349,7 +360,7 @@ admin-cache:
       memory: 128Mi
 chunks-cache:
   enabled: true
-  replicas: 2 # large.yaml says 4
+  replicas: {{ .Values.chunksCache.replicas }} # large.yaml says 4
   resources:
     requests:
       cpu: 50m
@@ -358,7 +369,7 @@ chunks-cache:
       memory: 128Mi
 index-cache:
   enabled: true
-  replicas: 2 # large.yaml says 4
+  replicas: {{ .Values.indexCache.replicas }} # large.yaml says 4
   resources:
     requests:
       cpu: 50m
@@ -376,7 +387,7 @@ metadata-cache:
       memory: 256Mi
 results-cache:
   enabled: true
-  replicas: 4
+  replicas: {{ .Values.resultsCache.replicas }}
   allocatedMemory: 1024
   resources:
     requests:

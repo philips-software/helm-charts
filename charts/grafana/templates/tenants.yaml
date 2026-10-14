@@ -2,7 +2,7 @@
 {{- $tenants := .Values.tenants | default .Values.grafana.tenants }}
 {{- range $tenants }}
 ---
-apiVersion: tenant.orgmapper.crossplane.io/v1alpha1
+apiVersion: tenant.orgmapper.m.crossplane.io/v1alpha1
 kind: Tenant
 metadata:
   name: {{ .name }}

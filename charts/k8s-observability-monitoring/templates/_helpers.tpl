@@ -50,19 +50,24 @@ alloy:
 {{- end }}
 
 {{/*
-Concatenate the list-valued "extra" keys (controller.volumes.extra and alloy.mounts.extra)
-across a list of Alloy-values fragments, returning a single merged dict. mergeOverwrite REPLACES
-lists, so we must concat these explicitly. Input: a list of dicts. Output: merged dict.
+Concatenate the list-valued "extra"/"tolerations" keys (controller.volumes.extra,
+alloy.mounts.extra and controller.tolerations) across a list of Alloy-values fragments,
+returning a single merged dict. mergeOverwrite REPLACES lists, so we must concat these
+explicitly -- otherwise a later fragment's tolerations (e.g. the dedicated-node toleration)
+would silently drop an earlier fragment's own controller.tolerations (e.g. a per-collector
+override), rather than adding to them. Input: a list of dicts. Output: merged dict.
 Usage: {{ include "k8s-monitoring.mergeAlloyFragments" (list $frag1 $frag2) | fromYaml ... }}
 */}}
 {{- define "k8s-monitoring.mergeAlloyFragments" -}}
 {{- $merged := dict -}}
 {{- $vols := list -}}
 {{- $mounts := list -}}
+{{- $tolerations := list -}}
 {{- range . -}}
   {{- $f := deepCopy . -}}
   {{- $vols = concat $vols (dig "controller" "volumes" "extra" (list) $f) -}}
   {{- $mounts = concat $mounts (dig "alloy" "mounts" "extra" (list) $f) -}}
+  {{- $tolerations = concat $tolerations (dig "controller" "tolerations" (list) $f) -}}
   {{- $merged = mergeOverwrite $merged $f -}}
 {{- end -}}
 {{- if gt (len $vols) 0 -}}
@@ -71,14 +76,36 @@ Usage: {{ include "k8s-monitoring.mergeAlloyFragments" (list $frag1 $frag2) | fr
 {{- if gt (len $mounts) 0 -}}
   {{- $_ := set $merged "alloy" (mergeOverwrite (dig "alloy" (dict) $merged) (dict "mounts" (dict "extra" $mounts))) -}}
 {{- end -}}
+{{- if gt (len $tolerations) 0 -}}
+  {{- $_ := set $merged "controller" (mergeOverwrite (dig "controller" (dict) $merged) (dict "tolerations" $tolerations)) -}}
+{{- end -}}
 {{- toYaml $merged -}}
 {{- end }}
 
 {{/*
+Alloy values fragment adding the configured dedicated-node toleration to an upstream
+collector's controller, so e.g. alloy-logs still schedules onto nodes tainted for dedicated
+workloads (such as the kafka-dedicated nodes tainted by mimir-bootstrap/tempo-bootstrap's
+kafkaNodePool).
+Usage: {{ include "k8s-monitoring.dedicatedNodeTolerationValues" . }}
+*/}}
+{{- define "k8s-monitoring.dedicatedNodeTolerationValues" -}}
+controller:
+  tolerations:
+    - key: {{ .Values.dedicatedNodeToleration.key | quote }}
+      operator: {{ .Values.dedicatedNodeToleration.operator | quote }}
+      {{- if .Values.dedicatedNodeToleration.value }}
+      value: {{ .Values.dedicatedNodeToleration.value | quote }}
+      {{- end }}
+      effect: {{ .Values.dedicatedNodeToleration.effect | quote }}
+{{- end }}
+
+{{/*
 Compute the merged Alloy values for a named upstream collector by collecting fragments
-(per-collector overrides + spiffe-helper when listed in spiffe.collectors + Hubble on alloy-logs),
-then concatenating their list-valued extras. Emits the merged collector values (top-level
-controller/alloy/etc. keys) for use under the collector name, or nothing if no fragments apply.
+(per-collector overrides + spiffe-helper when listed in spiffe.collectors + Hubble and the
+dedicated-node toleration on alloy-logs), then concatenating their list-valued extras. Emits
+the merged collector values (top-level controller/alloy/etc. keys) for use under the collector
+name, or nothing if no fragments apply.
 Usage: {{ include "k8s-monitoring.collectorAlloyBlock" (dict "ctx" . "name" "alloy-logs") }}
 */}}
 {{- define "k8s-monitoring.collectorAlloyBlock" -}}
@@ -94,6 +121,9 @@ Usage: {{ include "k8s-monitoring.collectorAlloyBlock" (dict "ctx" . "name" "all
 {{- end -}}
 {{- if and (eq $name "alloy-logs") $ctx.Values.hubbleFlowLogs.enabled -}}
   {{- $frags = append $frags (include "k8s-monitoring.hubbleMountValues" $ctx | fromYaml) -}}
+{{- end -}}
+{{- if and (eq $name "alloy-logs") $ctx.Values.dedicatedNodeToleration.enabled -}}
+  {{- $frags = append $frags (include "k8s-monitoring.dedicatedNodeTolerationValues" $ctx | fromYaml) -}}
 {{- end -}}
 {{- if gt (len $frags) 0 -}}
   {{- $merged := include "k8s-monitoring.mergeAlloyFragments" $frags | fromYaml -}}

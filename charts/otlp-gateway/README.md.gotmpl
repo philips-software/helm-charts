@@ -50,6 +50,22 @@ authn:
     mode: verify_if_given
 ```
 
+### Mirroring metrics traffic
+
+`/v1/metrics` requests can optionally be mirrored to a secondary destination (e.g. an
+`alloy-otlp-relay` instance) via the [caddy-mirror](https://github.com/loafoe/caddy-mirror)
+plugin, bundled in `caddy.container.image` from `v1.2.0` onward. Mirrored requests never affect
+the primary request: mirror responses are discarded, and on error the client still only ever
+sees mimir's response. Normal (non-mirrored) traffic is unaffected either way.
+
+```yaml
+mimir:
+  mirror:
+    enabled: true
+    destination: alloy-otlp-relay.alloy-long-term.svc.cluster.local:4318
+    samplePercent: 100
+```
+
 {{ template "chart.requirementsSection" . }}
 
 {{ template "chart.valuesSection" . }}

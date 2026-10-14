@@ -42,6 +42,17 @@ dex:
   # Scope prefixes allowed for token introspection
   allowedScopePrefixes:
     - "hsp:iam:introspect"
+  # Explicit list of OAuth2 grant types to advertise/accept. Empty (default)
+  # means "whatever this Dex build's own unconfigured default is" - which is
+  # NOT necessarily "all grants the binary supports": e.g. client_credentials
+  # requires being listed here explicitly to become reachable, even though
+  # the grant handler exists unconditionally in the binary. Set explicitly
+  # any time a client needs a grant beyond the default set (confirmed live:
+  # authorization_code, refresh_token, device_code, token-exchange).
+  # Example: ["authorization_code", "refresh_token",
+  #   "urn:ietf:params:oauth:grant-type:device_code",
+  #   "urn:ietf:params:oauth:grant-type:token-exchange", "client_credentials"]
+  grantTypes: []
   # Token / signing key expiry
   expiry:
     signingKeys: "6h"
@@ -64,13 +75,13 @@ dex:
   image:
     repository: ghcr.io/philips-forks/dex
     # renovate: datasource=docker depName=ghcr.io/philips-forks/dex
-    tag: "v2.45.1-dip.6"
+    tag: "v2.45.1-dip.17"
 
 # Upstream Dex Helm chart configuration
 dexChart:
   repoURL: https://charts.dexidp.io
   # renovate: datasource=helm depName=dex registryUrl=https://charts.dexidp.io
-  version: 0.24.1
+  version: 0.26.0
   # Helm release name for Dex
   releaseName: dex
 
@@ -94,6 +105,19 @@ database:
   barmanBackup:
     enabled: true
     retentionDays: 7
+  # Name of the Postgres claim (metadata.name). Defaults to "dex". Override
+  # to adopt a pre-existing, non-chart-managed Postgres claim in place
+  # instead of creating a second one that collides on connectionSecretName.
+  claimName: ""
+  # Postgres claim identifier (spec.parameters.identifier). Defaults to
+  # "<environmentConfig.resourcePrefix>-dex". Override to match an existing
+  # claim's identifier verbatim when adopting it via claimName above --
+  # changing an existing claim's identifier can make the postgres-cnpg
+  # composition recreate the underlying CNPG Cluster.
+  identifier: ""
+  # Name of the Secret the Postgres claim writes its connection details to,
+  # and that Dex reads DEX_PG_* from. Defaults to "dex-postgres-connection".
+  connectionSecretName: ""
 
 # Crossplane connector-management plane (provider-dex).
 # When enabled, deploys the self-signed PKI, the Dex gRPC server certificate,
@@ -104,9 +128,9 @@ provider:
   debug: true
   # Provider package version
   # renovate: datasource=docker depName=xpkg.upbound.io/loafoe/provider-dex
-  tag: "v1.13.0"
+  tag: "v1.14.0"
   # Container registry hosting the provider-dex package
-  registry: "xpkg.upbound.io/loafoe"
+  registry: "ghcr.io/loafoe"
   # crossplane-providers wrapper chart version
   # renovate: datasource=docker depName=ghcr.io/philips-software/helm-charts/crossplane-providers
   crossplaneProvidersVersion: 0.0.35
@@ -149,6 +173,12 @@ pki:
 # ConfigMap. RI-specific connector hide-rules have been stripped from styles.css.
 theme:
   enabled: true
+  # Name of an existing ConfigMap (keys: styles.css, philips-logo.svg,
+  # logo.png) to mount into Dex instead of this chart's bundled theme. When
+  # set, this chart does not create its own dex-theme ConfigMap - manage it
+  # yourself (e.g. a kustomize configMapGenerator) so custom branding doesn't
+  # require forking this chart. Leave empty to use the bundled theme.
+  existingConfigMap: ""
 
 # Use custom FQDN instead of clusterFqdn (falls back to clusterFqdn if customFqdn is empty)
 useCustomFqdn: false

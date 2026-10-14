@@ -1,5 +1,5 @@
 {{- if .Values.crossplaneProviders.orgmapper.enabled }}
-apiVersion: orgmapper.crossplane.io/v1alpha1
+apiVersion: orgmapper.m.crossplane.io/v1alpha1
 kind: ProviderConfig
 metadata:
   name: default

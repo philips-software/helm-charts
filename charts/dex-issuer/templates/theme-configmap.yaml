@@ -1,4 +1,4 @@
-{{- if .Values.theme.enabled -}}
+{{- if and .Values.theme.enabled (not .Values.theme.existingConfigMap) -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:

@@ -1,0 +1,38 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ include "zitadel-bootstrap.postgresClusterName" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "zitadel-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  instances: {{ .Values.database.instances }}
+  {{- if gt (int .Values.database.instances) 1 }}
+  # Only meaningful with a spare instance to land it on a different node -
+  # same podAntiAffinityType centcom's own CNPG cluster uses, so a replica
+  # actually survives losing whichever node the primary is on. CNPG itself
+  # already creates a "<cluster>-primary" PDB unconditionally (protects the
+  # primary from any voluntary eviction, even at instances: 1), independent
+  # of this.
+  affinity:
+    podAntiAffinityType: preferred
+  {{- end }}
+  bootstrap:
+    initdb:
+      database: {{ .Values.database.databaseName | quote }}
+      owner: {{ .Values.database.databaseName | quote }}
+      secret:
+        name: {{ include "zitadel-bootstrap.postgresClusterName" . }}-credentials
+  storage:
+    size: {{ .Values.database.storage.size | quote }}
+    {{- if .Values.database.storage.storageClass }}
+    storageClass: {{ .Values.database.storage.storageClass | quote }}
+    {{- end }}
+  resources:
+    requests:
+      cpu: {{ .Values.database.resources.requests.cpu | quote }}
+      memory: {{ .Values.database.resources.requests.memory | quote }}
+    limits:
+      memory: {{ .Values.database.resources.limits.memory | quote }}
