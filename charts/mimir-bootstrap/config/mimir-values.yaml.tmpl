@@ -128,9 +128,9 @@ ruler:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: {{ .Values.ruler.resources.requests.memory }}
     limits:
-      memory: 512Mi
+      memory: {{ .Values.ruler.resources.limits.memory }}
 
 query_frontend:
   replicas: 3

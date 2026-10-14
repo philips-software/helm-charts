@@ -1,13 +1,13 @@
 # mimir
 
-![Version: 0.65.0](https://img.shields.io/badge/Version-0.65.0-informational?style=flat-square)
+![Version: 0.66.2](https://img.shields.io/badge/Version-0.66.2-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.65.0 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.66.2 -n monitoring
 ```
 
 ## Dependencies
@@ -66,7 +66,10 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | queryFrontend.resources.limits.memory | string | `"3Gi"` |  |
 | queryFrontend.resources.requests.cpu | string | `"100m"` |  |
 | queryFrontend.resources.requests.memory | string | `"512Mi"` |  |
-| ruler.maxRulesPerRuleGroup | int | `800` |  |
+| ruler.maxRulesPerRuleGroup | int | `1200` |  |
+| ruler.resources.limits.memory | string | `"2Gi"` |  |
+| ruler.resources.requests.cpu | string | `"100m"` |  |
+| ruler.resources.requests.memory | string | `"1Gi"` |  |
 | store_gateway.persistentVolume.size | string | `"10Gi"` | Size of the persistent volume for each store-gateway replica |
 | store_gateway.resources.limits.memory | string | `"3Gi"` |  |
 | store_gateway.resources.requests.cpu | string | `"100m"` |  |

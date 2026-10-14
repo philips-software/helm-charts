@@ -65,7 +65,13 @@ multitenancyEnabled: true
 
 ruler:
   # Maximum number of rules per rule group
-  maxRulesPerRuleGroup: 800
+  maxRulesPerRuleGroup: 1200
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
 
 # Mimir limits configuration
 limits:
