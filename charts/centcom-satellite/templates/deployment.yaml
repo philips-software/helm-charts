@@ -177,6 +177,10 @@ spec:
             - name: SECURITYHUB_WRITE_ENABLED
               value: "true"
             {{- end }}
+            {{- if .Values.features.cloudtrail }}
+            - name: CLOUDTRAIL_ENABLED
+              value: "true"
+            {{- end }}
             {{- if .Values.aws.irsa.region }}
             - name: AWS_REGION
               value: {{ .Values.aws.irsa.region | quote }}

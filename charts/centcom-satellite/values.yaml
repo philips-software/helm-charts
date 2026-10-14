@@ -219,6 +219,14 @@ features:
   # write-only Security Hub policy to the IRSA role (least privilege —
   # BatchUpdateFindings only) on top of the read policy.
   securityhubWrite: false
+  # -- Enable the read-only CloudTrail event-history tasks
+  # (cloudtrail_lookup_events, cloudtrail_logins — who logged into the account,
+  # what changed). Sets CLOUDTRAIL_ENABLED. Requires AWS credentials via IRSA
+  # (aws.irsa) or ambient credentials; attaches a policy granting only
+  # cloudtrail:LookupEvents to the IRSA role. Deliberately an explicit opt-in
+  # (not part of install.sh's IRSA_ENABLED read-only bundle): sign-in history
+  # identifies people, so it is more sensitive than findings.
+  cloudtrail: false
 
 # AWS integration: Crossplane-managed IAM + IRSA.
 #
@@ -227,7 +235,8 @@ features:
 # policy (attached only when features.cloudwatchRca is true), the read-only
 # GuardDuty policy (attached only when features.guardduty is true), and the
 # Security Hub read/write policies (attached only when features.securityhub /
-# features.securityhubWrite are true, respectively). Additional task groups add
+# features.securityhubWrite are true, respectively), and the CloudTrail
+# LookupEvents policy (attached only when features.cloudtrail is true). Additional task groups add
 # their own policies to the same role rather than a new role.
 aws:
   irsa:
