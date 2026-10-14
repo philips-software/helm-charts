@@ -1,13 +1,13 @@
 # mimir
 
-![Version: 0.66.4](https://img.shields.io/badge/Version-0.66.4-informational?style=flat-square)
+![Version: 0.66.2](https://img.shields.io/badge/Version-0.66.2-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.66.4 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.66.2 -n monitoring
 ```
 
 ## Dependencies
@@ -46,6 +46,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | kafkaNodePool.enabled | bool | `true` |  |
 | kafkaNodePool.expireAfter | string | `"3600h"` |  |
 | kafkaNodePool.labels.workload | string | `"kafka"` |  |
+| kafkaNodePool.minInstanceMemoryMiB | int | `8000` |  |
 | kafkaNodePool.nodeClassRefName | string | `"bottlerocket-v2"` |  |
 | kafkaNodePool.resources.limits.cpu | int | `4` |  |
 | kafkaNodePool.resources.limits.memory | string | `"16Gi"` |  |
@@ -71,12 +72,16 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | querier.resources.limits.memory | string | `"1.5Gi"` |  |
 | querier.resources.requests.cpu | string | `"100m"` |  |
 | querier.resources.requests.memory | string | `"512Mi"` |  |
+| queryEngine.enableRemoteExecution | bool | `false` | [experimental] MQE remote execution requires every querier to report a compatible "query plan version" via the ring; this negotiation is flaky under churn (observed as intermittent 500s: "could not determine maximum supported query plan version ... at least one querier in the ring is not reporting a supported query plan version", even while the flagged querier was actively evaluating other queries successfully at the same time). Keep disabled until upstream stabilizes this.  Also gates use-mimir-query-engine-for-sharding, which defaults to true and requires remote execution to be enabled -- mismatched settings fail startup config validation, so both flags are driven by this one value. |
 | queryFrontend.replicas | int | `3` | Number of query-frontend replicas |
 | queryFrontend.resources.limits.memory | string | `"3Gi"` |  |
 | queryFrontend.resources.requests.cpu | string | `"100m"` |  |
 | queryFrontend.resources.requests.memory | string | `"512Mi"` |  |
 | resultsCache.replicas | int | `4` | Number of results-cache replicas |
-| ruler.maxRulesPerRuleGroup | int | `800` |  |
+| ruler.maxRulesPerRuleGroup | int | `1200` |  |
+| ruler.resources.limits.memory | string | `"2Gi"` |  |
+| ruler.resources.requests.cpu | string | `"100m"` |  |
+| ruler.resources.requests.memory | string | `"1Gi"` |  |
 | store_gateway.persistentVolume.size | string | `"10Gi"` | Size of the persistent volume for each store-gateway replica |
 | store_gateway.resources.limits.memory | string | `"3Gi"` |  |
 | store_gateway.resources.requests.cpu | string | `"100m"` |  |
