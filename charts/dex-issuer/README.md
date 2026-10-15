@@ -98,7 +98,7 @@ omit `spec.tls`.
 | dex.httpRoute.sharedGatewayName | string | `"platform"` |  |
 | dex.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
 | dex.image.repository | string | `"ghcr.io/philips-forks/dex"` |  |
-| dex.image.tag | string | `"v2.45.1-dip.18"` |  |
+| dex.image.tag | string | `"v2.45.1-dip.19"` |  |
 | dex.ingress.enabled | bool | `false` |  |
 | dex.ingress.host | string | `"issuer"` |  |
 | dex.ingress.ingressClassName | string | `"nginx"` |  |
