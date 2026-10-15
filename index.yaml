@@ -4717,6 +4717,13 @@ entries:
     version: 0.0.14
   grafana:
   - apiVersion: v2
+    created: "2026-10-15T12:59:19.288183948Z"
+    digest: 13709b6f54e65c6157e9868afae40daa789c01766db1ba6a78a7f9d90c104e6b
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.80.2/grafana-0.80.2.tgz
+    version: 0.80.2
+  - apiVersion: v2
     created: "2026-10-15T12:58:57.474586869Z"
     digest: 7f587c83cd1659b1eb1d0543e4592fad3d18ea4ca6e9fa287967136c61e0d4ec
     name: grafana
@@ -6323,6 +6330,23 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/k8sgpt-bootstrap-0.1.0/k8sgpt-bootstrap-0.1.0.tgz
     version: 0.1.0
   langfuse-bootstrap:
+  - apiVersion: v2
+    created: "2026-10-15T12:59:19.618390118Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: 740447fe9d2ce3d81f28be8698b632f816ac7ea9fc010d62809c13be85321ef5
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.7.7/langfuse-bootstrap-0.7.7.tgz
+    version: 0.7.7
   - apiVersion: v2
     created: "2026-10-14T06:32:03.395307196Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
@@ -8249,4 +8273,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-15T12:58:57.476322533Z"
+generated: "2026-10-15T12:59:19.619521575Z"
