@@ -163,7 +163,8 @@ database:
 # the ClickHouse Operator must already be installed, see clickhouse-operator-bootstrap)
 clickhouse:
   cluster:
-    # Single ClickHouse node by default. Bump for HA.
+    # Single ClickHouse node by default. For HA set 2+ (one shard, N full data
+    # replicas via ReplicatedMergeTree) together with keeper.replicas: 3.
     replicas: 1
     image:
       repository: clickhouse/clickhouse-server
@@ -179,6 +180,14 @@ clickhouse:
         memory: 1Gi
       limits:
         memory: 2Gi
+    # Spread ClickHouse replicas across topology domains with a generated
+    # podAntiAffinity. type: required (hard - a replica stays Pending rather
+    # than share a node), preferred (soft, weight 100), or "" to disable.
+    # No effect at replicas: 1. Skipped if `affinity` below sets its own
+    # podAntiAffinity; any other `affinity` keys (e.g. nodeAffinity) are merged.
+    podAntiAffinity:
+      type: required
+      topologyKey: kubernetes.io/hostname
     # Node selector, tolerations, and affinity for ClickHouse pods.
     # Used to constrain scheduling (e.g. to specific node types).
     nodeSelector: {}
@@ -200,6 +209,11 @@ clickhouse:
         memory: 256Mi
       limits:
         memory: 512Mi
+    # Spread Keeper replicas so one node loss can't break quorum. Same
+    # semantics as clickhouse.cluster.podAntiAffinity.
+    podAntiAffinity:
+      type: required
+      topologyKey: kubernetes.io/hostname
     # Node selector, tolerations, and affinity for Keeper pods.
     nodeSelector: {}
     tolerations: []

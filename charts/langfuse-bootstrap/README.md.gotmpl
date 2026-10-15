@@ -49,6 +49,20 @@ This chart stores **no secret material in its values**. Credentials are split in
 - CloudNativePG operator installed cluster-wide (see `cloudnative-pg-operator`).
 - An existing S3 bucket (set via `existingBucketName`) and IRSA support in-cluster (see `loki-bootstrap` for the same pattern).
 
+## ClickHouse HA (optional)
+
+Defaults are a single ClickHouse replica and a single Keeper. For HA:
+
+```yaml
+clickhouse:
+  cluster:
+    replicas: 3   # one shard, 3 full data replicas (ReplicatedMergeTree)
+  keeper:
+    replicas: 3   # odd; tolerates one Keeper loss
+```
+
+Both components get a generated `podAntiAffinity` on `kubernetes.io/hostname` by default (`clickhouse.{cluster,keeper}.podAntiAffinity`), so replicas land on distinct nodes. With `type: required` a replica stays `Pending` if there aren't enough schedulable nodes. Use `type: preferred` to allow co-location, `type: ""` to disable, or `topologyKey: topology.kubernetes.io/zone` to spread across zones. A user-supplied `affinity.podAntiAffinity` replaces the generated one; other `affinity` keys are merged with it. The ClickHouse Operator adds its own PodDisruptionBudgets (ClickHouse `minAvailable: 1` per shard, Keeper `maxUnavailable: replicas/2`).
+
 ## Reaching the login screen
 
 By default this chart exposes Langfuse as ClusterIP only:

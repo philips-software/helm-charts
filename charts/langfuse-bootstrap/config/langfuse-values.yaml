@@ -92,9 +92,10 @@ clickhouse:
     tolerations:
       {{- toYaml . | nindent 6 }}
     {{- end }}
-    {{- with .Values.clickhouse.cluster.affinity }}
+    {{- /* instance label = <CR name>-<component>; CR name is "langfuse" (fixed releaseName in langfuse-helm.yaml) */}}
+    {{- with include "langfuse-bootstrap.clickhouseAffinity" (dict "cfg" .Values.clickhouse.cluster "instance" "langfuse-clickhouse") }}
     affinity:
-      {{- toYaml . | nindent 6 }}
+      {{- . | nindent 6 }}
     {{- end }}
   keeper:
     enabled: true
@@ -117,9 +118,10 @@ clickhouse:
     tolerations:
       {{- toYaml . | nindent 6 }}
     {{- end }}
-    {{- with .Values.clickhouse.keeper.affinity }}
+    {{- /* instance label = <CR name>-<component>; CR name is "langfuse" (fixed releaseName in langfuse-helm.yaml) */}}
+    {{- with include "langfuse-bootstrap.clickhouseAffinity" (dict "cfg" .Values.clickhouse.keeper "instance" "langfuse-keeper") }}
     affinity:
-      {{- toYaml . | nindent 6 }}
+      {{- . | nindent 6 }}
     {{- end }}
 
 redis:

@@ -105,6 +105,29 @@ Usage: include "langfuse-bootstrap.substituteVars" (dict "str" .Values.myValue "
 {{- end }}
 
 {{/*
+Affinity for ClickHouse or Keeper pods: the user-supplied `affinity`, plus a
+generated podAntiAffinity spreading the component's replicas across
+`podAntiAffinity.topologyKey` (unless `affinity` already sets podAntiAffinity,
+which then wins as-is). The operator runs one StatefulSet per replica, so the
+selector must match the cluster-wide `app.kubernetes.io/instance` pod label
+(`<CR name>-clickhouse` / `<CR name>-keeper`), not a per-StatefulSet one.
+Args: dict "cfg" <clickhouse.cluster|clickhouse.keeper values> "instance" <label value>
+*/}}
+{{- define "langfuse-bootstrap.clickhouseAffinity" -}}
+{{- $aff := deepCopy (.cfg.affinity | default dict) }}
+{{- $paa := .cfg.podAntiAffinity | default dict }}
+{{- if and $paa.type (not (hasKey $aff "podAntiAffinity")) }}
+{{- $term := dict "topologyKey" $paa.topologyKey "labelSelector" (dict "matchLabels" (dict "app.kubernetes.io/instance" .instance)) }}
+{{- if eq $paa.type "required" }}
+{{- $_ := set $aff "podAntiAffinity" (dict "requiredDuringSchedulingIgnoredDuringExecution" (list $term)) }}
+{{- else }}
+{{- $_ := set $aff "podAntiAffinity" (dict "preferredDuringSchedulingIgnoredDuringExecution" (list (dict "weight" 100 "podAffinityTerm" $term))) }}
+{{- end }}
+{{- end }}
+{{- with $aff }}{{ toYaml . }}{{ end }}
+{{- end }}
+
+{{/*
 Validate required configuration values
 */}}
 {{- define "langfuse-bootstrap.validateConfig" -}}
@@ -120,6 +143,15 @@ Validate required configuration values
 {{- if ne (int .Values.clickhouse.keeper.replicas) 1 }}
 {{- if eq (mod (int .Values.clickhouse.keeper.replicas) 2) 0 }}
 {{- fail "clickhouse.keeper.replicas must be odd (1, 3, or 5)" }}
+{{- end }}
+{{- end }}
+{{- range $c := list "cluster" "keeper" }}
+{{- $paa := (index $.Values.clickhouse $c).podAntiAffinity | default dict }}
+{{- if not (has ($paa.type | default "") (list "" "required" "preferred")) }}
+{{- fail (printf "clickhouse.%s.podAntiAffinity.type must be one of required, preferred, or empty (disabled)" $c) }}
+{{- end }}
+{{- if and $paa.type (not $paa.topologyKey) }}
+{{- fail (printf "clickhouse.%s.podAntiAffinity.topologyKey is required when podAntiAffinity.type is set" $c) }}
 {{- end }}
 {{- end }}
 {{- if .Values.ingress.httpRoute.enabled }}

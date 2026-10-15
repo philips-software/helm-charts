@@ -1,6 +1,6 @@
 # langfuse-bootstrap
 
-![Version: 0.7.6](https://img.shields.io/badge/Version-0.7.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.8.0](https://img.shields.io/badge/Version-0.8.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access (IRSA or static credentials) against an existing bucket.
 
@@ -49,6 +49,20 @@ This chart stores **no secret material in its values**. Credentials are split in
 - CloudNativePG operator installed cluster-wide (see `cloudnative-pg-operator`).
 - An existing S3 bucket (set via `existingBucketName`) and IRSA support in-cluster (see `loki-bootstrap` for the same pattern).
 
+## ClickHouse HA (optional)
+
+Defaults are a single ClickHouse replica and a single Keeper. For HA:
+
+```yaml
+clickhouse:
+  cluster:
+    replicas: 3   # one shard, 3 full data replicas (ReplicatedMergeTree)
+  keeper:
+    replicas: 3   # odd; tolerates one Keeper loss
+```
+
+Both components get a generated `podAntiAffinity` on `kubernetes.io/hostname` by default (`clickhouse.{cluster,keeper}.podAntiAffinity`), so replicas land on distinct nodes. With `type: required` a replica stays `Pending` if there aren't enough schedulable nodes. Use `type: preferred` to allow co-location, `type: ""` to disable, or `topologyKey: topology.kubernetes.io/zone` to spread across zones. A user-supplied `affinity.podAntiAffinity` replaces the generated one; other `affinity` keys are merged with it. The ClickHouse Operator adds its own PodDisruptionBudgets (ClickHouse `minAvailable: 1` per shard, Keeper `maxUnavailable: replicas/2`).
+
 ## Reaching the login screen
 
 By default this chart exposes Langfuse as ClusterIP only:
@@ -89,6 +103,8 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | clickhouse.cluster.image.repository | string | `"clickhouse/clickhouse-server"` |  |
 | clickhouse.cluster.image.tag | string | `"26.9"` |  |
 | clickhouse.cluster.nodeSelector | object | `{}` |  |
+| clickhouse.cluster.podAntiAffinity.topologyKey | string | `"kubernetes.io/hostname"` |  |
+| clickhouse.cluster.podAntiAffinity.type | string | `"required"` |  |
 | clickhouse.cluster.replicas | int | `1` |  |
 | clickhouse.cluster.resources.limits.memory | string | `"2Gi"` |  |
 | clickhouse.cluster.resources.requests.cpu | string | `"500m"` |  |
@@ -100,6 +116,8 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | clickhouse.keeper.image.repository | string | `"clickhouse/clickhouse-keeper"` |  |
 | clickhouse.keeper.image.tag | string | `"26.9"` |  |
 | clickhouse.keeper.nodeSelector | object | `{}` |  |
+| clickhouse.keeper.podAntiAffinity.topologyKey | string | `"kubernetes.io/hostname"` |  |
+| clickhouse.keeper.podAntiAffinity.type | string | `"required"` |  |
 | clickhouse.keeper.replicas | int | `1` |  |
 | clickhouse.keeper.resources.limits.memory | string | `"512Mi"` |  |
 | clickhouse.keeper.resources.requests.cpu | string | `"100m"` |  |
@@ -125,7 +143,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | ingress.httpRoute.sectionName | string | `""` |  |
 | ingress.httpRoute.sharedGatewayName | string | `"platform"` |  |
 | ingress.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
-| langfuse.image.tag | string | `"4.58.0"` |  |
+| langfuse.image.tag | string | `"4.59.0"` |  |
 | langfuse.nextauthUrl | string | `"http://localhost:3000"` |  |
 | langfuse.revisionHistoryLimit | int | `3` |  |
 | langfuse.web.livenessProbe.failureThreshold | int | `6` |  |
