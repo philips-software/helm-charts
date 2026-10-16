@@ -1,0 +1,101 @@
+{{- if .Values.argocdSyncAlerts.enabled }}
+{{- $a := .Values.argocdSyncAlerts }}
+# Alerts for Argo CD Applications that have stopped converging.
+#
+# These exist because of a specific blind spot. When a sync fails on something
+# Argo CD cannot patch -- most often an immutable StatefulSet field changed by
+# an upstream chart bump -- Argo CD retries five times, gives up, and then does
+# NOT retry again while the target revision is unchanged. The Application then
+# sits at OutOfSync with health_status="Healthy", because the old pods are still
+# running perfectly well.
+#
+# That combination is invisible to conventional alerting: nothing is crashing,
+# nothing is Degraded, no pod is restarting. The only symptom is that the
+# workload quietly stops receiving updates. loki-ruler stayed pinned to loki
+# 3.6.11 for ten days that way while the rest of the stack ran 3.7.8.
+#
+# So the signal to alert on is not "unhealthy" -- it is "not converging".
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: argocd-sync-alerts
+  namespace: {{ $a.namespace | default .Values.argocd.namespace }}
+  labels:
+    {{- include "common-bootstrap.labels" . | nindent 4 }}
+    {{- with $a.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  groups:
+    - name: argocd-sync
+      rules:
+        # The headline alert. An Application with automated sync enabled should
+        # converge within minutes. If it is still OutOfSync after
+        # stuckFor, automated sync is not working -- usually because the sync is
+        # failing on something Argo CD cannot apply and has stopped retrying.
+        #
+        # Applications with autosync disabled are excluded: for those, OutOfSync
+        # is a deliberate state awaiting a manual sync, not a fault.
+        - alert: ArgoCDAppNotConverging
+          expr: |
+            argocd_app_info{sync_status="OutOfSync",autosync_enabled="true"} == 1
+          for: {{ $a.stuckFor }}
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              Argo CD application {{ "{{ $labels.name }}" }} has not converged
+              for {{ $a.stuckFor }}
+            description: >-
+              {{ "{{ $labels.name }}" }} (project {{ "{{ $labels.project }}" }},
+              destination {{ "{{ $labels.dest_namespace }}" }}) has automated
+              sync enabled but has been OutOfSync for over {{ $a.stuckFor }}.
+              Automated sync is not converging. Check the Application's
+              SyncError condition:
+              kubectl get app {{ "{{ $labels.name }}" }} -n {{ "{{ $labels.namespace }}" }}
+              -o jsonpath='{.status.conditions}'
+              If the error names a forbidden StatefulSet spec update, an upstream
+              chart bump changed an immutable field and the StatefulSet must be
+              recreated (kubectl delete statefulset <name> --cascade=orphan,
+              then sync). Argo CD will not retry this on its own.
+
+        # The silent-freeze signature specifically: OutOfSync *and* Healthy.
+        # Nothing looks broken, which is exactly why this goes unnoticed. Fires
+        # later than the alert above and at higher severity, because by this
+        # point the workload has been frozen on an old spec for a long time.
+        - alert: ArgoCDAppSilentlyFrozen
+          expr: |
+            argocd_app_info{sync_status="OutOfSync",health_status="Healthy",autosync_enabled="true"} == 1
+          for: {{ $a.frozenFor }}
+          labels:
+            severity: critical
+          annotations:
+            summary: >-
+              Argo CD application {{ "{{ $labels.name }}" }} is frozen on an old
+              spec (OutOfSync but Healthy for {{ $a.frozenFor }})
+            description: >-
+              {{ "{{ $labels.name }}" }} has been OutOfSync yet Healthy for over
+              {{ $a.frozenFor }}. Healthy here only means the OLD pods are
+              running; the desired spec is not being applied, so this workload
+              is silently missing updates, including image and security bumps.
+              This is the signature of a sync that failed on a field Argo CD
+              cannot patch and then stopped being retried.
+
+        # Sync operations that are actively erroring. Complements the above:
+        # this catches churn (repeated failed syncs) where the alerts above
+        # catch stasis.
+        - alert: ArgoCDAppSyncFailing
+          expr: |
+            increase(argocd_app_sync_total{phase=~"Failed|Error"}[{{ $a.syncFailureWindow }}]) > 0
+          for: {{ $a.syncFailureFor }}
+          labels:
+            severity: warning
+          annotations:
+            summary: >-
+              Argo CD sync operations are failing for
+              {{ "{{ $labels.name }}" }}
+            description: >-
+              {{ "{{ $labels.name }}" }} has recorded failed sync operations in
+              the last {{ $a.syncFailureWindow }}. Inspect the Application's
+              SyncError condition for the underlying cause.
+{{- end }}

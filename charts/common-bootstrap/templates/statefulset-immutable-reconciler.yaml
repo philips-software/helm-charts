@@ -1,0 +1,250 @@
+{{- if .Values.statefulSetImmutableReconciler.enabled }}
+{{- $r := .Values.statefulSetImmutableReconciler }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: statefulset-immutable-reconciler
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "common-bootstrap.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: statefulset-immutable-reconciler
+  labels:
+    {{- include "common-bootstrap.labels" . | nindent 4 }}
+rules:
+  # Read Application status to find the sync error, and patch it to request a
+  # fresh sync once the blocking StatefulSet is gone. Argo CD will not retry a
+  # failed sync on its own while the target revision is unchanged, so the nudge
+  # is required -- deleting the StatefulSet alone is not enough.
+  - apiGroups: ["argoproj.io"]
+    resources: ["applications"]
+    verbs: ["get", "list", "patch"]
+  # Orphan-delete the StatefulSet whose immutable fields are blocking the sync.
+  - apiGroups: ["apps"]
+    resources: ["statefulsets"]
+    verbs: ["get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: statefulset-immutable-reconciler
+  labels:
+    {{- include "common-bootstrap.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: statefulset-immutable-reconciler
+subjects:
+  - kind: ServiceAccount
+    name: statefulset-immutable-reconciler
+    namespace: {{ .Values.argocd.namespace }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: statefulset-immutable-reconciler
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "common-bootstrap.labels" . | nindent 4 }}
+data:
+  reconcile.sh: |
+    #!/bin/sh
+    # Recover Argo CD Applications wedged by an immutable StatefulSet field.
+    #
+    # The Kubernetes API server refuses updates to any StatefulSet spec field
+    # outside replicas/ordinals/template/updateStrategy/revisionHistoryLimit/
+    # persistentVolumeClaimRetentionPolicy/minReadySeconds. When an upstream
+    # chart bump changes serviceName, selector, podManagementPolicy or a
+    # volumeClaimTemplate, the patch is rejected, Argo CD retries five times,
+    # gives up, and then will NOT retry again while the target revision is
+    # unchanged. The Application parks at OutOfSync/Healthy -- Healthy because
+    # the stale pods are still running fine -- and the component silently stops
+    # receiving updates until a human notices.
+    #
+    # Upstream charts sometimes ship a fix for this (the Loki chart has
+    # `statefulSetRecreateJob`), but it is gated on Helm's `lookup`, which
+    # returns nothing under `helm template`. Argo CD renders with
+    # `helm template`, so that job is never emitted for us -- upstream even
+    # documents it: "`lookup` needs a live cluster; `helm template` / dry-run
+    # will not emit it."
+    #
+    # So this reconciler is REACTIVE rather than predictive. It does not try to
+    # guess what the next sync will apply (that would mean duplicating upstream
+    # naming logic, which rots). Instead it reads the error Argo CD already
+    # produced -- ground truth -- and acts on it:
+    #
+    #   1. Find Applications with a SyncError naming a forbidden StatefulSet
+    #      update.
+    #   2. Extract the StatefulSet name from the error message.
+    #   3. Orphan-delete it, so pods and PVCs keep running untouched.
+    #   4. Nudge the Application to sync, which recreates the StatefulSet; it
+    #      adopts the running pods, then rolls them to the new spec.
+    #
+    # Being reactive also fixes the part a PreSync hook could never fix: an
+    # Application that is ALREADY wedged and will never be retried.
+    set -eu
+
+    FORBIDDEN='updates to statefulset spec for fields other than'
+    DRY_RUN="${DRY_RUN:-false}"
+    ALLOW_VCT="${ALLOW_VOLUME_CLAIM_CHANGES:-false}"
+    APP_FILTER="${APP_FILTER:-}"
+
+    log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"; }
+
+    log "scanning Applications for immutable StatefulSet sync failures"
+
+    # One base64-encoded JSON object per wedged Application, so embedded
+    # newlines and quotes in the error message cannot break the shell loop.
+    candidates=$(kubectl get applications --all-namespaces -o json \
+      | jq -r --arg pat "$FORBIDDEN" '
+          .items[]
+          | . as $app
+          | (($app.status.conditions // [])[]
+             | select(.type == "SyncError")
+             | select(.message | contains($pat))
+             | {
+                 app:      $app.metadata.name,
+                 appns:    $app.metadata.namespace,
+                 dest:     $app.spec.destination.namespace,
+                 revision: ($app.spec.source.targetRevision // ""),
+                 message:  .message
+               })
+          | @base64')
+
+    if [ -z "$candidates" ]; then
+      log "no wedged Applications found; nothing to do"
+      exit 0
+    fi
+
+    acted=0
+    for row in $candidates; do
+      entry=$(echo "$row" | base64 -d)
+      app=$(echo "$entry" | jq -r .app)
+      appns=$(echo "$entry" | jq -r .appns)
+      dest=$(echo "$entry" | jq -r .dest)
+      revision=$(echo "$entry" | jq -r .revision)
+      message=$(echo "$entry" | jq -r .message)
+
+      if [ -n "$APP_FILTER" ]; then
+        case " $APP_FILTER " in
+          *" $app "*) : ;;
+          *) log "skip $appns/$app: not in appFilter"; continue ;;
+        esac
+      fi
+
+      # The API server always names the offending object in the error, e.g.
+      #   StatefulSet.apps "loki-ruler" is invalid: spec: Forbidden: ...
+      sts=$(echo "$message" \
+        | sed -n 's/.*StatefulSet\.apps "\([^"]*\)".*/\1/p' | head -1)
+      if [ -z "$sts" ]; then
+        log "skip $appns/$app: could not extract a StatefulSet name from the error"
+        continue
+      fi
+
+      if [ -z "$dest" ]; then
+        log "skip $appns/$app: Application has no destination namespace"
+        continue
+      fi
+
+      if ! kubectl get statefulset "$sts" -n "$dest" >/dev/null 2>&1; then
+        log "skip $appns/$app: StatefulSet $dest/$sts not found (already recreated?)"
+        continue
+      fi
+
+      # A StatefulSet with volumeClaimTemplates needs more care: recreating it
+      # does NOT resize or migrate the existing PVCs, so if the claim template
+      # changed, the new StatefulSet can wedge in a different way. Require an
+      # explicit opt-in for those.
+      vct=$(kubectl get statefulset "$sts" -n "$dest" \
+        -o jsonpath='{.spec.volumeClaimTemplates[*].metadata.name}' 2>/dev/null || echo "")
+      if [ -n "$vct" ] && [ "$ALLOW_VCT" != "true" ]; then
+        log "skip $appns/$app: $dest/$sts has volumeClaimTemplates ($vct);"
+        log "  set allowVolumeClaimChanges=true to let the reconciler touch it,"
+        log "  after confirming the PVCs do not need separate expansion"
+        continue
+      fi
+
+      if [ "$DRY_RUN" = "true" ]; then
+        log "DRY RUN $appns/$app: would orphan-delete $dest/$sts and resync"
+        continue
+      fi
+
+      log "$appns/$app: orphan-deleting StatefulSet $dest/$sts"
+      # --cascade=orphan leaves the pods (and any PVCs) running, so there is no
+      # availability gap; the recreated StatefulSet adopts them by selector.
+      kubectl delete statefulset "$sts" -n "$dest" --cascade=orphan
+
+      log "$appns/$app: requesting sync to recreate $dest/$sts"
+      if [ -n "$revision" ]; then
+        sync_op=$(jq -nc --arg r "$revision" \
+          '{operation:{initiatedBy:{username:"statefulset-immutable-reconciler",automated:true},sync:{revision:$r,syncStrategy:{hook:{}}}}}')
+      else
+        sync_op='{"operation":{"initiatedBy":{"username":"statefulset-immutable-reconciler","automated":true},"sync":{"syncStrategy":{"hook":{}}}}}'
+      fi
+      kubectl patch application "$app" -n "$appns" --type merge -p "$sync_op"
+
+      acted=$((acted + 1))
+      log "$appns/$app: done; the new StatefulSet will adopt the running pods"
+    done
+
+    log "reconciled $acted Application(s)"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: statefulset-immutable-reconciler
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    {{- include "common-bootstrap.labels" . | nindent 4 }}
+spec:
+  schedule: {{ $r.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: statefulset-immutable-reconciler
+          restartPolicy: OnFailure
+          containers:
+            - name: reconciler
+              # renovate: datasource=docker depName=alpine/k8s
+              image: alpine/k8s:{{ $r.image.tag }}
+              command: ["/bin/sh", "/scripts/reconcile.sh"]
+              env:
+                - name: DRY_RUN
+                  value: {{ $r.dryRun | quote }}
+                - name: ALLOW_VOLUME_CLAIM_CHANGES
+                  value: {{ $r.allowVolumeClaimChanges | quote }}
+                - name: APP_FILTER
+                  value: {{ join " " $r.appFilter | quote }}
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  memory: 128Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                readOnlyRootFilesystem: true
+                seccompProfile:
+                  type: RuntimeDefault
+          volumes:
+            - name: script
+              configMap:
+                name: statefulset-immutable-reconciler
+                defaultMode: 0755
+{{- end }}

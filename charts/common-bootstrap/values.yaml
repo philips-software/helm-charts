@@ -85,3 +85,65 @@ harvester:
   serviceAccount:
     name: hsp-addons-harvester
   ttlSecondsAfterFinished: 600
+
+# StatefulSet immutable-field reconciler
+#
+# Recovers Argo CD Applications that are permanently wedged because an upstream
+# chart bump changed an immutable StatefulSet field (serviceName, selector,
+# podManagementPolicy, volumeClaimTemplates). The API server rejects the patch,
+# Argo CD retries five times, gives up, and then will not retry again while the
+# target revision is unchanged -- so the Application sits at OutOfSync/Healthy
+# with its pods frozen on the old spec until someone intervenes by hand.
+#
+# Upstream's equivalent (the Loki chart's `statefulSetRecreateJob`) cannot help
+# us: it is gated on Helm's `lookup`, which returns nothing under
+# `helm template`, and Argo CD renders with `helm template`.
+#
+# This reconciler reacts to the error Argo CD already reported, then
+# orphan-deletes the blocking StatefulSet and requests a resync. Orphan delete
+# keeps the pods and PVCs running, so the recreated StatefulSet adopts them and
+# there is no availability gap.
+#
+# Off by default: it deletes StatefulSets, so enable it per cluster
+# deliberately. Pair it with the .github/check-statefulset-immutables.sh CI
+# guard, which blocks these bumps before they ever reach a cluster.
+statefulSetImmutableReconciler:
+  enabled: false
+  # How often to look for wedged Applications.
+  schedule: "*/10 * * * *"
+  # Log intended actions without deleting anything. Useful for a first rollout.
+  dryRun: false
+  # Allow acting on StatefulSets that have volumeClaimTemplates. Recreating
+  # such a StatefulSet does NOT resize or migrate its existing PVCs, so leave
+  # this off until you have confirmed the claims do not need expansion.
+  allowVolumeClaimChanges: false
+  # Restrict to specific Application names. Empty means all Applications.
+  appFilter: []
+  image:
+    # renovate: datasource=docker depName=alpine/k8s
+    tag: "1.37.1"
+
+# Alerts for Argo CD Applications that have stopped converging.
+#
+# A failed sync that Argo CD has given up retrying leaves an Application at
+# OutOfSync with health_status="Healthy" -- Healthy because the old pods still
+# run fine. Nothing crashes, so conventional alerting never fires, and the
+# workload quietly stops receiving updates. These rules alert on "not
+# converging" rather than "unhealthy".
+#
+# Requires the Prometheus Operator CRDs (PrometheusRule) and Argo CD metrics
+# being scraped, which the argocd-application-controller ServiceMonitor does.
+argocdSyncAlerts:
+  enabled: false
+  # Namespace for the PrometheusRule. Defaults to argocd.namespace. Set this to
+  # wherever your Prometheus is configured to discover rules.
+  namespace: ""
+  # Extra labels, e.g. a release label required by your Prometheus ruleSelector.
+  additionalLabels: {}
+  # How long an autosync-enabled Application may stay OutOfSync before warning.
+  stuckFor: 1h
+  # How long OutOfSync+Healthy must persist before treating it as frozen.
+  frozenFor: 6h
+  # Lookback window and pending period for failing sync operations.
+  syncFailureWindow: 15m
+  syncFailureFor: 10m

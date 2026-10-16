@@ -25,6 +25,36 @@ jobs:
           git fetch --quiet origin "${{ github.event.repository.default_branch }}"
           .github/check-chart-versions.sh "$base"
 
+  # Catches upstream chart bumps that would change an immutable StatefulSet
+  # field. ct lint/install cannot see these: they install the new chart into an
+  # empty cluster, so there is no old object to conflict with. Argo CD cannot
+  # recover from them on its own, so they must be caught before merge.
+  statefulset-immutable-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.16.3
+
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: '3.11'
+
+      - name: Install PyYAML
+        run: pip install --quiet pyyaml
+
+      - name: Check for immutable StatefulSet changes
+        run: |
+          base="origin/${{ github.event.repository.default_branch }}"
+          git fetch --quiet origin "${{ github.event.repository.default_branch }}"
+          .github/check-statefulset-immutables.sh "$base"
+
   lint-test:
     runs-on: ubuntu-22.04
 
