@@ -178,3 +178,16 @@ vpa:
         cpu: 1
         memory: 4Gi
 
+
+# -- PriorityClass for the stateful write path (live-store and tempo-kafka): these hold
+# not-yet-flushed data, so if they are evicted or left Pending on a full node, ingestion stalls and
+# un-replicated data is at risk. Without it they run at the default priority 0, the same as every
+# stateless query/read pod, and can be preempted by (or fail to preempt) any of them. The value sits
+# well below the built-in system-node-critical/system-cluster-critical classes, so node agents and
+# cluster add-ons still win. Created by this chart with a chart-specific name, so it does not clash
+# with the loki/mimir/tempo-bootstrap siblings. Note: a PriorityClass value is immutable; to change
+# it, also change the name.
+priorityClass:
+  enabled: true
+  name: tempo-stateful
+  value: 1000000

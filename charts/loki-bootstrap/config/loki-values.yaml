@@ -39,6 +39,9 @@ queryScheduler:
 
 ingester:
   replicas: {{ .Values.ingester.replicas }}
+  {{- if .Values.priorityClass.enabled }}
+  priorityClassName: {{ .Values.priorityClass.name }}
+  {{- end }}
   resources:
     requests:
       cpu: {{ .Values.ingester.resources.requests.cpu }}

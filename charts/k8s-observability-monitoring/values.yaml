@@ -173,6 +173,16 @@ dedicatedNodeToleration:
   value: ""
   effect: NoSchedule
 
+# -- PriorityClass for the per-node DaemonSets this chart deploys: alloy-logs, and
+# node-exporter when telemetryServices.node-exporter.deploy is true. Defaults to the built-in
+# system-node-critical, matching the platform's own per-node agents (fluent-bit,
+# kps-node-exporter, spire-agent, cilium): a DaemonSet pod with the default priority 0 can't
+# preempt anything, so on a full node (e.g. a fresh Karpenter node packed before the
+# DaemonSet pod lands) it stays Pending and that node's logs are silently never collected.
+# A per-collector collectors.alloy-logs.controller.priorityClassName still takes precedence.
+# Set to "" to leave the pods at the cluster default priority.
+daemonSetPriorityClassName: system-node-critical
+
 # -- Common collector settings (applies to all Alloy instances managed by operator).
 # NOTE: collectorCommon.alloy is merged at the *top level* of each Alloy custom resource's spec
 # (siblings: alloy, controller, ...) -- see grafana/k8s-monitoring-helm collector.alloy.values.
@@ -299,6 +309,9 @@ customAlloy:
       memory: 1Gi
     limits:
       memory: 2Gi
+  # -- PriorityClass for the customAlloy pods. Empty (default) leaves them at the
+  # cluster default priority, like the upstream alloy-metrics/alloy-receiver collectors.
+  priorityClassName: ""
   # -- VerticalPodAutoscaler for customAlloy. Enabled by default: clustering
   # deployments outgrow the static requests under real metric volume and OOMKill
   # at fixed limits. VPA (memory-only) right-sizes them within min/maxAllowed.

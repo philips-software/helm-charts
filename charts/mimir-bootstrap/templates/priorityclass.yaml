@@ -1,0 +1,14 @@
+{{- if .Values.priorityClass.enabled }}
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: {{ .Values.priorityClass.name }}
+  labels:
+    {{- include "mimir-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+value: {{ .Values.priorityClass.value | int }}
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "mimir stateful write path (mimir-bootstrap); above default-priority workloads, below system-* classes"
+{{- end }}

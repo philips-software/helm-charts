@@ -33,6 +33,9 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ .Release.Name }}-custom-alloy
+      {{- with .Values.customAlloy.priorityClassName }}
+      priorityClassName: {{ . | quote }}
+      {{- end }}
       {{- if .Values.spiffe.enabled }}
       initContainers:
         - name: spiffe-helper-init

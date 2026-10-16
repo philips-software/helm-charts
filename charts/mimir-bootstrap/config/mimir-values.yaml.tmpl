@@ -77,6 +77,9 @@ kafka:
     karpenter.sh/do-not-disrupt: "true"
     {{- end }}
   enabled: true
+  {{- if .Values.priorityClass.enabled }}
+  priorityClassName: {{ .Values.priorityClass.name }}
+  {{- end }}
   persistence:
     size: {{ .Values.kafka.persistence.size }}
   resources:
@@ -197,6 +200,9 @@ ingester:
   persistentVolume:
     size: {{ .Values.ingester.persistentVolume.size }}
   replicas: {{ .Values.ingester.replicas }} # large.yaml says 27
+  {{- if .Values.priorityClass.enabled }}
+  priorityClassName: {{ .Values.priorityClass.name }}
+  {{- end }}
   resources:
     requests:
       cpu: {{ .Values.ingester.resources.requests.cpu }}

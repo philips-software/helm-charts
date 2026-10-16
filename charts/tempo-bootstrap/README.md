@@ -1,13 +1,13 @@
 # tempo
 
-![Version: 0.43.13](https://img.shields.io/badge/Version-0.43.13-informational?style=flat-square)
+![Version: 0.44.0](https://img.shields.io/badge/Version-0.44.0-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.43.13 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.44.0 -n monitoring
 ```
 
 ## Values
@@ -38,10 +38,11 @@ helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstra
 | kafkaNodePool.taintKey | string | `"cilium.hsp.philips.com/dedicated"` |  |
 | liveStore.replicas | int | `3` | Number of live-store replicas |
 | multitenancyEnabled | bool | `true` |  |
+| priorityClass | object | `{"enabled":true,"name":"tempo-stateful","value":1000000}` | PriorityClass for the stateful write path (live-store and tempo-kafka): these hold not-yet-flushed data, so if they are evicted or left Pending on a full node, ingestion stalls and un-replicated data is at risk. Without it they run at the default priority 0, the same as every stateless query/read pod, and can be preempted by (or fail to preempt) any of them. The value sits well below the built-in system-node-critical/system-cluster-critical classes, so node agents and cluster add-ons still win. Created by this chart with a chart-specific name, so it does not clash with the loki/mimir/tempo-bootstrap siblings. Note: a PriorityClass value is immutable; to change it, also change the name. |
 | querier.replicas | int | `2` | Number of querier replicas |
 | queryFrontend.replicas | int | `2` | Number of query-frontend replicas |
 | streamOverHTTPEnabled | bool | `true` |  |
-| tempoChart.version | string | `"3.11.0"` |  |
+| tempoChart.version | string | `"3.13.0"` |  |
 | vpa.components.backendScheduler.enabled | bool | `true` |  |
 | vpa.components.backendScheduler.maxAllowed.cpu | int | `1` |  |
 | vpa.components.backendScheduler.maxAllowed.memory | string | `"4Gi"` |  |
