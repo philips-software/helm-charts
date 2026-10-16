@@ -65,6 +65,9 @@ spec:
         app.kubernetes.io/name: tempo-kafka
         app.kubernetes.io/component: kafka
     spec:
+      {{- if .Values.priorityClass.enabled }}
+      priorityClassName: {{ .Values.priorityClass.name }}
+      {{- end }}
       securityContext:
         fsGroup: 1001
         runAsGroup: 1001

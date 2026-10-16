@@ -1,6 +1,6 @@
 # loki-bootstrap
 
-![Version: 0.45.4](https://img.shields.io/badge/Version-0.45.4-informational?style=flat-square)
+![Version: 0.46.0](https://img.shields.io/badge/Version-0.46.0-informational?style=flat-square)
 
 ## Values
 
@@ -42,7 +42,7 @@
 | loki.server.grpc_server_max_concurrent_streams | int | `1000` |  |
 | loki.server.grpc_server_max_recv_msg_size | int | `83886080` |  |
 | loki.server.grpc_server_max_send_msg_size | int | `83886080` |  |
-| lokiChart.version | string | `"18.14.0"` |  |
+| lokiChart.version | string | `"18.16.0"` |  |
 | multitenancyEnabled | bool | `true` |  |
 | patternIngester.extraArgs.grpc_max_recv_msg_size | int | `83886080` |  |
 | patternIngester.extraArgs.grpc_max_send_msg_size | int | `83886080` |  |
@@ -50,6 +50,7 @@
 | patternIngester.resources.limits.memory | string | `"1Gi"` |  |
 | patternIngester.resources.requests.cpu | string | `"50m"` |  |
 | patternIngester.resources.requests.memory | string | `"512Mi"` |  |
+| priorityClass | object | `{"enabled":true,"name":"loki-stateful","value":1000000}` | PriorityClass for the stateful write path (ingesters): these hold not-yet-flushed data, so if they are evicted or left Pending on a full node, ingestion stalls and un-replicated data is at risk. Without it they run at the default priority 0, the same as every stateless query/read pod, and can be preempted by (or fail to preempt) any of them. The value sits well below the built-in system-node-critical/system-cluster-critical classes, so node agents and cluster add-ons still win. Created by this chart with a chart-specific name, so it does not clash with the loki/mimir/tempo-bootstrap siblings. Note: a PriorityClass value is immutable; to change it, also change the name. |
 | querier.replicas | int | `6` |  |
 | querier.resources.limits.memory | string | `"250Mi"` |  |
 | querier.resources.requests.cpu | string | `"20m"` |  |

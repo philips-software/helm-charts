@@ -42,6 +42,9 @@ blockBuilder:
 liveStore:
   enabled: true
   replicas: {{ .Values.liveStore.replicas }}
+  {{- if .Values.priorityClass.enabled }}
+  priorityClassName: {{ .Values.priorityClass.name }}
+  {{- end }}
   resources:
     requests:
       cpu: "120m"

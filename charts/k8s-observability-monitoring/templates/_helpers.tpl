@@ -102,8 +102,8 @@ controller:
 
 {{/*
 Compute the merged Alloy values for a named upstream collector by collecting fragments
-(per-collector overrides + spiffe-helper when listed in spiffe.collectors + Hubble and the
-dedicated-node toleration on alloy-logs), then concatenating their list-valued extras. Emits
+(daemonSetPriorityClassName on alloy-logs + per-collector overrides + spiffe-helper when
+listed in spiffe.collectors + Hubble and the dedicated-node toleration on alloy-logs), then concatenating their list-valued extras. Emits
 the merged collector values (top-level controller/alloy/etc. keys) for use under the collector
 name, or nothing if no fragments apply.
 Usage: {{ include "k8s-monitoring.collectorAlloyBlock" (dict "ctx" . "name" "alloy-logs") }}
@@ -112,6 +112,10 @@ Usage: {{ include "k8s-monitoring.collectorAlloyBlock" (dict "ctx" . "name" "all
 {{- $ctx := .ctx -}}
 {{- $name := .name -}}
 {{- $frags := list -}}
+{{- /* First, so a per-collector controller.priorityClassName override (merged after) wins. */ -}}
+{{- if and (eq $name "alloy-logs") $ctx.Values.daemonSetPriorityClassName -}}
+  {{- $frags = append $frags (dict "controller" (dict "priorityClassName" $ctx.Values.daemonSetPriorityClassName)) -}}
+{{- end -}}
 {{- $override := index $ctx.Values.collectors $name -}}
 {{- if $override -}}
   {{- $frags = append $frags (deepCopy $override) -}}
