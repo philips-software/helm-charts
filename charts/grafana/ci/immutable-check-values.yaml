@@ -1,0 +1,13 @@
+# Render-only values for .github/check-statefulset-immutables.sh.
+#
+# The guard renders this wrapper chart at the old and new upstream pin to diff
+# immutable StatefulSet fields. This chart's validateConfig requires more than
+# the guard's generic placeholders supply, and without these it would silently
+# skip the chart entirely ("does not render at origin/main").
+#
+# These values never reach a cluster. Keep them minimal: just enough to render.
+environmentConfig:
+  resourcePrefix: ci
+  clusterFqdn: ci.example.com
+  region: us-east-1
+  accountId: "123456789012"

@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: provider-orgmapper
+  name: {{ include "grafana.resourceName" (dict "ctx" . "name" "provider-orgmapper") }}
   namespace: {{ .Values.argocd.namespace | default "argocd" }}
   annotations:
     argocd.argoproj.io/sync-wave: "3"
@@ -25,7 +25,7 @@ spec:
           registry: "ghcr.io/loafoe"
         extraProviders:
           # Orgmapper - Tenant management for Grafana
-          - name: provider-orgmapper
+          - name: {{ include "grafana.resourceName" (dict "ctx" . "name" "provider-orgmapper") }}
             enabled: true
             debug: {{ .Values.crossplaneProviders.orgmapper.debug }}
   destination:

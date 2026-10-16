@@ -134,3 +134,35 @@ Validate required configuration values
 {{- fail "grafanaChart.version is required and cannot be empty" }}
 {{- end }}
 {{- end }}
+{{/*
+Name for the ArgoCD Applications and the Crossplane providers this chart owns.
+
+These names are CLUSTER-unique, not namespace-unique:
+
+  * The Applications collide with any other release of this chart that targets
+    the same argocd.namespace.
+  * The Crossplane Provider and DeploymentRuntimeConfig they create are
+    cluster-scoped, so they collide with any other release in the cluster no
+    matter which namespace it lives in.
+  * The upstream Grafana chart's ClusterRole/ClusterRoleBinding are derived from
+    grafanaChart.releaseName, so two releases sharing that value collide too.
+
+When two releases claim the same object, both Applications fight over it and
+park at OutOfSync with a SharedResourceWarning. Neither ever converges, and
+because the pods keep running the Applications can still report Healthy. That
+is how a `grafana-test` install silently wedged the production Grafana stack on
+ri-obs-use1-dev for two months.
+
+namePrefix defaults to empty, so existing releases keep their current names and
+nothing is renamed on upgrade (renaming a finalizer-bearing Application would
+cascade-delete the resources it owns). Set namePrefix on any ADDITIONAL release
+-- a test install, a second tenant -- to isolate it from the canonical one.
+*/}}
+{{- define "grafana.resourceName" -}}
+{{- $prefix := .ctx.Values.namePrefix | default "" -}}
+{{- if $prefix -}}
+{{- printf "%s-%s" $prefix .name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- .name -}}
+{{- end -}}
+{{- end }}

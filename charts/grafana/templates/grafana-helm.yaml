@@ -2,7 +2,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: grafana-helm
+  name: {{ include "grafana.resourceName" (dict "ctx" . "name" "grafana-helm") }}
   namespace: {{ .Values.argocd.namespace | default "argocd" }}
   labels:
     {{- include "grafana.labels" . | nindent 4 }}
@@ -17,7 +17,10 @@ spec:
     repoURL: https://grafana-community.github.io/helm-charts
     targetRevision: {{ .Values.grafanaChart.version }}
     helm:
-      releaseName: {{ .Values.grafanaChart.releaseName }}
+      # Prefixed as well: the upstream chart derives its cluster-scoped
+      # ClusterRole/ClusterRoleBinding names from this release name, so two
+      # releases sharing it collide outside any namespace boundary.
+      releaseName: {{ include "grafana.resourceName" (dict "ctx" . "name" .Values.grafanaChart.releaseName) }}
       valuesObject:
         {{- (tpl (.Files.Get "config/grafana-values.yaml") .) | trim | nindent 8 }}
   destination:

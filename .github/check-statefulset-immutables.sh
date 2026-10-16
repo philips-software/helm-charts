@@ -62,15 +62,18 @@ RENDER_ARGS=(
   --set environmentConfig.accountId=123456789012
 )
 
-# render_wrapper <chart-dir> <out-file>
+# render_wrapper <chart-dir> <out-file> <chart-name>
 #   Render a wrapper chart to a single manifest stream. A chart that cannot be
 #   rendered even with the placeholders above is skipped by the caller.
 render_wrapper() {
-  local chart_dir="$1" out="$2" extra=()
+  local chart_dir="$1" out="$2" chart_name="$3" extra=()
   # Allow a chart to supply its own render-only values when the generic
-  # placeholders are not enough.
-  if [[ -f "$chart_dir/ci/immutable-check-values.yaml" ]]; then
-    extra=(-f "$chart_dir/ci/immutable-check-values.yaml")
+  # placeholders are not enough. Always read it from the working tree, never
+  # from the merge-base export: it is render-only config, so a chart whose
+  # values file is added in THIS PR must still render at the old pin.
+  local ci_values="$CHARTS_DIR/$chart_name/ci/immutable-check-values.yaml"
+  if [[ -f "$ci_values" ]]; then
+    extra=(-f "$ci_values")
   fi
   helm template release "$chart_dir" -n argocd \
     "${RENDER_ARGS[@]}" "${extra[@]}" > "$out" 2>"$out.err"
@@ -131,11 +134,11 @@ for name in $(changed_charts "$BASE"); do
     continue
   }
 
-  if ! render_wrapper "$base_dir" "$WORK/$name/base.yaml"; then
+  if ! render_wrapper "$base_dir" "$WORK/$name/base.yaml" "$name"; then
     echo "skip: $name does not render at $BASE" >&2
     continue
   fi
-  if ! render_wrapper "$chart_dir" "$WORK/$name/head.yaml"; then
+  if ! render_wrapper "$chart_dir" "$WORK/$name/head.yaml" "$name"; then
     echo "skip: $name does not render at HEAD" >&2
     continue
   fi

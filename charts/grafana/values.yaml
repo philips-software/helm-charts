@@ -130,10 +130,29 @@ grafana:
     # Cron schedule for plugin sync (default: every 15 minutes)
     schedule: "*/15 * * * *"
 
+# Name prefix for the ArgoCD Applications and Crossplane providers this chart
+# owns (grafana-helm, provider-gf, provider-orgmapper) and for the upstream
+# Grafana release name.
+#
+# Those names are CLUSTER-unique, not namespace-unique: the Crossplane Provider
+# and DeploymentRuntimeConfig are cluster-scoped, and the upstream chart's
+# ClusterRole/ClusterRoleBinding derive from grafanaChart.releaseName. So a
+# second release of this chart anywhere in the cluster claims the same objects.
+# Both Applications then fight over them and park at OutOfSync with a
+# SharedResourceWarning, never converging -- while still reporting Healthy,
+# because the running pods are fine. A `grafana-test` install wedged the
+# production Grafana stack on ri-obs-use1-dev this way for two months.
+#
+# Leave empty for the canonical release in a cluster, so nothing is renamed on
+# upgrade (renaming a finalizer-bearing Application would cascade-delete the
+# resources it owns). ALWAYS set this for an additional release -- a test
+# install, a second tenant -- to isolate it.
+namePrefix: ""
+
 grafanaChart:
   # renovate: datasource=docker depName=ghcr.io/grafana-community/helm-charts/grafana
   version: 14.0.0
-  # Helm release name for Grafana
+  # Helm release name for Grafana. Combined with namePrefix when that is set.
   releaseName: gf
 
 # ArgoCD configuration
