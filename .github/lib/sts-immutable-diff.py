@@ -116,7 +116,16 @@ def main() -> int:
     parser.add_argument("old", help="manifests rendered at the OLD chart pin")
     parser.add_argument("new", help="manifests rendered at the NEW chart pin")
     parser.add_argument("--label", default="", help="context shown in output")
+    parser.add_argument(
+        "--ignore-fields",
+        default="",
+        help="comma-separated .spec fields Argo CD is told to ignore for "
+        "StatefulSets via the Application's ignoreDifferences. A change to "
+        "such a field is never applied, so it cannot wedge the sync.",
+    )
     args = parser.parse_args()
+
+    ignored = {f for f in (x.strip() for x in args.ignore_fields.split(",")) if f}
 
     old_sets = load_statefulsets(args.old)
     new_sets = load_statefulsets(args.new)
@@ -126,6 +135,14 @@ def main() -> int:
 
     for name in sorted(set(old_sets) & set(new_sets)):
         changes = diff_statefulset(old_sets[name], new_sets[name])
+        skipped = [c for c in changes if c[0] in ignored]
+        changes = [c for c in changes if c[0] not in ignored]
+
+        for field, _, _ in skipped:
+            print(f"{prefix}note: StatefulSet/{name} .spec.{field} changed, but "
+                  "the Application ignores it (ignoreDifferences), so Argo CD "
+                  "never applies it")
+
         if not changes:
             continue
         breaking = True

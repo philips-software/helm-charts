@@ -1,0 +1,26 @@
+# Render-only values for .github/check-statefulset-immutables.sh.
+#
+# The guard renders this wrapper chart at the old and new pin to diff immutable
+# StatefulSet fields. It reads this file from the working tree for BOTH renders,
+# so the old pin still renders even when the fix that made it renderable landed
+# in this same PR.
+#
+# config/mimir-values.yaml.tmpl dereferences
+# .Values.runtimeConfig.ingester_limits.max_ingestion_rate directly, and a
+# `| default` pipe cannot rescue a nil parent map. values.yaml now ships these
+# defaults, but keeping them here means a future regression cannot silently
+# downgrade this chart to "skip: does not render" and leave it unprotected.
+#
+# These values never reach a cluster. Keep them minimal: just enough to render.
+existingBucketName: ci-render-placeholder
+environmentConfig:
+  resourcePrefix: ci
+  region: us-east-1
+  accountId: "123456789012"
+runtimeConfig:
+  ingester_limits:
+    max_ingestion_rate: 80000
+  distributor_limits:
+    max_ingestion_rate: 80000
+    max_inflight_push_requests: 60000
+    max_inflight_push_requests_bytes: 50000000

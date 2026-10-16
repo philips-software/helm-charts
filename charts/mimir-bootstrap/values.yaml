@@ -103,6 +103,26 @@ limits:
   # Maximum number of exemplars stored per user (0 = disabled)
   maxGlobalExemplarsPerUser: 0
 
+# Mimir runtime_config limits, rendered into config/mimir-values.yaml.tmpl.
+#
+# These blocks must exist even if empty: the template dereferences
+# .Values.runtimeConfig.ingester_limits.max_ingestion_rate directly, and the
+# `| default` pipes downstream of that cannot rescue a nil parent map. Without
+# them `helm template` fails outright with "nil pointer evaluating
+# interface {}.ingester_limits", which also made
+# .github/check-statefulset-immutables.sh silently skip this chart.
+#
+# The values below match the template's own `| default` fallbacks.
+runtimeConfig:
+  # Limits each ingester replica enforces
+  ingester_limits:
+    max_ingestion_rate: 80000
+  # Limits each distributor replica enforces
+  distributor_limits:
+    max_ingestion_rate: 80000
+    max_inflight_push_requests: 60000
+    max_inflight_push_requests_bytes: 50000000
+
 # Gateway configuration
 gateway:
   # -- Number of gateway replicas

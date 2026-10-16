@@ -82,17 +82,30 @@ render_wrapper() {
 # extract_apps <manifest-file> <out-jsonl>
 #   Emit one JSON object per Argo CD Application that targets a Helm chart.
 extract_apps() {
-  yq -o=json -I=0 '
-    select(.kind == "Application" and .spec.source.chart != null)
-    | {
-        "app":     .metadata.name,
-        "repo":    .spec.source.repoURL,
-        "chart":   .spec.source.chart,
-        "version": .spec.source.targetRevision,
-        "ns":      .spec.destination.namespace,
-        "release": (.spec.source.helm.releaseName // .metadata.name),
-        "values":  (.spec.source.helm.valuesObject // {})
-      }' "$1" 2>/dev/null > "$2" || : > "$2"
+  # yq only converts YAML to one JSON document per line; all filtering and
+  # shaping is done in jq. Keeping the two separate matters: the Go build of yq
+  # has no startswith/ltrimstr, and when an expression fails yq writes nothing,
+  # so folding jq-only builtins into the yq call makes this silently return no
+  # Applications at all -- the guard then reports success having checked nothing.
+  yq -o=json -I=0 '.' "$1" 2>/dev/null \
+    | jq -c '
+        select(. != null and .kind == "Application" and .spec.source.chart != null)
+        | {
+            app:     .metadata.name,
+            repo:    .spec.source.repoURL,
+            chart:   .spec.source.chart,
+            version: .spec.source.targetRevision,
+            ns:      .spec.destination.namespace,
+            release: (.spec.source.helm.releaseName // .metadata.name),
+            values:  (.spec.source.helm.valuesObject // {}),
+            ignore:  [
+              .spec.ignoreDifferences[]?
+              | select(.kind == "StatefulSet")
+              | .jsonPointers[]?
+              | select(startswith("/spec/"))
+              | ltrimstr("/spec/")
+            ]
+          }' > "$2" 2>/dev/null || : > "$2"
 }
 
 # pull_chart <repo> <chart> <version> <dest-dir>
@@ -143,6 +156,21 @@ for name in $(changed_charts "$BASE"); do
     continue
   fi
 
+  # Some wrapper charts render StatefulSets of their own rather than delegating
+  # everything to an upstream chart -- tempo-bootstrap ships tempo-kafka, whose
+  # volumeClaimTemplate size is the plain values knob kafka.persistence.size.
+  # Editing that knob wedges the sync exactly like an upstream bump does, and no
+  # chart version has to change for it to happen, so diff the wrapper's own
+  # renders too.
+  checked=$((checked + 1))
+  if ! report="$(python3 "$DIFF_TOOL" \
+                   "$WORK/$name/base.yaml" "$WORK/$name/head.yaml" \
+                   --label "$name (chart's own resources)")"; then
+    violations+=("$report")
+  elif [[ -n "$report" ]]; then
+    echo "$report" >&2
+  fi
+
   extract_apps "$WORK/$name/base.yaml" "$WORK/$name/base.jsonl"
   extract_apps "$WORK/$name/head.yaml" "$WORK/$name/head.jsonl"
 
@@ -183,9 +211,14 @@ for name in $(changed_charts "$BASE"); do
 
     checked=$((checked + 1))
     echo "checking: $name/$app ($upstream $old_version -> $new_version)" >&2
+    # Fields the Application tells Argo CD to ignore are never applied, so a
+    # change to one cannot wedge the sync. mimir-bootstrap ignores
+    # /spec/volumeClaimTemplates, which is why its PVC sizes drift freely.
+    ignore_fields="$(jq -r '.ignore | join(",")' <<<"$head_app")"
+
     if ! report="$(python3 "$DIFF_TOOL" \
                      "$WORK/$name/$app/old.yaml" "$WORK/$name/$app/new.yaml" \
-                     --label "$name/$app")"; then
+                     --label "$name/$app" --ignore-fields "$ignore_fields")"; then
       violations+=("$report")
     elif [[ -n "$report" ]]; then
       echo "$report" >&2
@@ -194,7 +227,7 @@ for name in $(changed_charts "$BASE"); do
 done
 
 if ((${#violations[@]})); then
-  echo "::error::Upstream chart bump would change immutable StatefulSet fields." >&2
+  echo "::error::These changes would alter immutable StatefulSet fields." >&2
   printf '%s\n' "${violations[@]}" >&2
   cat >&2 <<'GUIDANCE'
 
@@ -220,4 +253,4 @@ GUIDANCE
   exit 1
 fi
 
-echo "ok: no immutable StatefulSet changes across $checked upstream chart bump(s)" >&2
+echo "ok: no immutable StatefulSet changes across $checked comparison(s)" >&2
