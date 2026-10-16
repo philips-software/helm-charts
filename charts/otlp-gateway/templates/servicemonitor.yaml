@@ -1,7 +1,13 @@
+{{- if .Values.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: otlp-gateway
+  namespace: {{ default .Release.Namespace .Values.serviceMonitor.namespace }}
+  {{- with .Values.serviceMonitor.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   selector:
     matchLabels:
@@ -9,3 +15,7 @@ spec:
   endpoints:
     - port: metrics
       scheme: http
+      path: /metrics
+      interval: {{ .Values.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+{{- end }}

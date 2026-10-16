@@ -66,6 +66,19 @@ mimir:
     samplePercent: 100
 ```
 
+### Per-tenant metrics
+
+`caddy.container.image` v1.3.0 adds per-tenant activity metrics to
+[caddy-token](https://github.com/loafoe/caddy-token): once a tenant is resolved via
+`X-Scope-OrgID`, `caddytoken_tenant_requests_total`, `_request_bytes_total` and
+`_response_bytes_total` (labeled by tenant/path/method/code) are added to the existing
+`/metrics` endpoint on port 2020, alongside Caddy's own `caddy_http_*` series. Enabled by
+default via `authn.metrics.enabled`.
+
+Set `serviceMonitor.enabled: false` to skip creating a ServiceMonitor if the Prometheus
+Operator CRDs aren't installed, or add `serviceMonitor.labels` if your Prometheus's
+`serviceMonitorSelector` requires specific labels (e.g. `{release: kube-prometheus-stack}`).
+
 {{ template "chart.requirementsSection" . }}
 
 {{ template "chart.valuesSection" . }}

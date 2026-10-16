@@ -1,6 +1,6 @@
 # otlp-gateway
 
-![Version: 0.62.0](https://img.shields.io/badge/Version-0.62.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.63.0](https://img.shields.io/badge/Version-0.63.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 OTLP gateway is a reference implementation which creates a single otlphttp endpoint that proxies Loki, Tempo and Mimir OTLP endpoints
 It supports authentication and authorization using both static and JWT tokens and tokens through the [caddy-token](https://github.com/loafoe/caddy-token) plugin.
@@ -66,6 +66,19 @@ mimir:
     samplePercent: 100
 ```
 
+### Per-tenant metrics
+
+`caddy.container.image` v1.3.0 adds per-tenant activity metrics to
+[caddy-token](https://github.com/loafoe/caddy-token): once a tenant is resolved via
+`X-Scope-OrgID`, `caddytoken_tenant_requests_total`, `_request_bytes_total` and
+`_response_bytes_total` (labeled by tenant/path/method/code) are added to the existing
+`/metrics` endpoint on port 2020, alongside Caddy's own `caddy_http_*` series. Enabled by
+default via `authn.metrics.enabled`.
+
+Set `serviceMonitor.enabled: false` to skip creating a ServiceMonitor if the Prometheus
+Operator CRDs aren't installed, or add `serviceMonitor.labels` if your Prometheus's
+`serviceMonitorSelector` requires specific labels (e.g. `{release: kube-prometheus-stack}`).
+
 ## Values
 
 | Key | Type | Default | Description |
@@ -75,6 +88,7 @@ mimir:
 | authn.clientCa.mode | string | `"verify_if_given"` |  |
 | authn.clientCa.secret | string | `"otlp-gateway-client-ca"` |  |
 | authn.injectOrgHeader | bool | `true` |  |
+| authn.metrics.enabled | bool | `true` |  |
 | authn.oidc.enabled | bool | `false` |  |
 | authn.oidc.issuer | string | `"https://issuer.obs-us-east-ct.hsp.philips.com"` |  |
 | authn.signedTokens.enabled | bool | `true` |  |
@@ -94,7 +108,7 @@ mimir:
 | autoscaling.targetMemoryUtilizationPercentage | int | `80` |  |
 | billing.enabled | bool | `false` |  |
 | billing.tenantMapperUrl | string | `"http://tenant-mapper.starlift-observability.svc.cluster.local"` |  |
-| caddy.container.image | string | `"ghcr.io/loafoe/caddy-token:v1.2.0"` |  |
+| caddy.container.image | string | `"ghcr.io/loafoe/caddy-token:v1.3.0"` |  |
 | caddy.payloadsize.enabled | bool | `false` |  |
 | cors.allowCredentials | bool | `false` |  |
 | cors.allowedHeaders[0] | string | `"Authorization"` |  |
@@ -142,6 +156,11 @@ mimir:
 | ruler.enabled | bool | `true` |  |
 | ruler.pathPrefix | string | `"/ruler"` |  |
 | ruler.service | string | `"mimir-ruler.mimir-system.svc.cluster.local:8080"` |  |
+| serviceMonitor.enabled | bool | `true` |  |
+| serviceMonitor.interval | string | `"30s"` |  |
+| serviceMonitor.labels | object | `{}` |  |
+| serviceMonitor.namespace | string | `""` |  |
+| serviceMonitor.scrapeTimeout | string | `"10s"` |  |
 | tempo.enabled | bool | `true` |  |
 | tempo.pathPrefix | string | `"/v1/traces"` |  |
 | tempo.service | string | `"tempo-gateway.tempo-system.svc.cluster.local:80"` |  |

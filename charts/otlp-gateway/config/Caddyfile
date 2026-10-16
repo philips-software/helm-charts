@@ -84,6 +84,7 @@
       # authn
       token {
         injectOrgHeader {{ .Values.authn.injectOrgHeader }}
+        metrics {{ .Values.authn.metrics.enabled }}
         {{- if .Values.authn.oidc.enabled }}
         jwt {
            issuer {{ .Values.authn.oidc.issuer }}

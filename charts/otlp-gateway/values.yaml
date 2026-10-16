@@ -1,6 +1,12 @@
 authn:
   # Inject X-Scope-OrgID header with authenticated org value
   injectOrgHeader: true
+  metrics:
+    # Enable caddy-token's per-tenant activity metrics (v1.3.0+): adds
+    # caddytoken_tenant_requests_total / _request_bytes_total / _response_bytes_total,
+    # labeled by tenant/path/method/code, to the existing /metrics endpoint (port 2020).
+    # Requests where no tenant could be resolved are not counted.
+    enabled: true
   oidc:
     enabled: false
     issuer: https://issuer.obs-us-east-ct.hsp.philips.com
@@ -136,7 +142,7 @@ autoscaling:
 caddy:
   container:
     # renovate: datasource=docker depName=ghcr.io/loafoe/caddy-token
-    image: ghcr.io/loafoe/caddy-token:v1.2.0
+    image: ghcr.io/loafoe/caddy-token:v1.3.0
   payloadsize:
     # important: the payloadsize requires an image which includes the payloadsize plugin
     enabled: false
@@ -198,3 +204,16 @@ vpa:
   maxAllowed:
     cpu: 1
     memory: 512Mi
+
+serviceMonitor:
+  # Create a ServiceMonitor (requires the Prometheus Operator CRDs) to scrape
+  # the /metrics endpoint (port 2020): Caddy's built-in caddy_http_* metrics,
+  # plus caddy-token's per-tenant metrics when authn.metrics.enabled is true.
+  enabled: true
+  # Namespace for the ServiceMonitor (defaults to the release namespace)
+  namespace: ""
+  # Extra labels on the ServiceMonitor, often required so the Prometheus
+  # Operator's serviceMonitorSelector picks it up, e.g. {release: kube-prometheus-stack}
+  labels: {}
+  interval: 30s
+  scrapeTimeout: 10s
