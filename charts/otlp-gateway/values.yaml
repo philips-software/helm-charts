@@ -142,7 +142,7 @@ autoscaling:
 caddy:
   container:
     # renovate: datasource=docker depName=ghcr.io/loafoe/caddy-token
-    image: ghcr.io/loafoe/caddy-token:v1.3.0
+    image: ghcr.io/loafoe/caddy-token:v1.3.1
   payloadsize:
     # important: the payloadsize requires an image which includes the payloadsize plugin
     enabled: false
