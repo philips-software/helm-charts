@@ -79,6 +79,10 @@ kafkaNodePool:
   # the old NodePool, Karpenter deletes the NodeClaims it owns, and those nodes
   # drain. Treat it as a maintenance window, and keep the labels and taint below
   # unchanged -- they, not this name, are what binds the Kafka pod to the pool.
+  #
+  # -- Karpenter NodePool name. Changing this REPLACES the nodes (Argo CD prunes
+  # the old NodePool, Karpenter drains it), briefly taking the sole Kafka broker
+  # offline -- treat it as a maintenance window.
   name: tempo-kafka-nodepool
   labels:
     workload: tempo-kafka

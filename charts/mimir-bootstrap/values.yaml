@@ -77,6 +77,12 @@ kafkaNodePool:
   # The pod's scheduling identity is the labels and taint below, not this name,
   # so those must stay unchanged across the migration or the broker will not
   # schedule onto the new pool at all.
+  #
+  # -- Karpenter NodePool name. Prefer "mimir-kafka-nodepool"; the default is
+  # the legacy cluster-generic name. Changing this REPLACES the nodes (Argo CD
+  # prunes the old NodePool, Karpenter drains it), briefly taking the sole Kafka
+  # broker offline -- treat it as a maintenance window and read the notes in
+  # values.yaml first.
   name: kafka-nodepool
   labels:
     workload: kafka

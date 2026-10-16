@@ -1,13 +1,13 @@
 # mimir
 
-![Version: 0.69.0](https://img.shields.io/badge/Version-0.69.0-informational?style=flat-square)
+![Version: 0.69.1](https://img.shields.io/badge/Version-0.69.1-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.69.0 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.69.1 -n monitoring
 ```
 
 ## Dependencies
@@ -47,7 +47,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | kafkaNodePool.expireAfter | string | `"3600h"` |  |
 | kafkaNodePool.labels.workload | string | `"kafka"` |  |
 | kafkaNodePool.minInstanceMemoryMiB | int | `8000` |  |
-| kafkaNodePool.name | string | `"kafka-nodepool"` |  |
+| kafkaNodePool.name | string | `"kafka-nodepool"` | Karpenter NodePool name. Prefer "mimir-kafka-nodepool"; the default is the legacy cluster-generic name. Changing this REPLACES the nodes (Argo CD prunes the old NodePool, Karpenter drains it), briefly taking the sole Kafka broker offline -- treat it as a maintenance window and read the notes in values.yaml first. |
 | kafkaNodePool.nodeClassRefName | string | `"bottlerocket-v2"` |  |
 | kafkaNodePool.resources.limits.cpu | int | `4` |  |
 | kafkaNodePool.resources.limits.memory | string | `"16Gi"` |  |

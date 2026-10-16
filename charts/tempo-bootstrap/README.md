@@ -1,13 +1,13 @@
 # tempo
 
-![Version: 0.45.0](https://img.shields.io/badge/Version-0.45.0-informational?style=flat-square)
+![Version: 0.45.1](https://img.shields.io/badge/Version-0.45.1-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.45.0 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.45.1 -n monitoring
 ```
 
 ## Values
@@ -32,7 +32,7 @@ helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstra
 | kafkaNodePool.enabled | bool | `true` |  |
 | kafkaNodePool.expireAfter | string | `"3600h"` |  |
 | kafkaNodePool.labels.workload | string | `"tempo-kafka"` |  |
-| kafkaNodePool.name | string | `"tempo-kafka-nodepool"` |  |
+| kafkaNodePool.name | string | `"tempo-kafka-nodepool"` | Karpenter NodePool name. Changing this REPLACES the nodes (Argo CD prunes the old NodePool, Karpenter drains it), briefly taking the sole Kafka broker offline -- treat it as a maintenance window. |
 | kafkaNodePool.nodeClassRefName | string | `"bottlerocket-v2"` |  |
 | kafkaNodePool.resources.limits.cpu | int | `4` |  |
 | kafkaNodePool.resources.limits.memory | string | `"16Gi"` |  |
