@@ -2,7 +2,7 @@
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
-  name: tempo-kafka-nodepool
+  name: {{ .Values.kafkaNodePool.name | default "tempo-kafka-nodepool" }}
 spec:
   disruption:
     budgets:

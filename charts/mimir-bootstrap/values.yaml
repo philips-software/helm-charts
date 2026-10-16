@@ -44,6 +44,40 @@ kafka:
 
 kafkaNodePool:
   enabled: true
+  # Name of the Karpenter NodePool.
+  #
+  # This defaults to the cluster-generic "kafka-nodepool" purely for backwards
+  # compatibility. The accurate name is "mimir-kafka-nodepool" -- this pool is
+  # owned by mimir-bootstrap, and tempo-bootstrap's equivalent is already called
+  # "tempo-kafka-nodepool". New clusters should set the accurate name from the
+  # start.
+  #
+  # The default is deliberately NOT the accurate name, because changing it is a
+  # node-replacing operation, not a rename. Argo CD prunes the old NodePool,
+  # Karpenter deletes the NodeClaims it owns, and those nodes drain. On
+  # ri-obs-use1-dev that pool is a single t4g.large running the SOLE Kafka
+  # broker (mimir-kafka replicas: 1) whose 500Gi gp3 PVC is pinned to one
+  # availability zone, so the replacement node must come up in that same zone
+  # before the broker can start. Flipping the default would turn every routine
+  # chart bump into an unplanned live-metrics ingestion gap.
+  #
+  # To migrate, in a maintenance window:
+  #   1. Confirm the blast radius:
+  #        kubectl get nodes -l karpenter.sh/nodepool=kafka-nodepool
+  #        kubectl get nodeclaims -l karpenter.sh/nodepool=kafka-nodepool
+  #   2. Note the zone of the Kafka PVC's PV; the new node must land there:
+  #        kubectl get pv $(kubectl get pvc -n mimir-system \
+  #          kafka-data-mimir-kafka-0 -o jsonpath='{.spec.volumeName}') \
+  #          -o jsonpath='{.spec.nodeAffinity}'
+  #   3. Set name: mimir-kafka-nodepool and sync.
+  #   4. Watch the broker return; the PVC is retained and reattached, so no
+  #      data is lost, but expect a short ingestion gap while the node is
+  #      provisioned and Kafka restarts.
+  #
+  # The pod's scheduling identity is the labels and taint below, not this name,
+  # so those must stay unchanged across the migration or the broker will not
+  # schedule onto the new pool at all.
+  name: kafka-nodepool
   labels:
     workload: kafka
   # The taint key applied to the dedicated Kafka nodes (and tolerated by the

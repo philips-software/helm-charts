@@ -2,7 +2,7 @@
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
-  name: kafka-nodepool
+  name: {{ .Values.kafkaNodePool.name | default "kafka-nodepool" }}
 spec:
   disruption:
     budgets:

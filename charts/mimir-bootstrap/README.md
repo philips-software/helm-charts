@@ -1,13 +1,13 @@
 # mimir
 
-![Version: 0.68.0](https://img.shields.io/badge/Version-0.68.0-informational?style=flat-square)
+![Version: 0.69.0](https://img.shields.io/badge/Version-0.69.0-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.68.0 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.69.0 -n monitoring
 ```
 
 ## Dependencies
@@ -47,6 +47,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | kafkaNodePool.expireAfter | string | `"3600h"` |  |
 | kafkaNodePool.labels.workload | string | `"kafka"` |  |
 | kafkaNodePool.minInstanceMemoryMiB | int | `8000` |  |
+| kafkaNodePool.name | string | `"kafka-nodepool"` |  |
 | kafkaNodePool.nodeClassRefName | string | `"bottlerocket-v2"` |  |
 | kafkaNodePool.resources.limits.cpu | int | `4` |  |
 | kafkaNodePool.resources.limits.memory | string | `"16Gi"` |  |

@@ -71,6 +71,15 @@ kafka:
 
 kafkaNodePool:
   enabled: true
+  # Name of the Karpenter NodePool. Already chart-scoped; exposed so it can be
+  # overridden, and so this chart matches mimir-bootstrap, where the name is
+  # configurable to allow migrating off the cluster-generic "kafka-nodepool".
+  #
+  # Changing this is a node-replacing operation, not a rename: Argo CD prunes
+  # the old NodePool, Karpenter deletes the NodeClaims it owns, and those nodes
+  # drain. Treat it as a maintenance window, and keep the labels and taint below
+  # unchanged -- they, not this name, are what binds the Kafka pod to the pool.
+  name: tempo-kafka-nodepool
   labels:
     workload: tempo-kafka
   # The taint key applied to the dedicated Kafka nodes (and tolerated by the
