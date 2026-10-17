@@ -193,6 +193,11 @@ local.file_match "hubble" {
 loki.source.file "hubble" {
   targets    = local.file_match.hubble.targets
   forward_to = [loki.process.hubble.receiver]
+  // Positions live in alloy-logs' storage path, which does not survive a pod replacement.
+  // Without this every new pod re-reads the whole export file (Cilium rotates it at
+  // hubble-export-file-max-size-mb, 50MB by default): a burst that times out the gateway
+  // and re-ships flows already delivered. Costs the flows written during the replacement.
+  tail_from_end = true
 }
 loki.process "hubble" {
   stage.json {

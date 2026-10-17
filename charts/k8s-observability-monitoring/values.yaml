@@ -147,6 +147,8 @@ hubbleFlowLogs:
   enabled: false
   # -- Cilium hubble-export-file-path. The chart mounts this file's parent dir read-only, creating it
   # on the node if missing so alloy-logs never waits for Cilium to write its first flow.
+  # The file is tailed from its end whenever alloy-logs has no stored position (a new pod), so a
+  # rollout does not replay the whole file; flows written while a pod is replaced are not shipped.
   exportFilePath: /var/run/cilium/hubble/events.log
   # -- Destinations to ship flows to. Empty = reuse the destinations resolved for podLogsViaLoki.
   destinations: []
