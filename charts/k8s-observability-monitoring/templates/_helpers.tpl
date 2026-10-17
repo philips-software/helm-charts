@@ -304,3 +304,23 @@ Usage: {{ include "k8s-monitoring.validateCustomAlloyMemoryLimiter" . }}
   {{- end -}}
 {{- end -}}
 {{- end }}
+
+{{/*
+"true" when an upstream kubelet-family scrape (kubelet, kubeletResource, kubeletProbes, cadvisor)
+reaches the kubelet through the API server proxy (nodeAddressFormat: proxy). That path needs
+`get nodes/proxy`, which upstream's Alloy RBAC does not grant -- the scrapes fail with 403.
+Usage: {{ include "k8s-monitoring.needsNodeProxyRBAC" . }}
+*/}}
+{{- define "k8s-monitoring.needsNodeProxyRBAC" -}}
+{{- $cm := .Values.clusterMetrics -}}
+{{- $need := false -}}
+{{- if $cm.enabled -}}
+  {{- range $k := list "kubelet" "kubeletResource" "kubeletProbes" "cadvisor" -}}
+    {{- $c := index $cm $k | default dict -}}
+    {{- if and (ne (toString (dig "enabled" true $c)) "false") (eq (toString (dig "nodeAddressFormat" "direct" $c)) "proxy") -}}
+      {{- $need = true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if $need }}true{{ end -}}
+{{- end }}

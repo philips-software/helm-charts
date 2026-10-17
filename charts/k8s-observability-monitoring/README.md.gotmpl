@@ -136,6 +136,11 @@ clusterMetrics:
     nodeAddressFormat: proxy
 ```
 
+`nodeAddressFormat: proxy` needs `get nodes/proxy`, which upstream's Alloy RBAC does not grant (the scrapes
+fail with 403). This chart adds a ClusterRole/ClusterRoleBinding for the `alloy-metrics` service account
+whenever a kubelet, kubeletResource, kubeletProbes or cadvisor scrape uses `proxy`. `direct` (the default)
+needs no extra RBAC, but the pods must be able to reach every node on port 10250.
+
 | customAlloy | Upstream equivalent |
 |---|---|
 | kube-state-metrics scrape, `kubeStateMetrics.namespace` | `clusterMetrics.kube-state-metrics` (`namespace`, `labelMatchers`) |

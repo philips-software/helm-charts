@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 1.10.1](https://img.shields.io/badge/Version-1.10.1-informational?style=flat-square) ![AppVersion: 4.5.3](https://img.shields.io/badge/AppVersion-4.5.3-informational?style=flat-square)
+![Version: 1.10.2](https://img.shields.io/badge/Version-1.10.2-informational?style=flat-square) ![AppVersion: 4.5.3](https://img.shields.io/badge/AppVersion-4.5.3-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -135,6 +135,11 @@ clusterMetrics:
   cadvisor:
     nodeAddressFormat: proxy
 ```
+
+`nodeAddressFormat: proxy` needs `get nodes/proxy`, which upstream's Alloy RBAC does not grant (the scrapes
+fail with 403). This chart adds a ClusterRole/ClusterRoleBinding for the `alloy-metrics` service account
+whenever a kubelet, kubeletResource, kubeletProbes or cadvisor scrape uses `proxy`. `direct` (the default)
+needs no extra RBAC, but the pods must be able to reach every node on port 10250.
 
 | customAlloy | Upstream equivalent |
 |---|---|
@@ -348,7 +353,7 @@ node memory.
 | applicationObservability.processors | object | `{}` | Processor settings passed through verbatim to the upstream applicationObservability feature (see its values for the full list). E.g. a memory limiter right after the OTLP receiver of alloy-receiver, which pushes back on senders with a retryable error instead of letting the collector OOM:   processors:     memoryLimiter:       enabled: true       checkInterval: 1s       limit: 400MiB   # upstream only supports an absolute limit; keep it below                       # the alloy-receiver container memory limit |
 | autoInstrumentation | object | `{"destinations":[],"enabled":false}` | Auto-instrumentation for applications |
 | chart | object | `{"version":""}` | Override the upstream chart version (defaults to appVersion in Chart.yaml) |
-| clusterMetrics | object | `{"destinations":[],"enabled":false,"kube-state-metrics":{},"kubelet":{"enabled":true,"metricsTuning":{"useDefaultAllowList":true},"nodeAddressFormat":"direct"},"kubeletResource":{"enabled":true,"nodeAddressFormat":"direct"}}` | Cluster metrics (kubelet, cadvisor, kube-state-metrics, control plane, ...) scraped by the upstream alloy-metrics collector -- the replacement for customAlloy (see "Retiring customAlloy" in the README). Keys other than the ones below (cadvisor, apiServer, kubeDNS, ...) are passed through to upstream clusterMetrics verbatim when enabled. |
+| clusterMetrics | object | `{"destinations":[],"enabled":false,"kube-state-metrics":{},"kubelet":{"enabled":true,"metricsTuning":{"useDefaultAllowList":true},"nodeAddressFormat":"direct"},"kubeletResource":{"enabled":true,"nodeAddressFormat":"direct"}}` | Cluster metrics (kubelet, cadvisor, kube-state-metrics, control plane, ...) scraped by the upstream alloy-metrics collector -- the replacement for customAlloy (see "Retiring customAlloy" in the README). Keys other than the ones below (cadvisor, apiServer, kubeDNS, ...) are passed through to upstream clusterMetrics verbatim when enabled. With nodeAddressFormat: proxy on kubelet/kubeletResource/kubeletProbes/cadvisor, the chart also grants the alloy-metrics service account `get nodes/proxy` (upstream does not, so those scrapes would 403). |
 | clusterMetrics.kube-state-metrics | object | `{}` | Upstream kube-state-metrics scrape settings, passed through (namespace, labelMatchers, metricsTuning, extraMetricProcessingRules, ...). The chart always prepends two relabel rules that rename KSM's webhook `service_name`/`service_namespace` labels to `webhook_service_*`: left alone, upstream's OTLP destination copies them onto the scrape's resource and every KSM series gets a garbage job label (e.g. `kyverno/vpa-webhook`). The upstream default allow list drops those series anyway; the rules matter once useDefaultAllowList is false. Requires telemetryServices.kube-state-metrics.deploy, or pointing at an existing instance:   kube-state-metrics:     namespace: prometheus          # e.g. kube-prometheus-stack's kube-state-metrics     labelMatchers:       app.kubernetes.io/name: kube-state-metrics     metricsTuning:       useDefaultAllowList: false   # full metric set, like customAlloy |
 | clusterName | string | `""` | Cluster name for telemetry labeling. Must be set to a non-empty value at install time. |
 | collectorCommon | object | `{"alloy":{"alloy":{"resources":{"limits":{"memory":"1Gi"},"requests":{"cpu":"100m","memory":"512Mi"}}},"controller":{"affinity":{"nodeAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":{"nodeSelectorTerms":[{"matchExpressions":[{"key":"eks.amazonaws.com/compute-type","operator":"NotIn","values":["fargate"]}]}]}}},"autoscaling":{"vertical":{"enabled":false,"resourcePolicy":{"containerPolicies":[{"containerName":"alloy","controlledResources":["memory"],"maxAllowed":{"memory":"4Gi"},"minAllowed":{"memory":"256Mi"}}]},"updatePolicy":{"updateMode":"Auto"}}}}}}` | Common collector settings (applies to all Alloy instances managed by operator). NOTE: collectorCommon.alloy is merged at the *top level* of each Alloy custom resource's spec (siblings: alloy, controller, ...) -- see grafana/k8s-monitoring-helm collector.alloy.values. That means resources must be nested under an inner `alloy:` key (collectorCommon.alloy.alloy.resources), not collectorCommon.alloy.resources directly, or they silently land on an unknown top-level field and are dropped -- each managed collector then falls back to its preset's resources instead. |

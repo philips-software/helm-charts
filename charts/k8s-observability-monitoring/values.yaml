@@ -100,6 +100,8 @@ prometheusOperatorObjects:
 # upstream alloy-metrics collector -- the replacement for customAlloy (see "Retiring customAlloy"
 # in the README). Keys other than the ones below (cadvisor, apiServer, kubeDNS, ...) are
 # passed through to upstream clusterMetrics verbatim when enabled.
+# With nodeAddressFormat: proxy on kubelet/kubeletResource/kubeletProbes/cadvisor, the chart also grants
+# the alloy-metrics service account `get nodes/proxy` (upstream does not, so those scrapes would 403).
 clusterMetrics:
   enabled: false
   destinations: []

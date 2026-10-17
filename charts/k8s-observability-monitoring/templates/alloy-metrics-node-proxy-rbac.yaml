@@ -1,0 +1,35 @@
+{{- if eq (include "k8s-monitoring.needsNodeProxyRBAC" .) "true" }}
+{{- /* Upstream k8s-monitoring grants its Alloy collectors nodes/metrics but not nodes/proxy, so
+       kubelet/cadvisor scrapes with nodeAddressFormat: proxy get 403 from the API server.
+       Granted from a separate ClusterRole: overriding the collector's rbac.clusterRules would
+       replace upstream's default rule list rather than add to it. */}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Name }}-alloy-metrics-node-proxy
+  labels:
+    app.kubernetes.io/name: alloy-metrics
+    app.kubernetes.io/instance: {{ .Release.Name }}
+rules:
+  - apiGroups: [""]
+    resources: ["nodes/proxy"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}-alloy-metrics-node-proxy
+  labels:
+    app.kubernetes.io/name: alloy-metrics
+    app.kubernetes.io/instance: {{ .Release.Name }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Release.Name }}-alloy-metrics-node-proxy
+subjects:
+  # Service account the Alloy Operator creates for the alloy-metrics collector of the
+  # k8s-monitoring release (releaseName is fixed in templates/k8s-monitoring.yaml).
+  - kind: ServiceAccount
+    name: k8s-monitoring-alloy-metrics
+    namespace: {{ .Release.Namespace }}
+{{- end }}
