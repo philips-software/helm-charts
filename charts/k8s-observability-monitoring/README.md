@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 1.10.2](https://img.shields.io/badge/Version-1.10.2-informational?style=flat-square) ![AppVersion: 4.5.3](https://img.shields.io/badge/AppVersion-4.5.3-informational?style=flat-square)
+![Version: 1.10.3](https://img.shields.io/badge/Version-1.10.3-informational?style=flat-square) ![AppVersion: 4.5.3](https://img.shields.io/badge/AppVersion-4.5.3-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -381,7 +381,7 @@ node memory.
 | hubbleFlowLogs | object | `{"batchMaxSize":512,"destinations":[],"enabled":false,"exportFilePath":"/var/run/cilium/hubble/events.log"}` | Cilium Hubble L7 flow/access logs collection. Tails Cilium's flow export file on each node (via the alloy-logs DaemonSet) and ships it to a destination as OTLP logs. The chart does NOT configure Cilium: the operator must enable hubble.export on the Cilium side (file path below + allowlist event_type 129). Requires alloy-logs to have SPIFFE auth if a target destination uses bearerToken auth: add "alloy-logs" to spiffe.collectors. |
 | hubbleFlowLogs.batchMaxSize | int | `512` | Max OTLP batch size for flows. Hubble flow JSON is large (~4.5 KB/flow); keep batches under the gateway's gRPC receive limit (commonly 4 MB). 512 ~= 2.3 MB. |
 | hubbleFlowLogs.destinations | list | `[]` | Destinations to ship flows to. Empty = reuse the destinations resolved for podLogsViaLoki. |
-| hubbleFlowLogs.exportFilePath | string | `"/var/run/cilium/hubble/events.log"` | Cilium hubble-export-file-path. The chart mounts this file's parent dir read-only. |
+| hubbleFlowLogs.exportFilePath | string | `"/var/run/cilium/hubble/events.log"` | Cilium hubble-export-file-path. The chart mounts this file's parent dir read-only, creating it on the node if missing so alloy-logs never waits for Cilium to write its first flow. |
 | kyverno | object | `{"policyException":{"enabled":false,"policyName":"enforce-baseline-pod-security-profile","ruleNames":["enforce-baseline-profile"]}}` | Kyverno PolicyException configuration |
 | podLogsViaLoki | object | `{"destinations":[],"dropKubeProbe":false,"enabled":true,"excludeNamespaces":[]}` | Pod logs collection via Loki format |
 | podLogsViaLoki.dropKubeProbe | bool | `false` | Drop kube-probe logs (liveness/readiness probe requests). |

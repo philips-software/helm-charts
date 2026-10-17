@@ -246,13 +246,16 @@ Usage: {{ include "k8s-monitoring.hubbleMountValues" . }}
        Alloy config never contains the Hubble pipeline). Keep it at the collector top level. */ -}}
 extraConfig: |-
 {{ include "k8s-monitoring.hubbleExtraConfig" . | indent 2 }}
+{{- /* DirectoryOrCreate, not Directory: Cilium only creates the export dir once it has flows to
+       write, so on a fresh node (new Karpenter worker, replaced master) the mount would fail and
+       hold back the whole alloy-logs pod -- pod logs included -- until then. */}}
 controller:
   volumes:
     extra:
       - name: hubble-export
         hostPath:
           path: {{ $dir | quote }}
-          type: Directory
+          type: DirectoryOrCreate
 alloy:
   mounts:
     extra:

@@ -145,7 +145,8 @@ podLogsViaLoki:
 # add "alloy-logs" to spiffe.collectors.
 hubbleFlowLogs:
   enabled: false
-  # -- Cilium hubble-export-file-path. The chart mounts this file's parent dir read-only.
+  # -- Cilium hubble-export-file-path. The chart mounts this file's parent dir read-only, creating it
+  # on the node if missing so alloy-logs never waits for Cilium to write its first flow.
   exportFilePath: /var/run/cilium/hubble/events.log
   # -- Destinations to ship flows to. Empty = reuse the destinations resolved for podLogsViaLoki.
   destinations: []
