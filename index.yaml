@@ -4231,6 +4231,23 @@ entries:
     version: 0.0.3
   dex-issuer:
   - apiVersion: v2
+    created: "2026-10-17T07:02:50.097294886Z"
+    description: Deploys Dex (OpenID Connect issuer) with its Postgres storage, gRPC
+      mTLS PKI, and Crossplane connector-management plane
+    digest: 2df7fb4b4cadbbc4cdab7c34c0667848da2c8d3326f88153886bc5a58ff8890a
+    keywords:
+    - dex
+    - oidc
+    - issuer
+    - crossplane
+    maintainers:
+    - name: Philips Software
+    name: dex-issuer
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/dex-issuer-0.12.5/dex-issuer-0.12.5.tgz
+    version: 0.12.5
+  - apiVersion: v2
     created: "2026-10-15T10:10:11.466950609Z"
     description: Deploys Dex (OpenID Connect issuer) with its Postgres storage, gRPC
       mTLS PKI, and Crossplane connector-management plane
@@ -8486,4 +8503,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-16T19:47:37.434977033Z"
+generated: "2026-10-17T07:02:50.098315808Z"
