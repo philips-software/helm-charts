@@ -78,86 +78,93 @@ If your cluster already has [kube-prometheus-stack](https://github.com/prometheu
 When using k8s-monitoring alongside kube-prometheus-stack, you may encounter duplicate kube-state-metrics with corrupted job labels like:
 - `crossplane-system/integrations/kubernetes/kube-state-metrics`
 - `cert-manager/integrations/kubernetes/kube-state-metrics`
+- with upstream 4.5.x: `kyverno/vpa-webhook`, `cnpg-system/kyverno-cleanup-controller`, ... (changing per scrape)
 
-**Root cause:** the upstream k8s-monitoring chart converts scraped Prometheus
-metrics to OTLP and back again. When kube-state-metrics is scraped this way,
-each metric carries a `namespace` label for the resource it describes. If that
-label is promoted to the `service.namespace` resource attribute, the namespace
-prefix is injected into the `job` label **after** the `prometheus.relabel`
-stage, inside the OTEL pipeline — producing the corrupted, per-namespace job
-names above (and duplicate scrape jobs). This only manifests when KPS coexists,
-because its kube-state-metrics ServiceMonitor is what the upstream collector
-picks up.
+**Root cause** (reproduced 2026-10-17 by running live kube-state-metrics output through
+the pipeline upstream `k8s-monitoring` 4.5.3 renders): kube-state-metrics'
+`kube_{mutating,validating}webhookconfiguration_webhook_clientconfig_service` series carry
+the webhook's backing service as `service_name` / `service_namespace` labels (e.g.
+`service_namespace="cert-manager"`). Upstream's OTLP destination promotes those datapoint
+attributes to the `service.name` / `service.namespace` resource attributes, and all series of
+one scrape share a single resource, so one webhook series rewrites the identity of *every*
+kube-state-metrics series in that scrape. The OTLP endpoint then builds
+`job = service.namespace/service.name`. 4.5.x made it worse: the new
+`<destination>_scrape_normalize` transform overwrites `service.name` unconditionally.
 
-> **Note:** earlier revisions of this chart blamed Alloy *clustering* for the
-> prefix. That was a misdiagnosis — clustering is fine. The real trigger is the
-> `service.namespace` attribute promotion in the OTLP round-trip, which is why
-> `customAlloy.attributePromotion.enabled: false` is the actual fix.
+Upstream's *own* kube-state-metrics scrape (`clusterMetrics`) is clean by default, because
+its default allow list drops the webhook series. It breaks when the full metric set reaches
+the OTLP destination: KPS's kube-state-metrics ServiceMonitor picked up by
+`prometheusOperatorObjects` (hence "only with KPS"), or `useDefaultAllowList: false`.
 
-**Confirmed present in the latest v4.** Rendering upstream `k8s-monitoring`
-`4.1.6` (latest v4 release) with `clusterMetrics` + an OTLP destination still
-generates the offending statement in the shared transform processor:
-
-```alloy
-otelcol.processor.transform "<destination>" {
-  metric_statements {
-    context = "datapoint"
-    statements = [
-      `set(resource.attributes["service.namespace"], attributes["service_namespace"] ) where ...`,
-      ...
-```
-
-This promotion comes from the OTLP destination default
-`processors.transform.metrics.datapointToResource: { service_namespace: service.namespace }`
-(`destinations/otlp-values.yaml`). It is **on by default and not gated by any
-feature flag** — the only way to suppress it upstream is to override that map
-per-destination. customAlloy avoids the whole prometheus→OTLP→prometheus
-round-trip, which is why it remains the cleaner fix. Verified identical from
-`4.1.3` (our current pin) through `4.1.6`; no changelog entry in `4.1.4`–`4.1.6`
-addresses it.
+> **Note:** earlier revisions of this chart blamed Alloy *clustering*, and later the
+> promotion of kube-state-metrics' `namespace` label. Neither is the trigger: it is the
+> webhook series' own `service_*` labels.
 
 ### The Solution
 
-Enable `customAlloy` which deploys a dedicated Alloy instance for kube-state-metrics scraping without the problematic features:
+The chart handles it whichever collector scrapes kube-state-metrics:
+
+1. When kube-state-metrics is scraped directly (`customAlloy.enabled`, or `clusterMetrics.enabled`
+   with its kube-state-metrics scrape on), its ServiceMonitor is excluded from
+   `prometheusOperatorObjects`, so it is never scraped twice.
+2. `clusterMetrics`: the chart prepends two relabel rules to the kube-state-metrics scrape that
+   rename `service_name` / `service_namespace` to `webhook_service_name` /
+   `webhook_service_namespace` before the OTLP conversion. The webhook data is kept, the job label stays clean.
+3. `customAlloy`: its pipeline never promotes those labels (keep `attributePromotion.enabled: false`).
+
+### Retiring customAlloy
+
+customAlloy is no longer required for the job-label bug: the upstream collectors do the same
+job with `clusterMetrics` (verified end-to-end with live kube-state-metrics data: full metric
+set, clean `integrations/kubernetes/kube-state-metrics` job on every scrape). To move a cluster
+over:
 
 ```yaml
-# values.yaml for clusters with KPS
 customAlloy:
+  enabled: false
+clusterMetrics:
   enabled: true
-  attributePromotion:
-    enabled: false  # The actual fix: avoids the service.namespace promotion that corrupts job labels
-
-# kube-state-metrics exclusion is automatically added when customAlloy.enabled: true
+  kube-state-metrics:
+    namespace: prometheus             # reuse the existing (KPS) kube-state-metrics...
+    labelMatchers:
+      app.kubernetes.io/name: kube-state-metrics
+    metricsTuning:
+      useDefaultAllowList: false      # ...with the full metric set customAlloy shipped
+  kubelet:
+    nodeAddressFormat: proxy          # customAlloy scraped kubelet/cadvisor via the API server
+  cadvisor:
+    nodeAddressFormat: proxy
 ```
 
-This configuration:
-1. Deploys a dedicated Alloy instance that scrapes kube-state-metrics directly with correct job labels
-2. Automatically excludes the kube-state-metrics ServiceMonitor from `prometheusOperatorObjects` to avoid duplicates
+| customAlloy | Upstream equivalent |
+|---|---|
+| kube-state-metrics scrape, `kubeStateMetrics.namespace` | `clusterMetrics.kube-state-metrics` (`namespace`, `labelMatchers`) |
+| `kubeStateMetrics.extraMetricProcessingRules` | `clusterMetrics.kube-state-metrics.extraMetricProcessingRules` |
+| `kubelet.enabled` (kubelet + cadvisor) | `clusterMetrics.kubelet` / `cadvisor`, `nodeAddressFormat: proxy` |
+| node-exporter scrape, `nodeExporter.extraMetricProcessingRules` | an existing node-exporter ServiceMonitor (e.g. KPS) via `prometheusOperatorObjects`. Upstream v4 moved node-exporter to the `hostMetrics` feature, which this chart does not expose yet |
+| `replaceUpstreamCollector` (ServiceMonitors, PodMonitors, Probes) | `prometheusOperatorObjects` (see the blocker below) |
+| `extraConfig` | `collectors.alloy-metrics.extraConfig`, forwarding to `otelcol.receiver.prometheus.<destination>.receiver` |
+| `clustering`, `replicas` | `alloy-metrics` presets `[clustered, statefulset]` (already set) |
+| `sendingQueue`, `memoryLimiter` | `destinations.<name>.sendingQueue`, `destinations.<name>.processors.memoryLimiter` |
+| `attributeCleanup` | upstream default (same `delete_key` list) |
+| `resources`, `vpa`, `priorityClassName`, `livenessProbe` | `collectors.alloy-metrics.alloy.resources`, `.controller.autoscaling.vertical`, `.controller.priorityClassName`, `.alloy.livenessProbe` |
+| `spiffe` sidecar | `spiffe.collectors: [alloy-metrics]` |
+| `customAlloyOnly` destinations | drop the flag: `tenantId`, `insecure`, `insecureSkipVerify` are passed to upstream |
 
-### When can customAlloy be removed?
+Expect these differences in the data after the switch:
+- kube-state-metrics series get `instance` = the endpoint `ip:port` instead of the node name (one-off series churn).
+- the webhook clientconfig series carry `webhook_service_name` / `webhook_service_namespace` instead of `service_name` / `service_namespace`.
+- kubelet/cadvisor follow upstream's allow lists instead of customAlloy's drop rules.
 
-`customAlloy` is a workaround, not a permanent feature. The removal trigger is
-the **behaviour**, not any tracking issue: it can be removed once a future
-k8s-monitoring release stops promoting `service_namespace → service.namespace`
-in the metrics pipeline by default (or gates it behind a flag we can disable).
-Migrating to v4 did **not** achieve this — the promotion is still emitted
-unconditionally as of upstream `v4.1.6`.
+**Blocker: KPS system ServiceMonitors.** With `replaceUpstreamCollector`, customAlloy scrapes
+KPS's kube-apiserver, kubelet, coredns, kube-controller-manager, kube-scheduler, kube-etcd and
+kube-proxy ServiceMonitors by setting `allow_arbitrary_file_access` (they use
+`bearerTokenFile`). Upstream's `prometheusOperatorObjects` (4.5.3) has no such option, so
+alloy-metrics drops them with only an error log. Keep customAlloy on clusters that depend on those
+metrics, or switch to upstream's `clusterMetrics.apiServer` / `kubeDNS` / ... scrapes (job labels
+become `integrations/kubernetes/*`, so dashboards need updating), until upstream supports it.
 
-To re-check after any upstream bump, render the chart and look for the
-statement — if it's gone (or disableable), customAlloy can go too:
-
-```bash
-helm template t grafana/k8s-monitoring --version <new-version> -f - <<'EOF' | grep 'service.namespace'
-cluster: {name: t}
-destinations: {gw: {type: otlp, url: http://gw/otlp, protocol: http, auth: {type: none}}}
-collectors: {alloy-metrics: {enabled: true, presets: [clustered]}}
-clusterMetrics: {enabled: true, kube-state-metrics: {labelMatchers: {app.kubernetes.io/name: kube-state-metrics}}}
-EOF
-```
-
-Then on a live KPS cluster, verify kube-state-metrics job labels are not
-namespace-prefixed — `count by (job) (kube_pod_info)` should show a single,
-clean `integrations/kubernetes/kube-state-metrics` job.
+Once no cluster runs customAlloy, it can be deleted from the chart (a breaking, major version change).
 
 ### OTLP Secret Requirements
 
@@ -297,6 +304,41 @@ curl -s localhost:12345/metrics | \
 ```
 
 (The default release name makes the collector `k8s-monitoring-alloy-logs`.)
+
+## Memory limiter
+
+An `otelcol.processor.memory_limiter` makes a collector refuse data (and force GCs)
+once it nears its memory budget, instead of being OOMKilled. All three are off by
+default and can be set independently:
+
+| Where | Value | Placement | Notes |
+|---|---|---|---|
+| customAlloy pipeline | `customAlloy.memoryLimiter` | right after `otelcol.receiver.prometheus`, so it also covers `extraConfig` pipelines | Percentage of the container memory limit by default, or a fixed `limit` |
+| alloy-receiver (application OTLP) | `applicationObservability.processors.memoryLimiter` | right after the OTLP/Jaeger/Zipkin receivers | Passed through to upstream; fixed `limit` only. Senders get a retryable error and back off |
+| per destination, upstream collectors | `destinations.<name>.processors.memoryLimiter` | upstream puts it after the destination's batch processor | Passed through to upstream; fixed `limit` only. Ignored by customAlloy |
+
+```yaml
+customAlloy:
+  memoryLimiter:
+    enabled: true
+    limitPercentage: 80        # hard limit: 80% of customAlloy.resources.limits.memory
+    spikeLimitPercentage: 20   # soft limit: 80 - 20 = 60% (refuses data from here on)
+    # limit: 1600MiB           # or a fixed limit instead of the percentages
+
+applicationObservability:
+  processors:
+    memoryLimiter:
+      enabled: true
+      checkInterval: 1s
+      limit: 400MiB            # below the alloy-receiver container memory limit
+```
+
+customAlloy scrapes are pull-based, so data refused there is dropped, not retried:
+expect gaps rather than a restart. The percentage is resolved when the component starts,
+so when VPA changes the memory limit in place the limiter picks it up at the next
+pod restart. The chart rejects a percentage-mode config without
+`customAlloy.resources.limits.memory`, because the percentage would then be taken of
+node memory.
 
 {{ template "chart.valuesSection" . }}
 

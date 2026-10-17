@@ -1,0 +1,41 @@
+clusterName: test-cluster
+# Upstream-only metrics: everything customAlloy scraped (kube-state-metrics, kubelet,
+# cadvisor, ServiceMonitors) collected by the upstream alloy-metrics collector instead.
+destinations:
+  gw:
+    type: otlp
+    url: https://gw.example.com/otlp
+    protocol: http
+    auth:
+      type: none
+    metrics:
+      enabled: true
+  # Formerly a customAlloyOnly destination: tenant header and TLS now reach upstream.
+  localMimir:
+    type: otlp
+    url: http://mimir.example.com:9009/otlp
+    protocol: http
+    auth:
+      type: none
+    tenantId: anonymous
+    insecure: true
+    metrics:
+      enabled: true
+    logs:
+      enabled: false
+    traces:
+      enabled: false
+clusterMetrics:
+  enabled: true
+  kube-state-metrics:
+    # Reuse an existing (kube-prometheus-stack) kube-state-metrics.
+    namespace: prometheus
+    labelMatchers:
+      app.kubernetes.io/name: kube-state-metrics
+    metricsTuning:
+      useDefaultAllowList: false
+  kubelet:
+    nodeAddressFormat: proxy
+  # Passed through to upstream clusterMetrics as-is.
+  cadvisor:
+    nodeAddressFormat: proxy

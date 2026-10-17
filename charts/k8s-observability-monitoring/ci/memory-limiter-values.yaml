@@ -1,0 +1,32 @@
+clusterName: test-cluster
+destinations:
+  gw:
+    type: otlp
+    url: https://gw.example.com
+    protocol: http
+    auth:
+      type: none
+    metrics:
+      enabled: true
+    # Upstream per-destination memory limiter (k8s-monitoring otlp destination),
+    # passed through unchanged. Applies to the upstream collectors only.
+    processors:
+      memoryLimiter:
+        enabled: true
+        checkInterval: 1s
+        limit: 400MiB
+customAlloy:
+  enabled: true
+  # memory_limiter at the head of the customAlloy OTEL pipeline, sized as a
+  # percentage of the container memory limit.
+  memoryLimiter:
+    enabled: true
+applicationObservability:
+  enabled: true
+  # Upstream alloy-receiver pipeline memory limiter, placed right after the
+  # OTLP receiver.
+  processors:
+    memoryLimiter:
+      enabled: true
+      checkInterval: 1s
+      limit: 400MiB

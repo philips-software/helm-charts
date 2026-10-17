@@ -370,11 +370,31 @@ data:
     {{- end }}
 
     // OTEL Pipeline
+    {{- $memoryLimiter := .Values.customAlloy.memoryLimiter }}
     otelcol.receiver.prometheus "default" {
+      output {
+        metrics = [{{ if $memoryLimiter.enabled }}otelcol.processor.memory_limiter.default.input{{ else }}otelcol.processor.transform.default.input{{ end }}]
+      }
+    }
+    {{- if $memoryLimiter.enabled }}
+
+    // Memory limiter first, so it can refuse data before any other processing
+    otelcol.processor.memory_limiter "default" {
+      check_interval = {{ $memoryLimiter.checkInterval | quote }}
+      {{- if $memoryLimiter.limit }}
+      limit = {{ $memoryLimiter.limit | quote }}
+      {{- with $memoryLimiter.spikeLimit }}
+      spike_limit = {{ . | quote }}
+      {{- end }}
+      {{- else }}
+      limit_percentage = {{ $memoryLimiter.limitPercentage | int }}
+      spike_limit_percentage = {{ $memoryLimiter.spikeLimitPercentage | int }}
+      {{- end }}
       output {
         metrics = [otelcol.processor.transform.default.input]
       }
     }
+    {{- end }}
 
     otelcol.processor.transform "default" {
       error_mode = "ignore"

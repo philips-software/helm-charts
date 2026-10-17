@@ -24,6 +24,18 @@ destinations:
       {{- end }}
       {{- end }}
     {{- end }}
+    {{- if $dest.tenantId }}
+    tenantId: {{ $dest.tenantId | quote }}
+    {{- end }}
+    {{- if or $dest.insecure $dest.insecureSkipVerify }}
+    tls:
+      {{- if $dest.insecure }}
+      insecure: true
+      {{- end }}
+      {{- if $dest.insecureSkipVerify }}
+      insecureSkipVerify: true
+      {{- end }}
+    {{- end }}
     {{- if $dest.secret }}
     secret:
       create: {{ $dest.secret.create | default false }}
@@ -100,7 +112,12 @@ prometheusOperatorObjects:
     {{- if .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
     {{- $labelExpressions = .Values.prometheusOperatorObjects.serviceMonitors.labelExpressions }}
     {{- end }}
-    {{- if and .Values.customAlloy .Values.customAlloy.enabled }}
+    {{- /* Whoever scrapes KSM directly (customAlloy, or upstream clusterMetrics), its
+           ServiceMonitor (e.g. kube-prometheus-stack's) must not be scraped as well: that
+           duplicates every series, and without the clusterMetrics relabel fix below the
+           webhook service_* labels corrupt the job label of the whole scrape. */}}
+    {{- $upstreamKSM := and .Values.clusterMetrics.enabled (ne (dig "kube-state-metrics" "enabled" true .Values.clusterMetrics) false) }}
+    {{- if or (and .Values.customAlloy .Values.customAlloy.enabled) $upstreamKSM }}
     {{- $ksmExclusion := dict "key" "app.kubernetes.io/name" "operator" "NotIn" "values" (list "kube-state-metrics") }}
     {{- $labelExpressions = append $labelExpressions $ksmExclusion }}
     {{- end }}
@@ -155,6 +172,32 @@ clusterMetrics:
     nodeAddressFormat: {{ .Values.clusterMetrics.kubeletResource.nodeAddressFormat }}
     {{- end }}
   {{- end }}
+  {{- if .Values.clusterMetrics.enabled }}
+  {{- with omit .Values.clusterMetrics "enabled" "collector" "destinations" "kubelet" "kubeletResource" "kube-state-metrics" }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+  {{- $ksm := index .Values.clusterMetrics "kube-state-metrics" | default dict }}
+  kube-state-metrics:
+    {{- with omit $ksm "extraMetricProcessingRules" }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    # KSM's webhook clientconfig metrics carry the webhook's service_name/service_namespace.
+    # The OTLP destination copies those onto the scrape's (shared) resource, so every KSM
+    # series would get that service's identity as its job label. Rename them first.
+    extraMetricProcessingRules: |
+      rule {
+        regex       = "service_(name|namespace)"
+        replacement = "webhook_service_$1"
+        action      = "labelmap"
+      }
+      rule {
+        regex  = "service_(name|namespace)"
+        action = "labeldrop"
+      }
+      {{- with $ksm.extraMetricProcessingRules }}
+      {{- . | nindent 6 }}
+      {{- end }}
+  {{- end }}
 
 # Pod Logs via Loki
 podLogsViaLoki:
@@ -197,6 +240,10 @@ applicationObservability:
   {{- if .Values.applicationObservability.receivers }}
   receivers:
     {{- toYaml .Values.applicationObservability.receivers | nindent 4 }}
+  {{- end }}
+  {{- if .Values.applicationObservability.processors }}
+  processors:
+    {{- toYaml .Values.applicationObservability.processors | nindent 4 }}
   {{- end }}
 
 # Auto-instrumentation

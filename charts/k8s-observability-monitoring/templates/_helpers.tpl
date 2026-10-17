@@ -275,3 +275,26 @@ Usage: {{ include "k8s-monitoring.validateHubbleFlowLogs" . }}
   {{- end -}}
 {{- end -}}
 {{- end }}
+
+{{/*
+Validate customAlloy.memoryLimiter. Alloy rejects out-of-range percentages at load time
+(crash-looping customAlloy), and percentage mode silently sizes against node memory when
+the container has no memory limit -- catch both at render time instead.
+Usage: {{ include "k8s-monitoring.validateCustomAlloyMemoryLimiter" . }}
+*/}}
+{{- define "k8s-monitoring.validateCustomAlloyMemoryLimiter" -}}
+{{- $ml := .Values.customAlloy.memoryLimiter -}}
+{{- if and .Values.customAlloy.enabled $ml.enabled (not $ml.limit) -}}
+  {{- $limit := $ml.limitPercentage | int -}}
+  {{- $spike := $ml.spikeLimitPercentage | int -}}
+  {{- if or (lt $limit 1) (gt $limit 100) -}}
+    {{- fail (printf "customAlloy.memoryLimiter.limitPercentage must be between 1 and 100, got %d. Or set customAlloy.memoryLimiter.limit for a fixed limit." $limit) -}}
+  {{- end -}}
+  {{- if or (lt $spike 0) (ge $spike $limit) -}}
+    {{- fail (printf "customAlloy.memoryLimiter.spikeLimitPercentage (%d) must be at least 0 and below limitPercentage (%d)." $spike $limit) -}}
+  {{- end -}}
+  {{- if not (dig "limits" "memory" "" .Values.customAlloy.resources) -}}
+    {{- fail "customAlloy.memoryLimiter percentage mode needs customAlloy.resources.limits.memory: without a container memory limit the percentage is taken of node memory and the limiter never kicks in. Set the memory limit, or use customAlloy.memoryLimiter.limit." -}}
+  {{- end -}}
+{{- end -}}
+{{- end }}

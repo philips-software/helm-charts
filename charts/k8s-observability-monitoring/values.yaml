@@ -14,7 +14,9 @@ chart:
 # See: https://github.com/grafana/k8s-monitoring-helm/blob/main/charts/k8s-monitoring/docs/destinations/README.md
 #
 # Set customAlloyOnly: true to exclude a destination from the upstream k8s-monitoring chart
-# (it will only be used by customAlloy).
+# (it will only be used by customAlloy). tenantId (X-Scope-OrgID), insecure and
+# insecureSkipVerify apply to both customAlloy and upstream, so a no-auth customAlloyOnly
+# destination can drop the flag and be used by the upstream collectors instead.
 #
 # Example:
 #   destinations:
@@ -94,8 +96,10 @@ prometheusOperatorObjects:
       # Example: ["apiserver_request_duration_seconds_bucket"]
       excludeMetrics: []
 
-# -- Cluster metrics (kubelet, cadvisor)
-# Note: kube-state-metrics is handled by customAlloy when enabled.
+# -- Cluster metrics (kubelet, cadvisor, kube-state-metrics, control plane, ...) scraped by the
+# upstream alloy-metrics collector -- the replacement for customAlloy (see "Retiring customAlloy"
+# in the README). Keys other than the ones below (cadvisor, apiServer, kubeDNS, ...) are
+# passed through to upstream clusterMetrics verbatim when enabled.
 clusterMetrics:
   enabled: false
   destinations: []
@@ -107,6 +111,20 @@ clusterMetrics:
   kubeletResource:
     enabled: true
     nodeAddressFormat: direct
+  # -- Upstream kube-state-metrics scrape settings, passed through (namespace, labelMatchers,
+  # metricsTuning, extraMetricProcessingRules, ...). The chart always prepends two relabel rules
+  # that rename KSM's webhook `service_name`/`service_namespace` labels to `webhook_service_*`:
+  # left alone, upstream's OTLP destination copies them onto the scrape's resource and every KSM
+  # series gets a garbage job label (e.g. `kyverno/vpa-webhook`). The upstream default allow list
+  # drops those series anyway; the rules matter once useDefaultAllowList is false.
+  # Requires telemetryServices.kube-state-metrics.deploy, or pointing at an existing instance:
+  #   kube-state-metrics:
+  #     namespace: prometheus          # e.g. kube-prometheus-stack's kube-state-metrics
+  #     labelMatchers:
+  #       app.kubernetes.io/name: kube-state-metrics
+  #     metricsTuning:
+  #       useDefaultAllowList: false   # full metric set, like customAlloy
+  kube-state-metrics: {}
 
 # -- Pod logs collection via Loki format
 podLogsViaLoki:
@@ -145,6 +163,17 @@ applicationObservability:
       http:
         enabled: true
         port: 4318
+  # -- Processor settings passed through verbatim to the upstream
+  # applicationObservability feature (see its values for the full list). E.g. a
+  # memory limiter right after the OTLP receiver of alloy-receiver, which pushes
+  # back on senders with a retryable error instead of letting the collector OOM:
+  #   processors:
+  #     memoryLimiter:
+  #       enabled: true
+  #       checkInterval: 1s
+  #       limit: 400MiB   # upstream only supports an absolute limit; keep it below
+  #                       # the alloy-receiver container memory limit
+  processors: {}
 
 # -- Auto-instrumentation for applications
 autoInstrumentation:
@@ -260,6 +289,31 @@ customAlloy:
     enabled: true
     queueSize: 500
     numConsumers: 10
+  # -- Optional otelcol.processor.memory_limiter at the head of the OTEL pipeline
+  # (receiver.prometheus -> memory_limiter -> transform -> batch -> exporters), so it
+  # also covers anything extraConfig forwards into the receiver. Above the soft limit
+  # (limit minus spike) it refuses incoming data; above the hard limit it forces a
+  # GC. Scrapes are pull-based, so refused samples are dropped rather than retried:
+  # it trades gaps in the data for not being OOMKilled (and losing the WAL and
+  # sending queue with it).
+  memoryLimiter:
+    enabled: false
+    # -- How often memory usage is checked.
+    checkInterval: 1s
+    # -- Percentage mode (used when limit is empty): hard limit as a % of the
+    # container memory limit, so it follows customAlloy.resources.limits.memory and
+    # VPA changes to it. Read once at component start: an in-place VPA resize
+    # takes effect on the next pod restart. Requires a container memory limit.
+    limitPercentage: 80
+    # -- Percentage mode: spike headroom (% of the container memory limit). The
+    # soft limit is limitPercentage - spikeLimitPercentage. Must be below limitPercentage.
+    spikeLimitPercentage: 20
+    # -- Absolute mode: fixed hard limit (e.g. "1600MiB"). When set it replaces the
+    # percentage pair (Alloy accepts one mode or the other, not both). Keep it
+    # below the container memory limit, and remember VPA can change that limit.
+    limit: ""
+    # -- Absolute mode: spike headroom (e.g. "320MiB"). Empty = Alloy's default, 20% of limit.
+    spikeLimit: ""
   attributeCleanup:
     enabled: true
   attributePromotion:
