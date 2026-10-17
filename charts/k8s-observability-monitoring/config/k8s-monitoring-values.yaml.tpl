@@ -260,7 +260,10 @@ telemetryServices:
     priorityClassName: {{ .Values.daemonSetPriorityClassName | quote }}
     {{- end }}
     {{- if and (index .Values.telemetryServices "node-exporter" "deploy") .Values.dedicatedNodeToleration.enabled }}
+    # Replaces prometheus-node-exporter's default list, so keep its tolerate-all-NoSchedule entry.
     tolerations:
+      - effect: NoSchedule
+        operator: Exists
       - key: {{ .Values.dedicatedNodeToleration.key | quote }}
         operator: {{ .Values.dedicatedNodeToleration.operator | quote }}
         {{- if .Values.dedicatedNodeToleration.value }}

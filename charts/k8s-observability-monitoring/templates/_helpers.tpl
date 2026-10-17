@@ -87,11 +87,17 @@ Alloy values fragment adding the configured dedicated-node toleration to an upst
 collector's controller, so e.g. alloy-logs still schedules onto nodes tainted for dedicated
 workloads (such as the kafka-dedicated nodes tainted by mimir-bootstrap/tempo-bootstrap's
 kafkaNodePool).
+Upstream's daemonset preset already tolerates every NoSchedule taint, but any
+controller.tolerations list replaces the preset's (lists are not merged), so the fragment
+repeats that toleration first -- without it alloy-logs drops off every node with another
+NoSchedule taint (e.g. k3s CriticalAddonsOnly).
 Usage: {{ include "k8s-monitoring.dedicatedNodeTolerationValues" . }}
 */}}
 {{- define "k8s-monitoring.dedicatedNodeTolerationValues" -}}
 controller:
   tolerations:
+    - effect: NoSchedule
+      operator: Exists
     - key: {{ .Values.dedicatedNodeToleration.key | quote }}
       operator: {{ .Values.dedicatedNodeToleration.operator | quote }}
       {{- if .Values.dedicatedNodeToleration.value }}
