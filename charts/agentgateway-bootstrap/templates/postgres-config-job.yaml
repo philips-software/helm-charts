@@ -8,7 +8,7 @@ metadata:
     {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
     argocd.argoproj.io/sync-wave: "2"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -20,7 +20,7 @@ metadata:
     {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
     argocd.argoproj.io/sync-wave: "2"
 rules:
   - apiGroups: [""]
@@ -45,7 +45,7 @@ metadata:
     {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
     argocd.argoproj.io/sync-wave: "2"
 subjects:
   - kind: ServiceAccount
@@ -65,7 +65,7 @@ metadata:
     {{- include "agentgateway-bootstrap.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
     argocd.argoproj.io/sync-wave: "2"
 spec:
   backoffLimit: 4
