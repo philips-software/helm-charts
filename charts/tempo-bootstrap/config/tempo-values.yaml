@@ -19,7 +19,7 @@ ingest:
     address: "tempo-kafka.tempo-system.svc.cluster.local:9092"
     topic: "tempo-traces"
     auto_create_topic_enabled: true
-    auto_create_topic_default_partitions: 3
+    auto_create_topic_default_partitions: {{ .Values.kafka.partitions }}
 
 blockBuilder:
   enabled: true

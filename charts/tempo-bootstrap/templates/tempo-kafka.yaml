@@ -136,6 +136,14 @@ spec:
             # with UNKNOWN_TOPIC_OR_PARTITION (503 at the distributor).
             - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
               value: "true"
+            # Partition count for that auto-created topic. Tempo tries to set
+            # num.partitions at runtime, but Kafka 4.x rejects it ("Cannot
+            # update these configs dynamically") while Tempo still logs
+            # success, so without this the topic gets 1 partition and pushes
+            # routed to the other live-store partitions fail with "invalid
+            # record partitioning choice".
+            - name: KAFKA_NUM_PARTITIONS
+              value: {{ .Values.kafka.partitions | quote }}
           resources:
             requests:
               cpu: 500m

@@ -68,6 +68,11 @@ compactor:
 kafka:
   persistence:
     size: 100Gi
+  # -- Partitions of the tempo-traces topic. Each live-store and each block-builder owns exactly one
+  # partition, so this must equal liveStore.replicas and blockBuilder.replicas (enforced at render
+  # time). Only applies when the broker auto-creates the topic: raising it later needs a manual
+  # partition increase on the existing topic.
+  partitions: 3
 
 kafkaNodePool:
   enabled: true
