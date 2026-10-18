@@ -128,8 +128,14 @@ spec:
               value: "1"
             - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
               value: "1"
+            # Must stay "true": Tempo never creates its topic explicitly. With
+            # ingest.kafka.auto_create_topic_enabled it only sets the broker's
+            # num.partitions and produces with AllowAutoTopicCreation, relying
+            # on the broker to create "tempo-traces" on first use. With this
+            # "false" a fresh install never gets the topic, and every push fails
+            # with UNKNOWN_TOPIC_OR_PARTITION (503 at the distributor).
             - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
-              value: "false"
+              value: "true"
           resources:
             requests:
               cpu: 500m

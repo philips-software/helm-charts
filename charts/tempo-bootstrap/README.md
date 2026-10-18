@@ -1,13 +1,13 @@
 # tempo
 
-![Version: 0.45.1](https://img.shields.io/badge/Version-0.45.1-informational?style=flat-square)
+![Version: 0.45.3](https://img.shields.io/badge/Version-0.45.3-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.45.1 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.45.3 -n monitoring
 ```
 
 ## Values
@@ -43,7 +43,7 @@ helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstra
 | querier.replicas | int | `2` | Number of querier replicas |
 | queryFrontend.replicas | int | `2` | Number of query-frontend replicas |
 | streamOverHTTPEnabled | bool | `true` |  |
-| tempoChart.version | string | `"3.13.0"` |  |
+| tempoChart.version | string | `"3.14.0"` |  |
 | vpa.components.backendScheduler.enabled | bool | `true` |  |
 | vpa.components.backendScheduler.maxAllowed.cpu | int | `1` |  |
 | vpa.components.backendScheduler.maxAllowed.memory | string | `"4Gi"` |  |
