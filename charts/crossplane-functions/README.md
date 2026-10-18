@@ -1,6 +1,6 @@
 # crossplane-functions
 
-![Version: 0.0.14](https://img.shields.io/badge/Version-0.0.14-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.0.16](https://img.shields.io/badge/Version-0.0.16-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 ## Overview
 
@@ -33,7 +33,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-functions
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.14"
+    version: "0.0.16"
     releaseName: crossplane-functions
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -59,7 +59,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-functions
-    targetRevision: "0.0.14"
+    targetRevision: "0.0.16"
     helm:
       valueFiles:
         - values.yaml
@@ -100,15 +100,15 @@ spec:
 | functions[1].critical | bool | `true` |  |
 | functions[1].name | string | `"function-go-templating"` |  |
 | functions[1].registry | string | `"ghcr.io/crossplane-contrib"` |  |
-| functions[1].version | string | `"v0.12.5"` |  |
+| functions[1].version | string | `"v0.13.1"` |  |
 | functions[2].critical | bool | `true` |  |
 | functions[2].name | string | `"function-patch-and-transform"` |  |
 | functions[2].registry | string | `"ghcr.io/crossplane-contrib"` |  |
-| functions[2].version | string | `"v0.10.11"` |  |
+| functions[2].version | string | `"v0.11.1"` |  |
 | functions[3].critical | bool | `true` |  |
 | functions[3].name | string | `"function-environment-configs"` |  |
 | functions[3].registry | string | `"ghcr.io/crossplane-contrib"` |  |
-| functions[3].version | string | `"v0.8.0"` |  |
+| functions[3].version | string | `"v0.9.0"` |  |
 | resources.limits.memory | string | `"256Mi"` |  |
 | resources.requests.cpu | string | `"20m"` |  |
 | resources.requests.memory | string | `"128Mi"` |  |
