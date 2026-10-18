@@ -6496,6 +6496,23 @@ entries:
     version: 0.1.0
   langfuse-bootstrap:
   - apiVersion: v2
+    created: "2026-10-18T14:46:54.073342225Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: 2e3fd7664d49050744e154a02ccc5bf1669dfa5cd5dcfc6243c29e64758ea91b
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.8.1/langfuse-bootstrap-0.8.1.tgz
+    version: 0.8.1
+  - apiVersion: v2
     created: "2026-10-15T17:55:46.777556088Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
       with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
@@ -8563,4 +8580,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-18T14:46:23.667376423Z"
+generated: "2026-10-18T14:46:54.074239482Z"
