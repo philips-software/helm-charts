@@ -3394,6 +3394,22 @@ entries:
     version: 0.0.2
   crossplane-functions:
   - apiVersion: v2
+    created: "2026-10-18T14:48:35.719576193Z"
+    description: A Helm chart for deploying Crossplane functions
+    digest: 2f0348235f7900601a41eb4b8e1b35c237ca387ec3a2524d098a55c41789a3d6
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    maintainers:
+    - name: Philips Software
+    name: crossplane-functions
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-functions-0.0.16/crossplane-functions-0.0.16.tgz
+    version: 0.0.16
+  - apiVersion: v2
     created: "2026-10-18T14:47:30.414496818Z"
     description: A Helm chart for deploying Crossplane functions
     digest: ad3b8dc3c0a737f7b19fd6adffe40128b9bdd73c7e8673ca5f30f95bd035244c
@@ -8611,4 +8627,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-18T14:47:30.711354297Z"
+generated: "2026-10-18T14:48:35.926849556Z"
