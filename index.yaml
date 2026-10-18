@@ -3394,6 +3394,22 @@ entries:
     version: 0.0.2
   crossplane-functions:
   - apiVersion: v2
+    created: "2026-10-18T14:47:30.414496818Z"
+    description: A Helm chart for deploying Crossplane functions
+    digest: ad3b8dc3c0a737f7b19fd6adffe40128b9bdd73c7e8673ca5f30f95bd035244c
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    maintainers:
+    - name: Philips Software
+    name: crossplane-functions
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-functions-0.0.15/crossplane-functions-0.0.15.tgz
+    version: 0.0.15
+  - apiVersion: v2
     created: "2026-06-30T08:17:43.111742676Z"
     description: A Helm chart for deploying Crossplane functions
     digest: 9799c839f2d688533001073fed7778872ea8e12abc237103ccea8cf3bac8d69c
@@ -4813,6 +4829,13 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.0.14/fluent-bit-out-hsdp-0.0.14.tgz
     version: 0.0.14
   grafana:
+  - apiVersion: v2
+    created: "2026-10-18T14:47:30.709220824Z"
+    digest: 0101ba6a7c0c26bbbf117a82b63bc275c7657cd89c99d5f96377c18398d49f22
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.81.2/grafana-0.81.2.tgz
+    version: 0.81.2
   - apiVersion: v2
     created: "2026-10-17T21:00:16.131004447Z"
     digest: 67b32eddb9851625ea428b27f7374c2af1b3156afa0a2f039ba17d7ed42568dc
@@ -8588,4 +8611,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-18T14:47:06.301149127Z"
+generated: "2026-10-18T14:47:30.711354297Z"
