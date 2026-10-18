@@ -1,13 +1,13 @@
 # tempo
 
-![Version: 0.45.3](https://img.shields.io/badge/Version-0.45.3-informational?style=flat-square)
+![Version: 0.45.4](https://img.shields.io/badge/Version-0.45.4-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.45.3 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.45.4 -n monitoring
 ```
 
 ## Values
@@ -27,6 +27,7 @@ helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstra
 | gateway.replicas | int | `2` | Number of gateway replicas |
 | initOverrides.package | string | `"busybox"` |  |
 | initOverrides.tag | string | `"1.38.0"` |  |
+| kafka.partitions | int | `3` | Partitions of the tempo-traces topic. Each live-store and each block-builder owns exactly one partition, so this must equal liveStore.replicas and blockBuilder.replicas (enforced at render time). Only applies when the broker auto-creates the topic: raising it later needs a manual partition increase on the existing topic. |
 | kafka.persistence.size | string | `"100Gi"` |  |
 | kafkaNodePool.consolidationPolicy | string | `"WhenEmpty"` |  |
 | kafkaNodePool.enabled | bool | `true` |  |

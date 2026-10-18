@@ -108,4 +108,10 @@ Validate required configuration values
 {{- if not .Values.tempoChart.version }}
 {{- fail "tempoChart.version is required and cannot be empty" }}
 {{- end }}
+{{- if ne (int .Values.liveStore.replicas) (int .Values.kafka.partitions) }}
+{{- fail (printf "liveStore.replicas (%v) must equal kafka.partitions (%v): each live-store owns one partition, so a live-store without one leaves a partition-ring slot whose pushes fail" .Values.liveStore.replicas .Values.kafka.partitions) }}
+{{- end }}
+{{- if ne (int .Values.blockBuilder.replicas) (int .Values.kafka.partitions) }}
+{{- fail (printf "blockBuilder.replicas (%v) must equal kafka.partitions (%v): each block-builder consumes one partition, so an unowned partition is never flushed to object storage" .Values.blockBuilder.replicas .Values.kafka.partitions) }}
+{{- end }}
 {{- end }}
