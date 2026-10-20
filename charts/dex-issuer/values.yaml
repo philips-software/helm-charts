@@ -133,7 +133,7 @@ provider:
   registry: "ghcr.io/loafoe"
   # crossplane-providers wrapper chart version
   # renovate: datasource=docker depName=ghcr.io/philips-software/helm-charts/crossplane-providers
-  crossplaneProvidersVersion: 0.0.35
+  crossplaneProvidersVersion: 0.0.40
   # Controls the ArgoCD cascade-delete finalizer on the provider-dex Application.
   # When false (default), deleting the Application is NON-CASCADING: it orphans the
   # live Crossplane Provider/CRDs/CRs instead of tearing them down. This is the safe

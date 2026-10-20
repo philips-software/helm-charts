@@ -1,6 +1,6 @@
 # dex-issuer
 
-![Version: 0.12.0](https://img.shields.io/badge/Version-0.12.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.12.6](https://img.shields.io/badge/Version-0.12.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
@@ -113,7 +113,7 @@ omit `spec.tls`.
 | dex.staticClientsSecret.name | string | `"dex-static-clients"` |  |
 | dexChart.releaseName | string | `"dex"` |  |
 | dexChart.repoURL | string | `"https://charts.dexidp.io"` |  |
-| dexChart.version | string | `"0.25.2"` |  |
+| dexChart.version | string | `"0.26.0"` |  |
 | environmentConfig.clusterFqdn | string | `""` |  |
 | environmentConfig.customFqdn | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
@@ -125,7 +125,7 @@ omit `spec.tls`.
 | pki.clientNamespace | string | `"crossplane-system"` |  |
 | pki.existingClusterIssuer | string | `""` |  |
 | provider.cascadeDelete | bool | `false` |  |
-| provider.crossplaneProvidersVersion | string | `"0.0.35"` |  |
+| provider.crossplaneProvidersVersion | string | `"0.0.40"` |  |
 | provider.debug | bool | `true` |  |
 | provider.enabled | bool | `true` |  |
 | provider.providerConfigNamespaces | list | `[]` |  |
