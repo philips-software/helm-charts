@@ -5,103 +5,123 @@
 {{- $enabledProviders = append $enabledProviders .name }}
 {{- end }}
 {{- end }}
-{{- if $enabledProviders }}
+{{- if and $enabledProviders .Values.package.cleanupJob.enabled }}
 apiVersion: batch/v1
-kind: Job
+kind: CronJob
 metadata:
   name: {{ include "crossplane-providers.cleanupName" . }}
   namespace: {{ .Values.package.namespace }}
   labels:
     {{- include "crossplane-providers.labels" . | nindent 4 }}
-  annotations:
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
-  backoffLimit: 1
-  activeDeadlineSeconds: 120
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: {{ include "crossplane-providers.cleanupName" . }}
+  schedule: {{ .Values.package.cleanupJob.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
     spec:
-      restartPolicy: Never
-      serviceAccountName: {{ include "crossplane-providers.cleanupName" . }}
-      securityContext:
-        seccompProfile:
-          type: RuntimeDefault
-      containers:
-        - name: cleanup
-          # renovate: datasource=docker depName=alpine/k8s
-          image: alpine/k8s:1.37.1
+      backoffLimit: 1
+      activeDeadlineSeconds: 120
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: {{ include "crossplane-providers.cleanupName" . }}
+        spec:
+          restartPolicy: Never
+          serviceAccountName: {{ include "crossplane-providers.cleanupName" . }}
           securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            runAsNonRoot: true
-            runAsUser: 1000
-          command:
-            - /bin/sh
-            - -c
-            - |
-              set -e
-              PROVIDERS="{{ join " " $enabledProviders }}"
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: cleanup
+              # renovate: datasource=docker depName=alpine/k8s
+              image: alpine/k8s:1.37.1
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                runAsNonRoot: true
+                runAsUser: 1000
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  PROVIDERS="{{ join " " $enabledProviders }}"
 
-              # Runtime Deployments created by crossplane's DeploymentRuntimeConfig
-              # controller carry the provider name only on the pod template, not on
-              # the Deployment object itself -- a plain `-l` label selector on
-              # `kubectl get deployments` cannot find them. List once up front as
-              # "name<TAB>provider" pairs and match in the shell below.
-              ALL_RUNTIME_DEPLOYMENTS=$(kubectl get deployments -n {{ .Values.package.namespace }} \
-                -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.template.metadata.labels.pkg\.crossplane\.io/provider}{"\n"}{end}' 2>/dev/null || true)
+                  # Runtime Deployments created by crossplane's DeploymentRuntimeConfig
+                  # controller carry the provider name only on the pod template, not on
+                  # the Deployment object itself -- a plain `-l` label selector on
+                  # `kubectl get deployments` cannot find them. List once up front as
+                  # "name<TAB>provider" pairs and match in the shell below.
+                  ALL_RUNTIME_DEPLOYMENTS=$(kubectl get deployments -n {{ .Values.package.namespace }} \
+                    -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.template.metadata.labels.pkg\.crossplane\.io/provider}{"\n"}{end}' 2>/dev/null || true)
 
-              for PROVIDER in $PROVIDERS; do
-                echo "Checking provider: $PROVIDER"
+                  for PROVIDER in $PROVIDERS; do
+                    echo "Checking provider: $PROVIDER"
 
-                # Find stray runtime Deployments left behind by a chart upgrade that
-                # changed the deterministic deployment name (deploymentTemplate.metadata.name).
-                # Crossplane creates the new one but never deletes the old revision-named
-                # Deployment, and the two end up with identical pod selectors (same
-                # provider+revision labels), fighting over the same ReplicaSets/Pods and
-                # recreating each other every reconcile. Delete anything labelled for this
-                # provider that isn't named exactly $PROVIDER.
-                echo "$ALL_RUNTIME_DEPLOYMENTS" | while IFS=$'\t' read -r DEP_NAME DEP_PROVIDER; do
-                  if [ "$DEP_PROVIDER" = "$PROVIDER" ] && [ "$DEP_NAME" != "$PROVIDER" ]; then
-                    echo "Deleting stray runtime Deployment: $DEP_NAME (not the deterministic name $PROVIDER)"
-                    kubectl delete deployment "$DEP_NAME" -n {{ .Values.package.namespace }} --ignore-not-found
-                  fi
-                done
+                    # Find stray runtime Deployments left behind by a chart upgrade that
+                    # changed the deterministic deployment name (deploymentTemplate.metadata.name).
+                    # Crossplane creates the new one but never deletes the old revision-named
+                    # Deployment, and the two end up with identical pod selectors (same
+                    # provider+revision labels), fighting over the same ReplicaSets/Pods and
+                    # recreating each other every reconcile. Delete anything labelled for this
+                    # provider that isn't named exactly $PROVIDER.
+                    echo "$ALL_RUNTIME_DEPLOYMENTS" | while IFS=$'\t' read -r DEP_NAME DEP_PROVIDER; do
+                      if [ "$DEP_PROVIDER" = "$PROVIDER" ] && [ "$DEP_NAME" != "$PROVIDER" ]; then
+                        echo "Deleting stray runtime Deployment: $DEP_NAME (not the deterministic name $PROVIDER)"
+                        kubectl delete deployment "$DEP_NAME" -n {{ .Values.package.namespace }} --ignore-not-found
+                      fi
+                    done
 
-                # Find ProviderRevisions stuck in Deleting
-                STUCK_REVISIONS=$(kubectl get providerrevisions -l pkg.crossplane.io/package=$PROVIDER \
-                  -o jsonpath='{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
+                    # Find ProviderRevisions stuck in Deleting
+                    STUCK_REVISIONS=$(kubectl get providerrevisions -l pkg.crossplane.io/package=$PROVIDER \
+                      -o jsonpath='{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
 
-                if [ -n "$STUCK_REVISIONS" ]; then
-                  for REV in $STUCK_REVISIONS; do
-                    echo "Removing finalizers from stuck ProviderRevision: $REV"
-                    kubectl patch providerrevision "$REV" --type=merge -p '{"metadata":{"finalizers":null}}'
-                  done
-                fi
+                    if [ -n "$STUCK_REVISIONS" ]; then
+                      for REV in $STUCK_REVISIONS; do
+                        echo "Removing finalizers from stuck ProviderRevision: $REV"
+                        kubectl patch providerrevision "$REV" --type=merge -p '{"metadata":{"finalizers":null}}'
+                      done
+                    fi
 
-                # Find CRDs with stale ownerReferences to deleted ProviderRevisions
-                CRDS=$(kubectl get crd -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{range .metadata.ownerReferences[*]}{.kind}{":"}{.name}{":"}{.uid}{"\n"}{end}{end}' 2>/dev/null \
-                  | grep "ProviderRevision:$PROVIDER" || true)
+                    # Find CRDs with stale ownerReferences to deleted ProviderRevisions.
+                    # A CRD can carry ownerReferences from more than one revision (e.g. a
+                    # ManagedResourceDefinition ref plus one ProviderRevision ref per
+                    # revision that ever established it), so this must pair each CRD with
+                    # each of its ProviderRevision owners individually -- a jsonpath
+                    # {range}{range}{end}{end} only emits the outer field once per CRD,
+                    # not once per owner, which silently misaligned CRD name with owner
+                    # name on any CRD with more than one ownerReference (i.e. always).
+                    CRDS=$(kubectl get crd -o json 2>/dev/null | jq -r --arg provider "$PROVIDER" '
+                      .items[]
+                      | .metadata.name as $name
+                      | (.metadata.ownerReferences // []) as $owners
+                      | range(0; ($owners | length)) as $i
+                      | $owners[$i]
+                      | select(.kind == "ProviderRevision" and (.name | startswith($provider + "-")))
+                      | "\($name)\t\($i)\t\(.name)"
+                    ' | sort -t "$(printf '\t')" -k1,1 -k2,2nr || true)
+                    # Sorted by index descending within each CRD: removing by index below
+                    # must go highest-first, otherwise deleting a lower index first would
+                    # shift every higher index down and make a second removal on the same
+                    # CRD target the wrong ownerReference.
 
-                if [ -n "$CRDS" ]; then
-                  # Get currently-existing revision names for this provider
-                  EXISTING_REVS=$(kubectl get providerrevisions -l pkg.crossplane.io/package=$PROVIDER \
-                    -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
+                    if [ -n "$CRDS" ]; then
+                      # Get currently-existing revision names for this provider
+                      EXISTING_REVS=$(kubectl get providerrevisions -l pkg.crossplane.io/package=$PROVIDER \
+                        -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null || true)
 
-                  echo "$CRDS" | while IFS=$'\t' read -r CRD_NAME OWNER_INFO; do
-                    REV_NAME=$(echo "$OWNER_INFO" | cut -d: -f2)
-                    if ! echo "$EXISTING_REVS" | grep -qx "$REV_NAME"; then
-                      echo "Removing stale ownerReference from CRD: $CRD_NAME (was owned by $REV_NAME)"
-                      kubectl patch crd "$CRD_NAME" --type=json \
-                        -p="[{\"op\":\"remove\",\"path\":\"/metadata/ownerReferences\"}]" 2>/dev/null || true
+                      echo "$CRDS" | while IFS=$(printf '\t') read -r CRD_NAME OWNER_IDX REV_NAME; do
+                        if [ -n "$REV_NAME" ] && ! echo "$EXISTING_REVS" | grep -qx "$REV_NAME"; then
+                          echo "Removing stale ProviderRevision ownerReference from CRD: $CRD_NAME (was owned by $REV_NAME)"
+                          kubectl patch crd "$CRD_NAME" --type=json \
+                            -p="[{\"op\":\"remove\",\"path\":\"/metadata/ownerReferences/$OWNER_IDX\"}]" || true
+                        fi
+                      done
                     fi
                   done
-                fi
-              done
 
-              echo "Cleanup complete"
+                  echo "Cleanup complete"
 {{- end }}

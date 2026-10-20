@@ -16,7 +16,8 @@ metadata:
     # managed-resource finalizers (in-use.crossplane.io,
     # finalizer.managedresource.crossplane.io) and foregroundDeletion with nothing to
     # process them, which deadlocks the whole provider stack. Deletion must be done
-    # deliberately (and the presync cleanup job clears stuck ProviderRevisions/CRDs).
+    # deliberately (package.cleanupJob, off by default, clears stuck
+    # ProviderRevisions/CRDs if you turn it on for the cleanup window).
     argocd.argoproj.io/sync-options: Delete=false
   {{- end }}
 spec:

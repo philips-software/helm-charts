@@ -85,6 +85,16 @@ package:
   # infra/kmaster-tuning/etcd-latency-spikes.md in the k3s homelab repo.
   revisionHistoryLimit: 0
 
+  # Periodic CronJob that cleans up after the class of problem documented above:
+  # stuck ProviderRevisions, CRDs with a stale ProviderRevision ownerReference,
+  # and stray runtime Deployments left behind by a chart naming change. Off by
+  # default -- this exists for the migration window around a version/registry
+  # change, not as a permanent fixture, so it isn't left running indefinitely.
+  cleanupJob:
+    enabled: false
+    # Standard 5-field cron schedule, evaluated in the cluster's local time zone.
+    schedule: "*/15 * * * *"
+
 # Additional providers to deploy (beyond the built-in AWS Family provider)
 # These providers follow the same structure as the main providers array
 # Each provider will create:

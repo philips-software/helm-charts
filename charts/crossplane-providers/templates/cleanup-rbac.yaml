@@ -5,7 +5,7 @@
 {{- $hasEnabled = true }}
 {{- end }}
 {{- end }}
-{{- if $hasEnabled }}
+{{- if and $hasEnabled .Values.package.cleanupJob.enabled }}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -14,9 +14,6 @@ metadata:
   namespace: {{ .Values.package.namespace }}
   labels:
     {{- include "crossplane-providers.labels" . | nindent 4 }}
-  annotations:
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -24,9 +21,6 @@ metadata:
   name: {{ include "crossplane-providers.cleanupName" . }}
   labels:
     {{- include "crossplane-providers.labels" . | nindent 4 }}
-  annotations:
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 rules:
   - apiGroups: ["pkg.crossplane.io"]
     resources: ["providerrevisions"]
@@ -41,9 +35,6 @@ metadata:
   name: {{ include "crossplane-providers.cleanupName" . }}
   labels:
     {{- include "crossplane-providers.labels" . | nindent 4 }}
-  annotations:
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -64,9 +55,6 @@ metadata:
   namespace: {{ .Values.package.namespace }}
   labels:
     {{- include "crossplane-providers.labels" . | nindent 4 }}
-  annotations:
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
@@ -79,9 +67,6 @@ metadata:
   namespace: {{ .Values.package.namespace }}
   labels:
     {{- include "crossplane-providers.labels" . | nindent 4 }}
-  annotations:
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
