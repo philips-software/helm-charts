@@ -24,7 +24,7 @@ spec:
   package: {{ $.Values.package.registry }}/{{ .name }}:{{ $.Values.package.version }}
   packagePullPolicy: IfNotPresent
   revisionActivationPolicy: Automatic
-  revisionHistoryLimit: 1
+  revisionHistoryLimit: {{ $.Values.package.revisionHistoryLimit | default 0 }}
   runtimeConfigRef:
     apiVersion: pkg.crossplane.io/v1beta1
     kind: DeploymentRuntimeConfig

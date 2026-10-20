@@ -52,4 +52,42 @@ subjects:
   - kind: ServiceAccount
     name: {{ include "crossplane-providers.cleanupName" . }}
     namespace: {{ .Values.package.namespace }}
+---
+# Namespaced (not cluster-scoped) on purpose: the cleanup job only ever needs to
+# delete stray provider runtime Deployments inside package.namespace, scoping
+# the delete verb cluster-wide would be a much bigger blast radius than this
+# job needs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "crossplane-providers.cleanupName" . }}
+  namespace: {{ .Values.package.namespace }}
+  labels:
+    {{- include "crossplane-providers.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "crossplane-providers.cleanupName" . }}
+  namespace: {{ .Values.package.namespace }}
+  labels:
+    {{- include "crossplane-providers.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "crossplane-providers.cleanupName" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "crossplane-providers.cleanupName" . }}
+    namespace: {{ .Values.package.namespace }}
 {{- end }}

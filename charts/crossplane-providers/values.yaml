@@ -73,6 +73,18 @@ package:
   # Set to false if you want Application deletion to also remove the Provider.
   protectProvider: true
 
+  # How many Inactive ProviderRevisions crossplane keeps around after a package
+  # version/registry change (e.g. version bump, or a registry migration like
+  # xpkg.upbound.io -> ghcr.io). Default 0: GC the old revision immediately once
+  # the new one is healthy, instead of keeping 1 around indefinitely.
+  # A lingering Inactive revision keeps being reconciled by crossplane alongside
+  # the Active one, and was observed to cause the Active revision's runtime
+  # Deployment to be repeatedly deleted/recreated (new ReplicaSet every ~20min),
+  # which in turn invalidates the apiserver's watch cache and produced etcd
+  # latency spikes on a 3-node control plane. See
+  # infra/kmaster-tuning/etcd-latency-spikes.md in the k3s homelab repo.
+  revisionHistoryLimit: 0
+
 # Additional providers to deploy (beyond the built-in AWS Family provider)
 # These providers follow the same structure as the main providers array
 # Each provider will create:

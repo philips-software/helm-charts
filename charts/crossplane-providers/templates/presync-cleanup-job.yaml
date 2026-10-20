@@ -47,8 +47,30 @@ spec:
               set -e
               PROVIDERS="{{ join " " $enabledProviders }}"
 
+              # Runtime Deployments created by crossplane's DeploymentRuntimeConfig
+              # controller carry the provider name only on the pod template, not on
+              # the Deployment object itself -- a plain `-l` label selector on
+              # `kubectl get deployments` cannot find them. List once up front as
+              # "name<TAB>provider" pairs and match in the shell below.
+              ALL_RUNTIME_DEPLOYMENTS=$(kubectl get deployments -n {{ .Values.package.namespace }} \
+                -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.template.metadata.labels.pkg\.crossplane\.io/provider}{"\n"}{end}' 2>/dev/null || true)
+
               for PROVIDER in $PROVIDERS; do
                 echo "Checking provider: $PROVIDER"
+
+                # Find stray runtime Deployments left behind by a chart upgrade that
+                # changed the deterministic deployment name (deploymentTemplate.metadata.name).
+                # Crossplane creates the new one but never deletes the old revision-named
+                # Deployment, and the two end up with identical pod selectors (same
+                # provider+revision labels), fighting over the same ReplicaSets/Pods and
+                # recreating each other every reconcile. Delete anything labelled for this
+                # provider that isn't named exactly $PROVIDER.
+                echo "$ALL_RUNTIME_DEPLOYMENTS" | while IFS=$'\t' read -r DEP_NAME DEP_PROVIDER; do
+                  if [ "$DEP_PROVIDER" = "$PROVIDER" ] && [ "$DEP_NAME" != "$PROVIDER" ]; then
+                    echo "Deleting stray runtime Deployment: $DEP_NAME (not the deterministic name $PROVIDER)"
+                    kubectl delete deployment "$DEP_NAME" -n {{ .Values.package.namespace }} --ignore-not-found
+                  fi
+                done
 
                 # Find ProviderRevisions stuck in Deleting
                 STUCK_REVISIONS=$(kubectl get providerrevisions -l pkg.crossplane.io/package=$PROVIDER \
