@@ -948,6 +948,16 @@ entries:
     version: 0.1.0
   alloy-otlp-relay:
   - apiVersion: v2
+    created: "2026-10-20T07:28:14.174282863Z"
+    description: Minimal Alloy instance that receives OTLP metrics, filters by an
+      exact-name allow-list, and forwards to a Mimir gateway with a tenant header
+    digest: 164aca508c96656525d83878a82018a7c27c0428d9c47a91aad6d53e36ddde7b
+    name: alloy-otlp-relay
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/alloy-otlp-relay-0.3.1/alloy-otlp-relay-0.3.1.tgz
+    version: 0.3.1
+  - apiVersion: v2
     created: "2026-09-30T08:54:40.436338068Z"
     description: Minimal Alloy instance that receives OTLP metrics, filters by an
       exact-name allow-list, and forwards to a Mimir gateway with a tenant header
@@ -5852,6 +5862,15 @@ entries:
   k8s-observability-monitoring:
   - apiVersion: v2
     appVersion: 4.5.3
+    created: "2026-10-20T07:28:14.324541627Z"
+    description: Helm chart for k8s-observability-monitoring
+    digest: 9a9d315adbff66d8822fcedaf2b6a141d9224ecbf32d85bda441d6f59229d7b1
+    name: k8s-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-1.10.5/k8s-observability-monitoring-1.10.5.tgz
+    version: 1.10.5
+  - apiVersion: v2
+    appVersion: 4.5.3
     created: "2026-10-17T18:05:53.975060713Z"
     description: Helm chart for k8s-observability-monitoring
     digest: e8bd7d44d43963c9c6fd5e13b10ca90f36b0feaa0fa839ef43d9b6d2f7bdd3a8
@@ -8759,4 +8778,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-20T07:18:40.157448948Z"
+generated: "2026-10-20T07:28:14.326082641Z"
