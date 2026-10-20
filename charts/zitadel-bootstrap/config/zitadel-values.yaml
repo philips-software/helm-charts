@@ -117,6 +117,12 @@ startupProbe:
   failureThreshold: {{ .Values.workloads.zitadel.probes.failureThreshold }}
 
 login:
+  # templates/login-service-key-cert.yaml owns this Secret via a cert-manager
+  # Certificate instead -- see that file for why. Setting this name makes the
+  # upstream chart's own secret_login-service-key.yaml template skip itself
+  # (it only renders when this value is unset), rather than fighting
+  # cert-manager over the same Secret.
+  loginServiceKeySecretName: zitadel-login-service-key
   replicaCount: {{ .Values.workloads.login.replicaCount }}
   resources:
 {{ toYaml .Values.workloads.login.resources | indent 4 }}

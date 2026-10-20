@@ -1,0 +1,51 @@
+# Replaces the upstream zitadel chart's own login-service-key secret
+# generation (templates/secret_login-service-key.yaml upstream). That
+# template guards itself with `lookup` to reuse an existing keypair instead
+# of regenerating one on every render -- but `lookup` returns empty under
+# ArgoCD's Helm templating (ArgoCD renders manifests out-of-cluster for
+# diffing, same as `helm template`, not a live `helm upgrade`), so the guard
+# never fires there. Every time ArgoCD's manifest cache for this
+# Application expired (about once a day) it rendered a brand new random
+# self-signed cert, saw a diff against the live Secret, and selfHeal applied
+# it -- one zitadel + zitadel-login rollout per day, every day since
+# 2026-10-11 (22 ReplicaSets piled up across the two Deployments).
+#
+# cert-manager owns the keypair's lifecycle instead: its controller only
+# reissues when the Certificate spec actually changes or the cert nears
+# expiry, so it isn't exposed to ArgoCD's out-of-cluster templating at all.
+# config/zitadel-values.yaml sets login.loginServiceKeySecretName to this
+# Secret's name, which makes the upstream chart skip managing it entirely.
+# Requires cert-manager CRDs in the cluster (already installed on rpi).
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: zitadel-login-service-key
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "zitadel-bootstrap.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: zitadel-login-service-key
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "zitadel-bootstrap.labels" . | nindent 4 }}
+spec:
+  secretName: zitadel-login-service-key
+  commonName: login-service
+  dnsNames:
+    - login-service
+  # Matches the duration (3650 days) the upstream chart's genSelfSignedCert
+  # used, so existing SystemAPIUsers JWT verification config built around a
+  # long-lived cert doesn't need to change.
+  duration: 87600h
+  renewBefore: 720h
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  issuerRef:
+    name: zitadel-login-service-key
+    kind: Issuer
