@@ -118,6 +118,20 @@ database:
   # Name of the Secret the Postgres claim writes its connection details to,
   # and that Dex reads DEX_PG_* from. Defaults to "dex-postgres-connection".
   connectionSecretName: ""
+  # VolumeSnapshotClass used for CNPG's backup.volumeSnapshot.className
+  # (only rendered when enableSnapshots is true). The postgres-cnpg
+  # composition defaults this to the literal name "default" when unset --
+  # correct on clusters whose VolumeSnapshotClass is actually named
+  # "default" (e.g. the rpi homelab's nfs.csi.k8s.io class), but wrong
+  # anywhere else (e.g. dip-ce-k3s-eu's EBS CSI class is named
+  # "ebs-csi-aws") -- a mismatch fails every scheduled backup with
+  # "volumesnapshotclass.snapshot.storage.k8s.io \"default\" not found".
+  # Leave empty to keep the composition's default; override to match
+  # `kubectl get volumesnapshotclass` on the target cluster.
+  snapshotClassName: ""
+  # StorageClass for the underlying PVCs. Leave empty to use the cluster's
+  # default StorageClass.
+  storageClassName: ""
 
 # Crossplane connector-management plane (provider-dex).
 # When enabled, deploys the self-signed PKI, the Dex gRPC server certificate,

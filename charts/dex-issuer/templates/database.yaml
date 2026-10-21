@@ -28,6 +28,12 @@ spec:
     masterUsername: dex
   {{- if and .Values.database.cnpg .Values.database.enableSnapshots }}
     enableSnapshots: true
+    {{- if .Values.database.snapshotClassName }}
+    snapshotClassName: {{ .Values.database.snapshotClassName }}
+    {{- end }}
+  {{- end }}
+  {{- if .Values.database.storageClassName }}
+    storageClassName: {{ .Values.database.storageClassName }}
   {{- end }}
   {{- if .Values.database.barmanBackup.enabled }}
     barmanBackup:

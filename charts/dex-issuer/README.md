@@ -1,6 +1,6 @@
 # dex-issuer
 
-![Version: 0.12.6](https://img.shields.io/badge/Version-0.12.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.12.7](https://img.shields.io/badge/Version-0.12.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
@@ -87,6 +87,8 @@ omit `spec.tls`.
 | database.engineVersion | string | `"18.1"` |  |
 | database.identifier | string | `""` |  |
 | database.size | string | `"xsmall"` |  |
+| database.snapshotClassName | string | `""` |  |
+| database.storageClassName | string | `""` |  |
 | dex.allowedScopePrefixes[0] | string | `"hsp:iam:introspect"` |  |
 | dex.dcr.enabled | bool | `true` |  |
 | dex.expiry.idTokens | string | `"8h"` |  |
