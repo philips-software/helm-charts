@@ -1,0 +1,148 @@
+{{- if .Values.volumeSnapshotPruner.enabled }}
+# ---------------------------------------------------------------------------
+# CNPG VolumeSnapshot pruner.
+# ---------------------------------------------------------------------------
+# CNPG's backup.volumeSnapshot method has no retentionPolicy of its own
+# (that field is documented as "only applicable when using the
+# BarmanObjectStore method") and the upstream Kubernetes VolumeSnapshot API
+# has no TTL/expiry field at all. Every scheduled volumeSnapshot backup's
+# Backup + VolumeSnapshot objects therefore accumulate forever, and since
+# each Cluster's snapshotOwnerReference is "none", deleting the Backup (or
+# even the whole Cluster) never garbage-collects the VolumeSnapshot or its
+# underlying cloud snapshot either.
+#
+# This CronJob runs cluster-wide, across every namespace: it finds every
+# VolumeSnapshot carrying the cnpg.io/cluster label (i.e. CNPG-created, never
+# a snapshot a human made by hand for some other reason) older than
+# volumeSnapshotPruner.retentionDays, deletes its same-named Backup (CNPG
+# always names the VolumeSnapshot identically to the Backup it belongs to),
+# then deletes the VolumeSnapshot itself - which, via the VolumeSnapshotClass
+# the cluster uses, also deletes the underlying cloud snapshot
+# (deletionPolicy: Delete on every VolumeSnapshotClass actually in use here).
+# A snapshot can be permanently exempted with the annotation
+# cnpg-volumesnapshot-pruner.philips-software.io/keep: "true".
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cnpg-volumesnapshot-pruner
+  namespace: {{ .Values.operator.namespace }}
+  labels:
+    {{- include "cloudnative-pg-operator.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cnpg-volumesnapshot-pruner
+  labels:
+    {{- include "cloudnative-pg-operator.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+rules:
+# Find stale CNPG volumeSnapshot backups across every namespace.
+- apiGroups: ["postgresql.cnpg.io"]
+  resources: ["backups"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshots"]
+  verbs: ["get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cnpg-volumesnapshot-pruner
+  labels:
+    {{- include "cloudnative-pg-operator.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cnpg-volumesnapshot-pruner
+subjects:
+- kind: ServiceAccount
+  name: cnpg-volumesnapshot-pruner
+  namespace: {{ .Values.operator.namespace }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cnpg-volumesnapshot-pruner
+  namespace: {{ .Values.operator.namespace }}
+  labels:
+    {{- include "cloudnative-pg-operator.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  schedule: {{ .Values.volumeSnapshotPruner.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 300
+      ttlSecondsAfterFinished: 300
+      template:
+        metadata:
+          labels:
+            {{- include "cloudnative-pg-operator.selectorLabels" . | nindent 12 }}
+        spec:
+          serviceAccountName: cnpg-volumesnapshot-pruner
+          restartPolicy: Never
+          containers:
+          - name: pruner
+            image: {{ .Values.volumeSnapshotPruner.image | quote }}
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 64Mi
+            env:
+            - name: RETENTION_DAYS
+              value: {{ .Values.volumeSnapshotPruner.retentionDays | quote }}
+            command:
+            - sh
+            - -c
+            - |
+              set -e
+
+              CUTOFF_EPOCH=$(( $(date +%s) - RETENTION_DAYS * 86400 ))
+              echo "Pruning CNPG VolumeSnapshots older than ${RETENTION_DAYS} days (cutoff epoch ${CUTOFF_EPOCH})..."
+
+              STALE=$(kubectl get volumesnapshots.snapshot.storage.k8s.io -A -l cnpg.io/cluster -o json | jq -r --argjson cutoff "$CUTOFF_EPOCH" '
+                .items[] |
+                select((.metadata.annotations["cnpg-volumesnapshot-pruner.philips-software.io/keep"] // "false") != "true") |
+                select((.metadata.creationTimestamp | fromdateiso8601) < $cutoff) |
+                "\(.metadata.namespace) \(.metadata.name)"
+              ')
+
+              if [ -z "$STALE" ]; then
+                echo "✅ No stale VolumeSnapshots found. Nothing to do."
+                exit 0
+              fi
+
+              # The while-read loop below runs in a subshell (right side of a
+              # pipe), so a plain counter variable wouldn't survive past it -
+              # use a temp file instead, same fix as the other healer
+              # CronJobs in this repo use for the same reason.
+              PRUNED_COUNT_FILE=$(mktemp)
+              echo "0" > "$PRUNED_COUNT_FILE"
+
+              echo "$STALE" | while read -r ns name; do
+                [ -z "$ns" ] && continue
+                echo "🗑️  Pruning $ns/$name (and its matching Backup, if still present)"
+                kubectl delete backups.postgresql.cnpg.io "$name" -n "$ns" --ignore-not-found=true
+                kubectl delete volumesnapshots.snapshot.storage.k8s.io "$name" -n "$ns" --wait=false
+                CURRENT=$(cat "$PRUNED_COUNT_FILE")
+                echo $((CURRENT + 1)) > "$PRUNED_COUNT_FILE"
+              done
+
+              PRUNED=$(cat "$PRUNED_COUNT_FILE")
+              rm -f "$PRUNED_COUNT_FILE"
+              echo "🔧 Pruned ${PRUNED} stale VolumeSnapshot(s)."
+          tolerations:
+            {{- toYaml .Values.operator.tolerations | nindent 12 }}
+{{- end }}

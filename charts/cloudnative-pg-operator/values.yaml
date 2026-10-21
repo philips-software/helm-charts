@@ -50,3 +50,19 @@ barmanCloudPlugin:
   enabled: true
   # renovate: datasource=helm depName=plugin-barman-cloud registryUrl=https://cloudnative-pg.io/charts
   version: 0.8.1
+
+volumeSnapshotPruner:
+  # CNPG's backup.volumeSnapshot method has no retention policy of its own
+  # (retentionPolicy only applies to the barmanObjectStore method) and the
+  # Kubernetes VolumeSnapshot API has no TTL/expiry field either, so without
+  # this, every scheduled volumeSnapshot backup's Backup + VolumeSnapshot
+  # (and its underlying cloud snapshot) accumulates forever.
+  enabled: true
+  # Delete any CNPG-created VolumeSnapshot (and its matching same-named
+  # Backup) older than this many days, cluster-wide, across every
+  # namespace. Opt a specific snapshot out with the annotation
+  # cnpg-volumesnapshot-pruner.philips-software.io/keep: "true".
+  retentionDays: 14
+  schedule: "45 3 * * *"
+  # renovate: datasource=docker depName=alpine/k8s
+  image: "alpine/k8s:1.37.1"
