@@ -1,4 +1,4 @@
 apiVersion: v2
 name: loki-bootstrap
-version: 0.46.1
+version: 0.46.2
 description: A Helm chart for bootstrapping Loki
