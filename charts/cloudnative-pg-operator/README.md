@@ -1,6 +1,6 @@
 # cloudnative-pg-operator
 
-![Version: 0.12.0](https://img.shields.io/badge/Version-0.12.0-informational?style=flat-square)
+![Version: 0.12.1](https://img.shields.io/badge/Version-0.12.1-informational?style=flat-square)
 
 A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 
@@ -46,6 +46,7 @@ first in the list — the Kyverno policy always reads `imageCatalog.images[0].ma
 | imageCatalog.name | string | `"default"` |  |
 | kyvernoPolicy.enabled | bool | `true` |  |
 | kyvernoPolicy.operatorImage | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.30.1"` |  |
+| operator.dnsPolicy | string | `""` |  |
 | operator.fullnameOverride | string | `"cloudnative-pg"` |  |
 | operator.hostNetwork | bool | `false` |  |
 | operator.namespace | string | `"cnpg-system"` |  |

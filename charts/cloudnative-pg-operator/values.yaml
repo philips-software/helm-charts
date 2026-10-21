@@ -16,6 +16,19 @@ operator:
   # Enable hostNetwork if the K3s/K8s control plane cannot reach the pod network
   # (e.g., when running K3s server with --disable-agent)
   hostNetwork: false
+  # DNS policy for the operator pod. Only relevant together with
+  # hostNetwork: true, where Kubernetes otherwise makes the pod use the NODE's
+  # resolver instead of the cluster's.
+  #
+  # A hostNetwork operator that has to resolve a cluster Service - the
+  # barman-cloud plugin, for one - cannot, because the node's resolver knows
+  # nothing about cluster.local. The operator then fails with
+  # "name resolver error: produced zero addresses" and the whole Cluster
+  # reconciliation stops, not just the backup.
+  #
+  # "ClusterFirstWithHostNet" makes the pod use the CLUSTER's DNS while
+  # keeping the host network. "" leaves it unset.
+  dnsPolicy: ""
   resources:
     limits:
       memory: 256Mi

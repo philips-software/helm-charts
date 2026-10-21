@@ -21,6 +21,9 @@ spec:
       valuesObject:
         fullnameOverride: {{ .Values.operator.fullnameOverride }}
         hostNetwork: {{ .Values.operator.hostNetwork }}
+        {{- with .Values.operator.dnsPolicy }}
+        dnsPolicy: {{ . }}
+        {{- end }}
         resources:
           {{- toYaml .Values.operator.resources | nindent 10 }}
         {{- with .Values.operator.tolerations }}
