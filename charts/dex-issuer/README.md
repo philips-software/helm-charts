@@ -1,6 +1,6 @@
 # dex-issuer
 
-![Version: 0.12.7](https://img.shields.io/badge/Version-0.12.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.12.8](https://img.shields.io/badge/Version-0.12.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
@@ -35,6 +35,47 @@ chart renders then has the same identity as the existing one, so Crossplane reco
 instead of creating a second claim that collides on `connectionSecretName` (the second claim's
 `writeConnectionSecretToRef` fails validation: a `Secret` can only have one owning controller) and
 is left orphaned, half-provisioned, forever retrying. Leave all three unset for a fresh install.
+
+## Barman backups and the object store
+
+`database.barmanBackup.enabled` turns on continuous WAL archiving plus a daily base backup,
+handled by the CNPG barman-cloud plugin. The claim's `barmanBackup` block is rendered with
+`enabled` and `retentionDays` always, and the rest only when set.
+
+**Credential mode.** `database.barmanBackup.credentialsSecretRef.name` selects it:
+
+- **unset** — AWS IRSA. The postgres-cnpg composition renders an `iam.aws.m.upbound.io`
+  Role/Policy/RolePolicyAttachment and an IRSA `serviceAccountTemplate` annotation. A cluster
+  with no AWS provider cannot compose those at all, and the failure aborts the *whole*
+  composition — no CNPG Cluster, no connection secret.
+- **set** — static keys. The IAM resources and the IRSA annotation are not rendered, so the
+  composition composes on a cluster with no AWS provider. This is also what a self-hosted
+  S3-compatible store needs.
+
+The Secret is referenced by name only. **This chart never creates it and never reads it** —
+create it out of band, in the claim's namespace:
+
+```bash
+kubectl create secret generic cnpg-s3-creds \
+  --namespace <ns> \
+  --from-literal=ACCESS_KEY_ID=<access key> \
+  --from-literal=ACCESS_SECRET_KEY=<secret key>
+```
+
+`accessKeyIdKey` and `secretAccessKeyKey` name the keys inside it, if they are not the
+barman defaults `ACCESS_KEY_ID` / `ACCESS_SECRET_KEY`.
+
+**Endpoint.** `database.barmanBackup.endpointURL` points the archive at an S3-compatible
+store (RustFS, MinIO, Garage, ...). Leave it empty for AWS S3. A plain-`http` endpoint needs
+no CA bundle; a self-signed `https` one additionally needs the composition's `endpointCA`.
+
+**Naming.** `bucketName` and `bucketPrefix` default, in the composition, to
+`<resourcePrefix>-barman` and `<namespace>/<identifier>`. `serverName` is the barman server
+name for ongoing WAL archiving and defaults to `<identifier>-wal`; it must differ from the
+server name a restore reads from, or CNPG refuses to recover ("Expected empty archive").
+
+**The plugin is a separate prerequisite.** The `objectstores.barmancloud.cnpg.io` CRD has to
+exist before a claim with `barmanBackup.enabled: true` can be composed at all.
 
 ## Theme
 
@@ -78,8 +119,18 @@ omit `spec.tls`.
 | argocd.namespace | string | `"argocd"` |  |
 | argocd.project | string | `"default"` |  |
 | database.allocatedStorage | int | `20` |  |
+| database.barmanBackup.bucketName | string | `""` |  |
+| database.barmanBackup.bucketPrefix | string | `""` |  |
+| database.barmanBackup.compression | string | `""` |  |
+| database.barmanBackup.credentialsSecretRef.accessKeyIdKey | string | `"ACCESS_KEY_ID"` |  |
+| database.barmanBackup.credentialsSecretRef.name | string | `""` |  |
+| database.barmanBackup.credentialsSecretRef.secretAccessKeyKey | string | `"ACCESS_SECRET_KEY"` |  |
 | database.barmanBackup.enabled | bool | `true` |  |
+| database.barmanBackup.endpointURL | string | `""` |  |
+| database.barmanBackup.maxParallel | int | `0` |  |
 | database.barmanBackup.retentionDays | int | `7` |  |
+| database.barmanBackup.scheduleBaseBackup | string | `""` |  |
+| database.barmanBackup.serverName | string | `""` |  |
 | database.claimName | string | `""` |  |
 | database.cnpg | bool | `true` |  |
 | database.connectionSecretName | string | `""` |  |

@@ -105,6 +105,47 @@ database:
   barmanBackup:
     enabled: true
     retentionDays: 7
+    # Compression for the archived WAL segments and base backups. Empty =
+    # not rendered, and the postgres-cnpg composition applies its own default
+    # (gzip).
+    compression: ""
+    # Cron schedule for the base backup. Empty = not rendered (the composition
+    # defaults to "0 0 0 * * *", daily at midnight).
+    scheduleBaseBackup: ""
+    # S3 bucket holding the archive. Empty = not rendered; the composition
+    # derives "<environmentConfig.resourcePrefix>-barman".
+    bucketName: ""
+    # Prefix within the bucket. Empty = not rendered; the composition derives
+    # "<namespace>/<identifier>".
+    bucketPrefix: ""
+    # S3-compatible endpoint (RustFS, MinIO, Garage, ...). Empty = not
+    # rendered, which means AWS S3. A plain-http endpoint needs no CA bundle;
+    # a self-signed HTTPS one additionally needs the composition's
+    # endpointCA.
+    endpointURL: ""
+    # Barman server name for ongoing WAL archiving. Empty = not rendered; the
+    # composition derives "<identifier>-wal". It must differ from the server
+    # name a restore reads from, otherwise CNPG refuses to recover ("Expected
+    # empty archive").
+    serverName: ""
+    # Parallel WAL upload jobs per instance. 0 = not rendered; the composition
+    # defaults to 4. Lower it on small hosts - each job is another concurrent
+    # upload against the object store.
+    maxParallel: 0
+    # Static S3 credentials, by reference to a Secret that is created OUT OF
+    # BAND (this chart never creates or reads it). Setting the name selects
+    # the static-key credential mode, which suppresses the AWS IAM
+    # Role/Policy/RolePolicyAttachment and the IRSA service account
+    # annotation the postgres-cnpg composition would otherwise render - a
+    # cluster with no AWS provider cannot compose those at all, so the whole
+    # composition fails.
+    credentialsSecretRef:
+      # Name of the Secret in the claim's namespace. Empty = not rendered,
+      # which leaves the AWS IRSA credential mode in place.
+      name: ""
+      # Keys inside that Secret.
+      accessKeyIdKey: ACCESS_KEY_ID
+      secretAccessKeyKey: ACCESS_SECRET_KEY
   # Name of the Postgres claim (metadata.name). Defaults to "dex". Override
   # to adopt a pre-existing, non-chart-managed Postgres claim in place
   # instead of creating a second one that collides on connectionSecretName.
@@ -177,11 +218,11 @@ pki:
   # Namespace where the provider-dex client certificate is created
   clientNamespace: crossplane-system
   # CA certificate validity
-  caDuration: 87600h # 10 years
-  caRenewBefore: 8760h # 1 year
+  caDuration: 87600h  # 10 years
+  caRenewBefore: 8760h  # 1 year
   # Leaf (client / server) certificate validity
-  certDuration: 8760h # 1 year
-  certRenewBefore: 720h # 30 days
+  certDuration: 8760h  # 1 year
+  certRenewBefore: 720h  # 30 days
 
 # Philips-branded Dex login theme. When enabled, the theme is mounted into Dex as a
 # ConfigMap. RI-specific connector hide-rules have been stripped from styles.css.

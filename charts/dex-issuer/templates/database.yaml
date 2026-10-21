@@ -39,6 +39,37 @@ spec:
     barmanBackup:
       enabled: true
       retentionDays: {{ .Values.database.barmanBackup.retentionDays }}
+      {{- with .Values.database.barmanBackup.compression }}
+      compression: {{ . }}
+      {{- end }}
+      {{- with .Values.database.barmanBackup.scheduleBaseBackup }}
+      scheduleBaseBackup: {{ . | quote }}
+      {{- end }}
+      {{- with .Values.database.barmanBackup.bucketName }}
+      bucketName: {{ . }}
+      {{- end }}
+      {{- with .Values.database.barmanBackup.bucketPrefix }}
+      bucketPrefix: {{ . }}
+      {{- end }}
+      {{- with .Values.database.barmanBackup.endpointURL }}
+      endpointURL: {{ . }}
+      {{- end }}
+      {{- with .Values.database.barmanBackup.serverName }}
+      serverName: {{ . }}
+      {{- end }}
+      {{- if gt (int .Values.database.barmanBackup.maxParallel) 0 }}
+      maxParallel: {{ .Values.database.barmanBackup.maxParallel }}
+      {{- end }}
+      {{- with .Values.database.barmanBackup.credentialsSecretRef.name }}
+      # Static keys from a Secret created out of band. Its presence also
+      # selects the static-key credential mode, which suppresses the AWS IAM
+      # Role/Policy/RolePolicyAttachment and the IRSA service account
+      # annotation - a cluster with no AWS provider cannot compose those.
+      credentialsSecretRef:
+        name: {{ . }}
+        accessKeyIdKey: {{ $.Values.database.barmanBackup.credentialsSecretRef.accessKeyIdKey }}
+        secretAccessKeyKey: {{ $.Values.database.barmanBackup.credentialsSecretRef.secretAccessKeyKey }}
+      {{- end }}
   {{- end }}
   writeConnectionSecretToRef:
     name: {{ .Values.database.connectionSecretName | default "dex-postgres-connection" }}
