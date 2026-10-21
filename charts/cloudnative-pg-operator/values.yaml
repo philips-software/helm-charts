@@ -29,6 +29,17 @@ operator:
   # "ClusterFirstWithHostNet" makes the pod use the CLUSTER's DNS while
   # keeping the host network. "" leaves it unset.
   dnsPolicy: ""
+  # Update strategy for the operator Deployment.
+  #
+  # Set this to {type: Recreate} when hostNetwork is on. A hostNetwork pod
+  # binds the node's ports, and the default RollingUpdate creates the new pod
+  # BEFORE the old one is terminated - so the new pod cannot get the ports and
+  # the rollout deadlocks with
+  #   "0/4 nodes are available: 4 node(s) didn't have free ports for the
+  #    requested pod ports"
+  # and never completes on its own. Recreate terminates the old pod first.
+  # {} leaves the chart's default alone.
+  updateStrategy: {}
   resources:
     limits:
       memory: 256Mi

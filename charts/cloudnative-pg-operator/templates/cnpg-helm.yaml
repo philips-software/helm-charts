@@ -24,6 +24,10 @@ spec:
         {{- with .Values.operator.dnsPolicy }}
         dnsPolicy: {{ . }}
         {{- end }}
+        {{- with .Values.operator.updateStrategy }}
+        updateStrategy:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         resources:
           {{- toYaml .Values.operator.resources | nindent 10 }}
         {{- with .Values.operator.tolerations }}
