@@ -21,6 +21,18 @@ spec:
     spec:
       serviceAccountName: {{ include "common-bootstrap.serviceAccountName" . }}
       restartPolicy: Never
+      {{- with .Values.harvester.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.harvester.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.harvester.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -59,20 +71,28 @@ spec:
               echo "Target EnvironmentConfig: $ENV_CONFIG_NAME"
               echo ""
 
-              # Check if ConfigMap exists - fail fast with clear error
-              if ! kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" > /dev/null 2>&1; then
-                echo "=============================================="
-                echo "ERROR: Required ConfigMap not found!"
-                echo "=============================================="
-                echo ""
-                echo "ConfigMap '$SOURCE_CM' must exist in namespace '$SOURCE_NS'"
-                echo "before installing this chart."
-                echo ""
-                echo "This ConfigMap is typically created by the HSP platform."
-                echo "Please ensure the platform is properly configured."
-                echo "=============================================="
-                exit 1
-              fi
+              # Wait for the ConfigMap - on a fresh cluster it may be created by a later
+              # Argo CD sync wave than this chart - then fail with a clear error
+              WAIT_SECONDS={{ .Values.harvester.waitForConfigMapSeconds | int }}
+              ELAPSED=0
+              until kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" > /dev/null 2>&1; do
+                if [ "$ELAPSED" -ge "$WAIT_SECONDS" ]; then
+                  echo "=============================================="
+                  echo "ERROR: Required ConfigMap not found!"
+                  echo "=============================================="
+                  echo ""
+                  echo "ConfigMap '$SOURCE_CM' must exist in namespace '$SOURCE_NS'"
+                  echo "(waited ${WAIT_SECONDS}s)."
+                  echo ""
+                  echo "This ConfigMap is typically created by the HSP platform."
+                  echo "Please ensure the platform is properly configured."
+                  echo "=============================================="
+                  exit 1
+                fi
+                echo "Waiting for ConfigMap $SOURCE_NS/$SOURCE_CM... (${ELAPSED}s/${WAIT_SECONDS}s)"
+                sleep 10
+                ELAPSED=$((ELAPSED + 10))
+              done
 
               # Extract all values from ConfigMap
               # These match the ${...} placeholders used in kustomize
