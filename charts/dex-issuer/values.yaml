@@ -12,6 +12,18 @@ dex:
   logLevel: info
   # Human-readable name shown on the Dex login screen (frontend.issuer)
   frontendIssuer: "DIP Services"
+  # The OIDC issuer URL (config.issuer). Empty means "derive it from the
+  # ingress host and the cluster FQDN", which is what the chart has always
+  # done: https://<httpRoute.host>.<clusterFqdn>.
+  #
+  # Set it explicitly when the issuer URL and the ingress host are not the
+  # same thing - an internal issuer reached through a route that is owned
+  # elsewhere, or the other way round. The issuer URL is baked into every
+  # OIDC client's configuration and into the "iss" claim of every token Dex
+  # signs, so changing it invalidates existing tokens and breaks login for
+  # every client on the cluster. It is also the value Dex puts in its
+  # discovery document, and clients validate the two against each other.
+  issuerURL: ""
   # Resource requests and limits for the Dex pod (memory-only limits, no CPU limit)
   resources:
     limits:
@@ -53,6 +65,48 @@ dex:
   #   "urn:ietf:params:oauth:grant-type:device_code",
   #   "urn:ietf:params:oauth:grant-type:token-exchange", "client_credentials"]
   grantTypes: []
+  # Authentication sessions (the "auth sessions" feature: server-side browser
+  # sessions, prompt=none / prompt=login, max_age, id_token_hint, and an
+  # RP-initiated /logout endpoint). Off by default; it needs a Dex build that
+  # carries the feature (philips-forks/dex v2.45.1-dip.12 or newer).
+  #
+  # Enabling it renders both the DEX_SESSIONS_ENABLED feature flag on the Dex
+  # pod and the matching "sessions:" block in config.yaml - Dex refuses to
+  # start with one without the other.
+  #
+  # Sessions are stored server-side (the "postgres" storage this chart
+  # provisions already carries the auth_session and user_identity tables) and
+  # referenced by a cookie:
+  #   - cookieName: name of the session cookie. The cookie is always
+  #     HttpOnly and SameSite=Lax, and Secure when the issuer URL is https.
+  #   - absoluteLifetime: hard upper bound on a session's life.
+  #   - validIfNotUsedFor: idle timeout; a session unused for this long is
+  #     gone, even if absoluteLifetime has not passed.
+  #   - rememberMeCheckedByDefault: whether the "remember me" checkbox is
+  #     pre-ticked. It only decides whether the cookie is a session cookie or
+  #     a persistent one - a session is always created. It only shows up on
+  #     the password connector's login form; for callback connectors (OIDC,
+  #     SAML, ...) the default decides.
+  #   - ssoSharedWithDefault: the SSO policy for clients that do not name
+  #     their own. "none" (default) means a client's session is never reused
+  #     by another client; "all" means any client may reuse any other
+  #     client's session, which is realm-wide SSO.
+  #     Prefer per-client policies (provider-dex's Client.ssoSharedWith):
+  #     "all" also lets a session be reused for a client that is gated by
+  #     allowedGroups, because a reused session does not re-check that.
+  #   - cookieEncryptionKey: AES key (16, 24 or 32 bytes) used to encrypt the
+  #     session cookie. Empty means the cookie is not encrypted. Dex expands
+  #     "$VAR" references in its config, so this can point at an environment
+  #     variable instead of a literal - do not put the key itself in a values
+  #     file that lands in git.
+  sessions:
+    enabled: false
+    cookieName: dex_session
+    absoluteLifetime: "24h"
+    validIfNotUsedFor: "1h"
+    rememberMeCheckedByDefault: true
+    ssoSharedWithDefault: "none"
+    cookieEncryptionKey: ""
   # Token / signing key expiry
   expiry:
     signingKeys: "6h"
@@ -75,7 +129,8 @@ dex:
   image:
     repository: ghcr.io/philips-forks/dex
     # renovate: datasource=docker depName=ghcr.io/philips-forks/dex
-    tag: "v2.46.0-dip.2"
+    # v2.46.0-dip.3: enforces a client's allowedGroups on the session/SSO path.
+    tag: "v2.46.0-dip.3"
 
 # Upstream Dex Helm chart configuration
 dexChart:
@@ -183,7 +238,8 @@ provider:
   debug: true
   # Provider package version
   # renovate: datasource=docker depName=xpkg.upbound.io/loafoe/provider-dex
-  tag: "v1.14.0"
+  # v1.15.0: adds per-client ssoSharedWith (Client.forProvider.ssoSharedWith).
+  tag: "v1.15.0"
   # Container registry hosting the provider-dex package
   registry: "ghcr.io/loafoe"
   # crossplane-providers wrapper chart version

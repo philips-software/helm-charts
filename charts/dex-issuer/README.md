@@ -1,6 +1,6 @@
 # dex-issuer
 
-![Version: 0.12.8](https://img.shields.io/badge/Version-0.12.8-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.12.9](https://img.shields.io/badge/Version-0.12.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
@@ -151,16 +151,24 @@ omit `spec.tls`.
 | dex.httpRoute.sharedGatewayName | string | `"platform"` |  |
 | dex.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
 | dex.image.repository | string | `"ghcr.io/philips-forks/dex"` |  |
-| dex.image.tag | string | `"v2.46.0-dip.2"` |  |
+| dex.image.tag | string | `"v2.46.0-dip.3"` |  |
 | dex.ingress.enabled | bool | `false` |  |
 | dex.ingress.host | string | `"issuer"` |  |
 | dex.ingress.ingressClassName | string | `"nginx"` |  |
+| dex.issuerURL | string | `""` |  |
 | dex.logLevel | string | `"info"` |  |
 | dex.replicas | int | `2` |  |
 | dex.resources.limits.memory | string | `"128Mi"` |  |
 | dex.resources.requests.cpu | string | `"10m"` |  |
 | dex.resources.requests.memory | string | `"128Mi"` |  |
 | dex.serviceMonitor.enabled | bool | `true` |  |
+| dex.sessions.absoluteLifetime | string | `"24h"` |  |
+| dex.sessions.cookieEncryptionKey | string | `""` |  |
+| dex.sessions.cookieName | string | `"dex_session"` |  |
+| dex.sessions.enabled | bool | `false` |  |
+| dex.sessions.rememberMeCheckedByDefault | bool | `true` |  |
+| dex.sessions.ssoSharedWithDefault | string | `"none"` |  |
+| dex.sessions.validIfNotUsedFor | string | `"1h"` |  |
 | dex.staticClients | list | `[]` |  |
 | dex.staticClientsSecret.enabled | bool | `false` |  |
 | dex.staticClientsSecret.name | string | `"dex-static-clients"` |  |
@@ -183,7 +191,7 @@ omit `spec.tls`.
 | provider.enabled | bool | `true` |  |
 | provider.providerConfigNamespaces | list | `[]` |  |
 | provider.registry | string | `"ghcr.io/loafoe"` |  |
-| provider.tag | string | `"v1.14.0"` |  |
+| provider.tag | string | `"v1.15.0"` |  |
 | theme.enabled | bool | `true` |  |
 | theme.existingConfigMap | string | `""` |  |
 | useCustomFqdn | bool | `false` |  |
