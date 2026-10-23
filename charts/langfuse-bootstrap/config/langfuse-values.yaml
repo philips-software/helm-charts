@@ -39,6 +39,7 @@ langfuse:
     {{- end }}
   revisionHistoryLimit: {{ .Values.langfuse.revisionHistoryLimit }}
   web:
+    replicas: {{ .Values.langfuse.web.replicas }}
     livenessProbe:
       {{- toYaml .Values.langfuse.web.livenessProbe | nindent 6 }}
     readinessProbe:
@@ -47,6 +48,12 @@ langfuse:
       {{- toYaml .Values.langfuse.web.resources | nindent 6 }}
     {{- if .Values.langfuse.web.revisionHistoryLimit }}
     revisionHistoryLimit: {{ .Values.langfuse.web.revisionHistoryLimit }}
+    {{- end }}
+    {{- /* selector/pod label is `app: web` (upstream langfuse chart), fixed regardless of releaseName */}}
+    {{- with include "langfuse-bootstrap.podAntiAffinity" (dict "cfg" .Values.langfuse.web "matchLabels" (dict "app" "web")) }}
+    pod:
+      affinity:
+        {{- . | nindent 8 }}
     {{- end }}
   worker:
     resources:

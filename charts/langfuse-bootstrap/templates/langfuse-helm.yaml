@@ -12,11 +12,12 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   project: {{ .Values.argoProject }}
-  ignoreDifferences:
-    - group: apps
-      kind: Deployment
-      jsonPointers:
-        - /spec/replicas
+  # No ignoreDifferences on Deployment /spec/replicas: this deployment has no
+  # HPA/KEDA anywhere that would need ArgoCD to leave replicas alone, and
+  # ignoring that field was the root cause of langfuse-web silently staying
+  # at 1/1 for weeks after a Karpenter eviction scaled it down - selfHeal
+  # couldn't push the chart's declared replica count back onto the live
+  # Deployment. Removed 2026-10-23 so replicas (web HA) actually self-heal.
   source:
     repoURL: {{ printf "%s/langfuse" .Values.langfuseChart.repoURL | quote }}
     path: "."

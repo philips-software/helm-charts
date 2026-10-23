@@ -105,19 +105,16 @@ Usage: include "langfuse-bootstrap.substituteVars" (dict "str" .Values.myValue "
 {{- end }}
 
 {{/*
-Affinity for ClickHouse or Keeper pods: the user-supplied `affinity`, plus a
-generated podAntiAffinity spreading the component's replicas across
-`podAntiAffinity.topologyKey` (unless `affinity` already sets podAntiAffinity,
-which then wins as-is). The operator runs one StatefulSet per replica, so the
-selector must match the cluster-wide `app.kubernetes.io/instance` pod label
-(`<CR name>-clickhouse` / `<CR name>-keeper`), not a per-StatefulSet one.
-Args: dict "cfg" <clickhouse.cluster|clickhouse.keeper values> "instance" <label value>
+Affinity for a set of pods: the user-supplied `affinity`, plus a generated
+podAntiAffinity spreading replicas across `podAntiAffinity.topologyKey`
+(unless `affinity` already sets podAntiAffinity, which then wins as-is).
+Args: dict "cfg" <values block with .affinity/.podAntiAffinity> "matchLabels" <dict>
 */}}
-{{- define "langfuse-bootstrap.clickhouseAffinity" -}}
+{{- define "langfuse-bootstrap.podAntiAffinity" -}}
 {{- $aff := deepCopy (.cfg.affinity | default dict) }}
 {{- $paa := .cfg.podAntiAffinity | default dict }}
 {{- if and $paa.type (not (hasKey $aff "podAntiAffinity")) }}
-{{- $term := dict "topologyKey" $paa.topologyKey "labelSelector" (dict "matchLabels" (dict "app.kubernetes.io/instance" .instance)) }}
+{{- $term := dict "topologyKey" $paa.topologyKey "labelSelector" (dict "matchLabels" .matchLabels) }}
 {{- if eq $paa.type "required" }}
 {{- $_ := set $aff "podAntiAffinity" (dict "requiredDuringSchedulingIgnoredDuringExecution" (list $term)) }}
 {{- else }}
@@ -125,6 +122,16 @@ Args: dict "cfg" <clickhouse.cluster|clickhouse.keeper values> "instance" <label
 {{- end }}
 {{- end }}
 {{- with $aff }}{{ toYaml . }}{{ end }}
+{{- end }}
+
+{{/*
+ClickHouse/Keeper call sites: the operator runs one StatefulSet per replica,
+so the selector must match the cluster-wide `app.kubernetes.io/instance` pod
+label (`<CR name>-clickhouse` / `<CR name>-keeper`), not a per-StatefulSet one.
+Args: dict "cfg" <clickhouse.cluster|clickhouse.keeper values> "instance" <label value>
+*/}}
+{{- define "langfuse-bootstrap.clickhouseAffinity" -}}
+{{- include "langfuse-bootstrap.podAntiAffinity" (dict "cfg" .cfg "matchLabels" (dict "app.kubernetes.io/instance" .instance)) -}}
 {{- end }}
 
 {{/*
@@ -153,6 +160,16 @@ Validate required configuration values
 {{- if and $paa.type (not $paa.topologyKey) }}
 {{- fail (printf "clickhouse.%s.podAntiAffinity.topologyKey is required when podAntiAffinity.type is set" $c) }}
 {{- end }}
+{{- end }}
+{{- if not (has (.Values.database.podAntiAffinityType | default "") (list "" "required" "preferred")) }}
+{{- fail "database.podAntiAffinityType must be one of required, preferred, or empty (CNPG default)" }}
+{{- end }}
+{{- $webPaa := .Values.langfuse.web.podAntiAffinity | default dict }}
+{{- if not (has ($webPaa.type | default "") (list "" "required" "preferred")) }}
+{{- fail "langfuse.web.podAntiAffinity.type must be one of required, preferred, or empty (disabled)" }}
+{{- end }}
+{{- if and $webPaa.type (not $webPaa.topologyKey) }}
+{{- fail "langfuse.web.podAntiAffinity.topologyKey is required when podAntiAffinity.type is set" }}
 {{- end }}
 {{- if .Values.ingress.httpRoute.enabled }}
 {{- if not .Values.environmentConfig.clusterFqdn }}

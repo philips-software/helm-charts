@@ -9,6 +9,10 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   instances: {{ .Values.database.instances }}
+  {{- if .Values.database.podAntiAffinityType }}
+  affinity:
+    podAntiAffinityType: {{ .Values.database.podAntiAffinityType | quote }}
+  {{- end }}
   bootstrap:
     initdb:
       database: {{ .Values.database.databaseName | quote }}

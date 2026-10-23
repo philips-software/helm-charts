@@ -145,7 +145,14 @@ sso:
 database:
   # Cluster resource name. Defaults to "langfuse-db" if unset.
   clusterName: ""
+  # Single instance by default. For HA set 3+ (CNPG replicates the extra
+  # instances as standbys and auto-promotes one on primary failure - no
+  # other field needs to change).
   instances: 1
+  # "required" (hard - a standby stays Pending rather than share a node with
+  # another instance), "preferred" (soft), or "" (CNPG default: preferred).
+  # No effect at instances: 1.
+  podAntiAffinityType: ""
   databaseName: langfuse
   storage:
     size: 5Gi
@@ -265,6 +272,13 @@ langfuse:
     # renovate: datasource=docker depName=docker.langfuse.com/langfuse/langfuse
     tag: "4.67.0"
   web:
+    # Single replica by default. For HA set 2+ together with podAntiAffinity
+    # below so the replicas land on distinct nodes.
+    replicas: 1
+    podAntiAffinity:
+      type: required
+      topologyKey: kubernetes.io/hostname
+    affinity: {}
     resources:
       requests:
         cpu: 100m
