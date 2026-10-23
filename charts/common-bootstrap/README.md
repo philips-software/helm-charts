@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 1.5.2](https://img.shields.io/badge/Version-1.5.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.48](https://img.shields.io/badge/AppVersion-0.0.48-informational?style=flat-square)
+![Version: 1.6.0](https://img.shields.io/badge/Version-1.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.48](https://img.shields.io/badge/AppVersion-0.0.48-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -43,12 +43,19 @@ and uses HelmApplication CRs to bootstrap platform components.
 | crossplaneCompositions.repoURL | string | `"https://github.com/loafoe/crossplane-compositions"` |  |
 | environmentConfig.labels.config | string | `"dip-software"` |  |
 | environmentConfig.name | string | `"hsp-addons-compat"` |  |
+| harvester.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key | string | `"node-role.kubernetes.io/control-plane"` |  |
+| harvester.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator | string | `"Exists"` |  |
+| harvester.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight | int | `100` |  |
 | harvester.enabled | bool | `true` |  |
 | harvester.image.pullPolicy | string | `"IfNotPresent"` |  |
 | harvester.image.repository | string | `"docker.io/alpine/k8s"` |  |
 | harvester.image.tag | string | `"1.37.1"` |  |
+| harvester.nodeSelector | object | `{}` |  |
 | harvester.serviceAccount.name | string | `"hsp-addons-harvester"` |  |
+| harvester.tolerations[0].key | string | `"CriticalAddonsOnly"` |  |
+| harvester.tolerations[0].operator | string | `"Exists"` |  |
 | harvester.ttlSecondsAfterFinished | int | `600` |  |
+| harvester.waitForConfigMapSeconds | int | `600` |  |
 | helmApplications | object | `{}` |  |
 | sourceConfigMap.name | string | `"hsp-addons"` |  |
 | sourceConfigMap.namespace | string | `"hsp-addons"` |  |

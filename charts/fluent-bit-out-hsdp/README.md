@@ -2,7 +2,7 @@
 
 <!-- This README.md is generated. Please edit README.md.gotmpl -->
 
-![Version: 0.14.0](https://img.shields.io/badge/Version-0.14.0-informational?style=flat-square)
+![Version: 0.14.1](https://img.shields.io/badge/Version-0.14.1-informational?style=flat-square)
 
 Installs the Fluentbit HSP out plugin.
 
@@ -46,7 +46,7 @@ helm-docs -g charts/go-hello-world
 
 | Repository | Name | Version |
 |------------|------|---------|
-| https://fluent.github.io/helm-charts | fluent-bit | 0.56.0 |
+| https://fluent.github.io/helm-charts | fluent-bit | 0.58.3 |
 
 ## Values
 

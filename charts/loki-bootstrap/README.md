@@ -1,6 +1,6 @@
 # loki-bootstrap
 
-![Version: 0.46.0](https://img.shields.io/badge/Version-0.46.0-informational?style=flat-square)
+![Version: 0.46.2](https://img.shields.io/badge/Version-0.46.2-informational?style=flat-square)
 
 ## Values
 
@@ -42,7 +42,7 @@
 | loki.server.grpc_server_max_concurrent_streams | int | `1000` |  |
 | loki.server.grpc_server_max_recv_msg_size | int | `83886080` |  |
 | loki.server.grpc_server_max_send_msg_size | int | `83886080` |  |
-| lokiChart.version | string | `"18.16.0"` |  |
+| lokiChart.version | string | `"19.0.0"` |  |
 | multitenancyEnabled | bool | `true` |  |
 | patternIngester.extraArgs.grpc_max_recv_msg_size | int | `83886080` |  |
 | patternIngester.extraArgs.grpc_max_send_msg_size | int | `83886080` |  |

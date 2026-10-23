@@ -85,6 +85,23 @@ harvester:
   serviceAccount:
     name: hsp-addons-harvester
   ttlSecondsAfterFinished: 600
+  # On a fresh cluster the source ConfigMap may be created by a later Argo CD sync
+  # wave than this chart; wait this long for it before failing
+  waitForConfigMapSeconds: 600
+  # Bootstrap-critical: tolerate CriticalAddonsOnly so the Job can run on a tainted
+  # control-plane/system node instead of waiting for the first worker node
+  tolerations:
+    - key: CriticalAddonsOnly
+      operator: Exists
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+  nodeSelector: {}
 
 # StatefulSet immutable-field reconciler
 #

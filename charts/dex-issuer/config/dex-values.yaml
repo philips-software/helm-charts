@@ -1,6 +1,11 @@
 replicaCount: {{ .Values.dex.replicas }}
 env:
   DEX_API_CONNECTORS_CRUD: "true"
+{{- if .Values.dex.sessions.enabled }}
+  # Feature flag for the auth-sessions feature. Dex refuses to start when
+  # config.yaml has a "sessions:" block without this being set.
+  DEX_SESSIONS_ENABLED: "true"
+{{- end }}
 envVars:
   - name: DEX_PG_HOST
     valueFrom:
@@ -38,7 +43,18 @@ image:
 resources:
   {{- toYaml .Values.dex.resources | nindent 2 }}
 config:
-  issuer: {{ include "dex-issuer.url" . }}
+  issuer: {{ .Values.dex.issuerURL | default (include "dex-issuer.url" .) }}
+{{- if .Values.dex.sessions.enabled }}
+  sessions:
+    cookieName: {{ .Values.dex.sessions.cookieName | quote }}
+    absoluteLifetime: {{ .Values.dex.sessions.absoluteLifetime | quote }}
+    validIfNotUsedFor: {{ .Values.dex.sessions.validIfNotUsedFor | quote }}
+    rememberMeCheckedByDefault: {{ .Values.dex.sessions.rememberMeCheckedByDefault }}
+    ssoSharedWithDefault: {{ .Values.dex.sessions.ssoSharedWithDefault | quote }}
+    {{- if .Values.dex.sessions.cookieEncryptionKey }}
+    cookieEncryptionKey: {{ .Values.dex.sessions.cookieEncryptionKey | quote }}
+    {{- end }}
+{{- end }}
 {{- if .Values.provider.enabled }}
   grpc:
     addr: 0.0.0.0:5557
