@@ -125,6 +125,16 @@ prometheusOperatorObjects:
     labelExpressions:
       {{- toYaml $labelExpressions | nindent 6 }}
     {{- end }}
+    {{- /* Forward to the upstream feature-prometheus-operator-objects, which supports
+           serviceMonitors.allowArbitraryFileAccess (default false). Without this the
+           top-level prometheusOperatorObjects.allowArbitraryFileAccess only reached the
+           customAlloy configmap, so once customAlloy is disabled Alloy drops any
+           ServiceMonitor that uses bearerTokenFile (KPS's kube-apiserver, kube-etcd,
+           kube-scheduler, kube-controller-manager, coredns, kube-proxy, kubelet) with
+           "disallowed because allow_arbitrary_file_access is false". */}}
+    {{- if or .Values.prometheusOperatorObjects.allowArbitraryFileAccess .Values.prometheusOperatorObjects.serviceMonitors.allowArbitraryFileAccess }}
+    allowArbitraryFileAccess: true
+    {{- end }}
     {{- if .Values.prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules }}
     extraDiscoveryRules: |
 {{ .Values.prometheusOperatorObjects.serviceMonitors.extraDiscoveryRules | indent 6 }}
