@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 1.10.5](https://img.shields.io/badge/Version-1.10.5-informational?style=flat-square) ![AppVersion: 4.5.3](https://img.shields.io/badge/AppVersion-4.5.3-informational?style=flat-square)
+![Version: 1.10.8](https://img.shields.io/badge/Version-1.10.8-informational?style=flat-square) ![AppVersion: 4.5.4](https://img.shields.io/badge/AppVersion-4.5.4-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -161,13 +161,16 @@ Expect these differences in the data after the switch:
 - the webhook clientconfig series carry `webhook_service_name` / `webhook_service_namespace` instead of `service_name` / `service_namespace`.
 - kubelet/cadvisor follow upstream's allow lists instead of customAlloy's drop rules.
 
-**Blocker: KPS system ServiceMonitors.** With `replaceUpstreamCollector`, customAlloy scrapes
+**KPS system ServiceMonitors (resolved).** With `replaceUpstreamCollector`, customAlloy scrapes
 KPS's kube-apiserver, kubelet, coredns, kube-controller-manager, kube-scheduler, kube-etcd and
-kube-proxy ServiceMonitors by setting `allow_arbitrary_file_access` (they use
-`bearerTokenFile`). Upstream's `prometheusOperatorObjects` (4.5.3) has no such option, so
-alloy-metrics drops them with only an error log. Keep customAlloy on clusters that depend on those
-metrics, or switch to upstream's `clusterMetrics.apiServer` / `kubeDNS` / ... scrapes (job labels
-become `integrations/kubernetes/*`, so dashboards need updating), until upstream supports it.
+kube-proxy ServiceMonitors, which use `bearerTokenFile` and therefore need Alloy's
+`allow_arbitrary_file_access`. Upstream `feature-prometheus-operator-objects` 4.5.4 added
+`serviceMonitors.allowArbitraryFileAccess` for exactly this, and this chart now forwards its
+top-level `prometheusOperatorObjects.allowArbitraryFileAccess` (default `true`) to it. Retiring
+`customAlloy` therefore no longer drops those metrics: the `apiserver` job keeps its name and
+dashboards keep working. (Before the forwarding was added, the only options were to keep
+customAlloy on, or switch to `clusterMetrics.apiServer` / `kubeDNS` / ... whose job labels become
+`integrations/kubernetes/*`.)
 
 Once no cluster runs customAlloy, it can be deleted from the chart (a breaking, major version change).
 
