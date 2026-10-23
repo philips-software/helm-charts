@@ -73,17 +73,26 @@ package:
   # Set to false if you want Application deletion to also remove the Provider.
   protectProvider: true
 
-  # How many Inactive ProviderRevisions crossplane keeps around after a package
-  # version/registry change (e.g. version bump, or a registry migration like
-  # xpkg.upbound.io -> ghcr.io). Default 0: GC the old revision immediately once
-  # the new one is healthy, instead of keeping 1 around indefinitely.
-  # A lingering Inactive revision keeps being reconciled by crossplane alongside
-  # the Active one, and was observed to cause the Active revision's runtime
-  # Deployment to be repeatedly deleted/recreated (new ReplicaSet every ~20min),
-  # which in turn invalidates the apiserver's watch cache and produced etcd
-  # latency spikes on a 3-node control plane. See
-  # infra/kmaster-tuning/etcd-latency-spikes.md in the k3s homelab repo.
-  revisionHistoryLimit: 0
+  # Number of Inactive ProviderRevisions crossplane retains after a package
+  # version/registry change (e.g. a version bump, or a registry migration like
+  # xpkg.upbound.io -> ghcr.io). Crossplane semantics, straight from the
+  # Provider CRD: "Defaults to 1. Can be disabled by explicitly setting to 0."
+  # 0 does NOT mean "keep none" -- it DISABLES garbage collection entirely, so
+  # Inactive revisions accumulate forever. There is no value that keeps zero:
+  # 1 retains one Inactive revision, and that is the minimum.
+  #
+  # 1 requires Crossplane >= v2.4.0. Before v2.4.0 a lingering Inactive revision
+  # deletes the runtime Deployment by the name this chart pins via
+  # deploymentTemplate.metadata.name, WITHOUT checking that the Deployment is
+  # owned by that revision. Because every revision resolves to that same stable
+  # name, the Inactive revision deleted the Active revision's Deployment, which
+  # was then recreated: a new ReplicaSet every ~15-20min, invalidating the
+  # apiserver's ReplicaSet watch cache and producing etcd write-lock contention
+  # and latency spikes on a 3-node control plane. Crossplane v2.4.0 added the
+  # ownership check (PR #7561, commit 752efb7799), which makes a lingering
+  # Inactive revision harmless. See infra/kmaster-tuning/etcd-latency-spikes.md
+  # in the k3s homelab repo.
+  revisionHistoryLimit: 1
 
   # Periodic CronJob that cleans up after the class of problem documented above:
   # stuck ProviderRevisions, CRDs with a stale ProviderRevision ownerReference,

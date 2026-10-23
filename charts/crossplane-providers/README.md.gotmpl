@@ -70,7 +70,11 @@ spec:
 
 ## Prerequisites
 
-- Crossplane must be installed in the cluster
+- Crossplane **>= v2.4.0** must be installed in the cluster. Before v2.4.0,
+  deactivating a `ProviderRevision` deleted a runtime `Deployment` it did not
+  own when `deploymentTemplate.metadata.name` pinned a stable name (which this
+  chart does), so a retained Inactive revision fought the Active one over the
+  same Deployment. See `package.revisionHistoryLimit` below and crossplane#7561.
 - Ensure the `crossplane-system` namespace exists
 - Configure appropriate RBAC permissions for provider operations
 

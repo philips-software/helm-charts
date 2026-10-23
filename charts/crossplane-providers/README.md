@@ -1,6 +1,6 @@
 # crossplane-providers
 
-![Version: 0.0.41](https://img.shields.io/badge/Version-0.0.41-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.0.42](https://img.shields.io/badge/Version-0.0.42-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 ## Overview
 
@@ -27,7 +27,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-providers
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.41"
+    version: "0.0.42"
     releaseName: crossplane-providers
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -53,7 +53,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-providers
-    targetRevision: "0.0.41"
+    targetRevision: "0.0.42"
     helm:
       valueFiles:
         - values.yaml
@@ -70,7 +70,11 @@ spec:
 
 ## Prerequisites
 
-- Crossplane must be installed in the cluster
+- Crossplane **>= v2.4.0** must be installed in the cluster. Before v2.4.0,
+  deactivating a `ProviderRevision` deleted a runtime `Deployment` it did not
+  own when `deploymentTemplate.metadata.name` pinned a stable name (which this
+  chart does), so a retained Inactive revision fought the Active one over the
+  same Deployment. See `package.revisionHistoryLimit` below and crossplane#7561.
 - Ensure the `crossplane-system` namespace exists
 - Configure appropriate RBAC permissions for provider operations
 
@@ -95,7 +99,7 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | package.namespace | string | `"crossplane-system"` |  |
 | package.protectProvider | bool | `true` |  |
 | package.registry | string | `"xpkg.crossplane.io/crossplane-contrib"` |  |
-| package.revisionHistoryLimit | int | `0` |  |
+| package.revisionHistoryLimit | int | `1` |  |
 | package.version | string | `"v2.9.0"` |  |
 | providers[0].enabled | bool | `true` |  |
 | providers[0].name | string | `"provider-family-aws"` |  |
