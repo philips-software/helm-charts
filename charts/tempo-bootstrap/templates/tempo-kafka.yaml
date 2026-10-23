@@ -88,7 +88,7 @@ spec:
       containers:
         - name: kafka
           # renovate: datasource=docker depName=apache/kafka-native
-          image: docker.io/apache/kafka-native:4.3.2
+          image: docker.io/apache/kafka-native:4.4.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9092
