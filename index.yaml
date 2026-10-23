@@ -992,6 +992,29 @@ entries:
   centcom-satellite:
   - apiVersion: v2
     appVersion: v0.100.0
+    created: "2026-10-23T07:40:21.206083922Z"
+    description: A lightweight Kubernetes helper service for webhook-triggered cluster
+      operations
+    digest: 5d3a61412c542d16f86dbdbb073ff61435543293df05ccd862ec7baf93ef1b1e
+    home: https://github.com/loafoe/centcom-satellite
+    keywords:
+    - kubernetes
+    - pvc
+    - resize
+    - spire
+    - spiffe
+    maintainers:
+    - email: andy.lo-a-foe@philips.com
+      name: Andy Lo-A-Foe
+    name: centcom-satellite
+    sources:
+    - https://github.com/loafoe/centcom-satellite
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/centcom-satellite-0.52.1/centcom-satellite-0.52.1.tgz
+    version: 0.52.1
+  - apiVersion: v2
+    appVersion: v0.100.0
     created: "2026-10-19T09:09:46.659728259Z"
     description: A lightweight Kubernetes helper service for webhook-triggered cluster
       operations
@@ -3546,6 +3569,22 @@ entries:
     version: 0.0.2
   crossplane-functions:
   - apiVersion: v2
+    created: "2026-10-23T07:40:21.41096124Z"
+    description: A Helm chart for deploying Crossplane functions
+    digest: c0f942d740ae53d84f1cc566a80b0c2fe03fdb7c86d807a0abff3672718a8ecd
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    maintainers:
+    - name: Philips Software
+    name: crossplane-functions
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-functions-0.0.17/crossplane-functions-0.0.17.tgz
+    version: 0.0.17
+  - apiVersion: v2
     created: "2026-10-18T14:48:35.719576193Z"
     description: A Helm chart for deploying Crossplane functions
     digest: 2f0348235f7900601a41eb4b8e1b35c237ca387ec3a2524d098a55c41789a3d6
@@ -4853,6 +4892,30 @@ entries:
     version: 0.1.0
   fluent-bit-out-hsdp:
   - apiVersion: v2
+    created: "2026-10-23T07:40:21.617937156Z"
+    dependencies:
+    - name: fluent-bit
+      repository: https://fluent.github.io/helm-charts
+      version: 0.58.3
+    description: Installs the Fluentbit HSP out plugin.
+    digest: 4d8bc000950aa40fc2747bd87a36a869df30704858b7cbde3dd0e529e942ec80
+    home: https://github.com/philips-software/fluent-bit-out-hsdp
+    icon: https://fluentbit.io/images/logo.svg
+    keywords:
+    - logging
+    - fluent-bit
+    - fluentd
+    - hsdp
+    maintainers:
+    - email: andy.loafoe@gmail.com
+      name: loafoe
+    name: fluent-bit-out-hsdp
+    sources:
+    - https://github.com/philips-software/fluent-bit-out-hsdp/
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.14.2/fluent-bit-out-hsdp-0.14.2.tgz
+    version: 0.14.2
+  - apiVersion: v2
     created: "2026-10-09T19:54:51.940257444Z"
     dependencies:
     - name: fluent-bit
@@ -5101,6 +5164,13 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.0.14/fluent-bit-out-hsdp-0.0.14.tgz
     version: 0.0.14
   grafana:
+  - apiVersion: v2
+    created: "2026-10-23T07:40:21.823795517Z"
+    digest: b7fc3b371b4ce4cb9024cd4410b37ebc9a5d4185e8249a343124c1341b293be3
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.81.3/grafana-0.81.3.tgz
+    version: 0.81.3
   - apiVersion: v2
     created: "2026-10-18T14:47:30.709220824Z"
     digest: 0101ba6a7c0c26bbbf117a82b63bc275c7657cd89c99d5f96377c18398d49f22
@@ -5992,6 +6062,15 @@ entries:
   k8s-observability-monitoring:
   - apiVersion: v2
     appVersion: 4.5.3
+    created: "2026-10-23T07:40:21.996871997Z"
+    description: Helm chart for k8s-observability-monitoring
+    digest: 30cfa252d7efca02e57cf13de81b29f9d2f24358a310a9a33ebbdefad63464bb
+    name: k8s-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-1.10.6/k8s-observability-monitoring-1.10.6.tgz
+    version: 1.10.6
+  - apiVersion: v2
+    appVersion: 4.5.3
     created: "2026-10-20T07:28:14.324541627Z"
     description: Helm chart for k8s-observability-monitoring
     digest: 9a9d315adbff66d8822fcedaf2b6a141d9224ecbf32d85bda441d6f59229d7b1
@@ -6800,6 +6879,23 @@ entries:
     version: 0.1.0
   langfuse-bootstrap:
   - apiVersion: v2
+    created: "2026-10-23T07:40:22.189009475Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: 3564503808722b1c04ebd8c90e23fcd9955a66a384307b3d0de1aa1881ddf105
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.8.4/langfuse-bootstrap-0.8.4.tgz
+    version: 0.8.4
+  - apiVersion: v2
     created: "2026-10-21T09:09:13.289406443Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
       with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
@@ -7235,6 +7331,14 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.1.0/langfuse-bootstrap-0.1.0.tgz
     version: 0.1.0
   loki-bootstrap:
+  - apiVersion: v2
+    created: "2026-10-23T07:40:22.32876473Z"
+    description: A Helm chart for bootstrapping Loki
+    digest: 0fdd439d468323eb6749ed40e2ebd25fd3967eb0330e8db647c9e8863ef17204
+    name: loki-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.46.3/loki-bootstrap-0.46.3.tgz
+    version: 0.46.3
   - apiVersion: v2
     created: "2026-10-21T09:09:02.07313375Z"
     description: A Helm chart for bootstrapping Loki
@@ -8984,4 +9088,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-22T15:49:56.466354422Z"
+generated: "2026-10-23T07:40:22.521388821Z"
