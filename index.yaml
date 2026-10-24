@@ -7051,6 +7051,23 @@ entries:
     version: 0.1.0
   langfuse-bootstrap:
   - apiVersion: v2
+    created: "2026-10-24T10:02:30.265052796Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: f3f3b6454f2102dc148f2d8da174e5ca6e430bb8ad69c01a8f657bf683dfbb54
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.9.3/langfuse-bootstrap-0.9.3.tgz
+    version: 0.9.3
+  - apiVersion: v2
     created: "2026-10-24T10:02:20.704865589Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
       with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
@@ -7571,6 +7588,14 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.1.0/langfuse-bootstrap-0.1.0.tgz
     version: 0.1.0
   loki-bootstrap:
+  - apiVersion: v2
+    created: "2026-10-24T10:02:30.537788663Z"
+    description: A Helm chart for bootstrapping Loki
+    digest: 46c469c4d9df15e89a235324cc2c352ae67c4a1ef21dc7bfe53695e3c006af9c
+    name: loki-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.46.5/loki-bootstrap-0.46.5.tgz
+    version: 0.46.5
   - apiVersion: v2
     created: "2026-10-24T06:27:23.788622612Z"
     description: A Helm chart for bootstrapping Loki
@@ -9344,4 +9369,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-24T10:02:20.705526138Z"
+generated: "2026-10-24T10:02:30.538362526Z"
