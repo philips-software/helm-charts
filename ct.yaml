@@ -17,6 +17,11 @@ excluded-charts:
   - common-bootstrap
   - crossplane-providers
   - grafana
+  # Both charts below render dip.io/v1alpha1 Postgres claims and/or
+  # argoproj.io/v1alpha1 Applications, which a bare kind cluster has no CRDs
+  # for, so `ct install` fails with "resource mapping not found" on any PR that
+  # touches them. Same treatment as the other bootstrap charts above.
+  - dex-issuer
   - k8s-observability-monitoring
   - langfuse-bootstrap
   - loki-bootstrap

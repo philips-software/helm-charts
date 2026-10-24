@@ -154,7 +154,10 @@ database:
   # Postgres storage/engine sizing
   size: xsmall
   allocatedStorage: 20
-  engineVersion: "18.1"
+  # PostgreSQL engine version. Empty = not rendered, and the postgres-cnpg
+  # composition applies its own default image (PostgreSQL 18.6, i.e. what CNPG
+  # operator 1.30.1 ships). Set explicitly to hold a cluster on a version.
+  engineVersion: ""
   # Enable CNPG snapshots + Barman backups
   enableSnapshots: true
   barmanBackup:

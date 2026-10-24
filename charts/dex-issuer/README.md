@@ -1,6 +1,6 @@
 # dex-issuer
 
-![Version: 0.12.9](https://img.shields.io/badge/Version-0.12.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.12.10](https://img.shields.io/badge/Version-0.12.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
@@ -135,7 +135,7 @@ omit `spec.tls`.
 | database.cnpg | bool | `true` |  |
 | database.connectionSecretName | string | `""` |  |
 | database.enableSnapshots | bool | `true` |  |
-| database.engineVersion | string | `"18.1"` |  |
+| database.engineVersion | string | `""` |  |
 | database.identifier | string | `""` |  |
 | database.size | string | `"xsmall"` |  |
 | database.snapshotClassName | string | `""` |  |
