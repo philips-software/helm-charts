@@ -23,7 +23,9 @@ spec:
     identifier: {{ .Values.database.identifier | default (printf "%s-dex" .Values.environmentConfig.resourcePrefix) }}
     size: {{ .Values.database.size }}
     allocatedStorage: {{ .Values.database.allocatedStorage }}
-    engineVersion: {{ .Values.database.engineVersion | quote }}
+    {{- with .Values.database.engineVersion }}
+    engineVersion: {{ . | quote }}
+    {{- end }}
     databaseName: dex
     masterUsername: dex
   {{- if and .Values.database.cnpg .Values.database.enableSnapshots }}

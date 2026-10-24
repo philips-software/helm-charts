@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.81.2](https://img.shields.io/badge/Version-0.81.2-informational?style=flat-square)
+![Version: 0.81.6](https://img.shields.io/badge/Version-0.81.6-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -105,6 +105,7 @@ Users not in any of these groups will have the 'None' role and no access.
 | crossplaneProviders.orgmapper.debug | bool | `false` |  |
 | crossplaneProviders.orgmapper.enabled | bool | `true` |  |
 | database.cnpg | bool | `true` |  |
+| database.engineVersion | string | `""` |  |
 | database.restoreFromSnapshot | bool | `false` |  |
 | database.restoreFromVolumeSnapshot.enabled | bool | `false` |  |
 | database.restoreFromVolumeSnapshot.sourceIdentifier | string | `""` |  |

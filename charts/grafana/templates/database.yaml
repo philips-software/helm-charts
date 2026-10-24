@@ -17,7 +17,9 @@ spec:
   parameters:
     identifier: {{ .Values.environmentConfig.resourcePrefix }}-grafana
     size: small
-    engineVersion: "18.1"
+    {{- with .Values.database.engineVersion }}
+    engineVersion: {{ . | quote }}
+    {{- end }}
     databaseName: grafana
     masterUsername: grafana
   {{- if and .Values.database.cnpg .Values.database.snapshots.enabled }}
