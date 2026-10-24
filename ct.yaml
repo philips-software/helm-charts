@@ -11,6 +11,10 @@ excluded-charts:
   - clickhouse-operator-bootstrap
   - cloudnative-pg-bootstrap
   - cloudnative-pg-operator
+  # Renders argoproj.io/v1alpha1 Application/AppProject; `ct install` runs on a
+  # bare kind cluster with no Argo CD CRDs, so the install can never succeed.
+  # Only reachable when the chart's own content changes (a dependency bump).
+  - common-bootstrap
   - crossplane-providers
   - grafana
   - k8s-observability-monitoring
