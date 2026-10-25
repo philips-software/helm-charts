@@ -189,6 +189,7 @@ omit `spec.tls`.
 | pki.certRenewBefore | string | `"720h"` |  |
 | pki.clientNamespace | string | `"crossplane-system"` |  |
 | pki.existingClusterIssuer | string | `""` |  |
+| pki.grpcMtlsEnabled | bool | `false` |  |
 | provider.cascadeDelete | bool | `false` |  |
 | provider.crossplaneProvidersVersion | string | `"0.0.40"` |  |
 | provider.debug | bool | `true` |  |

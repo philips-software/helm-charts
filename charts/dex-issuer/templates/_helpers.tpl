@@ -88,14 +88,40 @@ Generate the in-cluster Dex gRPC endpoint (host:port) used by provider-dex.
 {{- end }}
 
 {{/*
-Whether the Dex<->provider-dex gRPC mTLS PKI is active. Requires both the
-Crossplane connector plane and an existing ClusterIssuer to root the CA chain
-in -- this chart never creates its own cluster-scoped ClusterIssuer, since
-that is a shared resource that would collide with any other Application
-managing a same-named issuer (see pki.existingClusterIssuer in values.yaml).
+Whether this chart renders its OWN PKI chain (crossplane-ca Certificate +
+crossplane-ca-issuer ClusterIssuer + provider-dex-client-tls). Requires both
+this chart's own provider.yaml (provider-dex) and an existing ClusterIssuer
+to root the chain in -- this chart never creates its own cluster-scoped
+ClusterIssuer, since that is a shared resource that would collide with any
+other Application managing a same-named issuer (see pki.existingClusterIssuer
+in values.yaml).
+*/}}
+{{- define "dex-issuer.managePki" -}}
+{{- if and .Values.provider.enabled .Values.pki.existingClusterIssuer }}true{{ else }}false{{ end }}
+{{- end }}
+
+{{/*
+Whether the Dex pod itself is configured for gRPC mTLS (volume mount +
+config.yaml's grpc.tls* fields): either this chart manages the whole PKI
+chain (see dex-issuer.managePki above), or pki.grpcMtlsEnabled forces it on
+for a cluster whose provider-dex/PKI is managed entirely outside this chart
+but still expects Dex to serve mTLS (it still needs a dex-grpc-tls Secret to
+exist in this release's namespace -- out of band, this chart does not create
+one in that case).
 */}}
 {{- define "dex-issuer.mtlsEnabled" -}}
-{{- if and .Values.provider.enabled .Values.pki.existingClusterIssuer }}true{{ else }}false{{ end }}
+{{- if or .Values.pki.grpcMtlsEnabled (eq (include "dex-issuer.managePki" .) "true") }}true{{ else }}false{{ end }}
+{{- end }}
+
+{{/*
+Whether Dex's gRPC API (the provider-dex connector-management plane) should
+be listening at all. True whenever this chart's own provider-dex is enabled,
+or gRPC mTLS was forced on for an externally-managed provider-dex (see
+pki.grpcMtlsEnabled above) -- that external provider-dex needs something to
+connect to regardless of who manages it.
+*/}}
+{{- define "dex-issuer.grpcEnabled" -}}
+{{- if or .Values.provider.enabled .Values.pki.grpcMtlsEnabled }}true{{ else }}false{{ end }}
 {{- end }}
 
 {{/*

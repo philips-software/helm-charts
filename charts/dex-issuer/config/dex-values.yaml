@@ -31,7 +31,7 @@ strategy:
   type: RollingUpdate
   rollingUpdate:
     maxUnavailable: 1
-{{- if .Values.provider.enabled }}
+{{- if eq (include "dex-issuer.grpcEnabled" .) "true" }}
 grpc:
   enabled: true
 {{- end }}
@@ -55,7 +55,7 @@ config:
     cookieEncryptionKey: {{ .Values.dex.sessions.cookieEncryptionKey | quote }}
     {{- end }}
 {{- end }}
-{{- if .Values.provider.enabled }}
+{{- if eq (include "dex-issuer.grpcEnabled" .) "true" }}
   grpc:
     addr: 0.0.0.0:5557
 {{- if eq (include "dex-issuer.mtlsEnabled" .) "true" }}

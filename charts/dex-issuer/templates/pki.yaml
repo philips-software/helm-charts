@@ -1,4 +1,4 @@
-{{- if eq (include "dex-issuer.mtlsEnabled" .) "true" -}}
+{{- if eq (include "dex-issuer.managePki" .) "true" -}}
 # Intermediate CA for Crossplane <-> Dex gRPC mTLS communication, chained off
 # an existing cluster-scoped ClusterIssuer (pki.existingClusterIssuer). This
 # chart deliberately never creates its own selfSigned ClusterIssuer: that is a

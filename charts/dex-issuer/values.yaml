@@ -300,6 +300,14 @@ pki:
   # entirely (dex-grpc-tls, provider-dex-client-tls, and the intermediate CA
   # are then not created, and provider-dex talks to Dex over plaintext gRPC).
   existingClusterIssuer: ""
+  # Force the Dex pod to render its gRPC mTLS config (volume mount +
+  # config.yaml's grpc.tls* fields) even when this chart isn't the one
+  # managing the PKI chain or provider-dex (provider.enabled: false) -- e.g.
+  # a cluster where provider-dex and its CA are installed through a separate,
+  # pre-existing kustomize/Application path. The dex-grpc-tls Secret must
+  # then already exist in this release's namespace out of band; this chart
+  # will not create it.
+  grpcMtlsEnabled: false
   # Namespace where the CA certificate secret is created (cert-manager reads it here)
   caNamespace: cert-manager
   # Namespace where the provider-dex client certificate is created
