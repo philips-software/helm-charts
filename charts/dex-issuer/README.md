@@ -1,6 +1,6 @@
 # dex-issuer
 
-![Version: 0.12.10](https://img.shields.io/badge/Version-0.12.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.13.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
@@ -142,6 +142,9 @@ omit `spec.tls`.
 | database.storageClassName | string | `""` |  |
 | dex.allowedScopePrefixes[0] | string | `"hsp:iam:introspect"` |  |
 | dex.dcr.enabled | bool | `true` |  |
+| dex.enterpriseManagedAuthorization.accountLinkingByEmail | bool | `false` |  |
+| dex.enterpriseManagedAuthorization.enabled | bool | `false` |  |
+| dex.enterpriseManagedAuthorization.trustedIssuers | list | `[]` |  |
 | dex.expiry.idTokens | string | `"8h"` |  |
 | dex.expiry.signingKeys | string | `"6h"` |  |
 | dex.frontendIssuer | string | `"DIP Services"` |  |
@@ -172,6 +175,7 @@ omit `spec.tls`.
 | dex.staticClients | list | `[]` |  |
 | dex.staticClientsSecret.enabled | bool | `false` |  |
 | dex.staticClientsSecret.name | string | `"dex-static-clients"` |  |
+| dex.tokenExchange.tokenTypes | list | `[]` |  |
 | dexChart.releaseName | string | `"dex"` |  |
 | dexChart.repoURL | string | `"https://charts.dexidp.io"` |  |
 | dexChart.version | string | `"0.26.0"` |  |

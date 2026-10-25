@@ -94,6 +94,18 @@ config:
     grantTypes:
       {{- toYaml .Values.dex.grantTypes | nindent 6 }}
 {{- end }}
+{{- if .Values.dex.tokenExchange.tokenTypes }}
+    tokenExchange:
+      tokenTypes:
+        {{- toYaml .Values.dex.tokenExchange.tokenTypes | nindent 8 }}
+{{- end }}
+{{- if .Values.dex.enterpriseManagedAuthorization.enabled }}
+    enterpriseManagedAuthorization:
+      enabled: true
+      accountLinkingByEmail: {{ .Values.dex.enterpriseManagedAuthorization.accountLinkingByEmail }}
+      trustedIssuers:
+        {{- toYaml .Values.dex.enterpriseManagedAuthorization.trustedIssuers | nindent 8 }}
+{{- end }}
 {{- if .Values.dex.staticClients }}
   staticClients:
     {{- toYaml .Values.dex.staticClients | nindent 4 }}

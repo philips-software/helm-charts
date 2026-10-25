@@ -65,6 +65,34 @@ dex:
   #   "urn:ietf:params:oauth:grant-type:device_code",
   #   "urn:ietf:params:oauth:grant-type:token-exchange", "client_credentials"]
   grantTypes: []
+  # OAuth2 token exchange (RFC 8693) token types Dex will mint/accept beyond
+  # the default set. Rendered under config.oauth2.tokenExchange.tokenTypes
+  # only when non-empty. Needed for EMA Role A (Dex mints ID-JAGs via Token
+  # Exchange) -- e.g. ["urn:ietf:params:oauth:token-type:id_token",
+  # "urn:ietf:params:oauth:token-type:id-jag"]. Also requires
+  # "urn:ietf:params:oauth:grant-type:token-exchange" in grantTypes above.
+  tokenExchange:
+    tokenTypes: []
+  # Enterprise Managed Authorization (EMA): lets Dex act as an MCP
+  # Authorization Server, accepting ID-JAGs from a trusted issuer and
+  # redeeming them for resource-bound access tokens (EMA Role B). Off by
+  # default -- rendered under config.oauth2.enterpriseManagedAuthorization
+  # only when enabled.
+  enterpriseManagedAuthorization:
+    enabled: false
+    # Whether a token exchange may link accounts across issuers by email
+    # claim alone. Leave false unless every trusted issuer is known to
+    # verify email ownership.
+    accountLinkingByEmail: false
+    # Issuers this Dex accepts ID-JAGs from. Each entry needs issuer (the
+    # "iss" claim to match), jwksURL (where to fetch verification keys), and
+    # expectedAudience (the "aud" claim to match). Example: a Dex-to-Dex
+    # self-test where this same Dex is both the minting (Role A) and
+    # accepting (Role B) party:
+    #   - issuer: https://issuer.example.com
+    #     jwksURL: https://issuer.example.com/keys
+    #     expectedAudience: https://issuer.example.com
+    trustedIssuers: []
   # Authentication sessions (the "auth sessions" feature: server-side browser
   # sessions, prompt=none / prompt=login, max_age, id_token_hint, and an
   # RP-initiated /logout endpoint). Off by default; it needs a Dex build that
