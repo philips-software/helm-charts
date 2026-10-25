@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 1.6.2](https://img.shields.io/badge/Version-1.6.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.52](https://img.shields.io/badge/AppVersion-0.0.52-informational?style=flat-square)
+![Version: 1.7.0](https://img.shields.io/badge/Version-1.7.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.52](https://img.shields.io/badge/AppVersion-0.0.52-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -11,26 +11,39 @@ and uses HelmApplication CRs to bootstrap platform components.
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | argocd.namespace | string | `"argocd"` |  |
-| argocd.project.create | bool | `true` |  |
-| argocd.project.description | string | `"Bootstrap applications"` |  |
-| argocd.project.name | string | `"common-bootstrap"` |  |
-| argocd.project.sourceNamespaces[0] | string | `"common-bootstrap"` |  |
-| argocd.project.sourceNamespaces[1] | string | `"crossplane-system"` |  |
-| argocd.project.sourceNamespaces[2] | string | `"argocd"` |  |
-| argocd.project.sourceNamespaces[3] | string | `"monitoring"` |  |
-| argocd.project.sourceNamespaces[4] | string | `"otlp-gateway"` |  |
-| argocd.project.sourceNamespaces[5] | string | `"cnpg-system"` |  |
-| argocd.project.sourceNamespaces[6] | string | `"k8s-observability-monitoring"` |  |
-| argocd.project.sourceRepos[0] | string | `"https://github.com/philips-software/helm-charts"` |  |
-| argocd.project.sourceRepos[1] | string | `"https://github.com/loafoe/crossplane-compositions"` |  |
-| argocd.project.sourceRepos[2] | string | `"https://cloudnative-pg.io/charts/"` |  |
-| argocd.project.sourceRepos[3] | string | `"https://grafana-community.github.io/helm-charts"` |  |
-| argocd.project.sourceRepos[4] | string | `"https://grafana.github.io/helm-charts"` |  |
-| argocd.project.sourceRepos[5] | string | `"oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator"` |  |
-| argocd.project.sourceRepos[6] | string | `"oci://ghcr.io/philips-software/helm-charts/otlp-gateway"` |  |
-| argocd.project.sourceRepos[7] | string | `"oci://ghcr.io/philips-software/helm-charts/grafana"` |  |
-| argocd.project.sourceRepos[8] | string | `"oci://ghcr.io/philips-software/helm-charts/*"` |  |
-| argocd.project.sourceRepos[9] | string | `"ghcr.io/philips-software"` |  |
+| argocd.projects.apps.clusterResourceWhitelist[0].group | string | `"rbac.authorization.k8s.io"` |  |
+| argocd.projects.apps.clusterResourceWhitelist[0].kind | string | `"ClusterRole"` |  |
+| argocd.projects.apps.clusterResourceWhitelist[1].group | string | `"rbac.authorization.k8s.io"` |  |
+| argocd.projects.apps.clusterResourceWhitelist[1].kind | string | `"ClusterRoleBinding"` |  |
+| argocd.projects.apps.create | bool | `true` |  |
+| argocd.projects.apps.description | string | `"Namespaced workloads bootstrapped alongside common-infra"` |  |
+| argocd.projects.apps.destinationNamespaces[0] | string | `"k8s-observability-monitoring"` |  |
+| argocd.projects.apps.name | string | `"common-apps"` |  |
+| argocd.projects.apps.sourceNamespaces[0] | string | `"k8s-observability-monitoring"` |  |
+| argocd.projects.apps.sourceRepos[0] | string | `"https://github.com/grafana/k8s-monitoring-helm"` |  |
+| argocd.projects.apps.sourceRepos[1] | string | `"https://grafana-community.github.io/helm-charts"` |  |
+| argocd.projects.apps.sourceRepos[2] | string | `"https://grafana.github.io/helm-charts"` |  |
+| argocd.projects.apps.sourceRepos[3] | string | `"oci://ghcr.io/philips-software/helm-charts/otlp-gateway"` |  |
+| argocd.projects.apps.sourceRepos[4] | string | `"oci://ghcr.io/philips-software/helm-charts/grafana"` |  |
+| argocd.projects.apps.sourceRepos[5] | string | `"oci://ghcr.io/philips-software/helm-charts/*"` |  |
+| argocd.projects.apps.sourceRepos[6] | string | `"ghcr.io/philips-software"` |  |
+| argocd.projects.infra.clusterResourceWhitelist[0].group | string | `"*"` |  |
+| argocd.projects.infra.clusterResourceWhitelist[0].kind | string | `"*"` |  |
+| argocd.projects.infra.create | bool | `true` |  |
+| argocd.projects.infra.description | string | `"Cluster-wide platform operators and CRDs bootstrapped by common-bootstrap"` |  |
+| argocd.projects.infra.destinationNamespaces[0] | string | `"common-bootstrap"` |  |
+| argocd.projects.infra.destinationNamespaces[1] | string | `"crossplane-system"` |  |
+| argocd.projects.infra.destinationNamespaces[2] | string | `"cnpg-system"` |  |
+| argocd.projects.infra.name | string | `"common-infra"` |  |
+| argocd.projects.infra.sourceNamespaces[0] | string | `"common-bootstrap"` |  |
+| argocd.projects.infra.sourceNamespaces[1] | string | `"crossplane-system"` |  |
+| argocd.projects.infra.sourceNamespaces[2] | string | `"cnpg-system"` |  |
+| argocd.projects.infra.sourceRepos[0] | string | `"https://github.com/philips-software/helm-charts"` |  |
+| argocd.projects.infra.sourceRepos[1] | string | `"https://github.com/loafoe/crossplane-compositions"` |  |
+| argocd.projects.infra.sourceRepos[2] | string | `"https://cloudnative-pg.io/charts/"` |  |
+| argocd.projects.infra.sourceRepos[3] | string | `"oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator"` |  |
+| argocd.projects.infra.sourceRepos[4] | string | `"oci://ghcr.io/philips-software/helm-charts/*"` |  |
+| argocd.projects.infra.sourceRepos[5] | string | `"ghcr.io/philips-software"` |  |
 | argocdSyncAlerts.additionalLabels | object | `{}` |  |
 | argocdSyncAlerts.enabled | bool | `false` |  |
 | argocdSyncAlerts.frozenFor | string | `"6h"` |  |

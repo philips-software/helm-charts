@@ -16,10 +16,11 @@ The Common Bootstrap chart has been installed!
    View the EnvironmentConfig:
      kubectl get environmentconfig {{ .Values.environmentConfig.name }} -o yaml
 
-{{- if .Values.argocd.project.create }}
-
-2. ArgoCD AppProject: {{ .Values.argocd.project.name }}
-   - Namespace: {{ .Values.argocd.namespace }}
+2. ArgoCD AppProjects:
+{{- range $key, $project := .Values.argocd.projects }}
+{{- if $project.create }}
+   - {{ $project.name }} (namespace: {{ $.Values.argocd.namespace }})
+{{- end }}
 {{- end }}
 
 {{- if .Values.crossplaneCompositions.enabled }}

@@ -1,6 +1,6 @@
 # cloudnative-pg-operator
 
-![Version: 0.12.2](https://img.shields.io/badge/Version-0.12.2-informational?style=flat-square)
+![Version: 0.13.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square)
 
 A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 
@@ -33,7 +33,7 @@ first in the list — the Kyverno policy always reads `imageCatalog.images[0].ma
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| argoProject | string | `"common-bootstrap"` |  |
+| argoProject | string | `"common-infra"` |  |
 | barmanCloudPlugin.enabled | bool | `true` |  |
 | barmanCloudPlugin.version | string | `"0.8.1"` |  |
 | cnpgChart.version | string | `"0.29.1"` |  |

@@ -1,25 +1,29 @@
-{{- if .Values.argocd.project.create }}
+{{- range $key, $project := .Values.argocd.projects }}
+{{- if $project.create }}
+---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: {{ .Values.argocd.project.name }}
-  namespace: {{ .Values.argocd.namespace }}
+  name: {{ $project.name }}
+  namespace: {{ $.Values.argocd.namespace }}
   labels:
-    {{- include "common-bootstrap.labels" . | nindent 4 }}
+    {{- include "common-bootstrap.labels" $ | nindent 4 }}
 spec:
   clusterResourceWhitelist:
-    - group: '*'
-      kind: '*'
-  description: {{ .Values.argocd.project.description }}
+    {{- toYaml $project.clusterResourceWhitelist | nindent 4 }}
+  description: {{ $project.description }}
   destinations:
+    {{- range $project.destinationNamespaces }}
     - name: in-cluster
-      namespace: '*'
+      namespace: {{ . }}
       server: https://kubernetes.default.svc
+    {{- end }}
   namespaceResourceWhitelist:
     - group: '*'
       kind: '*'
   sourceNamespaces:
-    {{- toYaml .Values.argocd.project.sourceNamespaces | nindent 4 }}
+    {{- toYaml $project.sourceNamespaces | nindent 4 }}
   sourceRepos:
-    {{- toYaml .Values.argocd.project.sourceRepos | nindent 4 }}
+    {{- toYaml $project.sourceRepos | nindent 4 }}
+{{- end }}
 {{- end }}

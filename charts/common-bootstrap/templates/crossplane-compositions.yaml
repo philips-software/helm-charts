@@ -16,7 +16,7 @@ spec:
   destination:
     name: in-cluster
     namespace: common-bootstrap
-  project: {{ .Values.argocd.project.name }}
+  project: {{ .Values.argocd.projects.infra.name }}
   source:
     path: {{ .Values.crossplaneCompositions.path }}
     repoURL: {{ .Values.crossplaneCompositions.repoURL }}

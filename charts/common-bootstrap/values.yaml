@@ -27,31 +27,72 @@ crossplaneCompositions:
   path: kustomize
 
 # ArgoCD configuration
+#
+# Two projects, split by blast radius:
+#   - projects.infra: cluster-wide operators/CRDs (cloudnative-pg-operator,
+#     crossplane-compositions). Needs clusterResourceWhitelist for CRDs,
+#     ClusterRoles, etc.
+#   - projects.apps: namespaced workloads bootstrapped alongside infra
+#     (k8s-monitoring today, future helmApplications entries). Deliberately
+#     has no cluster-scoped access.
+# Neither project targets the argocd namespace as a destination -- only this
+# chart's own Application-of-Applications bootstrapping lives there, and that
+# isn't managed through either project.
 argocd:
   namespace: argocd
-  project:
-    name: common-bootstrap
-    create: true
-    description: Bootstrap applications
-    sourceRepos:
-      - https://github.com/philips-software/helm-charts
-      - https://github.com/loafoe/crossplane-compositions
-      - https://cloudnative-pg.io/charts/
-      - https://grafana-community.github.io/helm-charts
-      - https://grafana.github.io/helm-charts
-      - oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator
-      - oci://ghcr.io/philips-software/helm-charts/otlp-gateway
-      - oci://ghcr.io/philips-software/helm-charts/grafana
-      - oci://ghcr.io/philips-software/helm-charts/*
-      - ghcr.io/philips-software
-    sourceNamespaces:
-      - common-bootstrap
-      - crossplane-system
-      - argocd
-      - monitoring
-      - otlp-gateway
-      - cnpg-system
-      - k8s-observability-monitoring
+  projects:
+    infra:
+      name: common-infra
+      create: true
+      description: Cluster-wide platform operators and CRDs bootstrapped by common-bootstrap
+      sourceRepos:
+        - https://github.com/philips-software/helm-charts
+        - https://github.com/loafoe/crossplane-compositions
+        - https://cloudnative-pg.io/charts/
+        - oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator
+        - oci://ghcr.io/philips-software/helm-charts/*
+        - ghcr.io/philips-software
+      sourceNamespaces:
+        - common-bootstrap
+        - crossplane-system
+        - cnpg-system
+      # Namespaces this project's Applications are allowed to deploy into.
+      # Scoped to what's actually used across clusters today
+      # (cloudnative-pg-operator, cloudnative-pg, crossplane-compositions),
+      # plus crossplane-system for the planned esoIamResources HelmApplication
+      # below. Add a namespace here before pointing a new helmApplications
+      # entry or project-scoped Application at it.
+      destinationNamespaces:
+        - common-bootstrap
+        - crossplane-system
+        - cnpg-system
+      clusterResourceWhitelist:
+        - group: '*'
+          kind: '*'
+    apps:
+      name: common-apps
+      create: true
+      description: Namespaced workloads bootstrapped alongside common-infra
+      sourceRepos:
+        - https://github.com/grafana/k8s-monitoring-helm
+        - https://grafana-community.github.io/helm-charts
+        - https://grafana.github.io/helm-charts
+        - oci://ghcr.io/philips-software/helm-charts/otlp-gateway
+        - oci://ghcr.io/philips-software/helm-charts/grafana
+        - oci://ghcr.io/philips-software/helm-charts/*
+        - ghcr.io/philips-software
+      sourceNamespaces:
+        - k8s-observability-monitoring
+      destinationNamespaces:
+        - k8s-observability-monitoring
+      # Grafana's k8s-monitoring chart (Alloy collectors) needs its own
+      # ClusterRole/ClusterRoleBinding to scrape cluster-wide resources, so
+      # this can't be empty -- but it's scoped to RBAC only, not '*'/'*'.
+      clusterResourceWhitelist:
+        - group: rbac.authorization.k8s.io
+          kind: ClusterRole
+        - group: rbac.authorization.k8s.io
+          kind: ClusterRoleBinding
 
 # HelmApplications to deploy via Crossplane composition
 # These will be created after the EnvironmentConfig is ready
