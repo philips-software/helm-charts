@@ -83,8 +83,17 @@ argocd:
         - ghcr.io/philips-software
       sourceNamespaces:
         - k8s-observability-monitoring
+        - monitoring
+        - crossplane-system
       destinationNamespaces:
         - k8s-observability-monitoring
+        # Grafana (charts/grafana) lands here when bootstrapped under
+        # common-apps, e.g. on the rpi homelab cluster. Its bundled
+        # Crossplane providers (provider-gf, provider-orgmapper) share the
+        # same chart-level argocd.project value and land in crossplane-system,
+        # so that's allowed here too even though it's infra-flavored.
+        - monitoring
+        - crossplane-system
       # Grafana's k8s-monitoring chart (Alloy collectors) needs its own
       # ClusterRole/ClusterRoleBinding to scrape cluster-wide resources, so
       # this can't be empty -- but it's scoped to RBAC only, not '*'/'*'.
