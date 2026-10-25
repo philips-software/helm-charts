@@ -2737,6 +2737,15 @@ entries:
     version: 0.2.0
   cloudnative-pg-operator:
   - apiVersion: v2
+    created: "2026-10-25T15:46:44.470990259Z"
+    description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
+      policies
+    digest: 23239601fb83b0ccf454731d77be3d055a35b436ad51a79a449e2bd14b39db68
+    name: cloudnative-pg-operator
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-0.13.0/cloudnative-pg-operator-0.13.0.tgz
+    version: 0.13.0
+  - apiVersion: v2
     created: "2026-10-21T19:32:09.014057815Z"
     description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
       policies
@@ -2898,6 +2907,23 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-bootstrap-0.1.0/cloudnative-pg-operator-bootstrap-0.1.0.tgz
     version: 0.1.0
   common-bootstrap:
+  - apiVersion: v2
+    appVersion: 0.0.52
+    created: "2026-10-25T15:46:44.656843085Z"
+    description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
+      deploys crossplane-compositions, and uses HelmApplication CRs to bootstrap platform
+      components. '
+    digest: e8cd86ec34e93bc6818ff9960308705b3e607f5336226ae9456f42e88d3caeb7
+    keywords:
+    - crossplane
+    - common
+    - bootstrap
+    - argocd
+    name: common-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/common-bootstrap-2.0.0/common-bootstrap-2.0.0.tgz
+    version: 2.0.0
   - apiVersion: v2
     appVersion: 0.0.52
     created: "2026-10-24T08:11:32.013984285Z"
@@ -9377,4 +9403,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-25T11:06:21.430718135Z"
+generated: "2026-10-25T15:46:44.845163066Z"
