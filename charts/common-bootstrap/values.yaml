@@ -73,6 +73,12 @@ argocd:
         - crossplane-system
         - cnpg-system
         - monitoring
+        # dex-issuer (charts/dex-issuer) -- cluster-scoped ClusterIssuer +
+        # provider-dex Crossplane Provider package, same reasoning as the
+        # grafana bundle above, so it belongs on common-infra not
+        # common-apps. ghcr.io/philips-software (its source) is already
+        # covered by sourceRepos.
+        - dex-system
       clusterResourceWhitelist:
         - group: '*'
           kind: '*'

@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 2.1.0](https://img.shields.io/badge/Version-2.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.52](https://img.shields.io/badge/AppVersion-0.0.52-informational?style=flat-square)
+![Version: 2.2.0](https://img.shields.io/badge/Version-2.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.52](https://img.shields.io/badge/AppVersion-0.0.52-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -35,6 +35,7 @@ and uses HelmApplication CRs to bootstrap platform components.
 | argocd.projects.infra.destinationNamespaces[1] | string | `"crossplane-system"` |  |
 | argocd.projects.infra.destinationNamespaces[2] | string | `"cnpg-system"` |  |
 | argocd.projects.infra.destinationNamespaces[3] | string | `"monitoring"` |  |
+| argocd.projects.infra.destinationNamespaces[4] | string | `"dex-system"` |  |
 | argocd.projects.infra.name | string | `"common-infra"` |  |
 | argocd.projects.infra.sourceNamespaces[0] | string | `"common-bootstrap"` |  |
 | argocd.projects.infra.sourceNamespaces[1] | string | `"crossplane-system"` |  |
