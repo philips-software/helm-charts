@@ -49,6 +49,7 @@ argocd:
         - https://github.com/philips-software/helm-charts
         - https://github.com/loafoe/crossplane-compositions
         - https://cloudnative-pg.io/charts/
+        - https://grafana-community.github.io/helm-charts
         - oci://ghcr.io/philips-software/helm-charts/cloudnative-pg-operator
         - oci://ghcr.io/philips-software/helm-charts/*
         - ghcr.io/philips-software
@@ -56,16 +57,22 @@ argocd:
         - common-bootstrap
         - crossplane-system
         - cnpg-system
+        - monitoring
       # Namespaces this project's Applications are allowed to deploy into.
       # Scoped to what's actually used across clusters today
       # (cloudnative-pg-operator, cloudnative-pg, crossplane-compositions),
       # plus crossplane-system for the planned esoIamResources HelmApplication
-      # below. Add a namespace here before pointing a new helmApplications
-      # entry or project-scoped Application at it.
+      # below, plus monitoring for the grafana bundle (charts/grafana) on
+      # clusters like rpi homelab. That bundle's Crossplane providers
+      # (provider-gf, provider-orgmapper) need a Provider package resource,
+      # which is cluster-scoped -- it must stay on common-infra
+      # (clusterResourceWhitelist '*'/'*'), not common-apps, which only
+      # whitelists RBAC ClusterRole/ClusterRoleBinding.
       destinationNamespaces:
         - common-bootstrap
         - crossplane-system
         - cnpg-system
+        - monitoring
       clusterResourceWhitelist:
         - group: '*'
           kind: '*'
@@ -83,17 +90,8 @@ argocd:
         - ghcr.io/philips-software
       sourceNamespaces:
         - k8s-observability-monitoring
-        - monitoring
-        - crossplane-system
       destinationNamespaces:
         - k8s-observability-monitoring
-        # Grafana (charts/grafana) lands here when bootstrapped under
-        # common-apps, e.g. on the rpi homelab cluster. Its bundled
-        # Crossplane providers (provider-gf, provider-orgmapper) share the
-        # same chart-level argocd.project value and land in crossplane-system,
-        # so that's allowed here too even though it's infra-flavored.
-        - monitoring
-        - crossplane-system
       # Grafana's k8s-monitoring chart (Alloy collectors) needs its own
       # ClusterRole/ClusterRoleBinding to scrape cluster-wide resources, so
       # this can't be empty -- but it's scoped to RBAC only, not '*'/'*'.
