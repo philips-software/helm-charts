@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 2.1.0](https://img.shields.io/badge/Version-2.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.52](https://img.shields.io/badge/AppVersion-0.0.52-informational?style=flat-square)
+![Version: 2.2.0](https://img.shields.io/badge/Version-2.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.52](https://img.shields.io/badge/AppVersion-0.0.52-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -18,8 +18,12 @@ and uses HelmApplication CRs to bootstrap platform components.
 | argocd.projects.apps.create | bool | `true` |  |
 | argocd.projects.apps.description | string | `"Namespaced workloads bootstrapped alongside common-infra"` |  |
 | argocd.projects.apps.destinationNamespaces[0] | string | `"k8s-observability-monitoring"` |  |
+| argocd.projects.apps.destinationNamespaces[1] | string | `"otlp-gateway"` |  |
+| argocd.projects.apps.destinationNamespaces[2] | string | `"monitoring"` |  |
 | argocd.projects.apps.name | string | `"common-apps"` |  |
 | argocd.projects.apps.sourceNamespaces[0] | string | `"k8s-observability-monitoring"` |  |
+| argocd.projects.apps.sourceNamespaces[1] | string | `"otlp-gateway"` |  |
+| argocd.projects.apps.sourceNamespaces[2] | string | `"monitoring"` |  |
 | argocd.projects.apps.sourceRepos[0] | string | `"https://github.com/grafana/k8s-monitoring-helm"` |  |
 | argocd.projects.apps.sourceRepos[1] | string | `"https://grafana-community.github.io/helm-charts"` |  |
 | argocd.projects.apps.sourceRepos[2] | string | `"https://grafana.github.io/helm-charts"` |  |

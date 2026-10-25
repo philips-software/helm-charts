@@ -90,8 +90,12 @@ argocd:
         - ghcr.io/philips-software
       sourceNamespaces:
         - k8s-observability-monitoring
+        - otlp-gateway
+        - monitoring
       destinationNamespaces:
         - k8s-observability-monitoring
+        - otlp-gateway
+        - monitoring
       # Grafana's k8s-monitoring chart (Alloy collectors) needs its own
       # ClusterRole/ClusterRoleBinding to scrape cluster-wide resources, so
       # this can't be empty -- but it's scoped to RBAC only, not '*'/'*'.
