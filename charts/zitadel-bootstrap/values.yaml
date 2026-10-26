@@ -71,7 +71,21 @@ database:
 # field below for any real deployment; these are dev-only placeholders (same
 # convention as langfuse-bootstrap's credentials.postgresPassword default).
 credentials:
+  # Set to adopt a pre-existing "zitadel-credentials" Secret (same name the
+  # upstream chart's masterkeySecretName always expects) instead of this
+  # chart rendering/managing one from masterkey/adminPassword below -- e.g.
+  # migrating an existing Zitadel's masterkey from another cluster. Putting
+  # that masterkey in this values field instead would mean ArgoCD rendering
+  # it in plaintext into the HelmApplication/Application spec -- a far more
+  # exposed location than a Secret. There is no reliable way to make ArgoCD
+  # "ignore" just this field going forward either: ignoreDifferences on a
+  # stringData-rendered key does not reliably survive a sync here (observed:
+  # it can strip the key from stringData entirely without preserving the
+  # live data, wiping the Secret). Adopting it via this flag instead keeps
+  # automated sync/selfHeal safe to leave on for everything else.
+  existingSecret: false
   # Exactly 32 bytes, printable ASCII. Generate: tr -dc A-Za-z0-9 </dev/urandom | head -c 32
+  # Ignored when existingSecret is true.
   masterkey: "changeme-please-override-32bytes"
   # CNPG Postgres password for the zitadel role.
   postgresPassword: "changeme-postgres-password-please-override"

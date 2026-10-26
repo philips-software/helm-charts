@@ -1,6 +1,6 @@
 # zitadel-bootstrap
 
-![Version: 0.2.4](https://img.shields.io/badge/Version-0.2.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Zitadel](https://zitadel.com/) via ArgoCD: CNPG Postgres (static credentials, no Bitnami), standard username/password sign-in out of the box, and a single Gateway API HTTPRoute of this chart's own (not the upstream chart's native Gateway API support — see the design spec's "Ingress" section for why).
 
@@ -37,6 +37,7 @@ Then browse to http://localhost:8080. For an actual local sign-in flow, enable `
 | argoProject | string | `"default"` |  |
 | credentials.adminPassword | string | `"changeme-Admin-Password1!"` |  |
 | credentials.adminUsername | string | `"zitadel-admin"` |  |
+| credentials.existingSecret | bool | `false` |  |
 | credentials.masterkey | string | `"changeme-please-override-32bytes"` |  |
 | credentials.postgresPassword | string | `"changeme-postgres-password-please-override"` |  |
 | database.clusterName | string | `""` |  |
