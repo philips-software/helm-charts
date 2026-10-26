@@ -250,9 +250,6 @@ gateway:
     # Chart 18.x adds an unbounded jkroepke/access-log-exporter sidecar by default; keep it off to match prior footprint.
     enabled: false
 
-minio:
-  enabled: false
-
 chunksCache:
   annotations:
     "policies.hsp.philips.com/exception": "require-pods-distributed-across-nodes"
@@ -421,14 +418,3 @@ serviceAccount:
   name: "{{ .Values.environmentConfig.resourcePrefix }}-loki"
   annotations:
     eks.amazonaws.com/role-arn: "arn:aws:iam::{{ .Values.environmentConfig.accountId }}:role/{{ .Values.environmentConfig.resourcePrefix }}-loki-irsa-role"
-securityContext:
-  allowPrivilegeEscalation: false
-  capabilities:
-    drop:
-      - ALL
-  runAsNonRoot: true
-  runAsUser: 3000
-  runAsGroup: 3000
-  readOnlyRootFilesystem: true
-  seccompProfile:
-    type: RuntimeDefault
