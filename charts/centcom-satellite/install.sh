@@ -70,11 +70,24 @@
 #
 #   curl -fsSL .../install.sh | SECURITYHUB_WRITE=true bash
 #
+# To enable aws_read (read-only IAM / IAM Identity Center admin / Identity
+# Store calls via IRSA — the data an access review needs: users, roles,
+# policies, credential report, permission sets), set AWS_READ_ENABLED=true.
+# Deliberately excluded from the IRSA_ENABLED master switch below, same as
+# SECURITYHUB_WRITE: it reveals exactly who has access to the account, and a
+# single large IAM footprint (hundreds of roles/policies) can return a
+# multi-MB response per call regardless of cluster/pod size — see the memory
+# sizing section further down, which gives this group its own floor on top
+# of the usual pod-count tiering:
+#
+#   curl -fsSL .../install.sh | AWS_READ_ENABLED=true bash
+#
 # Or enable EVERY IRSA-dependent READ-ONLY task group at once with the master
 # switch — this turns on CloudWatch RCA, GuardDuty, and Security Hub reads
 # together (any group can still be opted out with GROUP=false). The master
-# switch deliberately does NOT include SECURITYHUB_WRITE — a mutating
-# capability stays opt-in on its own, never lit up implicitly:
+# switch deliberately does NOT include SECURITYHUB_WRITE or AWS_READ_ENABLED
+# — neither a mutating capability nor this identity-revealing/memory-heavy
+# one is ever lit up implicitly:
 #
 #   curl -fsSL .../install.sh | IRSA_ENABLED=true bash
 #
@@ -163,7 +176,7 @@ set -euo pipefail
 # in lockstep with Chart.yaml's version on every release that touches this
 # script. `install.sh verify` uses it to know which signed OCI chart to check
 # itself against — see that function for the full explanation.
-INSTALL_SH_CHART_VERSION="0.55.0"
+INSTALL_SH_CHART_VERSION="0.56.0"
 
 # Unconditional, un-suppressible proof of life: the very first thing this
 # script does, before parsing a single config default or touching the
@@ -331,6 +344,21 @@ fi
 #   curl -fsSL .../install.sh | SECURITYHUB_WRITE=true bash
 #
 : "${SECURITYHUB_WRITE:=}"
+# aws_read: read-only IAM / IAM Identity Center admin / Identity Store calls
+# via IRSA (users, roles, policies, credential report, permission sets — the
+# data an access review needs). Like CLOUDWATCH_RCA/GUARDDUTY/SECURITYHUB
+# this needs AWS credentials via IRSA, but it is deliberately NOT part of
+# the IRSA_ENABLED master switch below (see the usage comment above): it is
+# both identity-revealing and, unlike the other groups, its memory cost
+# depends on the AWS account's own IAM footprint (role/policy count) rather
+# than the cluster's — a large shared account can return a multi-MB response
+# per call regardless of how small this cluster is. discover_memory() below
+# gives it its own floor on top of the usual pod-count tiering for exactly
+# this reason:
+#
+#   curl -fsSL .../install.sh | AWS_READ_ENABLED=true bash
+#
+: "${AWS_READ_ENABLED:=}"
 : "${IRSA_ENABLED:=}"          # master switch: true turns on all unset AWS READ-ONLY task groups; auto-true when any read-only group is on
 # NOTE: these use IRSA_-prefixed names on purpose — NOT AWS_REGION/AWS_ACCOUNT_ID.
 # Everything is derived from the TARGET CLUSTER, never from the operator's local
@@ -380,6 +408,11 @@ fi
 [ -n "$GUARDDUTY" ]      || GUARDDUTY=false
 [ -n "$SECURITYHUB" ]    || SECURITYHUB=false
 [ -n "$SECURITYHUB_WRITE" ] || SECURITYHUB_WRITE=false
+# AWS_READ_ENABLED is resolved on its own, not inside the IRSA_ENABLED=true
+# block above — it stays off under the master switch, same exclusion as
+# SECURITYHUB_WRITE (see its usage comment). An explicit AWS_READ_ENABLED=true
+# still turns IRSA on for itself, via the auto-enable check just below.
+[ -n "$AWS_READ_ENABLED" ] || AWS_READ_ENABLED=false
 
 # SECURITYHUB_WRITE is a mutating AWS call: force it off under READ_ONLY=true
 # regardless of how it was set, matching the guarantee every other mutating
@@ -393,7 +426,7 @@ if [ "$READ_ONLY" = "true" ]; then
 fi
 
 if [ -z "$IRSA_ENABLED" ]; then
-  if [ "$CLOUDWATCH_RCA" = "true" ] || [ "$GUARDDUTY" = "true" ] || [ "$SECURITYHUB" = "true" ] || [ "$SECURITYHUB_WRITE" = "true" ]; then
+  if [ "$CLOUDWATCH_RCA" = "true" ] || [ "$GUARDDUTY" = "true" ] || [ "$SECURITYHUB" = "true" ] || [ "$SECURITYHUB_WRITE" = "true" ] || [ "$AWS_READ_ENABLED" = "true" ]; then
     IRSA_ENABLED=true
   else
     IRSA_ENABLED=false
@@ -419,6 +452,11 @@ if [ "$SECURITYHUB_WRITE" = "true" ]; then
   FEATURES="${FEATURES},securityhubWrite=true"
 else
   FEATURES="${FEATURES},securityhubWrite=false"
+fi
+if [ "$AWS_READ_ENABLED" = "true" ]; then
+  FEATURES="${FEATURES},awsRead=true"
+else
+  FEATURES="${FEATURES},awsRead=false"
 fi
 
 # Networking / exposure. Empty values are auto-discovered (see below).
@@ -478,13 +516,32 @@ VPA_ENABLED_EXPLICIT=true
 # large clusters (observed on src-co-sb: 110 nodes / thousands of pods) BEFORE
 # the VPA can react, and the chart's 1Gi vpa.maxAllowed would re-OOM anyway.
 # So discover() counts pods and picks both the initial limit and the VPA ceiling
-# from a tier table. Override either to skip the auto-sizing:
+# from a tier table.
+#
+# AWS_READ_ENABLED tracks a SEPARATE risk the pod-count tiers don't capture at
+# all: aws_read's peak memory depends on the AWS ACCOUNT's own IAM footprint
+# (role/policy count), not the cluster's. Real incident, ops-sandbox,
+# 2026-10-27: a 2-pod-tier cluster sharing a 369-role/169-policy account got
+# both of its satellite replicas OOM-killed (exit 137) by a single
+# GetAccountAuthorizationDetails page whose AWS SDK decode alone spiked a
+# local test to ~173MB RSS — far above that tier's limit, and the satellite's
+# own aws_read response-size guard (internal/task/aws_read) can only cap the
+# amplification AFTER that SDK decode already happened, not before it. So
+# discover_memory() raises the chosen tier to a floor when AWS_READ_ENABLED
+# is true, on top of (never instead of) the pod-count tier — a cluster with
+# both a huge pod count AND aws_read gets whichever is larger.
+#
+# Override any of this to skip the auto-sizing:
 #   POD_COUNT=<n>       skip the cluster-wide pod list (locked-down/huge clusters)
 #   MEMORY_LIMIT=<val>  force the initial limit (e.g. 512Mi); still tiers the VPA
 #   VPA_MAX_MEMORY=<val> force the VPA ceiling (e.g. 4Gi)
 : "${POD_COUNT:=}"            # auto: kubectl get pods -A | wc -l
 : "${MEMORY_LIMIT:=}"         # auto: from pod-count tier table
 : "${VPA_MAX_MEMORY:=}"       # auto: from pod-count tier table
+# Initialized here (not just inside discover_memory) so it's always defined
+# under `set -u` even on a path that returns before discover_memory sets it
+# (both knobs pinned, or pod-count discovery failed) — summarize() reads it.
+AWS_READ_MEM_FLOOR_APPLIED=false
 : "${DRY_RUN:=false}"         # true = print helm/kubectl actions, change nothing
 : "${VALUES_ONLY:=false}"     # true = render values.yaml + print the helm command, change nothing (see render_values_only)
 : "${VALUES_FILE:=}"          # output path for VALUES_ONLY; empty = <release-name>-values.yaml
@@ -534,6 +591,29 @@ half_mem() {
     Ki|Mi) printf '%s%s' "$(( num / 2 ))" "$unit" ;;
     *)  printf '%s' "$q" ;;
   esac
+}
+
+# mem_mi <quantity>: a Ki/Mi/Gi memory quantity as a plain Mi integer, for
+# numeric comparison (e.g. the AWS_READ_ENABLED floor in discover_memory).
+# Unknown units are returned as-is (best-effort; not expected in practice).
+mem_mi() {
+  local q="$1" num unit
+  num=${q%[KMGkmg]i}
+  unit=${q#"$num"}
+  case "$unit" in
+    Gi) printf '%s' "$(( num * 1024 ))" ;;
+    Mi) printf '%s' "$num" ;;
+    Ki) printf '%s' "$(( num / 1024 ))" ;;
+    *)  printf '%s' "$num" ;;
+  esac
+}
+
+# max_mem <a> <b>: the larger of two Ki/Mi/Gi memory quantities, printed in Mi.
+max_mem() {
+  local a b
+  a=$(mem_mi "$1")
+  b=$(mem_mi "$2")
+  if [ "$a" -ge "$b" ]; then printf '%sMi' "$a"; else printf '%sMi' "$b"; fi
 }
 
 # All progress/diagnostic output goes to stderr (the functions above, the
@@ -821,14 +901,31 @@ discover_memory() {
   # Tier table: initial limit / VPA ceiling. Requests are derived as half the
   # limit in deploy(). Tiers are picked so the initial limit alone survives the
   # cold-start burst (before any VPA action) and the ceiling leaves headroom.
-  # Bumped 50% over the original table (128Mi/256Mi/512Mi/1Gi/2Gi limits,
-  # 1Gi/1Gi/2Gi/3Gi/4Gi ceilings) after cold-start OOMs persisted at those sizes.
+  # Doubled again 2026-10-27 over the 50%-bumped table (192Mi/384Mi/768Mi/
+  # 1536Mi/3Gi limits, 1536Mi/1536Mi/3Gi/4608Mi/6Gi ceilings) — triggered by
+  # the AWS_READ_ENABLED incident below, but applied to every tier: cold-start
+  # informer-cache pressure (the original reason for this table) hadn't gone
+  # away either, and headroom here is cheap relative to an OOM mid-rollout.
   local tier_limit tier_max
-  if   [ "$POD_COUNT" -lt 100 ];  then tier_limit=192Mi;  tier_max=1536Mi
-  elif [ "$POD_COUNT" -lt 500 ];  then tier_limit=384Mi;  tier_max=1536Mi
-  elif [ "$POD_COUNT" -lt 1500 ]; then tier_limit=768Mi;  tier_max=3Gi
-  elif [ "$POD_COUNT" -lt 4000 ]; then tier_limit=1536Mi; tier_max=4608Mi
-  else                                 tier_limit=3Gi;    tier_max=6Gi
+  if   [ "$POD_COUNT" -lt 100 ];  then tier_limit=384Mi;  tier_max=3072Mi
+  elif [ "$POD_COUNT" -lt 500 ];  then tier_limit=768Mi;  tier_max=3072Mi
+  elif [ "$POD_COUNT" -lt 1500 ]; then tier_limit=1536Mi; tier_max=6144Mi
+  elif [ "$POD_COUNT" -lt 4000 ]; then tier_limit=3072Mi; tier_max=9216Mi
+  else                                 tier_limit=6144Mi; tier_max=12288Mi
+  fi
+
+  # AWS_READ_ENABLED floor: real incident, ops-sandbox, 2026-10-27 — see the
+  # header comment above this function's section. Applied as a floor (max),
+  # never a ceiling, so a huge cluster that also has aws_read on keeps its
+  # bigger pod-count tier rather than being downgraded to this group's own
+  # numbers. AWS_READ_MEM_FLOOR_APPLIED (summarize() reads it) tracks whether
+  # this changed anything, so the operator can see which number actually won.
+  AWS_READ_MEM_FLOOR_APPLIED=false
+  if [ "$AWS_READ_ENABLED" = "true" ]; then
+    local pre_limit="$tier_limit"
+    tier_limit=$(max_mem "$tier_limit" "512Mi")
+    tier_max=$(max_mem "$tier_max" "2048Mi")
+    [ "$tier_limit" = "$pre_limit" ] || AWS_READ_MEM_FLOOR_APPLIED=true
   fi
 
   [ -n "$MEMORY_LIMIT" ]   || MEMORY_LIMIT="$tier_limit"
@@ -1033,7 +1130,9 @@ summarize() {
   [ "$VPA_ENABLED_EXPLICIT" = "true" ] || vpa_suffix=" (auto)"
   _row "📊" "monitoring"   "serviceMonitor=${SERVICEMONITOR_ENABLED}${sm_suffix}  vpa=${VPA_ENABLED}${vpa_suffix}"
   if [ -n "$MEMORY_LIMIT" ]; then
-    _row "🧠" "memory"       "limit ${MEMORY_LIMIT}, vpa max ${VPA_MAX_MEMORY}  \033[2m(auto: ${POD_COUNT:-?} pods)\033[0m"
+    local mem_why="auto: ${POD_COUNT:-?} pods"
+    [ "$AWS_READ_MEM_FLOOR_APPLIED" = "true" ] && mem_why="auto: ${POD_COUNT:-?} pods, raised to the aws_read floor (512Mi/2Gi)"
+    _row "🧠" "memory"       "limit ${MEMORY_LIMIT}, vpa max ${VPA_MAX_MEMORY}  \033[2m(${mem_why})\033[0m"
   else
     _row "🧠" "memory"       "chart defaults  \033[2m(pod count unavailable)\033[0m"
   fi
@@ -1043,6 +1142,7 @@ summarize() {
     [ "$GUARDDUTY" = "true" ]         && irsa_groups="${irsa_groups:+${irsa_groups}, }GuardDuty"
     [ "$SECURITYHUB" = "true" ]       && irsa_groups="${irsa_groups:+${irsa_groups}, }Security Hub"
     [ "$SECURITYHUB_WRITE" = "true" ] && irsa_groups="${irsa_groups:+${irsa_groups}, }Security Hub (write)"
+    [ "$AWS_READ_ENABLED" = "true" ]  && irsa_groups="${irsa_groups:+${irsa_groups}, }AWS Read"
     : "${irsa_groups:=none}"
     if [ -n "$IRSA_ROLE_ARN" ]; then
       _row "☁️ " "aws irsa"     "${irsa_groups} \033[2m(BYO role ${IRSA_ROLE_ARN}, region ${IRSA_REGION})\033[0m"

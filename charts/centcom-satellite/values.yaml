@@ -341,14 +341,21 @@ service:
 # -- Container resource requests/limits. The initial memory.limit is
 # sized for small/medium clusters; large clusters (thousands of pods, see
 # observability.logLevel and vpa above) should raise this — install.sh's
-# discover_memory tiers it automatically from cluster-wide pod count.
+# discover_memory tiers it automatically from cluster-wide pod count (and,
+# since 2026-10-27, floors it further when features.awsRead is on — see its
+# own comment below). Doubled 128Mi/32Mi -> 256Mi/64Mi the same day: this
+# default is what any install NOT going through install.sh actually runs on
+# (a plain `helm install`/GitOps deploy with no resources override — e.g.
+# this is how dip-ce-k3s-eu's own satellite was running, discovered during
+# the incident that prompted this), so install.sh's own (much larger) tiers
+# are not a safety net for that path at all.
 resources:
   limits:
     cpu: 100m
-    memory: 128Mi
+    memory: 256Mi
   requests:
     cpu: 10m
-    memory: 32Mi
+    memory: 64Mi
 
 # Observability settings
 #
