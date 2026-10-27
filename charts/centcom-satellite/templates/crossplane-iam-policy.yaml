@@ -207,6 +207,95 @@ spec:
         ]
       }
 {{- end }}
+{{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) .Values.features.awsRead }}
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: Policy
+metadata:
+  name: {{ include "centcom-satellite.irsaName" . }}-aws-read
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    crossplane.io/external-name: {{ include "centcom-satellite.irsaName" . }}-aws-read
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ .Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    path: {{ include "centcom-satellite.irsaPath" . | quote }}
+    {{- with .Values.aws.irsa.tags }}
+    tags:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    policy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "CentcomAWSRead",
+            "Effect": "Allow",
+            "Action": [
+              "iam:GenerateCredentialReport",
+              "iam:GenerateServiceLastAccessedDetails",
+              "iam:GetAccessKeyLastUsed",
+              "iam:GetAccountAuthorizationDetails",
+              "iam:GetAccountPasswordPolicy",
+              "iam:GetAccountSummary",
+              "iam:GetCredentialReport",
+              "iam:GetGroup",
+              "iam:GetGroupPolicy",
+              "iam:GetLoginProfile",
+              "iam:GetPolicy",
+              "iam:GetPolicyVersion",
+              "iam:GetRole",
+              "iam:GetRolePolicy",
+              "iam:GetServiceLastAccessedDetails",
+              "iam:GetServiceLastAccessedDetailsWithEntities",
+              "iam:GetUser",
+              "iam:GetUserPolicy",
+              "iam:ListAccessKeys",
+              "iam:ListAccountAliases",
+              "iam:ListAttachedGroupPolicies",
+              "iam:ListAttachedRolePolicies",
+              "iam:ListAttachedUserPolicies",
+              "iam:ListEntitiesForPolicy",
+              "iam:ListGroupPolicies",
+              "iam:ListGroups",
+              "iam:ListGroupsForUser",
+              "iam:ListMFADevices",
+              "iam:ListOpenIDConnectProviders",
+              "iam:ListPolicies",
+              "iam:ListRolePolicies",
+              "iam:ListRoleTags",
+              "iam:ListRoles",
+              "iam:ListSAMLProviders",
+              "iam:ListUserPolicies",
+              "iam:ListUserTags",
+              "iam:ListUsers",
+              "iam:ListVirtualMFADevices",
+              "identitystore:DescribeGroup",
+              "identitystore:DescribeUser",
+              "identitystore:ListGroupMemberships",
+              "identitystore:ListGroupMembershipsForMember",
+              "identitystore:ListGroups",
+              "identitystore:ListUsers",
+              "sso:DescribePermissionSet",
+              "sso:GetInlinePolicyForPermissionSet",
+              "sso:ListAccountAssignments",
+              "sso:ListAccountAssignmentsForPrincipal",
+              "sso:ListAccountsForProvisionedPermissionSet",
+              "sso:ListCustomerManagedPolicyReferencesInPermissionSet",
+              "sso:ListInstances",
+              "sso:ListManagedPoliciesInPermissionSet",
+              "sso:ListPermissionSets",
+              "sso:ListPermissionSetsProvisionedToAccount"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+{{- end }}
 {{- if and .Values.aws.irsa.enabled (not .Values.aws.irsa.roleArnOverride) .Values.aws.assumeRole .Values.aws.assumeRole.roleArn }}
 ---
 apiVersion: iam.aws.m.upbound.io/v1beta1

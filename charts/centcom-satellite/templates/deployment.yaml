@@ -181,6 +181,10 @@ spec:
             - name: CLOUDTRAIL_ENABLED
               value: "true"
             {{- end }}
+            {{- if .Values.features.awsRead }}
+            - name: AWS_READ_ENABLED
+              value: "true"
+            {{- end }}
             {{- if .Values.aws.irsa.region }}
             - name: AWS_REGION
               value: {{ .Values.aws.irsa.region | quote }}

@@ -99,6 +99,26 @@ spec:
     policyArnRef:
       name: {{ include "centcom-satellite.irsaName" . }}-cloudtrail
 {{- end }}
+{{- /* Attach the read-only aws_read policy (IAM / Identity Center reads) only when that feature is on. */ -}}
+{{- if .Values.features.awsRead }}
+---
+apiVersion: iam.aws.m.upbound.io/v1beta1
+kind: RolePolicyAttachment
+metadata:
+  name: {{ include "centcom-satellite.irsaName" . }}-aws-read
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "centcom-satellite.labels" . | nindent 4 }}
+spec:
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: {{ .Values.aws.irsa.providerConfigRef }}
+  forProvider:
+    roleRef:
+      name: {{ include "centcom-satellite.irsaRoleName" . }}
+    policyArnRef:
+      name: {{ include "centcom-satellite.irsaName" . }}-aws-read
+{{- end }}
 {{- /* Attach the cross-account AssumeRole policy only when a target roleArn is configured. */ -}}
 {{- if and .Values.aws.assumeRole .Values.aws.assumeRole.roleArn }}
 ---
