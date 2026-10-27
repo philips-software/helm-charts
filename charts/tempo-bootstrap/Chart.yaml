@@ -1,4 +1,4 @@
 apiVersion: v2
 name: tempo-bootstrap
-version: 0.45.8
+version: 0.45.9
 description: A Helm chart for bootstrapping Tempo
