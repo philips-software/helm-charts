@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.11.4](https://img.shields.io/badge/Version-0.11.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.11.6](https://img.shields.io/badge/Version-0.11.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -117,11 +117,11 @@ To actually recover production data with this, either point `database.clusterNam
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | agentgatewayChart.repoURL | string | `"oci://cr.agentgateway.dev/charts"` |  |
-| agentgatewayChart.version | string | `"v1.6.0"` |  |
+| agentgatewayChart.version | string | `"v1.7.0"` |  |
 | agentgatewayCrdsChart.repoURL | string | `"oci://cr.agentgateway.dev/charts"` |  |
-| agentgatewayCrdsChart.version | string | `"v1.6.0"` |  |
+| agentgatewayCrdsChart.version | string | `"v1.7.0"` |  |
 | agentgatewayStandaloneChart.repoURL | string | `"oci://cr.agentgateway.dev/charts"` |  |
-| agentgatewayStandaloneChart.version | string | `"v1.6.0"` |  |
+| agentgatewayStandaloneChart.version | string | `"v1.7.0"` |  |
 | argoProject | string | `"default"` |  |
 | bedrock.auth.roleArn | string | `""` |  |
 | bedrock.auth.secretName | string | `"bedrock-secret"` |  |
