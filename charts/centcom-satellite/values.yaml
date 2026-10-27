@@ -227,6 +227,17 @@ features:
   # (not part of install.sh's IRSA_ENABLED read-only bundle): sign-in history
   # identifies people, so it is more sensitive than findings.
   cloudtrail: false
+  # -- Enable the aws_read task: one allowlisted read-only AWS API call per
+  # request across IAM (users, groups, roles, policies, credential report,
+  # access-key / service last-used), IAM Identity Center admin (permission
+  # sets, assignments) and Identity Store (users, groups, memberships) — the
+  # data an access review needs. Sets AWS_READ_ENABLED and attaches a policy
+  # granting exactly the allowlisted actions to the IRSA role. Explicit
+  # opt-in like cloudtrail: it reveals who has access to the account, and
+  # Identity Store user records carry names and emails. Identity Center
+  # reads only return data in the organization's management account or a
+  # delegated administrator account.
+  awsRead: false
 
 # AWS integration: Crossplane-managed IAM + IRSA.
 #
