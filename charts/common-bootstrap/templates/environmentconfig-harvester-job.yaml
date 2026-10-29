@@ -109,11 +109,9 @@ spec:
               OIDC_PROVIDER_ARN=$(echo "$EKS_JSON" | jq -r '.oidcProviderArn // ""')
               CLUSTER_FQDN=$(echo "$EKS_JSON" | jq -r '.clusterFqdn // ""')
               
-              # Extract resourcePrefix and ownership tags from tags JSON
+              # Extract resourcePrefix from tags JSON (Environment key)
               TAGS_JSON=$(kubectl get configmap "$SOURCE_CM" -n "$SOURCE_NS" -o jsonpath='{.data.tags}' 2>/dev/null || echo "{}")
               RESOURCE_PREFIX=$(echo "$TAGS_JSON" | jq -r '.Environment // ""')
-              OWNER=$(echo "$TAGS_JSON" | jq -r '.Owner // ""')
-              MANAGED_BY=$(echo "$TAGS_JSON" | jq -r '.ManagedBy // ""')
 
               echo "Extracted values:"
               echo "  REGION:                    $REGION"
@@ -123,8 +121,6 @@ spec:
               echo "  OIDC_PROVIDER:             $OIDC_PROVIDER"
               echo "  OIDC_PROVIDER_ARN:         $OIDC_PROVIDER_ARN"
               echo "  SHARED_SERVICES_ACCOUNT_ID: $SHARED_SERVICES_ACCOUNT_ID"
-              echo "  OWNER:                     $OWNER"
-              echo "  MANAGED_BY:                $MANAGED_BY"
               echo ""
               
               # Create or update the EnvironmentConfig
@@ -150,10 +146,6 @@ spec:
                 # OIDC configuration
                 oidcProvider: "$OIDC_PROVIDER"
                 oidcProviderArn: "$OIDC_PROVIDER_ARN"
-                # Ownership metadata, consumed by downstream charts to label
-                # their workloads for the require-owner-label Kyverno policy
-                owner: "$OWNER"
-                managedBy: "$MANAGED_BY"
               EOF
               
               echo ""
