@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.81.6](https://img.shields.io/badge/Version-0.81.6-informational?style=flat-square)
+![Version: 0.81.11](https://img.shields.io/badge/Version-0.81.11-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -101,7 +101,7 @@ Users not in any of these groups will have the 'None' role and no access.
 | crossplaneProviders.gf.datasources | list | `[]` |  |
 | crossplaneProviders.gf.debug | bool | `false` |  |
 | crossplaneProviders.gf.enabled | bool | `true` |  |
-| crossplaneProviders.gf.tag | string | `"v0.12.1"` |  |
+| crossplaneProviders.gf.tag | string | `"v0.12.2"` |  |
 | crossplaneProviders.orgmapper.debug | bool | `false` |  |
 | crossplaneProviders.orgmapper.enabled | bool | `true` |  |
 | database.cnpg | bool | `true` |  |
@@ -174,7 +174,7 @@ Users not in any of these groups will have the 'None' role and no access.
 | grafana.ssoRoleAttributePath | string | `""` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
-| grafanaChart.version | string | `"14.0.1"` |  |
+| grafanaChart.version | string | `"14.2.0"` |  |
 | namePrefix | string | `""` |  |
 | useCustomFqdn | bool | `true` |  |
 
