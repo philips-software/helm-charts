@@ -51,12 +51,15 @@ spec:
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
   jobTemplate:
+    metadata:
+      labels:
+        {{- include "grafana.labels" . | nindent 8 }}
     spec:
       backoffLimit: 2
       template:
         metadata:
           labels:
-            {{- include "grafana.selectorLabels" . | nindent 12 }}
+            {{- include "grafana.labels" . | nindent 12 }}
         spec:
           serviceAccountName: grafana-plugin-sync
           restartPolicy: OnFailure

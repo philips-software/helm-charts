@@ -70,7 +70,9 @@ metadata:
 spec:
   backoffLimit: 4
   template:
-    metadata: {}
+    metadata:
+      labels:
+        {{- include "agentgateway-bootstrap.labels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "agentgateway-bootstrap.fullname" . }}-postgres-wire
       restartPolicy: OnFailure

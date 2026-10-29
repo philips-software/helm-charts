@@ -17,6 +17,12 @@ spec:
     helm:
       releaseName: agentgateway-standalone
       valuesObject:
+        commonLabels:
+          {{- include "agentgateway-bootstrap.ownerLabels" . | nindent 10 }}
+          app.kubernetes.io/managed-by: {{ include "agentgateway-bootstrap.managedBy" . }}
+        podLabels:
+          {{- include "agentgateway-bootstrap.ownerLabels" . | nindent 10 }}
+          app.kubernetes.io/managed-by: {{ include "agentgateway-bootstrap.managedBy" . }}
         mode: database
         config:
           config:

@@ -18,6 +18,10 @@ spec:
     targetRevision: {{ .Values.barmanCloudPlugin.version }}
     helm:
       releaseName: plugin-barman-cloud
+      valuesObject:
+        podLabels:
+          {{- include "cloudnative-pg-operator.ownerLabels" . | nindent 10 }}
+          app.kubernetes.io/managed-by: {{ include "cloudnative-pg-operator.managedBy" . }}
   destination:
     server: https://kubernetes.default.svc
     namespace: {{ .Values.operator.namespace }}

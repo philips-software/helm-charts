@@ -51,6 +51,8 @@ metadata:
   labels:
     app.kubernetes.io/name: tempo-kafka
     app.kubernetes.io/component: kafka
+    app.kubernetes.io/managed-by: {{ include "tempo-bootstrap.managedBy" . }}
+    {{- include "tempo-bootstrap.ownerLabels" . | nindent 4 }}
 spec:
   podManagementPolicy: Parallel
   replicas: 1
@@ -64,6 +66,8 @@ spec:
       labels:
         app.kubernetes.io/name: tempo-kafka
         app.kubernetes.io/component: kafka
+        app.kubernetes.io/managed-by: {{ include "tempo-bootstrap.managedBy" . }}
+        {{- include "tempo-bootstrap.ownerLabels" . | nindent 8 }}
     spec:
       {{- if .Values.priorityClass.enabled }}
       priorityClassName: {{ .Values.priorityClass.name }}

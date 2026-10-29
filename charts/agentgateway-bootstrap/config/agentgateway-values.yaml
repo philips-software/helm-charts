@@ -1,3 +1,10 @@
+commonLabels:
+  {{- include "agentgateway-bootstrap.ownerLabels" . | nindent 2 }}
+  app.kubernetes.io/managed-by: {{ include "agentgateway-bootstrap.managedBy" . }}
+podLabels:
+  {{- include "agentgateway-bootstrap.ownerLabels" . | nindent 2 }}
+  app.kubernetes.io/managed-by: {{ include "agentgateway-bootstrap.managedBy" . }}
+
 controller:
   replicaCount: {{ .Values.controller.replicaCount }}
   logLevel: {{ .Values.controller.logLevel | quote }}

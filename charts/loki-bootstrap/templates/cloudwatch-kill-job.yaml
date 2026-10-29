@@ -106,14 +106,22 @@ kind: CronJob
 metadata:
   name: cloudwatch-kill-job
   namespace: loki-system
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
 spec:
   schedule: "*/5 * * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
   jobTemplate:
+    metadata:
+      labels:
+        {{- include "loki-bootstrap.labels" . | nindent 8 }}
     spec:
       template:
+        metadata:
+          labels:
+            {{- include "loki-bootstrap.labels" . | nindent 12 }}
         spec:
           serviceAccountName: cloudwatch-kill-job
           restartPolicy: OnFailure

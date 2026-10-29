@@ -342,3 +342,8 @@ environmentConfig:
   # Resource prefix for the cluster; used to namespace account-global resource names
   # such as the Postgres identifier (alphanumeric characters and hyphens only)
   resourcePrefix: ""
+  # Ownership metadata propagated onto managed workloads so they satisfy the
+  # require-owner-label Kyverno policy. Empty owner omits the label;
+  # empty managedBy keeps the chart's default app.kubernetes.io/managed-by value.
+  owner: ""
+  managedBy: ""

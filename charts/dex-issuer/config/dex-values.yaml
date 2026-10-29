@@ -1,4 +1,10 @@
 replicaCount: {{ .Values.dex.replicas }}
+commonLabels:
+  {{- include "dex-issuer.ownerLabels" . | nindent 2 }}
+  app.kubernetes.io/managed-by: {{ include "dex-issuer.managedBy" . }}
+podLabels:
+  {{- include "dex-issuer.ownerLabels" . | nindent 2 }}
+  app.kubernetes.io/managed-by: {{ include "dex-issuer.managedBy" . }}
 env:
   DEX_API_CONNECTORS_CRUD: "true"
 {{- if .Values.dex.sessions.enabled }}

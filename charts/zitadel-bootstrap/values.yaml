@@ -17,6 +17,11 @@ environmentConfig:
   # Cluster FQDN, used to build the public hostname when ingress.httpRoute.enabled
   # is true (e.g. "example.com"). Same convention as langfuse-bootstrap.
   clusterFqdn: ""
+  # Ownership metadata propagated onto managed workloads so they satisfy the
+  # require-owner-label Kyverno policy. Empty owner omits the label;
+  # empty managedBy keeps the chart's default app.kubernetes.io/managed-by value.
+  owner: ""
+  managedBy: ""
 
 # Public exposure via Gateway API. This chart renders its own single
 # HTTPRoute (templates/httproute.yaml) rather than the upstream chart's

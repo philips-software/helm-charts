@@ -1,4 +1,10 @@
 replicas: {{ .Values.grafana.replicas }}
+labels:
+  {{- include "grafana.ownerLabels" . | nindent 2 }}
+  app.kubernetes.io/managed-by: {{ include "grafana.managedBy" . }}
+podLabels:
+  {{- include "grafana.ownerLabels" . | nindent 2 }}
+  app.kubernetes.io/managed-by: {{ include "grafana.managedBy" . }}
 admin:
   existingSecret: "grafana-admin-credentials"
   userKey: admin-user

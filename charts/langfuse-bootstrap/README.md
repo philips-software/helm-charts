@@ -135,6 +135,8 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | database.storage.storageClass | string | `""` |  |
 | environmentConfig.accountId | string | `""` |  |
 | environmentConfig.clusterFqdn | string | `""` |  |
+| environmentConfig.managedBy | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | existingBucketName | string | `""` |  |

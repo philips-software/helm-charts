@@ -88,6 +88,24 @@ If name is provided in values, use it. Otherwise, generate a consistent name.
 {{- end }}
 
 {{/*
+Owner label rendered from environmentConfig.owner so workloads satisfy the
+require-owner-label Kyverno policy. Omitted when unset.
+*/}}
+{{- define "otlp-gateway.ownerLabels" -}}
+{{- if .Values.environmentConfig.owner }}
+owner: {{ .Values.environmentConfig.owner | quote }}
+{{- end }}
+{{- end }}
+
+{{/*
+Value for the app.kubernetes.io/managed-by label, overridden by
+environmentConfig.managedBy when set.
+*/}}
+{{- define "otlp-gateway.managedBy" -}}
+{{- .Values.environmentConfig.managedBy | default .Release.Service -}}
+{{- end }}
+
+{{/*
 Get the FQDN for the gateway.
 Uses customFqdn when useCustomFqdn is true, otherwise constructs from host.clusterFqdn
 */}}

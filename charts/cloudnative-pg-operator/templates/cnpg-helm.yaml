@@ -19,6 +19,9 @@ spec:
     helm:
       releaseName: cloudnative-pg
       valuesObject:
+        podLabels:
+          {{- include "cloudnative-pg-operator.ownerLabels" . | nindent 10 }}
+          app.kubernetes.io/managed-by: {{ include "cloudnative-pg-operator.managedBy" . }}
         fullnameOverride: {{ .Values.operator.fullnameOverride }}
         hostNetwork: {{ .Values.operator.hostNetwork }}
         {{- with .Values.operator.dnsPolicy }}

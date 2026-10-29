@@ -81,13 +81,16 @@ spec:
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
   jobTemplate:
+    metadata:
+      labels:
+        {{- include "cloudnative-pg-operator.labels" . | nindent 8 }}
     spec:
       activeDeadlineSeconds: 300
       ttlSecondsAfterFinished: 300
       template:
         metadata:
           labels:
-            {{- include "cloudnative-pg-operator.selectorLabels" . | nindent 12 }}
+            {{- include "cloudnative-pg-operator.labels" . | nindent 12 }}
         spec:
           serviceAccountName: cnpg-volumesnapshot-pruner
           restartPolicy: Never

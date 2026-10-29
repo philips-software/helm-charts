@@ -20,6 +20,11 @@ environmentConfig:
   # Cluster FQDN, used to build the public hostname when ingress.httpRoute.enabled
   # is true (e.g. "example.com"). Same value dex-issuer/grafana use.
   clusterFqdn: ""
+  # Ownership metadata propagated onto managed workloads so they satisfy the
+  # require-owner-label Kyverno policy. Empty owner omits the label;
+  # empty managedBy keeps the chart's default app.kubernetes.io/managed-by value.
+  owner: ""
+  managedBy: ""
 
 # Public exposure via Gateway API. Disabled by default (ClusterIP + port-forward,
 # see README) - enable this when sso.enabled is true, since Dex must redirect back

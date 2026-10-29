@@ -64,6 +64,11 @@ environmentConfig:
   clusterFqdn: ""  # Required when loadbalancer.enabled is true
   customFqdn: ""  # Custom FQDN (full hostname, used when useCustomFqdn is true)
   host: otlp-gateway
+  # Ownership metadata propagated onto managed workloads so they satisfy the
+  # require-owner-label Kyverno policy. Empty owner omits the label;
+  # empty managedBy keeps the chart's default app.kubernetes.io/managed-by value.
+  owner: ""
+  managedBy: ""
 
 httpRoute:
   enabled: false

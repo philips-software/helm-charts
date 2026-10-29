@@ -120,6 +120,8 @@ Users not in any of these groups will have the 'None' role and no access.
 | datasources.tempo.enabled | bool | `false` |  |
 | environmentConfig.clusterFqdn | string | `""` |  |
 | environmentConfig.customFqdn | string | `""` |  |
+| environmentConfig.managedBy | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | grafana.authProxy.autoSignUp | bool | `true` |  |
 | grafana.authProxy.caddy.autoLoginEmail | string | `""` |  |

@@ -21,6 +21,8 @@ helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstra
 | compactorOrgmapper.tag | string | `"v0.0.1"` |  |
 | distributor.replicas | int | `2` | Number of distributor replicas |
 | environmentConfig.accountId | string | `""` |  |
+| environmentConfig.managedBy | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | existingBucketName | string | `""` |  |

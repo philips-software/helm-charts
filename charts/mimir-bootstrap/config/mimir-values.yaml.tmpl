@@ -5,6 +5,9 @@ global:
         secretKeyRef:
           name: {{ .Values.environmentConfig.resourcePrefix }}-mimir-s3
           key: id
+  podLabels:
+    {{- include "mimir-bootstrap.ownerLabels" . | nindent 4 }}
+    app.kubernetes.io/managed-by: {{ include "mimir-bootstrap.managedBy" . }}
 
 securityContext:
   allowPrivilegeEscalation: false

@@ -37,6 +37,8 @@ first in the list — the Kyverno policy always reads `imageCatalog.images[0].ma
 | barmanCloudPlugin.enabled | bool | `true` |  |
 | barmanCloudPlugin.version | string | `"0.8.1"` |  |
 | cnpgChart.version | string | `"0.29.1"` |  |
+| environmentConfig.managedBy | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | environmentConfig.sharedServicesAccountId | string | `""` |  |

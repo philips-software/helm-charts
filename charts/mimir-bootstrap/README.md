@@ -28,6 +28,8 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 | compactorOrgmapper.package | string | `"ghcr.io/loafoe/compactor-orgmapper"` |  |
 | compactorOrgmapper.tag | string | `"v0.0.1"` |  |
 | distributor.replicas | int | `6` | Number of distributor replicas |
+| environmentConfig.managedBy | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | existingBucketName | string | `""` |  |

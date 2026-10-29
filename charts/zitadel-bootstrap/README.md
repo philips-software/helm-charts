@@ -52,6 +52,8 @@ Then browse to http://localhost:8080. For an actual local sign-in flow, enable `
 | database.storage.storageClass | string | `""` |  |
 | environmentConfig.accountId | string | `""` |  |
 | environmentConfig.clusterFqdn | string | `""` |  |
+| environmentConfig.managedBy | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | firstInstance.orgName | string | `"ZITADEL"` |  |

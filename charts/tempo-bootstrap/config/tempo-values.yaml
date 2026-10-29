@@ -1,3 +1,8 @@
+global:
+  commonLabels:
+    {{- include "tempo-bootstrap.ownerLabels" . | nindent 4 }}
+    app.kubernetes.io/managed-by: {{ include "tempo-bootstrap.managedBy" . }}
+
 serviceAccount:
   create: true
   name: {{ .Values.environmentConfig.resourcePrefix }}-tempo

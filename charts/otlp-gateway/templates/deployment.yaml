@@ -3,6 +3,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: otlp-gateway
+  labels:
+    app.kubernetes.io/managed-by: {{ include "otlp-gateway.managedBy" . }}
+    {{- include "otlp-gateway.ownerLabels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicas }}
@@ -20,6 +23,8 @@ spec:
         app.kubernetes.io/component: otlp-gateway
         app.kubernetes.io/instance: otlp-gateway
         app.kubernetes.io/name: otlp-gateway
+        app.kubernetes.io/managed-by: {{ include "otlp-gateway.managedBy" . }}
+        {{- include "otlp-gateway.ownerLabels" . | nindent 8 }}
     spec:
       {{- if .Values.topologySpreadConstraints.enabled }}
       topologySpreadConstraints:

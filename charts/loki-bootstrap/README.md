@@ -15,6 +15,8 @@
 | distributor.resources.requests.cpu | string | `"250m"` |  |
 | distributor.resources.requests.memory | string | `"1Gi"` |  |
 | environmentConfig.accountId | string | `""` |  |
+| environmentConfig.managedBy | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | existingBucketName | string | `""` |  |

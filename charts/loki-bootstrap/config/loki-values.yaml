@@ -1,5 +1,9 @@
 deploymentMode: Distributed
 
+commonLabels:
+  {{- include "loki-bootstrap.ownerLabels" . | nindent 2 }}
+  app.kubernetes.io/managed-by: {{ include "loki-bootstrap.managedBy" . }}
+
 imagePullSecrets:
   - name: ghcr
 

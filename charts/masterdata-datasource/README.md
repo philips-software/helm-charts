@@ -8,6 +8,8 @@ A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database for use a
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| environmentConfig.managedBy | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | grafanaDatasource.databaseName | string | `"masterdatadb"` |  |
 | grafanaDatasource.enabled | bool | `true` |  |

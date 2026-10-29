@@ -153,6 +153,8 @@ To actually recover production data with this, either point `database.clusterNam
 | database.storage.size | string | `"5Gi"` |  |
 | database.storage.storageClass | string | `""` |  |
 | environmentConfig.accountId | string | `""` |  |
+| environmentConfig.managedBy | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | gateway.className | string | `"agentgateway"` |  |

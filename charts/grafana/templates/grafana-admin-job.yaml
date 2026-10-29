@@ -42,13 +42,17 @@ kind: Job
 metadata:
   name: grafana-admin-initializer
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 spec:
   backoffLimit: 4
   template:
-    metadata: {}
+    metadata:
+      labels:
+        {{- include "grafana.labels" . | nindent 8 }}
     spec:
       serviceAccountName: grafana-admin-initializer
       restartPolicy: OnFailure

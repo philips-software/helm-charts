@@ -16,8 +16,25 @@ postgresql:
 # (cmd/initialise/verify_zitadel.go): this path connects with the User
 # credentials only, never Admin, so Database.Postgres.Admin.* below is
 # intentionally left unset (chart defaults, never contacted).
+podAdditionalLabels:
+  {{- include "zitadel-bootstrap.ownerLabels" . | nindent 2 }}
+  app.kubernetes.io/managed-by: {{ include "zitadel-bootstrap.managedBy" . }}
+
 initJob:
   command: "zitadel"
+  podAdditionalLabels:
+    {{- include "zitadel-bootstrap.ownerLabels" . | nindent 4 }}
+    app.kubernetes.io/managed-by: {{ include "zitadel-bootstrap.managedBy" . }}
+
+setupJob:
+  podAdditionalLabels:
+    {{- include "zitadel-bootstrap.ownerLabels" . | nindent 4 }}
+    app.kubernetes.io/managed-by: {{ include "zitadel-bootstrap.managedBy" . }}
+
+cleanupJob:
+  podAdditionalLabels:
+    {{- include "zitadel-bootstrap.ownerLabels" . | nindent 4 }}
+    app.kubernetes.io/managed-by: {{ include "zitadel-bootstrap.managedBy" . }}
 
 zitadel:
   # masterkeySecretName (not the literal masterkey field) — see
@@ -123,6 +140,9 @@ login:
   # (it only renders when this value is unset), rather than fighting
   # cert-manager over the same Secret.
   loginServiceKeySecretName: zitadel-login-service-key
+  podAdditionalLabels:
+    {{- include "zitadel-bootstrap.ownerLabels" . | nindent 4 }}
+    app.kubernetes.io/managed-by: {{ include "zitadel-bootstrap.managedBy" . }}
   replicaCount: {{ .Values.workloads.login.replicaCount }}
   resources:
 {{ toYaml .Values.workloads.login.resources | indent 4 }}

@@ -39,7 +39,26 @@ helm.sh/chart: {{ include "mimir-bootstrap.chart" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/managed-by: {{ include "mimir-bootstrap.managedBy" . }}
+{{- include "mimir-bootstrap.ownerLabels" . }}
+{{- end }}
+
+{{/*
+Owner label rendered from environmentConfig.owner so workloads satisfy the
+require-owner-label Kyverno policy. Omitted when unset.
+*/}}
+{{- define "mimir-bootstrap.ownerLabels" -}}
+{{- if .Values.environmentConfig.owner }}
+owner: {{ .Values.environmentConfig.owner | quote }}
+{{- end }}
+{{- end }}
+
+{{/*
+Value for the app.kubernetes.io/managed-by label, overridden by
+environmentConfig.managedBy when set.
+*/}}
+{{- define "mimir-bootstrap.managedBy" -}}
+{{- .Values.environmentConfig.managedBy | default .Release.Service -}}
 {{- end }}
 
 {{/*

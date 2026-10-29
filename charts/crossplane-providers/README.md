@@ -88,8 +88,10 @@ The application uses [Crossplane](https://www.crossplane.io) to manage the requi
 |-----|------|---------|-------------|
 | environmentConfig.accountId | string | `""` |  |
 | environmentConfig.clusterName | string | `""` |  |
+| environmentConfig.managedBy | string | `""` |  |
 | environmentConfig.oidcProvider | string | `""` |  |
 | environmentConfig.oidcProviderArn | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | extraProviders | list | `[]` |  |

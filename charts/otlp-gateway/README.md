@@ -126,6 +126,8 @@ Operator CRDs aren't installed, or add `serviceMonitor.labels` if your Prometheu
 | environmentConfig.clusterFqdn | string | `""` |  |
 | environmentConfig.customFqdn | string | `""` |  |
 | environmentConfig.host | string | `"otlp-gateway"` |  |
+| environmentConfig.managedBy | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | httpRoute.enabled | bool | `false` |  |
 | httpRoute.gateway.name | string | `"platform"` |  |

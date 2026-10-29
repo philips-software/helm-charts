@@ -181,6 +181,8 @@ omit `spec.tls`.
 | dexChart.version | string | `"0.26.0"` |  |
 | environmentConfig.clusterFqdn | string | `""` |  |
 | environmentConfig.customFqdn | string | `""` |  |
+| environmentConfig.managedBy | string | `""` |  |
+| environmentConfig.owner | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | pki.caDuration | string | `"87600h"` |  |
 | pki.caNamespace | string | `"cert-manager"` |  |

@@ -1,4 +1,8 @@
 langfuse:
+  pod:
+    labels:
+      {{- include "langfuse-bootstrap.ownerLabels" . | nindent 6 }}
+      app.kubernetes.io/managed-by: {{ include "langfuse-bootstrap.managedBy" . }}
   image:
     tag: {{ .Values.langfuse.image.tag | quote }}
   nextauth:
