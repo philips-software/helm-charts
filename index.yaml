@@ -2819,6 +2819,15 @@ entries:
     version: 0.2.0
   cloudnative-pg-operator:
   - apiVersion: v2
+    created: "2026-10-29T16:18:50.186322214Z"
+    description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
+      policies
+    digest: b78ec5b957d084117a54cd969df48d36046b928efe997fb89e911207343afeab
+    name: cloudnative-pg-operator
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-0.13.1/cloudnative-pg-operator-0.13.1.tgz
+    version: 0.13.1
+  - apiVersion: v2
     created: "2026-10-25T15:46:44.470990259Z"
     description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
       policies
@@ -2989,6 +2998,23 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-bootstrap-0.1.0/cloudnative-pg-operator-bootstrap-0.1.0.tgz
     version: 0.1.0
   common-bootstrap:
+  - apiVersion: v2
+    appVersion: 0.0.52
+    created: "2026-10-29T16:18:50.374237686Z"
+    description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
+      deploys crossplane-compositions, and uses HelmApplication CRs to bootstrap platform
+      components. '
+    digest: 859b7546abe8402e1fe0557e10ee0595396ca81edc87c4f0a21d45c3d7b9d3b0
+    keywords:
+    - crossplane
+    - common
+    - bootstrap
+    - argocd
+    name: common-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/common-bootstrap-2.2.1/common-bootstrap-2.2.1.tgz
+    version: 2.2.1
   - apiVersion: v2
     appVersion: 0.0.52
     created: "2026-10-25T18:50:44.117973974Z"
@@ -4073,6 +4099,24 @@ entries:
     version: 0.0.2
   crossplane-providers:
   - apiVersion: v2
+    created: "2026-10-29T16:18:50.607381544Z"
+    description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or
+      EKS Pod Identity configuration
+    digest: 720f7eefd8711c862950e9ce6e4a0c51b4b9c88d8dffe1c094fdc496ba7d3785
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    - pod-identity
+    maintainers:
+    - name: Philips Software
+    name: crossplane-providers
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-providers-0.0.43/crossplane-providers-0.0.43.tgz
+    version: 0.0.43
+  - apiVersion: v2
     created: "2026-10-23T18:23:16.10273763Z"
     description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or
       EKS Pod Identity configuration
@@ -4762,6 +4806,23 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/crossplane-providers-0.0.3/crossplane-providers-0.0.3.tgz
     version: 0.0.3
   dex-issuer:
+  - apiVersion: v2
+    created: "2026-10-29T16:18:50.781084041Z"
+    description: Deploys Dex (OpenID Connect issuer) with its Postgres storage, gRPC
+      mTLS PKI, and Crossplane connector-management plane
+    digest: 5b009a0f27be780d1414a1eef68da50f5edd10cb576d7a1cf5f9272f66be7745
+    keywords:
+    - dex
+    - oidc
+    - issuer
+    - crossplane
+    maintainers:
+    - name: Philips Software
+    name: dex-issuer
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/dex-issuer-0.14.1/dex-issuer-0.14.1.tgz
+    version: 0.14.1
   - apiVersion: v2
     created: "2026-10-25T19:51:02.122653652Z"
     description: Deploys Dex (OpenID Connect issuer) with its Postgres storage, gRPC
@@ -5488,6 +5549,13 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.0.14/fluent-bit-out-hsdp-0.0.14.tgz
     version: 0.0.14
   grafana:
+  - apiVersion: v2
+    created: "2026-10-29T16:18:50.957157322Z"
+    digest: e1f1fb9eb865601afddc2320e1299cbbcbb890589d8316f3e174e19e159af5af
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.81.11/grafana-0.81.11.tgz
+    version: 0.81.11
   - apiVersion: v2
     created: "2026-10-28T12:27:01.034764217Z"
     digest: c763eaeabb12acea2076b82b6424ec584fdb127cef7e07b84a158866f6ad018b
@@ -7290,6 +7358,23 @@ entries:
     version: 0.1.0
   langfuse-bootstrap:
   - apiVersion: v2
+    created: "2026-10-29T16:18:51.136898232Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: 0674541d4642cbc3c9125c8d467e57917676da063989b939a8c88c64fcfcd325
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.9.6/langfuse-bootstrap-0.9.6.tgz
+    version: 0.9.6
+  - apiVersion: v2
     created: "2026-10-27T18:55:05.760640535Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
       with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
@@ -7862,6 +7947,14 @@ entries:
     version: 0.1.0
   loki-bootstrap:
   - apiVersion: v2
+    created: "2026-10-29T16:18:51.318193093Z"
+    description: A Helm chart for bootstrapping Loki
+    digest: 0436af46e28f9f61ac42d26aa46467b6db4f2f68154dc4d7711c7d4ebafaa679
+    name: loki-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.46.9/loki-bootstrap-0.46.9.tgz
+    version: 0.46.9
+  - apiVersion: v2
     created: "2026-10-29T15:33:14.246607876Z"
     description: A Helm chart for bootstrapping Loki
     digest: 3224db4e249b69fda530954a1a4998baa9725fb575d70096dff6958f7d307189
@@ -8215,6 +8308,16 @@ entries:
     version: 0.30.0
   masterdata-datasource:
   - apiVersion: v2
+    created: "2026-10-29T16:18:51.507587468Z"
+    description: A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database
+      for use as a datasource in Grafana
+    digest: 0ebdbd210a7651e65e730c842f05409fb2aa83e61f85beac600ab216bdc01c26
+    name: masterdata-datasource
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/masterdata-datasource-0.10.2/masterdata-datasource-0.10.2.tgz
+    version: 0.10.2
+  - apiVersion: v2
     created: "2026-10-01T18:06:20.905099888Z"
     description: A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database
       for use as a datasource in Grafana
@@ -8295,6 +8398,14 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/masterdata-datasource-0.8.0/masterdata-datasource-0.8.0.tgz
     version: 0.8.0
   mimir-bootstrap:
+  - apiVersion: v2
+    created: "2026-10-29T16:18:51.73000049Z"
+    description: A Helm chart for bootstrapping Mimir
+    digest: 948d1898b33f66bccd59fb075e23fb1f7805bcc93e8738ba8bd629d89f6f6205
+    name: mimir-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/mimir-bootstrap-0.69.3/mimir-bootstrap-0.69.3.tgz
+    version: 0.69.3
   - apiVersion: v2
     created: "2026-10-26T22:42:29.127155657Z"
     description: A Helm chart for bootstrapping Mimir
@@ -8624,6 +8735,16 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/mimir-bootstrap-0.37.0/mimir-bootstrap-0.37.0.tgz
     version: 0.37.0
   otlp-gateway:
+  - apiVersion: v2
+    created: "2026-10-29T16:18:51.916403163Z"
+    description: A Helm chart for Kubernetes to deploy an OTLP gateway with authentication
+      and authorization
+    digest: a5dee1177969d4282f9ce1e61f423c9de527c42961430148b77f8feb4fd7fa95
+    name: otlp-gateway
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/otlp-gateway-0.63.2/otlp-gateway-0.63.2.tgz
+    version: 0.63.2
   - apiVersion: v2
     created: "2026-10-16T19:47:37.433854902Z"
     description: A Helm chart for Kubernetes to deploy an OTLP gateway with authentication
@@ -9278,6 +9399,14 @@ entries:
     version: 0.43.0
   tempo-bootstrap:
   - apiVersion: v2
+    created: "2026-10-29T16:18:52.084182617Z"
+    description: A Helm chart for bootstrapping Tempo
+    digest: 3f3d01b088a273b2c89e2f55f72c9a923c8e28917c3915aa97539d775169a259
+    name: tempo-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.45.10/tempo-bootstrap-0.45.10.tgz
+    version: 0.45.10
+  - apiVersion: v2
     created: "2026-10-27T18:54:35.831194819Z"
     description: A Helm chart for bootstrapping Tempo
     digest: 48b1e6d7e339e3cfbad6a0f6c12aab0e32e8a3f3d917b550507b137539e98823
@@ -9583,6 +9712,24 @@ entries:
     version: 0.34.0
   zitadel-bootstrap:
   - apiVersion: v2
+    created: "2026-10-29T16:18:52.267807453Z"
+    description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with
+      CNPG Postgres and Gateway API ingress
+    digest: 9eaaa64f41c93fef01322c1a11261a2ca7fdcd968f53c1f390f14e151a556587
+    keywords:
+    - zitadel
+    - identity
+    - oidc
+    - iam
+    - sso
+    - argocd
+    - bootstrap
+    name: zitadel-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.3.1/zitadel-bootstrap-0.3.1.tgz
+    version: 0.3.1
+  - apiVersion: v2
     created: "2026-10-26T12:23:25.163980956Z"
     description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with
       CNPG Postgres and Gateway API ingress
@@ -9708,4 +9855,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-29T15:33:14.247637263Z"
+generated: "2026-10-29T16:18:52.270429229Z"
