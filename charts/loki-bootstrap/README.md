@@ -1,6 +1,6 @@
 # loki-bootstrap
 
-![Version: 0.46.8](https://img.shields.io/badge/Version-0.46.8-informational?style=flat-square)
+![Version: 0.46.9](https://img.shields.io/badge/Version-0.46.9-informational?style=flat-square)
 
 ## Values
 
