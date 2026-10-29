@@ -4,6 +4,8 @@ apiVersion: pkg.crossplane.io/v1beta1
 kind: Function
 metadata:
   name: {{ .name }}
+  labels:
+    {{- include "crossplane-functions.labels" $ | nindent 4 }}
 spec:
   ignoreCrossplaneConstraints: false
   package: {{ .registry }}/{{ .name }}:{{ .version }}

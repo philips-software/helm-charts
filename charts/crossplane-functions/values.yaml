@@ -1,6 +1,14 @@
 # Crossplane Functions Configuration
 # This Helm chart deploys Crossplane Functions as Kubernetes resources
 
+# Ownership metadata propagated onto the Function runtime workloads so they
+# satisfy the require-owner-label Kyverno policy. Optional: empty owner omits
+# the label; empty managedBy keeps the chart's default
+# app.kubernetes.io/managed-by value.
+environmentConfig:
+  owner: ""
+  managedBy: ""
+
 # default resources for all functions
 resources:
   limits:

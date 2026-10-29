@@ -5,13 +5,20 @@ apiVersion: pkg.crossplane.io/v1beta1
 kind: DeploymentRuntimeConfig
 metadata:
   name: {{ .name }}
+  labels:
+    {{- include "crossplane-functions.labels" $ | nindent 4 }}
 spec:
   deploymentTemplate:
     metadata:
       name: {{ .name }}
+      labels:
+        {{- include "crossplane-functions.labels" $ | nindent 8 }}
     spec:
       selector: {}
       template:
+        metadata:
+          labels:
+            {{- include "crossplane-functions.labels" $ | nindent 12 }}
         spec:
           securityContext:
             runAsNonRoot: true
