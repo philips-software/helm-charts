@@ -1,6 +1,6 @@
 # dex-issuer
 
-![Version: 0.14.1](https://img.shields.io/badge/Version-0.14.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.15.0](https://img.shields.io/badge/Version-0.15.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
@@ -197,7 +197,7 @@ omit `spec.tls`.
 | provider.debug | bool | `true` |  |
 | provider.enabled | bool | `true` |  |
 | provider.providerConfigNamespaces | list | `[]` |  |
-| provider.registry | string | `"ghcr.io/loafoe"` |  |
+| provider.registry | string | `"xpkg.upbound.io/loafoe"` |  |
 | provider.tag | string | `"v1.15.0"` |  |
 | theme.enabled | bool | `true` |  |
 | theme.existingConfigMap | string | `""` |  |

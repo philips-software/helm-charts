@@ -269,10 +269,9 @@ provider:
   debug: true
   # Provider package version
   # renovate: datasource=docker depName=xpkg.upbound.io/loafoe/provider-dex
-  # v1.15.0: adds per-client ssoSharedWith (Client.forProvider.ssoSharedWith).
   tag: "v1.15.0"
   # Container registry hosting the provider-dex package
-  registry: "ghcr.io/loafoe"
+  registry: "xpkg.upbound.io/loafoe"
   # crossplane-providers wrapper chart version
   # renovate: datasource=docker depName=ghcr.io/philips-software/helm-charts/crossplane-providers
   crossplaneProvidersVersion: 0.0.40
