@@ -181,7 +181,7 @@ set -euo pipefail
 # easy to miss — this has already happened at least twice). `install.sh
 # verify` uses this value to know which signed OCI chart to check itself
 # against — see that function for the full explanation.
-INSTALL_SH_CHART_VERSION="0.57.0"
+INSTALL_SH_CHART_VERSION="0.58.0"
 
 # Unconditional, un-suppressible proof of life: the very first thing this
 # script does, before parsing a single config default or touching the
