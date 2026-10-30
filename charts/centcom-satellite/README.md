@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.56.1](https://img.shields.io/badge/Version-0.56.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.104.0](https://img.shields.io/badge/AppVersion-v0.104.0-informational?style=flat-square)
+![Version: 0.57.0](https://img.shields.io/badge/Version-0.57.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.104.0](https://img.shields.io/badge/AppVersion-v0.104.0-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -240,6 +240,7 @@ See `CROSS-ACCOUNT-ASSUMEROLE.md` in the innovation-day repo for the full onboar
 | aws.irsa.tags | object | `{}` | Extra tags applied to the created role/policies |
 | environmentConfig.managedBy | string | `""` |  |
 | environmentConfig.owner | string | `""` |  |
+| extraEnv | object | `{"GODEBUG":"multipathtcp=0"}` | Arbitrary additional env vars set on the container. Defaults to the GODEBUG=multipathtcp=0 CVE mitigation required on every Go app with a public route (every onboarded satellite's HTTPRoute is public, reached by centcom cross-cluster over HTTPS) - override the whole map if you need a different set, but keep that key unless the mitigation is formally lifted. |
 | features.argocd | bool | `false` | Enable Argo CD application introspection. When enabled, grants get/list/watch on argoproj.io applications |
 | features.autoRemediate | bool | `false` | Enable auto-remediation workflows orchestrated by centcom (e.g. PV usage alerting and automatic resize). Sets AUTO_REMEDIATE_ENABLED. |
 | features.awsRead | bool | `false` | Enable the aws_read task: one allowlisted read-only AWS API call per request across IAM (users, groups, roles, policies, credential report, access-key / service last-used), IAM Identity Center admin (permission sets, assignments) and Identity Store (users, groups, memberships) — the data an access review needs. Sets AWS_READ_ENABLED and attaches a policy granting exactly the allowlisted actions to the IRSA role. Explicit opt-in like cloudtrail: it reveals who has access to the account, and Identity Store user records carry names and emails. Identity Center reads only return data in the organization's management account or a delegated administrator account. |
