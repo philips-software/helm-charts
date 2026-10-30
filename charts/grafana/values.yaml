@@ -121,14 +121,43 @@ grafana:
   # Log level for Grafana (debug, info, warn, error, critical)
   # Set to "warn" or "error" to reduce log volume
   logLevel: info
-  # Plugin sync CronJob configuration
-  # Workaround for https://github.com/grafana/grafana/issues/109269
-  # Periodically syncs plugins across all Grafana pods in HA deployments
-  pluginSync:
-    # Enable/disable the plugin sync CronJob
-    enabled: false
-    # Cron schedule for plugin sync (default: every 15 minutes)
-    schedule: "*/15 * * * *"
+  # Grafana's own "preinstalled" catalog app plugins (Drilldown suite,
+  # Advisor, ...), pinned to an explicit version each and frozen from
+  # auto-updating (grafana.ini plugins.preinstall_auto_update: false, see
+  # templates/grafana-helm.yaml).
+  #
+  # Without this, each HA pod independently fetches "latest" from
+  # grafana.com for these plugins at its own startup time
+  # (preinstall_auto_update defaults to true upstream), so pods can end up
+  # serving different plugin builds behind the same Service/Ingress at once.
+  # Browsers that cached a JS chunk path from one pod then get a
+  # ChunkLoadError from another: https://github.com/grafana/grafana/issues/109269
+  #
+  # Pinning every entry here, each tagged with a `# renovate:` marker for the
+  # custom.grafanaPlugin datasource (.github/renovate.json5), makes a plugin
+  # version bump a reviewed PR + a single atomic chart/pod rollout instead of
+  # an unreviewed per-pod runtime fetch.
+  preinstalledPlugins:
+    # renovate: datasource=custom.grafanaPlugin depName=grafana-lokiexplore-app
+    - id: grafana-lokiexplore-app
+      version: 3.1.0
+    # grafana-metricsdrilldown-app 3.1.0 requires Grafana core >=13.3.0-0
+    # (grafanaDependency on the catalog) -- satisfied by grafanaChart.version
+    # 14.2.0 above (appVersion 13.3.0). If grafanaChart.version is ever
+    # pinned below that, hold this plugin back on 3.0.0 (>=13.1.0-0)
+    # instead of letting the preinstall fail silently at container start.
+    # renovate: datasource=custom.grafanaPlugin depName=grafana-metricsdrilldown-app
+    - id: grafana-metricsdrilldown-app
+      version: 3.1.0
+    # renovate: datasource=custom.grafanaPlugin depName=grafana-exploretraces-app
+    - id: grafana-exploretraces-app
+      version: 3.1.0
+    # renovate: datasource=custom.grafanaPlugin depName=grafana-pyroscope-app
+    - id: grafana-pyroscope-app
+      version: 3.1.0
+    # renovate: datasource=custom.grafanaPlugin depName=grafana-advisor-app
+    - id: grafana-advisor-app
+      version: 1.1.1
 
 # Name prefix for the ArgoCD Applications and Crossplane providers this chart
 # owns (grafana-helm, provider-gf, provider-orgmapper) and for the upstream
