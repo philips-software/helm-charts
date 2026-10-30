@@ -301,6 +301,15 @@ grafana.ini:
       {{- if .Values.grafana.authProxy.headersRole }}{{ if or .Values.grafana.authProxy.headersName .Values.grafana.authProxy.headersEmail .Values.grafana.authProxy.headersLogin .Values.grafana.authProxy.headersGroups }} {{ end }}Role:{{ .Values.grafana.authProxy.headersRole }}{{ end }}
     {{- end }}
 {{- end }}
+  plugins:
+    # Freezes every preinstalled catalog app plugin (Drilldown suite,
+    # Advisor, ...) at the version pinned below instead of letting each pod
+    # fetch "latest" from grafana.com independently at startup -- the root
+    # cause of grafana/grafana#109269 in HA deployments.
+    preinstall_auto_update: false
+    {{- if .Values.grafana.preinstalledPlugins }}
+    preinstall: "{{ range $i, $p := .Values.grafana.preinstalledPlugins }}{{ if $i }},{{ end }}{{ $p.id }}@{{ $p.version }}{{ end }}"
+    {{- end }}
 
 {{- if .Values.grafana.plugins }}
 plugins:

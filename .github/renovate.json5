@@ -77,6 +77,19 @@
       ],
     },
   ],
+  // Grafana plugin catalog has no built-in Renovate datasource. The
+  // /versions endpoint returns {items:[{version, createdAt, ...}]}; reshape
+  // it into Renovate's {releases:[{version, releaseTimestamp}]} so pinned
+  // preinstalled-plugin entries (e.g. charts/grafana values.yaml
+  // grafana.preinstalledPlugins, see grafana/grafana#109269) get tracked
+  // like any other dependency instead of relying on Grafana's own
+  // fetch-latest-on-boot behavior.
+  customDatasources: {
+    grafanaPlugin: {
+      defaultRegistryUrlTemplate: 'https://grafana.com/api/plugins/{{packageName}}/versions',
+      transformTemplates: ['{"releases": items.{"version": version, "releaseTimestamp": createdAt}}'],
+    },
+  },
   customManagers: [
     {
       customType: 'regex',
@@ -90,6 +103,9 @@
         '/.+/config/.+\\.(yaml|yml)$/',
       ],
       matchStrings: [
+        // Grafana preinstalled-plugin list entries: `- id: <plugin>` followed
+        // by `version: <version>` (charts/grafana values.yaml preinstalledPlugins)
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*-\\s*id:\\s*\\S+\\s*\\n\\s*version:\\s*["\']?(?<currentValue>[^"\'\\s]+)["\']?',
         // appVersion/version in Chart.yaml
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\n.*?(?:appVersion|version):\\s*["\']?(?<currentValue>[^"\'\\s]+)["\']?',
         // appVersion/version in Chart.yaml with registryUrl (either order)
