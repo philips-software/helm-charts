@@ -1046,6 +1046,29 @@ entries:
   centcom-satellite:
   - apiVersion: v2
     appVersion: v0.104.0
+    created: "2026-10-30T10:56:51.992855313Z"
+    description: A lightweight Kubernetes helper service for webhook-triggered cluster
+      operations
+    digest: b4e32f68ca3dca693569c8ef9070d14f8fa6f88fc59fbf622971b238a0a35766
+    home: https://github.com/loafoe/centcom-satellite
+    keywords:
+    - kubernetes
+    - pvc
+    - resize
+    - spire
+    - spiffe
+    maintainers:
+    - email: andy.lo-a-foe@philips.com
+      name: Andy Lo-A-Foe
+    name: centcom-satellite
+    sources:
+    - https://github.com/loafoe/centcom-satellite
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/centcom-satellite-0.57.0/centcom-satellite-0.57.0.tgz
+    version: 0.57.0
+  - apiVersion: v2
+    appVersion: v0.104.0
     created: "2026-10-27T20:51:39.937030673Z"
     description: A lightweight Kubernetes helper service for webhook-triggered cluster
       operations
@@ -2859,6 +2882,15 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-0.13.3/cloudnative-pg-operator-0.13.3.tgz
     version: 0.13.3
+  - apiVersion: v2
+    created: "2026-10-30T10:56:52.191930068Z"
+    description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
+      policies
+    digest: 12136a34595d2cf8a5bc884fc91bef8ddd7704965249de389ad5e33054ff2ed9
+    name: cloudnative-pg-operator
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-0.13.2/cloudnative-pg-operator-0.13.2.tgz
+    version: 0.13.2
   - apiVersion: v2
     created: "2026-10-29T16:18:50.186322214Z"
     description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
@@ -9981,4 +10013,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-30T08:56:26.43416234Z"
+generated: "2026-10-30T10:56:52.193204371Z"
