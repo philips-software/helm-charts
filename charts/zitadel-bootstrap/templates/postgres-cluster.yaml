@@ -8,6 +8,10 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
+  inheritedMetadata:
+    labels:
+      {{- include "zitadel-bootstrap.ownerLabels" . | nindent 6 }}
+      app.kubernetes.io/managed-by: {{ include "zitadel-bootstrap.managedBy" . }}
   instances: {{ .Values.database.instances }}
   {{- if gt (int .Values.database.instances) 1 }}
   # Only meaningful with a spare instance to land it on a different node -

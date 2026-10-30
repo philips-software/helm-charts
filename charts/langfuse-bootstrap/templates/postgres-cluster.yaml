@@ -8,6 +8,10 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
+  inheritedMetadata:
+    labels:
+      {{- include "langfuse-bootstrap.ownerLabels" . | nindent 6 }}
+      app.kubernetes.io/managed-by: {{ include "langfuse-bootstrap.managedBy" . }}
   instances: {{ .Values.database.instances }}
   {{- if .Values.database.podAntiAffinityType }}
   affinity:

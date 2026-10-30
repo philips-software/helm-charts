@@ -9,6 +9,10 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
+  inheritedMetadata:
+    labels:
+      {{- include "agentgateway-bootstrap.ownerLabels" . | nindent 6 }}
+      app.kubernetes.io/managed-by: {{ include "agentgateway-bootstrap.managedBy" . }}
   instances: {{ .Values.database.instances }}
   {{- if .Values.database.backup.volumeSnapshot.enabled }}
   backup:
