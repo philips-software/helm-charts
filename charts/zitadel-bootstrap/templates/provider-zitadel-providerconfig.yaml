@@ -22,13 +22,11 @@ spec:
     serviceAccount:
       keySecretRef:
         name: {{ .Values.zitadelProvider.credentials.secretName }}
-        namespace: {{ .Values.namespace }}
         key: {{ .Values.zitadelProvider.credentials.keyFileKey }}
     {{- else if eq .Values.zitadelProvider.credentials.authType "Token" }}
     token:
       tokenSecretRef:
         name: {{ .Values.zitadelProvider.credentials.secretName }}
-        namespace: {{ .Values.namespace }}
         key: {{ .Values.zitadelProvider.credentials.tokenKey }}
     {{- end }}
 {{- end }}
