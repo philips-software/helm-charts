@@ -2,7 +2,7 @@ apiVersion: v2
 name: clickhouse-operator-bootstrap
 description: A Helm chart for bootstrapping the ClickHouse Kubernetes Operator
 type: application
-version: 0.2.0
+version: 0.2.1
 # appVersion intentionally omitted: it was frozen at "0.0.7" with no renovate
 # tracking while the real, actually-deployed version is
 # clickhouseOperatorChart.version in values.yaml (renovate-tracked, used
