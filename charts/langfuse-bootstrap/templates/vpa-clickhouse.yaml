@@ -1,0 +1,31 @@
+{{- if and .Values.vpa.enabled .Values.vpa.components.clickhouse.enabled }}
+{{- range $i := until (int .Values.clickhouse.cluster.replicas) }}
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: langfuse-clickhouse-{{ $i }}-vpa
+  namespace: {{ $.Values.namespace }}
+  labels:
+    {{- include "langfuse-bootstrap.labels" $ | nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    # The ClickHouse Operator names each replica's StatefulSet individually
+    # as <chi>-<shard>-<replica>; this chart never configures sharding, so
+    # shard is always 0 (confirmed live: langfuse-clickhouse-0-0, -0-1, ...).
+    name: langfuse-clickhouse-0-{{ $i }}
+  updatePolicy:
+    minReplicas: 1
+    updateMode: {{ $.Values.vpa.updateMode | default "Auto" }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: clickhouse-server
+        minAllowed:
+          {{- toYaml $.Values.vpa.components.clickhouse.minAllowed | nindent 10 }}
+        maxAllowed:
+          {{- toYaml $.Values.vpa.components.clickhouse.maxAllowed | nindent 10 }}
+        controlledResources: ["memory", "cpu"]
+{{- end }}
+{{- end }}

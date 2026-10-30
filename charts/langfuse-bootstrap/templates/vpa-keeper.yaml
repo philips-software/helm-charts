@@ -1,0 +1,28 @@
+{{- if and .Values.vpa.enabled .Values.vpa.components.keeper.enabled }}
+{{- range $i := until (int .Values.clickhouse.keeper.replicas) }}
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: langfuse-keeper-{{ $i }}-vpa
+  namespace: {{ $.Values.namespace }}
+  labels:
+    {{- include "langfuse-bootstrap.labels" $ | nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: langfuse-keeper-{{ $i }}
+  updatePolicy:
+    minReplicas: 1
+    updateMode: {{ $.Values.vpa.updateMode | default "Auto" }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: clickhouse-keeper
+        minAllowed:
+          {{- toYaml $.Values.vpa.components.keeper.minAllowed | nindent 10 }}
+        maxAllowed:
+          {{- toYaml $.Values.vpa.components.keeper.maxAllowed | nindent 10 }}
+        controlledResources: ["memory", "cpu"]
+{{- end }}
+{{- end }}

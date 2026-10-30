@@ -248,6 +248,63 @@ redis:
     limits:
       memory: 512Mi
 
+# Vertical Pod Autoscaler configuration for this chart's own workloads
+# (langfuse-web/worker, the self-managed Redis, and the upstream
+# clickhouse.deploy-rendered ClickHouse/Keeper StatefulSets - everything this
+# chart sizes via `resources:` above). Requires VPA to be installed in the
+# cluster. Same per-component shape as loki-bootstrap/mimir-bootstrap/
+# tempo-bootstrap's vpa.yaml.
+vpa:
+  # Enable VPA resources for every enabled component below.
+  enabled: false
+  # Update mode: Off, Initial, Auto, InPlaceOrRecreate.
+  updateMode: Auto
+  components:
+    web:
+      enabled: true
+      minAllowed:
+        cpu: 25m
+        memory: 256Mi
+      maxAllowed:
+        cpu: "1"
+        memory: 4Gi
+    worker:
+      enabled: true
+      minAllowed:
+        cpu: 25m
+        memory: 256Mi
+      maxAllowed:
+        cpu: "1"
+        memory: 4Gi
+    redis:
+      enabled: true
+      minAllowed:
+        cpu: 10m
+        memory: 64Mi
+      maxAllowed:
+        cpu: 500m
+        memory: 1Gi
+    # One VerticalPodAutoscaler per clickhouse.cluster.replicas / keeper.replicas
+    # StatefulSet (the ClickHouse Operator names each replica's own StatefulSet
+    # individually, e.g. langfuse-clickhouse-0-0, langfuse-clickhouse-0-1 - there
+    # is no single StatefulSet covering the whole ClickHouse cluster to target).
+    clickhouse:
+      enabled: true
+      minAllowed:
+        cpu: 100m
+        memory: 512Mi
+      maxAllowed:
+        cpu: "2"
+        memory: 4Gi
+    keeper:
+      enabled: true
+      minAllowed:
+        cpu: 25m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 500m
+        memory: 1Gi
+
 # Langfuse application configuration
 langfuse:
   # Canonical URL of the deployment. Defaults to the port-forward-friendly

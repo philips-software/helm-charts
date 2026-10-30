@@ -1,0 +1,25 @@
+{{- if and .Values.vpa.enabled .Values.vpa.components.web.enabled }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: langfuse-web-vpa
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "langfuse-bootstrap.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: langfuse-web
+  updatePolicy:
+    minReplicas: 1
+    updateMode: {{ .Values.vpa.updateMode | default "Auto" }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: '*'
+        minAllowed:
+          {{- toYaml .Values.vpa.components.web.minAllowed | nindent 10 }}
+        maxAllowed:
+          {{- toYaml .Values.vpa.components.web.maxAllowed | nindent 10 }}
+        controlledResources: ["memory", "cpu"]
+{{- end }}

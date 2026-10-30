@@ -1,0 +1,25 @@
+{{- if and .Values.vpa.enabled .Values.vpa.components.redis.enabled }}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: langfuse-redis-vpa
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "langfuse-bootstrap.labels" . | nindent 4 }}
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: StatefulSet
+    name: langfuse-redis
+  updatePolicy:
+    minReplicas: 1
+    updateMode: {{ .Values.vpa.updateMode | default "Auto" }}
+  resourcePolicy:
+    containerPolicies:
+      - containerName: redis
+        minAllowed:
+          {{- toYaml .Values.vpa.components.redis.minAllowed | nindent 10 }}
+        maxAllowed:
+          {{- toYaml .Values.vpa.components.redis.maxAllowed | nindent 10 }}
+        controlledResources: ["memory", "cpu"]
+{{- end }}
