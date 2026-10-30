@@ -1,6 +1,6 @@
 # langfuse-bootstrap
 
-![Version: 0.9.10](https://img.shields.io/badge/Version-0.9.10-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.9.11](https://img.shields.io/badge/Version-0.9.11-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access (IRSA or static credentials) against an existing bucket.
 
@@ -106,7 +106,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | clickhouse.cluster.podAntiAffinity.topologyKey | string | `"kubernetes.io/hostname"` |  |
 | clickhouse.cluster.podAntiAffinity.type | string | `"required"` |  |
 | clickhouse.cluster.replicas | int | `1` |  |
-| clickhouse.cluster.resources.limits.memory | string | `"2Gi"` |  |
+| clickhouse.cluster.resources.limits.memory | string | `"1Gi"` |  |
 | clickhouse.cluster.resources.requests.cpu | string | `"500m"` |  |
 | clickhouse.cluster.resources.requests.memory | string | `"1Gi"` |  |
 | clickhouse.cluster.storage.className | string | `""` |  |
@@ -119,7 +119,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | clickhouse.keeper.podAntiAffinity.topologyKey | string | `"kubernetes.io/hostname"` |  |
 | clickhouse.keeper.podAntiAffinity.type | string | `"required"` |  |
 | clickhouse.keeper.replicas | int | `1` |  |
-| clickhouse.keeper.resources.limits.memory | string | `"512Mi"` |  |
+| clickhouse.keeper.resources.limits.memory | string | `"256Mi"` |  |
 | clickhouse.keeper.resources.requests.cpu | string | `"100m"` |  |
 | clickhouse.keeper.resources.requests.memory | string | `"256Mi"` |  |
 | clickhouse.keeper.storage.className | string | `""` |  |
@@ -129,7 +129,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | database.databaseName | string | `"langfuse"` |  |
 | database.instances | int | `1` |  |
 | database.podAntiAffinityType | string | `""` |  |
-| database.resources.limits.memory | string | `"512Mi"` |  |
+| database.resources.limits.memory | string | `"256Mi"` |  |
 | database.resources.requests.cpu | string | `"50m"` |  |
 | database.resources.requests.memory | string | `"128Mi"` |  |
 | database.storage.size | string | `"5Gi"` |  |
@@ -165,7 +165,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | langfuse.worker.livenessProbe.failureThreshold | int | `8` |  |
 | langfuse.worker.livenessProbe.initialDelaySeconds | int | `60` |  |
 | langfuse.worker.livenessProbe.timeoutSeconds | int | `10` |  |
-| langfuse.worker.resources.limits.memory | string | `"2Gi"` |  |
+| langfuse.worker.resources.limits.memory | string | `"1Gi"` |  |
 | langfuse.worker.resources.requests.cpu | string | `"100m"` |  |
 | langfuse.worker.resources.requests.memory | string | `"1Gi"` |  |
 | langfuseChart.repoURL | string | `"oci://ghcr.io/langfuse/langfuse-k8s/charts"` |  |
@@ -173,7 +173,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | namespace | string | `"langfuse-system"` |  |
 | redis.image.repository | string | `"valkey/valkey"` |  |
 | redis.image.tag | string | `"9.2"` |  |
-| redis.resources.limits.memory | string | `"512Mi"` |  |
+| redis.resources.limits.memory | string | `"256Mi"` |  |
 | redis.resources.requests.cpu | string | `"50m"` |  |
 | redis.resources.requests.memory | string | `"128Mi"` |  |
 | redis.storage.size | string | `"4Gi"` |  |

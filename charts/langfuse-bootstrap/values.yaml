@@ -168,7 +168,11 @@ database:
       cpu: 50m
       memory: 128Mi
     limits:
-      memory: 512Mi
+      # Halved from 512Mi (2026-10-30) - actual usage on dip-ce-k3s-eu is
+      # 73-121Mi, well under half. No VPA targets the CNPG Cluster (it
+      # manages its own pods directly, not via a Deployment/StatefulSet),
+      # so this has no VPA headroom to check against.
+      memory: 256Mi
 
 # ClickHouse (rendered by the upstream langfuse chart itself via clickhouse.deploy:
 # true — this chart only sizes it and points auth at our credentials Secret;
@@ -191,7 +195,10 @@ clickhouse:
         cpu: 500m
         memory: 1Gi
       limits:
-        memory: 2Gi
+        # Halved from 2Gi (2026-10-30) - actual usage on dip-ce-k3s-eu is
+        # 364-590Mi, well under half. vpa.components.clickhouse.maxAllowed
+        # (4Gi) already covers 2x this new limit with room to spare.
+        memory: 1Gi
     # Spread ClickHouse replicas across topology domains with a generated
     # podAntiAffinity. type: required (hard - a replica stays Pending rather
     # than share a node), preferred (soft, weight 100), or "" to disable.
@@ -220,7 +227,10 @@ clickhouse:
         cpu: 100m
         memory: 256Mi
       limits:
-        memory: 512Mi
+        # Halved from 512Mi (2026-10-30) - actual usage on dip-ce-k3s-eu is
+        # 121-152Mi, well under half. vpa.components.keeper.maxAllowed (1Gi)
+        # already covers 2x this new limit with room to spare.
+        memory: 256Mi
     # Spread Keeper replicas so one node loss can't break quorum. Same
     # semantics as clickhouse.cluster.podAntiAffinity.
     podAntiAffinity:
@@ -246,7 +256,10 @@ redis:
       cpu: 50m
       memory: 128Mi
     limits:
-      memory: 512Mi
+      # Halved from 512Mi (2026-10-30) - actual usage on dip-ce-k3s-eu is
+      # ~12Mi, far under half. vpa.components.redis.maxAllowed (1Gi) already
+      # covers 2x this new limit with room to spare.
+      memory: 256Mi
 
 # Vertical Pod Autoscaler configuration for this chart's own workloads
 # (langfuse-web/worker, the self-managed Redis, and the upstream
@@ -368,7 +381,12 @@ langfuse:
         cpu: 100m
         memory: 1Gi
       limits:
-        memory: 2Gi
+        # Halved from 2Gi (2026-10-30) - actual usage on dip-ce-k3s-eu is
+        # ~680Mi, under half, with no documented startup-spike issue like
+        # langfuse-web's (left at 2Gi for that reason, not halved).
+        # vpa.components.worker.maxAllowed (4Gi) already covers 2x this new
+        # limit with room to spare.
+        memory: 1Gi
     # Probe settings for langfuse-worker. Only livenessProbe is supported
     # (no readinessProbe on the worker).
     livenessProbe:
