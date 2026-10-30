@@ -2851,6 +2851,15 @@ entries:
     version: 0.2.0
   cloudnative-pg-operator:
   - apiVersion: v2
+    created: "2026-10-30T08:56:26.4325883Z"
+    description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
+      policies
+    digest: 8fc0cef3bacf609412922ef76f164ff31b3016dd3e0afc69cd70d57e62d9c0e2
+    name: cloudnative-pg-operator
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/cloudnative-pg-operator-0.13.3/cloudnative-pg-operator-0.13.3.tgz
+    version: 0.13.3
+  - apiVersion: v2
     created: "2026-10-29T16:18:50.186322214Z"
     description: A Helm chart for bootstrapping CloudNativePG operator with Kyverno
       policies
@@ -9972,4 +9981,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-30T07:55:34.933739291Z"
+generated: "2026-10-30T08:56:26.43416234Z"
