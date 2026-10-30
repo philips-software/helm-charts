@@ -172,11 +172,16 @@
 # separates the two steps so a fetch failure surfaces on its own.
 set -euo pipefail
 
-# The chart version this exact copy of install.sh shipped in. Bumped by hand
-# in lockstep with Chart.yaml's version on every release that touches this
-# script. `install.sh verify` uses it to know which signed OCI chart to check
-# itself against — see that function for the full explanation.
-INSTALL_SH_CHART_VERSION="0.56.0"
+# The chart version this exact copy of install.sh shipped in. Must be bumped
+# by hand in lockstep with Chart.yaml's version on EVERY release of this
+# chart, not just releases that touch this script — the publish CI
+# (.github/actions/action-helm-chart-repo) enforces exact equality
+# unconditionally and silently skips packaging/publishing this chart
+# otherwise (surfaced only as a red ::error annotation in the Actions log,
+# easy to miss — this has already happened at least twice). `install.sh
+# verify` uses this value to know which signed OCI chart to check itself
+# against — see that function for the full explanation.
+INSTALL_SH_CHART_VERSION="0.57.0"
 
 # Unconditional, un-suppressible proof of life: the very first thing this
 # script does, before parsing a single config default or touching the
