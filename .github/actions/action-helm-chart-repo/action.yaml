@@ -84,12 +84,32 @@ runs:
       shell: bash
       working-directory: dist
       run: |
+        # ghcr.io intermittently returns a false "not found" on the blob/manifest
+        # Tag step right after a preceding push, due to replication lag when OCI
+        # artifacts are pushed back-to-back -- not specific to any chart's content.
+        # Retry with backoff before giving up.
+        push_with_retry() {
+            local file="$1" attempt=1 max_attempts=5 delay=5
+            while true; do
+                if helm push "$file" "oci://${REGISTRY}"; then
+                    return 0
+                fi
+                if [ "$attempt" -ge "$max_attempts" ]; then
+                    return 1
+                fi
+                echo "helm push failed (attempt ${attempt}/${max_attempts}), retrying in ${delay}s..."
+                sleep "$delay"
+                attempt=$((attempt + 1))
+                delay=$((delay * 2))
+            done
+        }
+
         : > ../signed-refs.txt
         for f in *.tgz ; do
             name=$(helm show chart "$f" | awk '/^name:/{print $2}')
             version=$(helm show chart "$f" | awk '/^version:/{print $2}')
             echo "helm push $f oci://${REGISTRY}"
-            helm push "$f" "oci://${REGISTRY}"
+            push_with_retry "$f"
             echo "${REGISTRY}/${name}:${version}" >> ../signed-refs.txt
         done
       env:
