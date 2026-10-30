@@ -3,6 +3,6 @@
 # they will be requested for review when someone opens a 
 # pull request.
 *               @philips-software/helm-charts-maintainers
-charts/*-hsdp   @loafoe
+charts/*        @loafoe
 
 # See CODEOWNERS syntax here: https://help.github.com/articles/about-codeowners/#codeowners-syntax
