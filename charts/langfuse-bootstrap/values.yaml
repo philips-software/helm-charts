@@ -257,8 +257,11 @@ redis:
 vpa:
   # Enable VPA resources for every enabled component below.
   enabled: false
-  # Update mode: Off, Initial, Auto, InPlaceOrRecreate.
-  updateMode: Auto
+  # Update mode: Off, Initial, Recreate, InPlaceOrRecreate (Auto exists but
+  # is deprecated by this cluster's VPA build - confirmed live: the API
+  # server logs a deprecation warning on every apply - and every other VPA
+  # on this cluster already uses InPlaceOrRecreate).
+  updateMode: InPlaceOrRecreate
   components:
     web:
       enabled: true
