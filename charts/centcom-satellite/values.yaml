@@ -1,5 +1,12 @@
 # Default values for centcom-satellite
 
+# Ownership metadata propagated onto managed workloads so they satisfy the
+# require-owner-label Kyverno policy. Empty owner omits the label;
+# empty managedBy keeps the chart's default app.kubernetes.io/managed-by value.
+environmentConfig:
+  owner: ""
+  managedBy: ""
+
 # -- Number of pod replicas
 replicaCount: 2
 

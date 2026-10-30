@@ -6,6 +6,14 @@
 
 **Homepage:** <{{ template "chart.homepage" . }}>
 
+## Prerequisites
+
+- [SPIRE](https://spiffe.io/) (agent + server) — this chart always creates a `ClusterSPIFFEID` to obtain its workload identity; there is no way to disable this.
+- Crossplane with a `provider-aws` IAM role available when `aws.irsa.enabled: true` (default) and `aws.irsa.roleArnOverride` is unset — this chart creates the IAM `Role`/`Policy`/attachment itself via `iam.aws.m.upbound.io`.
+- A Gateway API `Gateway` for `httpRoute.sharedGatewayName`/`httpRoute.sharedGatewayNamespace` when `httpRoute.enabled: true`.
+- Prometheus Operator CRDs (`monitoring.coreos.com`) when `serviceMonitor.enabled: true`.
+- A Vertical Pod Autoscaler installation when `vpa.enabled: true`.
+
 ## Installing
 
 Recommended — a reviewed values file and a pinned chart version:
