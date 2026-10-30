@@ -7,14 +7,6 @@ environmentConfig:
   owner: ""
   managedBy: ""
 
-# -- Arbitrary additional env vars set on the container. Defaults to the
-# GODEBUG=multipathtcp=0 CVE mitigation required on every Go app with a
-# public route (every onboarded satellite's HTTPRoute is public, reached by
-# centcom cross-cluster over HTTPS) - override the whole map if you need a
-# different set, but keep that key unless the mitigation is formally lifted.
-extraEnv:
-  GODEBUG: "multipathtcp=0"
-
 # -- Number of pod replicas
 replicaCount: 2
 

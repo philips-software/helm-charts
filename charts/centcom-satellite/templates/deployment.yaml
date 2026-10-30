@@ -205,10 +205,6 @@ spec:
               value: {{ .Values.aws.assumeRole.region | quote }}
             {{- end }}
             {{- end }}
-            {{- range $k, $v := .Values.extraEnv }}
-            - name: "{{ $k }}"
-              value: "{{ $v }}"
-            {{- end }}
           livenessProbe:
             httpGet:
               path: /healthz
