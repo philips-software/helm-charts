@@ -1,0 +1,38 @@
+{{- if .Values.zitadelProvider.enabled }}
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-zitadel
+  labels:
+    {{- include "zitadel-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  deploymentTemplate:
+    metadata:
+      name: provider-zitadel
+    spec:
+      replicas: 1
+      selector: {}
+      template:
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - args: []
+              name: package-runtime
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                readOnlyRootFilesystem: true
+              resources:
+                limits:
+                  memory: 1024Mi
+                requests:
+                  cpu: 40m
+                  memory: 512Mi
+{{- end }}

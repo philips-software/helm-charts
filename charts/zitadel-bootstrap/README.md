@@ -1,6 +1,6 @@
 # zitadel-bootstrap
 
-![Version: 0.3.3](https://img.shields.io/badge/Version-0.3.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Zitadel](https://zitadel.com/) via ArgoCD: CNPG Postgres (static credentials, no Bitnami), standard username/password sign-in out of the box, and a single Gateway API HTTPRoute of this chart's own (not the upstream chart's native Gateway API support — see the design spec's "Ingress" section for why).
 
@@ -9,6 +9,7 @@ Deploys [Zitadel](https://zitadel.com/) via ArgoCD: CNPG Postgres (static creden
 - CloudNativePG operator installed cluster-wide (see `cloudnative-pg-operator`).
 - A Gateway API `Gateway` for `ingress.httpRoute.sharedGatewayName` (defaults to the shared `platform` Gateway in `kube-system`, same as `langfuse-bootstrap`/`agentgateway-bootstrap`) when `ingress.httpRoute.enabled: true`.
 - The namespace `.Values.namespace` (default `zitadel-system`) must already exist before a *first-ever* `helm install` — this chart's own CNPG Secret/Cluster/HTTPRoute apply directly into it, and nothing in this chart creates it (ArgoCD's `CreateNamespace=true` only creates it for the *child* Application's own sync, one step later). `kubectl create namespace zitadel-system` once, or use `helm upgrade --install` against a cluster where a prior attempt already created it.
+- Crossplane installed cluster-wide when `zitadelProvider.enabled: true` — this chart then installs the [provider-zitadel](https://marketplace.upbound.io/providers/loafoe/provider-zitadel) package itself, but a `zitadelProvider.credentials.secretName` Secret (service account key or PAT, minted from this chart's own Zitadel instance) must already exist in `.Values.namespace` before the `ProviderConfig` can authenticate.
 
 ## Credentials
 
@@ -76,3 +77,14 @@ Then browse to http://localhost:8080. For an actual local sign-in flow, enable `
 | workloads.zitadel.resources.requests.memory | string | `"256Mi"` |  |
 | zitadelChart.repoURL | string | `"https://charts.zitadel.com"` |  |
 | zitadelChart.version | string | `"10.4.0"` |  |
+| zitadelProvider.credentials.authType | string | `"ServiceAccount"` |  |
+| zitadelProvider.credentials.keyFileKey | string | `"key.json"` |  |
+| zitadelProvider.credentials.secretName | string | `"zitadel-provider-credentials"` |  |
+| zitadelProvider.credentials.tokenKey | string | `"token"` |  |
+| zitadelProvider.enabled | bool | `false` |  |
+| zitadelProvider.insecure | bool | `true` |  |
+| zitadelProvider.insecureSkipTLSVerify | bool | `false` |  |
+| zitadelProvider.organizationID | string | `""` |  |
+| zitadelProvider.package | string | `"xpkg.upbound.io/loafoe/provider-zitadel"` |  |
+| zitadelProvider.tag | string | `"v0.3.0"` |  |
+| zitadelProvider.url | string | `""` |  |

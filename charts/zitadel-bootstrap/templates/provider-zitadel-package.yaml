@@ -1,0 +1,15 @@
+{{- if .Values.zitadelProvider.enabled }}
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-zitadel
+  labels:
+    {{- include "zitadel-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  package: {{ .Values.zitadelProvider.package }}:{{ .Values.zitadelProvider.tag }}
+  packagePullPolicy: IfNotPresent
+  runtimeConfigRef:
+    name: provider-zitadel
+{{- end }}

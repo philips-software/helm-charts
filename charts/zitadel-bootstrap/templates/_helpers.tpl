@@ -82,6 +82,14 @@ Public hostname when ingress.httpRoute.enabled is true.
 {{- end }}
 
 {{/*
+provider-zitadel ProviderConfig url: in-cluster Service by default, override
+via zitadelProvider.url for an external/TLS-fronted instance.
+*/}}
+{{- define "zitadel-bootstrap.providerUrl" -}}
+{{- .Values.zitadelProvider.url | default (printf "http://zitadel.%s.svc.cluster.local:8080" .Values.namespace) -}}
+{{- end }}
+
+{{/*
 Validate required configuration values
 */}}
 {{- define "zitadel-bootstrap.validateConfig" -}}

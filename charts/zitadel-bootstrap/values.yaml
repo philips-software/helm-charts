@@ -161,3 +161,40 @@ workloads:
       # chart renders no startup probe for this Deployment at all.
       periodSeconds: 10
       failureThreshold: 6
+
+# Optional Crossplane provider-zitadel installation
+# (https://marketplace.upbound.io/providers/loafoe/provider-zitadel), for
+# managing Zitadel resources (organizations, projects, applications, users,
+# policies, ...) as Kubernetes CRs instead of through the Zitadel UI/API
+# directly. Disabled by default. Requires Crossplane itself already installed
+# cluster-wide (see the crossplane-providers chart).
+#
+# credentials.secretName is NOT created by this chart: it must be a
+# pre-existing Secret in .Values.namespace holding a service-account key or
+# personal access token minted from THIS chart's own Zitadel instance after
+# first install/sign-in, so this chart cannot generate it itself without a
+# circular dependency (the credential has to come from the instance it will
+# then be used to manage).
+zitadelProvider:
+  enabled: false
+  package: xpkg.upbound.io/loafoe/provider-zitadel
+  # renovate: datasource=docker depName=xpkg.upbound.io/loafoe/provider-zitadel
+  tag: v0.3.0
+  # Base URL (issuer) of the Zitadel instance the provider manages. Empty
+  # defaults to this chart's own in-cluster Service (plaintext gRPC via
+  # insecure: true below) -- override together with insecure: false for an
+  # external/TLS-fronted instance (e.g. ingress.httpRoute.host).
+  url: ""
+  insecure: true
+  insecureSkipTLSVerify: false
+  # Default organization context for calls that don't specify one.
+  organizationID: ""
+  credentials:
+    # ServiceAccount (recommended: OAuth JWT Profile grant, auto-refreshed)
+    # or Token (personal access token, for quick bootstrapping).
+    authType: ServiceAccount
+    secretName: zitadel-provider-credentials
+    # Key holding the service account JSON key; used when authType is ServiceAccount.
+    keyFileKey: key.json
+    # Key holding the personal access token; used when authType is Token.
+    tokenKey: token
