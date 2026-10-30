@@ -46,9 +46,8 @@ Owner label rendered from environmentConfig.owner so workloads satisfy the
 require-owner-label Kyverno policy. Omitted when unset.
 */}}
 {{- define "centcom-satellite.ownerLabels" -}}
-{{- $environmentConfig := .Values.environmentConfig | default dict }}
-{{- if $environmentConfig.owner }}
-owner: {{ $environmentConfig.owner | quote }}
+{{- if .Values.environmentConfig.owner }}
+owner: {{ .Values.environmentConfig.owner | quote }}
 {{- end }}
 {{- end }}
 
@@ -57,8 +56,7 @@ Value for the app.kubernetes.io/managed-by label, overridden by
 environmentConfig.managedBy when set.
 */}}
 {{- define "centcom-satellite.managedBy" -}}
-{{- $environmentConfig := .Values.environmentConfig | default dict }}
-{{- $environmentConfig.managedBy | default .Release.Service -}}
+{{- .Values.environmentConfig.managedBy | default .Release.Service -}}
 {{- end }}
 
 {{/*
