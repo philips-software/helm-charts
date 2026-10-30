@@ -2748,6 +2748,20 @@ entries:
     version: 0.1.0
   clickhouse-operator-bootstrap:
   - apiVersion: v2
+    created: "2026-10-30T07:55:34.489698793Z"
+    description: A Helm chart for bootstrapping the ClickHouse Kubernetes Operator
+    digest: b62386d8cf82e3537139a5c3b8dce51a9e39254ce8817102213a8868e92a100b
+    keywords:
+    - clickhouse
+    - operator
+    - argocd
+    - bootstrap
+    name: clickhouse-operator-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/clickhouse-operator-bootstrap-0.2.1/clickhouse-operator-bootstrap-0.2.1.tgz
+    version: 0.2.1
+  - apiVersion: v2
     created: "2026-09-30T08:54:40.681481647Z"
     description: A Helm chart for bootstrapping the ClickHouse Kubernetes Operator
     digest: 11bc98d9393f4eba0d7c258a1ac42e721f3d5f3677ba88d539eb7484a52ee488
@@ -9958,4 +9972,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-30T07:41:04.104342297Z"
+generated: "2026-10-30T07:55:34.933739291Z"
