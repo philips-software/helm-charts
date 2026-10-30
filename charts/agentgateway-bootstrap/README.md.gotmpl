@@ -4,6 +4,12 @@
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
+## Prerequisites
+
+- [CloudNativePG operator](../cloudnative-pg-operator) installed cluster-wide when `database.enabled: true` (default) — this chart creates a CNPG `Cluster` directly.
+- [Gateway API](https://gateway-api.sigs.k8s.io/) CRDs when `mode: kubernetes` (default) and `gateway.enabled: true` — this chart creates a `Gateway`/`GatewayClass` of its own.
+- An EKS Pod Identity webhook / OIDC provider (for `bedrock.auth.type: irsa`, the default) or a pre-existing AWS credentials Secret (for `bedrock.auth.type: secret`) when `bedrock.enabled: true`.
+
 ## Deployment Modes
 
 This chart supports two deployment modes via the `mode` value:

@@ -1,6 +1,6 @@
 # zitadel-bootstrap
 
-![Version: 0.3.2](https://img.shields.io/badge/Version-0.3.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.3.3](https://img.shields.io/badge/Version-0.3.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Zitadel](https://zitadel.com/) via ArgoCD: CNPG Postgres (static credentials, no Bitnami), standard username/password sign-in out of the box, and a single Gateway API HTTPRoute of this chart's own (not the upstream chart's native Gateway API support — see the design spec's "Ingress" section for why).
 
@@ -69,7 +69,7 @@ Then browse to http://localhost:8080. For an actual local sign-in flow, enable `
 | workloads.login.resources.requests.cpu | string | `"50m"` |  |
 | workloads.login.resources.requests.memory | string | `"256Mi"` |  |
 | workloads.zitadel.probes.failureThreshold | int | `6` |  |
-| workloads.zitadel.probes.periodSeconds | int | `10` | ------------------------------------------------------------------- The upstream chart renders only initialDelaySeconds / periodSeconds / failureThreshold — checked in templates/deployment_zitadel.yaml and templates/deployment_login.yaml — so probe `timeoutSeconds` is never emitted and Kubernetes applies its 1s default. There is no way to set it through this chart today: a kustomize post-renderer is not an option either, because the ArgoCD Application CRD declares no `postRenderers` field (absent upstream in ArgoCD v3.4.1 too), so a server-side apply of one is rejected outright with "field not declared in schema".  Nothing in this chart depends on that being fixed. periodSeconds x failureThreshold below is the only available lever for tolerating a slow response, and two replicas absorb a pod that flaps regardless.  When an upstream chart release does render `timeoutSeconds`, this can simply be wired through here — no other change required. Until then the effective budget is 1s per attempt, 60s of consecutive failure overall. |
+| workloads.zitadel.probes.periodSeconds | int | `10` |  |
 | workloads.zitadel.replicaCount | int | `2` |  |
 | workloads.zitadel.resources.limits.memory | string | `"1Gi"` |  |
 | workloads.zitadel.resources.requests.cpu | string | `"100m"` |  |

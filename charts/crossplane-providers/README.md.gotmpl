@@ -75,12 +75,7 @@ spec:
   own when `deploymentTemplate.metadata.name` pinned a stable name (which this
   chart does), so a retained Inactive revision fought the Active one over the
   same Deployment. See `package.revisionHistoryLimit` below and crossplane#7561.
-- Ensure the `crossplane-system` namespace exists
-- Configure appropriate RBAC permissions for provider operations
-
-## Dependencies
-
-The application uses [Crossplane](https://www.crossplane.io) to manage the required IAM roles
+- An EKS OIDC provider with `environmentConfig.oidcProviderArn`/`oidcProvider` set, for `package.identityMode: irsa` (the default) — or EKS Pod Identity with `environmentConfig.clusterName`/`region` set, for `package.identityMode: podIdentity`.
 
 {{ template "chart.requirementsSection" . }}
 

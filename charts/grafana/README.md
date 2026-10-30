@@ -1,8 +1,14 @@
 # grafana
 
-![Version: 0.81.10](https://img.shields.io/badge/Version-0.81.10-informational?style=flat-square)
+![Version: 0.81.12](https://img.shields.io/badge/Version-0.81.12-informational?style=flat-square)
 
 Deploys Grafana to a cluster
+
+## Prerequisites
+
+- [CloudNativePG operator](../cloudnative-pg-operator) installed cluster-wide when `database.cnpg: true` (default) — this chart creates a CNPG `Cluster` directly. Set it to `false` only when pointing at an already-provisioned external Postgres.
+- Crossplane with the `provider-gf`/`provider-orgmapper` packages installed when `crossplaneProviders.gf.enabled`/`crossplaneProviders.orgmapper.enabled` are true (both default `true`) — this chart creates their `ProviderConfig`s and depends on the CRDs those providers register.
+- A Gateway API `Gateway` for `grafana.httpRoute.sharedGatewayName`/`grafana.httpRoute.sharedGatewayNamespace` when `grafana.httpRoute.enabled: true`.
 
 ## SSO configuration
 

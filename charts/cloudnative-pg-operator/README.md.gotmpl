@@ -4,6 +4,11 @@
 
 {{ template "chart.description" . }}
 
+## Prerequisites
+
+- [Kyverno](https://kyverno.io/) when `kyvernoPolicy.enabled: true` (default) — this chart installs a `ClusterPolicy` that enforces the pinned image catalog on every `Cluster`.
+- A CSI driver with `VolumeSnapshot` support when `volumeSnapshotPruner.enabled: true` (default) — the pruner CronJob lists/deletes `volumesnapshot.storage.k8s.io` objects it does not itself create.
+
 ## PostgreSQL extensions (including pgvector)
 
 `imageCatalog.images[].image` pins the Postgres container flavor used by every `Cluster` in the

@@ -1,6 +1,6 @@
 # crossplane-functions
 
-![Version: 0.0.18](https://img.shields.io/badge/Version-0.0.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.0.19](https://img.shields.io/badge/Version-0.0.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 ## Overview
 
@@ -33,7 +33,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-functions
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.18"
+    version: "0.0.19"
     releaseName: crossplane-functions
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -59,7 +59,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-functions
-    targetRevision: "0.0.18"
+    targetRevision: "0.0.19"
     helm:
       valueFiles:
         - values.yaml
@@ -76,11 +76,7 @@ spec:
 
 ## Prerequisites
 
-- Crossplane must be installed in the cluster (v1.14+ recommended for function support)
-- Ensure the `crossplane-system` namespace exists
-- Functions require appropriate RBAC permissions to interact with Crossplane resources
-
-## Dependencies
+- Crossplane installed cluster-wide — this chart creates `pkg.crossplane.io` `Function` and (when `features.deploymentRuntimeConfig: true`, the default) `DeploymentRuntimeConfig` resources, both served by the Crossplane core itself.
 
 ## Values
 

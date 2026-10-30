@@ -1,9 +1,17 @@
 # otlp-gateway
 
-![Version: 0.63.2](https://img.shields.io/badge/Version-0.63.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.63.3](https://img.shields.io/badge/Version-0.63.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 OTLP gateway is a reference implementation which creates a single otlphttp endpoint that proxies Loki, Tempo and Mimir OTLP endpoints
 It supports authentication and authorization using both static and JWT tokens and tokens through the [caddy-token](https://github.com/loafoe/caddy-token) plugin.
+
+## Prerequisites
+
+- [Gateway API](https://gateway-api.sigs.k8s.io/) CRDs and a `Gateway` for `httpRoute.sharedGatewayName`/`httpRoute.sharedGatewayNamespace` when `httpRoute.enabled: true` (the default ingress path).
+- [cert-manager](https://cert-manager.io/) when `loadbalancer.enabled: true` or `ingress.enabled: true`, with a `ClusterIssuer` named `letsencrypt-prod` already present — this chart's `Certificate` references that name directly and never creates the issuer itself.
+- Prometheus Operator CRDs (`monitoring.coreos.com`) when `serviceMonitor.enabled: true`.
+- A Vertical Pod Autoscaler installation when `vpa.enabled: true`.
+- A SPIFFE Workload API socket (e.g. the SPIRE CSI driver) when `authn.spiffe.enabled: true`.
 
 ## Scripts
 

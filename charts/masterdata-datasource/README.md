@@ -1,8 +1,13 @@
 # masterdata-datasource
 
-![Version: 0.10.2](https://img.shields.io/badge/Version-0.10.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.10.3](https://img.shields.io/badge/Version-0.10.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database for use as a datasource in Grafana
+
+## Prerequisites
+
+- Crossplane with the `crossplane-providers` chart's `postgres.dip.io` XRD installed, when `postgres.useExisting: false` (default) — this chart creates a `Postgres` claim restored from `postgres.sourceIdentifier`. Set `postgres.useExisting: true` and point at pre-existing connection/password Secrets to skip this entirely.
+- Crossplane with the `provider-gf` package installed when `grafanaDatasource.enabled: true` (default) — this chart creates a Grafana datasource resource against it (`oss.grafana.m.crossplane.io`).
 
 ## Values
 

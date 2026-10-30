@@ -1,0 +1,16 @@
+# masterdata-datasource
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}
+
+{{ template "chart.description" . }}
+
+## Prerequisites
+
+- Crossplane with the `crossplane-providers` chart's `postgres.dip.io` XRD installed, when `postgres.useExisting: false` (default) — this chart creates a `Postgres` claim restored from `postgres.sourceIdentifier`. Set `postgres.useExisting: true` and point at pre-existing connection/password Secrets to skip this entirely.
+- Crossplane with the `provider-gf` package installed when `grafanaDatasource.enabled: true` (default) — this chart creates a Grafana datasource resource against it (`oss.grafana.m.crossplane.io`).
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

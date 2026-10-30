@@ -2,6 +2,11 @@
 
 {{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
 
+## Prerequisites
+
+- Crossplane with the `crossplane-providers` chart's `s3irsas.dip.io` XRD installed — this chart creates an `S3IRSA` claim against an existing S3 bucket (`existingBucketName`, required); it never creates the bucket itself.
+- A Vertical Pod Autoscaler installation when `vpa.enabled: true`.
+
 {{ template "chart.requirementsSection" . }}
 
 {{ template "chart.valuesSection" . }}

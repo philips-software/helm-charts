@@ -1,18 +1,20 @@
 # mimir
 
-![Version: 0.69.3](https://img.shields.io/badge/Version-0.69.3-informational?style=flat-square)
+![Version: 0.69.4](https://img.shields.io/badge/Version-0.69.4-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.69.3 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/mimir-bootstrap:0.69.4 -n monitoring
 ```
 
-## Dependencies
+## Prerequisites
 
-The application uses [Crossplane](https://www.crossplane.io) to manage the required IAM roles
+- Crossplane with the `crossplane-providers` chart's `s3irsas.dip.io` XRD installed — this chart creates an `S3IRSA` claim against an existing S3 bucket (`existingBucketName`, required); it never creates the bucket itself.
+- [Karpenter](https://karpenter.sh/) when `kafkaNodePool.enabled: true` — this chart creates a Karpenter `NodePool` for the Kafka workload.
+- A Vertical Pod Autoscaler installation when `vpa.enabled: true` (default) with any `vpa.components.*.enabled` left on.
 
 ## Values
 

@@ -1,0 +1,15 @@
+# alloy-otlp-relay
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}
+
+{{ template "chart.description" . }}
+
+## Prerequisites
+
+- A reachable Mimir (or other OTLP-compatible) gateway endpoint — `mimir.url` defaults to `http://mimir-gateway.mimir-system.svc.cluster.local/otlp`, the in-cluster `mimir-bootstrap` gateway Service. This chart does not deploy Mimir itself.
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

@@ -1,12 +1,20 @@
 # dex-issuer
 
-![Version: 0.15.0](https://img.shields.io/badge/Version-0.15.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.15.1](https://img.shields.io/badge/Version-0.15.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
 
 This is a wrapper chart. It does **not** define a `HelmApplication` — it assumes it is itself
 provisioned by one — and it emits the underlying ArgoCD `Application`s and CRs.
+
+## Prerequisites
+
+- [CloudNativePG operator](../cloudnative-pg-operator) installed cluster-wide — this chart always creates a CNPG `Cluster` directly for Dex's own storage.
+- The [CNPG barman-cloud plugin](../cloudnative-pg-operator) (its `objectstores.barmancloud.cnpg.io` CRD) when `database.barmanBackup.enabled: true` — see "Barman backups and the object store" below.
+- Crossplane with the `provider-dex` package when `provider.enabled: true` (default) — this chart creates its `ProviderConfig`s.
+- An existing cluster-scoped `ClusterIssuer` (set via `pki.existingClusterIssuer`) backed by [cert-manager](https://cert-manager.io/) to enable gRPC mTLS — see "Crossplane connector plane" below. This chart never creates a `ClusterIssuer` itself.
+- A Gateway API `Gateway` for `dex.httpRoute.sharedGatewayName`/`dex.httpRoute.sharedGatewayNamespace` when `dex.httpRoute.enabled: true`.
 
 ## Issuer endpoint
 

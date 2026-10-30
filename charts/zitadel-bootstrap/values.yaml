@@ -128,8 +128,7 @@ workloads:
       limits:
         memory: 1Gi
     probes:
-      # NOTE ON `timeoutSeconds` (as of zitadelChart.version 10.0.6 / 10.1.0)
-      # ---------------------------------------------------------------------
+      # NOTE ON `timeoutSeconds` (as of zitadelChart.version 10.0.6 / 10.1.0):
       # The upstream chart renders only initialDelaySeconds / periodSeconds /
       # failureThreshold — checked in templates/deployment_zitadel.yaml and
       # templates/deployment_login.yaml — so probe `timeoutSeconds` is never

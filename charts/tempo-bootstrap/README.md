@@ -1,14 +1,20 @@
 # tempo
 
-![Version: 0.45.10](https://img.shields.io/badge/Version-0.45.10-informational?style=flat-square)
+![Version: 0.45.11](https://img.shields.io/badge/Version-0.45.11-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.45.10 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.45.11 -n monitoring
 ```
+
+## Prerequisites
+
+- Crossplane with the `crossplane-providers` chart's `s3irsas.dip.io` XRD installed — this chart creates an `S3IRSA` claim against an existing S3 bucket (`existingBucketName`, required); it never creates the bucket itself.
+- [Karpenter](https://karpenter.sh/) when `kafkaNodePool.enabled: true` — this chart creates a Karpenter `NodePool` for the Kafka workload.
+- A Vertical Pod Autoscaler installation when `vpa.enabled: true` (default) with any `vpa.components.*.enabled` left on.
 
 ## Values
 

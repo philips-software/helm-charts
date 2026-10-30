@@ -1,8 +1,13 @@
 # k8s-observability-monitoring
 
-![Version: 1.10.11](https://img.shields.io/badge/Version-1.10.11-informational?style=flat-square) ![AppVersion: 4.5.5](https://img.shields.io/badge/AppVersion-4.5.5-informational?style=flat-square)
+![Version: 1.10.12](https://img.shields.io/badge/Version-1.10.12-informational?style=flat-square) ![AppVersion: 4.5.5](https://img.shields.io/badge/AppVersion-4.5.5-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
+
+## Prerequisites
+
+- [Kyverno](https://kyverno.io/) with its CEL `PolicyException` CRD and the platform-admin write RBAC already granted when `kyverno.policyException.enabled: true` — this chart creates a `PolicyException`, not a `ClusterPolicy`.
+- A Vertical Pod Autoscaler installation when `customAlloy.enabled: true` and `customAlloy.vpa.enabled: true` (both default `true`).
 
 ## v1.0.0 Breaking Changes
 

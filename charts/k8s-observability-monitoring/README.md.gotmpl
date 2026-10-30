@@ -4,6 +4,11 @@
 
 {{ template "chart.description" . }}
 
+## Prerequisites
+
+- [Kyverno](https://kyverno.io/) with its CEL `PolicyException` CRD and the platform-admin write RBAC already granted when `kyverno.policyException.enabled: true` — this chart creates a `PolicyException`, not a `ClusterPolicy`.
+- A Vertical Pod Autoscaler installation when `customAlloy.enabled: true` and `customAlloy.vpa.enabled: true` (both default `true`).
+
 ## v1.0.0 Breaking Changes
 
 This chart now wraps [k8s-monitoring v4.x](https://github.com/grafana/k8s-monitoring-helm) which has significant changes:

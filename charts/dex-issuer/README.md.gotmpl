@@ -8,6 +8,14 @@ storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management p
 This is a wrapper chart. It does **not** define a `HelmApplication` — it assumes it is itself
 provisioned by one — and it emits the underlying ArgoCD `Application`s and CRs.
 
+## Prerequisites
+
+- [CloudNativePG operator](../cloudnative-pg-operator) installed cluster-wide — this chart always creates a CNPG `Cluster` directly for Dex's own storage.
+- The [CNPG barman-cloud plugin](../cloudnative-pg-operator) (its `objectstores.barmancloud.cnpg.io` CRD) when `database.barmanBackup.enabled: true` — see "Barman backups and the object store" below.
+- Crossplane with the `provider-dex` package when `provider.enabled: true` (default) — this chart creates its `ProviderConfig`s.
+- An existing cluster-scoped `ClusterIssuer` (set via `pki.existingClusterIssuer`) backed by [cert-manager](https://cert-manager.io/) to enable gRPC mTLS — see "Crossplane connector plane" below. This chart never creates a `ClusterIssuer` itself.
+- A Gateway API `Gateway` for `dex.httpRoute.sharedGatewayName`/`dex.httpRoute.sharedGatewayNamespace` when `dex.httpRoute.enabled: true`.
+
 ## Issuer endpoint
 
 The public issuer endpoint defaults to `https://<dex.httpRoute.host>.<clusterFqdn>`, e.g.

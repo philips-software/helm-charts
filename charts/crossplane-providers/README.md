@@ -1,6 +1,6 @@
 # crossplane-providers
 
-![Version: 0.0.43](https://img.shields.io/badge/Version-0.0.43-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.0.44](https://img.shields.io/badge/Version-0.0.44-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 ## Overview
 
@@ -27,7 +27,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-providers
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.43"
+    version: "0.0.44"
     releaseName: crossplane-providers
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -53,7 +53,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-providers
-    targetRevision: "0.0.43"
+    targetRevision: "0.0.44"
     helm:
       valueFiles:
         - values.yaml
@@ -75,12 +75,7 @@ spec:
   own when `deploymentTemplate.metadata.name` pinned a stable name (which this
   chart does), so a retained Inactive revision fought the Active one over the
   same Deployment. See `package.revisionHistoryLimit` below and crossplane#7561.
-- Ensure the `crossplane-system` namespace exists
-- Configure appropriate RBAC permissions for provider operations
-
-## Dependencies
-
-The application uses [Crossplane](https://www.crossplane.io) to manage the required IAM roles
+- An EKS OIDC provider with `environmentConfig.oidcProviderArn`/`oidcProvider` set, for `package.identityMode: irsa` (the default) — or EKS Pod Identity with `environmentConfig.clusterName`/`region` set, for `package.identityMode: podIdentity`.
 
 ## Values
 

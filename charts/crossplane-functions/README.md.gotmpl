@@ -76,11 +76,7 @@ spec:
 
 ## Prerequisites
 
-- Crossplane must be installed in the cluster (v1.14+ recommended for function support)
-- Ensure the `crossplane-system` namespace exists
-- Functions require appropriate RBAC permissions to interact with Crossplane resources
-
-## Dependencies
+- Crossplane installed cluster-wide — this chart creates `pkg.crossplane.io` `Function` and (when `features.deploymentRuntimeConfig: true`, the default) `DeploymentRuntimeConfig` resources, both served by the Crossplane core itself.
 
 {{ template "chart.requirementsSection" . }}
 

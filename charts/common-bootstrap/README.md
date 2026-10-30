@@ -1,10 +1,17 @@
 # common-bootstrap
 
-![Version: 2.2.1](https://img.shields.io/badge/Version-2.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.52](https://img.shields.io/badge/AppVersion-0.0.52-informational?style=flat-square)
+![Version: 2.2.2](https://img.shields.io/badge/Version-2.2.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.52](https://img.shields.io/badge/AppVersion-0.0.52-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
 and uses HelmApplication CRs to bootstrap platform components.
+
+## Prerequisites
+
+- Crossplane installed cluster-wide — this chart creates an `apiextensions.crossplane.io/v1beta1` `EnvironmentConfig` directly, and (when `crossplaneCompositions.enabled: true`, the default) deploys `loafoe/crossplane-compositions` via an ArgoCD `Application`.
+- ArgoCD installed cluster-wide — `crossplaneCompositions.enabled` and every entry under `helmApplications` deploy via ArgoCD `Application`/`HelmApplication` CRs.
+- A source `ConfigMap` (`sourceConfigMap.name`/`sourceConfigMap.namespace`, default `hsp-addons`/`hsp-addons`) already present in the cluster when `harvester.enabled: true` (default) — this chart's harvester Job reads it to populate the `EnvironmentConfig`, but never creates it. It is typically created by the HSP platform; the Job waits up to `harvester.waitForConfigMapSeconds` for it to appear and fails with a clear error if it never does.
+- Prometheus Operator CRDs (`monitoring.coreos.com`) when `argocdSyncAlerts.enabled: true` — this chart creates a `PrometheusRule`.
 
 ## Values
 

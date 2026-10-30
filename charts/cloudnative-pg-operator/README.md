@@ -1,8 +1,13 @@
 # cloudnative-pg-operator
 
-![Version: 0.13.1](https://img.shields.io/badge/Version-0.13.1-informational?style=flat-square)
+![Version: 0.13.2](https://img.shields.io/badge/Version-0.13.2-informational?style=flat-square)
 
 A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
+
+## Prerequisites
+
+- [Kyverno](https://kyverno.io/) when `kyvernoPolicy.enabled: true` (default) — this chart installs a `ClusterPolicy` that enforces the pinned image catalog on every `Cluster`.
+- A CSI driver with `VolumeSnapshot` support when `volumeSnapshotPruner.enabled: true` (default) — the pruner CronJob lists/deletes `volumesnapshot.storage.k8s.io` objects it does not itself create.
 
 ## PostgreSQL extensions (including pgvector)
 

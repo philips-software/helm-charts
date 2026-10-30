@@ -1,6 +1,11 @@
 # loki-bootstrap
 
-![Version: 0.46.8](https://img.shields.io/badge/Version-0.46.8-informational?style=flat-square)
+![Version: 0.46.9](https://img.shields.io/badge/Version-0.46.9-informational?style=flat-square)
+
+## Prerequisites
+
+- Crossplane with the `crossplane-providers` chart's `s3irsas.dip.io` XRD installed — this chart creates an `S3IRSA` claim against an existing S3 bucket (`existingBucketName`, required); it never creates the bucket itself.
+- A Vertical Pod Autoscaler installation when `vpa.enabled: true`.
 
 ## Values
 

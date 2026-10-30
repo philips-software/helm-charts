@@ -6,7 +6,7 @@ keywords:
   - fluent-bit
   - fluentd
   - hsdp
-version: 0.14.1
+version: 0.14.2
 # appVersion intentionally omitted: this chart has no templates/ of its own
 # (it vendors fluent-bit as a Helm dependency below), so appVersion was never
 # referenced by anything -- it only duplicated, and had already drifted from,

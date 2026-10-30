@@ -10,6 +10,10 @@
 
 {{ template "chart.homepageLine" . }}
 
+## Prerequisites
+
+- An HSDP Logging Ingestor API endpoint and credentials. The bundled default `[OUTPUT]` block (`fluent-bit.config.outputs`) only sets `Name hsdp` / `Match *` — override it with your own endpoint/credential parameters before relying on this chart to actually ship logs anywhere.
+
 ## Quick Installation
 
 To install the helm chart with default values run following command. 
