@@ -23,6 +23,13 @@ spec:
           watchNamespaces:
             {{- toYaml .Values.operator.watchNamespaces | nindent 12 }}
         manager:
+          labels:
+            {{- include "clickhouse-operator-bootstrap.ownerLabels" . | nindent 12 }}
+            app.kubernetes.io/managed-by: {{ include "clickhouse-operator-bootstrap.managedBy" . }}
+          pod:
+            labels:
+              {{- include "clickhouse-operator-bootstrap.ownerLabels" . | nindent 14 }}
+              app.kubernetes.io/managed-by: {{ include "clickhouse-operator-bootstrap.managedBy" . }}
           resources:
             {{- toYaml .Values.operator.resources | nindent 12 }}
   destination:
