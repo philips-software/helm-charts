@@ -180,12 +180,18 @@ zitadelProvider:
   package: xpkg.upbound.io/loafoe/provider-zitadel
   # renovate: datasource=docker depName=xpkg.upbound.io/loafoe/provider-zitadel
   tag: v0.3.0
-  # Base URL (issuer) of the Zitadel instance the provider manages. Empty
-  # defaults to this chart's own in-cluster Service (plaintext gRPC via
-  # insecure: true below) -- override together with insecure: false for an
-  # external/TLS-fronted instance (e.g. ingress.httpRoute.host).
+  # Base URL (issuer) of the Zitadel instance the provider manages. Zitadel
+  # resolves which instance a call belongs to from the request's Host header
+  # (ExternalDomain), not from however the caller actually reached the
+  # Service -- so this MUST match ExternalDomain in config/zitadel-values.yaml
+  # or every request 404s with "Instance not found". Empty defaults to
+  # ingress.httpRoute.host's public hostname over HTTPS when
+  # ingress.httpRoute.enabled (what ExternalDomain actually is in that case),
+  # else the in-cluster Service over plaintext gRPC -- see
+  # templates/_helpers.tpl's zitadel-bootstrap.providerUrl. Override url
+  # together with insecure for anything else (e.g. a different ExternalDomain).
   url: ""
-  insecure: true
+  insecure: false
   insecureSkipTLSVerify: false
   # Default organization context for calls that don't specify one.
   organizationID: ""

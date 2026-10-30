@@ -1,6 +1,6 @@
 # zitadel-bootstrap
 
-![Version: 0.4.1](https://img.shields.io/badge/Version-0.4.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.4.2](https://img.shields.io/badge/Version-0.4.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Zitadel](https://zitadel.com/) via ArgoCD: CNPG Postgres (static credentials, no Bitnami), standard username/password sign-in out of the box, and a single Gateway API HTTPRoute of this chart's own (not the upstream chart's native Gateway API support — see the design spec's "Ingress" section for why).
 
@@ -82,7 +82,7 @@ Then browse to http://localhost:8080. For an actual local sign-in flow, enable `
 | zitadelProvider.credentials.secretName | string | `"zitadel-provider-credentials"` |  |
 | zitadelProvider.credentials.tokenKey | string | `"token"` |  |
 | zitadelProvider.enabled | bool | `false` |  |
-| zitadelProvider.insecure | bool | `true` |  |
+| zitadelProvider.insecure | bool | `false` |  |
 | zitadelProvider.insecureSkipTLSVerify | bool | `false` |  |
 | zitadelProvider.organizationID | string | `""` |  |
 | zitadelProvider.package | string | `"xpkg.upbound.io/loafoe/provider-zitadel"` |  |

@@ -82,11 +82,24 @@ Public hostname when ingress.httpRoute.enabled is true.
 {{- end }}
 
 {{/*
-provider-zitadel ProviderConfig url: in-cluster Service by default, override
-via zitadelProvider.url for an external/TLS-fronted instance.
+provider-zitadel ProviderConfig url. Zitadel resolves which instance a call
+belongs to from the request's Host header (configmapConfig.ExternalDomain in
+config/zitadel-values.yaml), not from however the caller actually reached
+the Service -- so hitting the in-cluster Service by its DNS name 404s with
+"Instance not found" as soon as ingress.httpRoute.enabled sets ExternalDomain
+to the public host instead. Default to that same public host over HTTPS
+when ingress is enabled (matches what ExternalDomain actually is); otherwise
+fall back to the in-cluster Service, which only works if nothing else has
+overridden ExternalDomain away from its own "localhost" default either.
 */}}
 {{- define "zitadel-bootstrap.providerUrl" -}}
-{{- .Values.zitadelProvider.url | default (printf "http://zitadel.%s.svc.cluster.local:8080" .Values.namespace) -}}
+{{- if .Values.zitadelProvider.url -}}
+{{- .Values.zitadelProvider.url -}}
+{{- else if .Values.ingress.httpRoute.enabled -}}
+{{- printf "https://%s" (include "zitadel-bootstrap.host" .) -}}
+{{- else -}}
+{{- printf "http://zitadel.%s.svc.cluster.local:8080" .Values.namespace -}}
+{{- end -}}
 {{- end }}
 
 {{/*
@@ -118,5 +131,10 @@ Validate required configuration values
 {{- end }}
 {{- if not .Values.credentials.adminPassword }}
 {{- fail "credentials.adminPassword is required and cannot be empty" }}
+{{- end }}
+{{- if .Values.zitadelProvider.enabled }}
+{{- if and (not .Values.zitadelProvider.url) (not .Values.ingress.httpRoute.enabled) }}
+{{- fail "zitadelProvider.url is required when zitadelProvider.enabled is true and ingress.httpRoute.enabled is false -- there is no in-cluster URL that matches this instance's ExternalDomain (see config/zitadel-values.yaml) without it" }}
+{{- end }}
 {{- end }}
 {{- end }}
