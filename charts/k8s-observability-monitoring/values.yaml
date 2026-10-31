@@ -192,6 +192,18 @@ telemetryServices:
   node-exporter:
     deploy: false
 
+# -- The Alloy Operator's CRDs (passed through to the alloy-operator subchart verbatim).
+# Default matches upstream: deploy the Alloy CRD, skip the PodLogs CRD. Set
+# deployAlloyCRD: false on clusters where an Argo CD AppProject scopes this release's
+# clusterResourceWhitelist to RBAC only (no CustomResourceDefinition) and the CRD is
+# already installed out-of-band (e.g. by a cluster-wide bootstrap project) -- otherwise
+# every sync is rejected with "resource apiextensions.k8s.io:CustomResourceDefinition is
+# not permitted in project ...".
+alloyOperator:
+  crds:
+    deployAlloyCRD: true
+    deployPodLogsCRD: false
+
 # -- Toleration for the platform's "dedicated node" taint key (e.g. the kafka/tempo-kafka
 # dedicated nodes created by mimir-bootstrap/tempo-bootstrap's kafkaNodePool), so the
 # DaemonSets this chart deploys -- alloy-logs for node logs, and node-exporter for host

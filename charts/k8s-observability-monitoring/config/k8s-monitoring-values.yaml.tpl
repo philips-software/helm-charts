@@ -90,6 +90,10 @@ collectors:
 # Alloy Operator
 alloy-operator:
   deploy: true
+  {{- if .Values.alloyOperator.crds }}
+  crds:
+    {{- toYaml .Values.alloyOperator.crds | nindent 4 }}
+  {{- end }}
   waitForAlloyRemoval:
     enabled: true
     nodeSelector:

@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 1.10.12](https://img.shields.io/badge/Version-1.10.12-informational?style=flat-square) ![AppVersion: 4.5.5](https://img.shields.io/badge/AppVersion-4.5.5-informational?style=flat-square)
+![Version: 1.10.14](https://img.shields.io/badge/Version-1.10.14-informational?style=flat-square) ![AppVersion: 4.6.0](https://img.shields.io/badge/AppVersion-4.6.0-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -357,6 +357,7 @@ node memory.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| alloyOperator | object | `{"crds":{"deployAlloyCRD":true,"deployPodLogsCRD":false}}` | The Alloy Operator's CRDs (passed through to the alloy-operator subchart verbatim). Default matches upstream: deploy the Alloy CRD, skip the PodLogs CRD. Set deployAlloyCRD: false on clusters where an Argo CD AppProject scopes this release's clusterResourceWhitelist to RBAC only (no CustomResourceDefinition) and the CRD is already installed out-of-band (e.g. by a cluster-wide bootstrap project) -- otherwise every sync is rejected with "resource apiextensions.k8s.io:CustomResourceDefinition is not permitted in project ...". |
 | applicationObservability | object | `{"destinations":[],"enabled":false,"processors":{},"receivers":{"otlp":{"grpc":{"enabled":true,"port":4317},"http":{"enabled":true,"port":4318}}}}` | Application observability (OTLP receiver for traces, metrics, logs from apps) |
 | applicationObservability.processors | object | `{}` | Processor settings passed through verbatim to the upstream applicationObservability feature (see its values for the full list). E.g. a memory limiter right after the OTLP receiver of alloy-receiver, which pushes back on senders with a retryable error instead of letting the collector OOM:   processors:     memoryLimiter:       enabled: true       checkInterval: 1s       limit: 400MiB   # upstream only supports an absolute limit; keep it below                       # the alloy-receiver container memory limit |
 | autoInstrumentation | object | `{"destinations":[],"enabled":false}` | Auto-instrumentation for applications |
