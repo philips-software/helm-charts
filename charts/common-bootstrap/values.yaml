@@ -134,7 +134,7 @@ harvester:
   image:
     repository: docker.io/alpine/k8s
     # renovate: datasource=docker depName=alpine/k8s
-    tag: "1.37.1"
+    tag: "1.37.2"
     pullPolicy: IfNotPresent
   serviceAccount:
     name: hsp-addons-harvester
@@ -192,7 +192,7 @@ statefulSetImmutableReconciler:
   appFilter: []
   image:
     # renovate: datasource=docker depName=alpine/k8s
-    tag: "1.37.1"
+    tag: "1.37.2"
 
 # Alerts for Argo CD Applications that have stopped converging.
 #
