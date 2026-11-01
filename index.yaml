@@ -8262,6 +8262,14 @@ entries:
     version: 0.1.0
   loki-bootstrap:
   - apiVersion: v2
+    created: "2026-11-01T10:37:14.262980645Z"
+    description: A Helm chart for bootstrapping Loki
+    digest: 1f0511d8860338e48d1a6c4073da8807ce6924e3af325b27babc4aeb435c7be0
+    name: loki-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.46.11/loki-bootstrap-0.46.11.tgz
+    version: 0.46.11
+  - apiVersion: v2
     created: "2026-10-30T11:54:47.188967074Z"
     description: A Helm chart for bootstrapping Loki
     digest: 3c1b6b5de073b0c9c0ead941852316f3ffff0adb38e84fca8e727a8930996043
@@ -10250,4 +10258,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-31T14:05:37.56408959Z"
+generated: "2026-11-01T10:37:14.265605014Z"
