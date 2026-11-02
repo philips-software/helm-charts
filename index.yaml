@@ -2,6 +2,24 @@ apiVersion: v1
 entries:
   agentgateway-bootstrap:
   - apiVersion: v2
+    created: "2026-11-02T08:16:35.768235407Z"
+    description: A Helm chart for bootstrapping agentgateway with Amazon Bedrock LLM
+      support
+    digest: 520a9ec75af74feb6e486ce4b28cd9347ea5658a6081b5f0825a9b4069efa9c6
+    keywords:
+    - agentgateway
+    - bedrock
+    - ai
+    - llm
+    - gateway-api
+    - argocd
+    - bootstrap
+    name: agentgateway-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/agentgateway-bootstrap-0.11.9/agentgateway-bootstrap-0.11.9.tgz
+    version: 0.11.9
+  - apiVersion: v2
     created: "2026-10-30T07:41:03.195749784Z"
     description: A Helm chart for bootstrapping agentgateway with Amazon Bedrock LLM
       support
@@ -3165,6 +3183,23 @@ entries:
   common-bootstrap:
   - apiVersion: v2
     appVersion: 0.0.53
+    created: "2026-11-02T08:16:36.112560567Z"
+    description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
+      deploys crossplane-compositions, and uses HelmApplication CRs to bootstrap platform
+      components. '
+    digest: d30709fb5d0aa8ad07d5b6013d380d163f5559cb195a9022b3f0ea2da70ba947
+    keywords:
+    - crossplane
+    - common
+    - bootstrap
+    - argocd
+    name: common-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/common-bootstrap-2.2.4/common-bootstrap-2.2.4.tgz
+    version: 2.2.4
+  - apiVersion: v2
+    appVersion: 0.0.53
     created: "2026-11-02T08:15:58.794421026Z"
     description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
       deploys crossplane-compositions, and uses HelmApplication CRs to bootstrap platform
@@ -4280,6 +4315,24 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/crossplane-functions-0.0.2/crossplane-functions-0.0.2.tgz
     version: 0.0.2
   crossplane-providers:
+  - apiVersion: v2
+    created: "2026-11-02T08:16:36.274273509Z"
+    description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or
+      EKS Pod Identity configuration
+    digest: f5f5e6875cda09724f67a2cf3676ea94c0c98c556b6bd9be5ea1091018f21b59
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    - pod-identity
+    maintainers:
+    - name: Philips Software
+    name: crossplane-providers
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-providers-0.0.45/crossplane-providers-0.0.45.tgz
+    version: 0.0.45
   - apiVersion: v2
     created: "2026-10-29T16:18:50.607381544Z"
     description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or
@@ -5748,6 +5801,13 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.0.14/fluent-bit-out-hsdp-0.0.14.tgz
     version: 0.0.14
   grafana:
+  - apiVersion: v2
+    created: "2026-11-02T08:16:36.421247267Z"
+    digest: 9886ffbe2eb7521c0c05dcb95590cbf7f476c233fa123784ebb12c502b41074b
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.81.15/grafana-0.81.15.tgz
+    version: 0.81.15
   - apiVersion: v2
     created: "2026-10-30T11:55:05.155307338Z"
     digest: 8c773788489d958e2aba0e7f3df4fd1a5ebb198e8c36eedcb24688c96b2bd2b5
@@ -7605,6 +7665,23 @@ entries:
     version: 0.1.0
   langfuse-bootstrap:
   - apiVersion: v2
+    created: "2026-11-02T08:16:36.587910067Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: 59cc51039059cd71395ccd4bd0ea1ca6de31d185e9cd8f3970b9df686c251f03
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.9.13/langfuse-bootstrap-0.9.13.tgz
+    version: 0.9.13
+  - apiVersion: v2
     created: "2026-10-30T21:47:58.800274135Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
       with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
@@ -8279,6 +8356,14 @@ entries:
     version: 0.1.0
   loki-bootstrap:
   - apiVersion: v2
+    created: "2026-11-02T08:16:36.741296448Z"
+    description: A Helm chart for bootstrapping Loki
+    digest: 25dc0c2df938acac99a5bf8e4a53b1f5671ff78aed21ab890cb75a2013cac40a
+    name: loki-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.46.12/loki-bootstrap-0.46.12.tgz
+    version: 0.46.12
+  - apiVersion: v2
     created: "2026-11-01T10:37:14.262980645Z"
     description: A Helm chart for bootstrapping Loki
     digest: 1f0511d8860338e48d1a6c4073da8807ce6924e3af325b27babc4aeb435c7be0
@@ -8655,6 +8740,16 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.30.0/loki-bootstrap-0.30.0.tgz
     version: 0.30.0
   masterdata-datasource:
+  - apiVersion: v2
+    created: "2026-11-02T08:16:36.893174104Z"
+    description: A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database
+      for use as a datasource in Grafana
+    digest: a538c0c8261a6352e578c4a787032871f7e311805517e2e77efd97ceec90dabe
+    name: masterdata-datasource
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/masterdata-datasource-0.10.4/masterdata-datasource-0.10.4.tgz
+    version: 0.10.4
   - apiVersion: v2
     created: "2026-10-29T16:18:51.507587468Z"
     description: A Helm chart for Kubernetes to deploy a masterdata PostgreSQL database
@@ -10275,4 +10370,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-02T08:15:59.109632359Z"
+generated: "2026-11-02T08:16:36.894822016Z"
