@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 2.2.2](https://img.shields.io/badge/Version-2.2.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.52](https://img.shields.io/badge/AppVersion-0.0.52-informational?style=flat-square)
+![Version: 2.2.4](https://img.shields.io/badge/Version-2.2.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.53](https://img.shields.io/badge/AppVersion-0.0.53-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -73,7 +73,7 @@ and uses HelmApplication CRs to bootstrap platform components.
 | harvester.enabled | bool | `true` |  |
 | harvester.image.pullPolicy | string | `"IfNotPresent"` |  |
 | harvester.image.repository | string | `"docker.io/alpine/k8s"` |  |
-| harvester.image.tag | string | `"1.37.1"` |  |
+| harvester.image.tag | string | `"1.37.2"` |  |
 | harvester.nodeSelector | object | `{}` |  |
 | harvester.serviceAccount.name | string | `"hsp-addons-harvester"` |  |
 | harvester.tolerations[0].key | string | `"CriticalAddonsOnly"` |  |
@@ -87,7 +87,7 @@ and uses HelmApplication CRs to bootstrap platform components.
 | statefulSetImmutableReconciler.appFilter | list | `[]` |  |
 | statefulSetImmutableReconciler.dryRun | bool | `false` |  |
 | statefulSetImmutableReconciler.enabled | bool | `false` |  |
-| statefulSetImmutableReconciler.image.tag | string | `"1.37.1"` |  |
+| statefulSetImmutableReconciler.image.tag | string | `"1.37.2"` |  |
 | statefulSetImmutableReconciler.schedule | string | `"*/10 * * * *"` |  |
 
 ----------------------------------------------

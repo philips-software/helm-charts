@@ -1,6 +1,6 @@
 # cloudnative-pg-operator
 
-![Version: 0.13.2](https://img.shields.io/badge/Version-0.13.2-informational?style=flat-square)
+![Version: 0.13.3](https://img.shields.io/badge/Version-0.13.3-informational?style=flat-square)
 
 A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 
@@ -63,7 +63,7 @@ first in the list — the Kyverno policy always reads `imageCatalog.images[0].ma
 | operator.tolerations | list | `[]` |  |
 | operator.updateStrategy | object | `{}` |  |
 | volumeSnapshotPruner.enabled | bool | `true` |  |
-| volumeSnapshotPruner.image | string | `"alpine/k8s:1.37.1"` |  |
+| volumeSnapshotPruner.image | string | `"alpine/k8s:1.37.2"` |  |
 | volumeSnapshotPruner.retentionDays | int | `14` |  |
 | volumeSnapshotPruner.schedule | string | `"45 3 * * *"` |  |
 
