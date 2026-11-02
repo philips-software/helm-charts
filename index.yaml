@@ -20,6 +20,24 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/agentgateway-bootstrap-0.11.9/agentgateway-bootstrap-0.11.9.tgz
     version: 0.11.9
   - apiVersion: v2
+    created: "2026-11-02T21:31:32.423166087Z"
+    description: A Helm chart for bootstrapping agentgateway with Amazon Bedrock LLM
+      support
+    digest: cc04a9b68fd80bfb9ea788fa0aff0860a37af0f5a58de1de70fe44be9b9ee148
+    keywords:
+    - agentgateway
+    - bedrock
+    - ai
+    - llm
+    - gateway-api
+    - argocd
+    - bootstrap
+    name: agentgateway-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/agentgateway-bootstrap-0.11.8/agentgateway-bootstrap-0.11.8.tgz
+    version: 0.11.8
+  - apiVersion: v2
     created: "2026-10-30T07:41:03.195749784Z"
     description: A Helm chart for bootstrapping agentgateway with Amazon Bedrock LLM
       support
@@ -4334,6 +4352,24 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/crossplane-providers-0.0.45/crossplane-providers-0.0.45.tgz
     version: 0.0.45
   - apiVersion: v2
+    created: "2026-11-02T21:31:33.335644829Z"
+    description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or
+      EKS Pod Identity configuration
+    digest: f4026005408c8d953f5895bff7d3316e2754c05fa6f1afc21e9fd274b1650915
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    - pod-identity
+    maintainers:
+    - name: Philips Software
+    name: crossplane-providers
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-providers-0.0.44/crossplane-providers-0.0.44.tgz
+    version: 0.0.44
+  - apiVersion: v2
     created: "2026-10-29T16:18:50.607381544Z"
     description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or
       EKS Pod Identity configuration
@@ -7682,6 +7718,23 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.9.13/langfuse-bootstrap-0.9.13.tgz
     version: 0.9.13
   - apiVersion: v2
+    created: "2026-11-02T21:31:33.939791271Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: 82b47941a95fa3e38d25c36693a49e30af010aada5a2f9060fdf163e523dfbda
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.9.12/langfuse-bootstrap-0.9.12.tgz
+    version: 0.9.12
+  - apiVersion: v2
     created: "2026-10-30T21:47:58.800274135Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
       with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
@@ -10370,4 +10423,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-02T08:16:36.894822016Z"
+generated: "2026-11-02T21:31:34.552049075Z"
