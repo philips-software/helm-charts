@@ -128,7 +128,7 @@ spec:
           containers:
             - name: cloudwatch-kill-job
               # renovate: datasource=docker depName=alpine/k8s
-              image: alpine/k8s:1.37.1
+              image: alpine/k8s:1.37.2
               command: ["/bin/sh", "/scripts/run.sh"]
               volumeMounts:
                 - name: script
