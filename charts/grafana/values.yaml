@@ -180,7 +180,7 @@ namePrefix: ""
 
 grafanaChart:
   # renovate: datasource=docker depName=ghcr.io/grafana-community/helm-charts/grafana
-  version: 14.3.0
+  version: 14.3.1
   # Helm release name for Grafana. Combined with namePrefix when that is set.
   releaseName: gf
 
