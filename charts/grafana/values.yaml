@@ -157,7 +157,7 @@ grafana:
       version: 3.1.0
     # renovate: datasource=custom.grafanaPlugin depName=grafana-advisor-app
     - id: grafana-advisor-app
-      version: 1.1.1
+      version: 1.1.2
 
 # Name prefix for the ArgoCD Applications and Crossplane providers this chart
 # owns (grafana-helm, provider-gf, provider-orgmapper) and for the upstream
