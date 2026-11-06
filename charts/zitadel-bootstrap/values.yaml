@@ -179,7 +179,7 @@ zitadelProvider:
   enabled: false
   package: xpkg.upbound.io/loafoe/provider-zitadel
   # renovate: datasource=docker depName=xpkg.upbound.io/loafoe/provider-zitadel
-  tag: v0.3.0
+  tag: v0.4.0
   # Base URL (issuer) of the Zitadel instance the provider manages. Zitadel
   # resolves which instance a call belongs to from the request's Host header
   # (ExternalDomain), not from however the caller actually reached the
