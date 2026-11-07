@@ -157,8 +157,10 @@ dex:
   image:
     repository: ghcr.io/philips-forks/dex
     # renovate: datasource=docker depName=ghcr.io/philips-forks/dex
-    # v2.46.0-dip.3: enforces a client's allowedGroups on the session/SSO path.
-    tag: "v2.46.0-dip.3"
+    # v2.46.1-dip.1 (content-identical to v2.46.0-dip.4): per-client AllowedGroups
+    # glob patterns, hsdp connector addGroups/idpHint, and a fix populating
+    # identity.Groups from IAM roles before group-based auth decisions.
+    tag: "v2.46.1-dip.1"
 
 # Upstream Dex Helm chart configuration
 dexChart:
