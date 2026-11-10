@@ -5878,6 +5878,13 @@ entries:
     version: 0.0.14
   grafana:
   - apiVersion: v2
+    created: "2026-11-10T10:02:50.796710459Z"
+    digest: 594279b52da1ef11f2b933cf05493a394d5e66291320164f2dcf3579686f6f70
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.81.19/grafana-0.81.19.tgz
+    version: 0.81.19
+  - apiVersion: v2
     created: "2026-11-02T08:16:36.421247267Z"
     digest: 9886ffbe2eb7521c0c05dcb95590cbf7f476c233fa123784ebb12c502b41074b
     name: grafana
@@ -10382,6 +10389,24 @@ entries:
     version: 0.34.0
   zitadel-bootstrap:
   - apiVersion: v2
+    created: "2026-11-10T10:02:50.926607755Z"
+    description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with
+      CNPG Postgres and Gateway API ingress
+    digest: 3b83bf4a61bfbf1e7e60f0de3990103f9b8e52b8fc79b2392e3a8db0b2b296b5
+    keywords:
+    - zitadel
+    - identity
+    - oidc
+    - iam
+    - sso
+    - argocd
+    - bootstrap
+    name: zitadel-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.4.5/zitadel-bootstrap-0.4.5.tgz
+    version: 0.4.5
+  - apiVersion: v2
     created: "2026-11-06T07:42:45.608755263Z"
     description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with
       CNPG Postgres and Gateway API ingress
@@ -10615,4 +10640,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-10T08:52:20.904837171Z"
+generated: "2026-11-10T10:02:50.927887863Z"
