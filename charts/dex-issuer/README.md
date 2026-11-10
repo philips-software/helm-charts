@@ -1,6 +1,6 @@
 # dex-issuer
 
-![Version: 0.15.3](https://img.shields.io/badge/Version-0.15.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.15.4](https://img.shields.io/badge/Version-0.15.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Dex](https://dexidp.io/) as an OpenID Connect issuer, together with its Postgres
 storage, gRPC mTLS PKI, and the Crossplane `provider-dex` connector-management plane.
@@ -162,7 +162,7 @@ omit `spec.tls`.
 | dex.httpRoute.sharedGatewayName | string | `"platform"` |  |
 | dex.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
 | dex.image.repository | string | `"ghcr.io/philips-forks/dex"` |  |
-| dex.image.tag | string | `"v2.46.1-dip.1"` |  |
+| dex.image.tag | string | `"v2.46.1-dip.2"` |  |
 | dex.ingress.enabled | bool | `false` |  |
 | dex.ingress.host | string | `"issuer"` |  |
 | dex.ingress.ingressClassName | string | `"nginx"` |  |
@@ -206,7 +206,7 @@ omit `spec.tls`.
 | provider.enabled | bool | `true` |  |
 | provider.providerConfigNamespaces | list | `[]` |  |
 | provider.registry | string | `"xpkg.upbound.io/loafoe"` |  |
-| provider.tag | string | `"v1.16.1"` |  |
+| provider.tag | string | `"v1.16.2"` |  |
 | theme.enabled | bool | `true` |  |
 | theme.existingConfigMap | string | `""` |  |
 | useCustomFqdn | bool | `false` |  |
