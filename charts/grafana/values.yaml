@@ -203,6 +203,52 @@ database:
   restoreFromSnapshot: false
   # Snapshot ID to restore from (required if restoreFromSnapshot is true, alphanumeric and hyphens only)
   snapshotId: "grafana-202501201706"
+  # StorageClass for the CNPG PVCs, rendered independently of `snapshots`.
+  # Leave empty to fall back to `snapshots.storageClassName` (legacy behaviour).
+  # Set it when using a class that cannot do volume snapshots (node-local
+  # `local-path`, hostPath, ...), so snapshots can be turned off without the
+  # database silently reverting to the cluster-default StorageClass.
+  storageClassName: ""
+  # Barman (object storage) backups: continuous WAL archiving + scheduled base
+  # backups, via the CNPG barman-cloud plugin. Works on ANY StorageClass,
+  # including ones with no CSI driver, and gives point-in-time recovery.
+  barmanBackup:
+    enabled: false
+    # S3 bucket name (empty = `<environmentConfig.resourcePrefix>-barman`)
+    bucketName: ""
+    # Prefix inside the bucket (empty = `<namespace>/<identifier>`)
+    bucketPrefix: ""
+    # Retention period in days
+    retentionDays: 7
+    # Compression algorithm: gzip, bzip2, snappy, none
+    compression: "gzip"
+    # Cron for the base backup (6 fields, leading seconds).
+    # Empty = composition default ("0 0 0 * * *", daily at midnight).
+    scheduleBaseBackup: ""
+    # S3-compatible endpoint (RustFS, MinIO, Garage). Empty = AWS S3.
+    endpointURL: ""
+    # Parallel upload jobs. 0 = composition default (4).
+    maxParallel: 0
+    # Barman server name for ongoing WAL archiving, i.e. the prefix under the
+    # bucket prefix. Empty = `<identifier>-wal`. MUST be changed for a cluster
+    # whose PGDATA was re-initialised (logical restore), otherwise WAL object
+    # names collide with the previous archive and archiving fails forever.
+    serverName: ""
+    # Static S3 credentials, by reference to a Secret created OUT OF BAND.
+    # Setting the name selects static-key mode, which suppresses the AWS IAM
+    # resources the composition would otherwise render (they cannot be composed
+    # on a cluster without an AWS provider).
+    credentialsSecretRef:
+      name: ""
+      accessKeyIdKey: "ACCESS_KEY_ID"
+      secretAccessKeyKey: "ACCESS_SECRET_KEY"
+  # CNPG restore from Barman (point-in-time recovery)
+  restoreFromBarman:
+    enabled: false
+    # Recovery target time (RFC3339); empty = recover to the latest
+    targetTime: ""
+    # Source server name in the archive; empty = `<identifier>`
+    sourceIdentifier: ""
   # CNPG snapshot configuration (only applies when cnpg: true)
   snapshots:
     # Enable periodic volume snapshots

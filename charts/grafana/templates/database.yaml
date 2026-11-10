@@ -25,7 +25,69 @@ spec:
   {{- if and .Values.database.cnpg .Values.database.snapshots.enabled }}
     enableSnapshots: true
     snapshotClassName: {{ .Values.database.snapshots.snapshotClassName | quote }}
+  {{- end }}
+  {{- /*
+    storageClassName is deliberately OUTSIDE the snapshots block. It used to be
+    rendered only when snapshots.enabled, which silently coupled the two: a
+    StorageClass with no CSI driver (node-local `local-path`) cannot provide
+    volume snapshots, so disabling them used to drop storageClassName as well
+    and the database fell back to the cluster-default class. Prefer the explicit
+    database.storageClassName; fall back to the legacy snapshots.* key.
+  */}}
+  {{- if .Values.database.storageClassName }}
+    storageClassName: {{ .Values.database.storageClassName | quote }}
+  {{- else if and .Values.database.cnpg .Values.database.snapshots.enabled }}
     storageClassName: {{ .Values.database.snapshots.storageClassName | quote }}
+  {{- end }}
+  {{- if and .Values.database.cnpg (and .Values.database.barmanBackup .Values.database.barmanBackup.enabled) }}
+    barmanBackup:
+      enabled: true
+      {{- if .Values.database.barmanBackup.bucketName }}
+      bucketName: {{ .Values.database.barmanBackup.bucketName | quote }}
+      {{- end }}
+      {{- if .Values.database.barmanBackup.bucketPrefix }}
+      bucketPrefix: {{ .Values.database.barmanBackup.bucketPrefix | quote }}
+      {{- end }}
+      retentionDays: {{ .Values.database.barmanBackup.retentionDays | default 7 }}
+      compression: {{ .Values.database.barmanBackup.compression | default "gzip" | quote }}
+      {{- with .Values.database.barmanBackup.scheduleBaseBackup }}
+      scheduleBaseBackup: {{ . | quote }}
+      {{- end }}
+      {{- with .Values.database.barmanBackup.endpointURL }}
+      endpointURL: {{ . | quote }}
+      {{- end }}
+      {{- with .Values.database.barmanBackup.maxParallel }}
+      maxParallel: {{ . }}
+      {{- end }}
+      {{- with .Values.database.barmanBackup.serverName }}
+      serverName: {{ . }}
+      {{- end }}
+      {{- with .Values.database.barmanBackup.credentialsSecretRef }}{{- if .name }}
+      {{- /*
+        Static credentials. WITHOUT this the composition assumes AWS IRSA and
+        renders iam.aws.m.upbound.io Role/Policy/RolePolicyAttachment resources,
+        which a cluster with no AWS provider cannot compose - the whole claim
+        fails. Any S3-compatible store (RustFS, MinIO, Garage) needs this block.
+      */}}
+      credentialsSecretRef:
+        name: {{ .name }}
+        {{- with .accessKeyIdKey }}
+        accessKeyIdKey: {{ . }}
+        {{- end }}
+        {{- with .secretAccessKeyKey }}
+        secretAccessKeyKey: {{ . }}
+        {{- end }}
+      {{- end }}{{- end }}
+  {{- end }}
+  {{- if and .Values.database.cnpg .Values.database.restoreFromBarman.enabled }}
+    restore:
+      method: barmanObjectStore
+      {{- if .Values.database.restoreFromBarman.targetTime }}
+      targetTime: {{ .Values.database.restoreFromBarman.targetTime | quote }}
+      {{- end }}
+      {{- if .Values.database.restoreFromBarman.sourceIdentifier }}
+      sourceIdentifier: {{ .Values.database.restoreFromBarman.sourceIdentifier | quote }}
+      {{- end }}
   {{- end }}
   {{- if and .Values.database.cnpg .Values.database.restoreFromVolumeSnapshot.enabled }}
     storageClassName: {{ .Values.database.restoreFromVolumeSnapshot.storageClassName | quote }}

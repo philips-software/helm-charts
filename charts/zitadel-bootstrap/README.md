@@ -1,6 +1,6 @@
 # zitadel-bootstrap
 
-![Version: 0.4.2](https://img.shields.io/badge/Version-0.4.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.4.5](https://img.shields.io/badge/Version-0.4.5-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Zitadel](https://zitadel.com/) via ArgoCD: CNPG Postgres (static credentials, no Bitnami), standard username/password sign-in out of the box, and a single Gateway API HTTPRoute of this chart's own (not the upstream chart's native Gateway API support — see the design spec's "Ingress" section for why).
 
@@ -41,6 +41,17 @@ Then browse to http://localhost:8080. For an actual local sign-in flow, enable `
 | credentials.existingSecret | bool | `false` |  |
 | credentials.masterkey | string | `"changeme-please-override-32bytes"` |  |
 | credentials.postgresPassword | string | `"changeme-postgres-password-please-override"` |  |
+| database.barmanBackup.bucketName | string | `""` |  |
+| database.barmanBackup.compression | string | `"gzip"` |  |
+| database.barmanBackup.credentialsSecretRef.accessKeyIdKey | string | `"ACCESS_KEY_ID"` |  |
+| database.barmanBackup.credentialsSecretRef.name | string | `""` |  |
+| database.barmanBackup.credentialsSecretRef.secretAccessKeyKey | string | `"ACCESS_SECRET_KEY"` |  |
+| database.barmanBackup.destinationPath | string | `""` |  |
+| database.barmanBackup.enabled | bool | `false` |  |
+| database.barmanBackup.endpointURL | string | `""` |  |
+| database.barmanBackup.retentionDays | int | `7` |  |
+| database.barmanBackup.schedule | string | `"0 0 0 * * *"` |  |
+| database.barmanBackup.serverName | string | `""` |  |
 | database.clusterName | string | `""` |  |
 | database.databaseName | string | `"zitadel"` |  |
 | database.instances | int | `1` |  |
@@ -76,7 +87,7 @@ Then browse to http://localhost:8080. For an actual local sign-in flow, enable `
 | workloads.zitadel.resources.requests.cpu | string | `"100m"` |  |
 | workloads.zitadel.resources.requests.memory | string | `"256Mi"` |  |
 | zitadelChart.repoURL | string | `"https://charts.zitadel.com"` |  |
-| zitadelChart.version | string | `"10.4.0"` |  |
+| zitadelChart.version | string | `"10.5.0"` |  |
 | zitadelProvider.credentials.authType | string | `"ServiceAccount"` |  |
 | zitadelProvider.credentials.keyFileKey | string | `"key.json"` |  |
 | zitadelProvider.credentials.secretName | string | `"zitadel-provider-credentials"` |  |
@@ -86,5 +97,5 @@ Then browse to http://localhost:8080. For an actual local sign-in flow, enable `
 | zitadelProvider.insecureSkipTLSVerify | bool | `false` |  |
 | zitadelProvider.organizationID | string | `""` |  |
 | zitadelProvider.package | string | `"xpkg.upbound.io/loafoe/provider-zitadel"` |  |
-| zitadelProvider.tag | string | `"v0.3.0"` |  |
+| zitadelProvider.tag | string | `"v0.4.0"` |  |
 | zitadelProvider.url | string | `""` |  |

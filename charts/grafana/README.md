@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.81.13](https://img.shields.io/badge/Version-0.81.13-informational?style=flat-square)
+![Version: 0.81.19](https://img.shields.io/badge/Version-0.81.19-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -110,8 +110,23 @@ Users not in any of these groups will have the 'None' role and no access.
 | crossplaneProviders.gf.tag | string | `"v0.12.2"` |  |
 | crossplaneProviders.orgmapper.debug | bool | `false` |  |
 | crossplaneProviders.orgmapper.enabled | bool | `true` |  |
+| database.barmanBackup.bucketName | string | `""` |  |
+| database.barmanBackup.bucketPrefix | string | `""` |  |
+| database.barmanBackup.compression | string | `"gzip"` |  |
+| database.barmanBackup.credentialsSecretRef.accessKeyIdKey | string | `"ACCESS_KEY_ID"` |  |
+| database.barmanBackup.credentialsSecretRef.name | string | `""` |  |
+| database.barmanBackup.credentialsSecretRef.secretAccessKeyKey | string | `"ACCESS_SECRET_KEY"` |  |
+| database.barmanBackup.enabled | bool | `false` |  |
+| database.barmanBackup.endpointURL | string | `""` |  |
+| database.barmanBackup.maxParallel | int | `0` |  |
+| database.barmanBackup.retentionDays | int | `7` |  |
+| database.barmanBackup.scheduleBaseBackup | string | `""` |  |
+| database.barmanBackup.serverName | string | `""` |  |
 | database.cnpg | bool | `true` |  |
 | database.engineVersion | string | `""` |  |
+| database.restoreFromBarman.enabled | bool | `false` |  |
+| database.restoreFromBarman.sourceIdentifier | string | `""` |  |
+| database.restoreFromBarman.targetTime | string | `""` |  |
 | database.restoreFromSnapshot | bool | `false` |  |
 | database.restoreFromVolumeSnapshot.enabled | bool | `false` |  |
 | database.restoreFromVolumeSnapshot.sourceIdentifier | string | `""` |  |
@@ -120,6 +135,7 @@ Users not in any of these groups will have the 'None' role and no access.
 | database.snapshots.enabled | bool | `false` |  |
 | database.snapshots.snapshotClassName | string | `""` |  |
 | database.snapshots.storageClassName | string | `""` |  |
+| database.storageClassName | string | `""` |  |
 | datasources.gatewayUrl | string | `"http://datasource-gateway.otlp-gateway.svc.cluster.local"` |  |
 | datasources.loki.enabled | bool | `false` |  |
 | datasources.mimir.enabled | bool | `false` |  |
@@ -172,11 +188,11 @@ Users not in any of these groups will have the 'None' role and no access.
 | grafana.preinstalledPlugins[1].id | string | `"grafana-metricsdrilldown-app"` |  |
 | grafana.preinstalledPlugins[1].version | string | `"3.1.0"` |  |
 | grafana.preinstalledPlugins[2].id | string | `"grafana-exploretraces-app"` |  |
-| grafana.preinstalledPlugins[2].version | string | `"3.1.0"` |  |
+| grafana.preinstalledPlugins[2].version | string | `"3.2.0"` |  |
 | grafana.preinstalledPlugins[3].id | string | `"grafana-pyroscope-app"` |  |
 | grafana.preinstalledPlugins[3].version | string | `"3.1.0"` |  |
 | grafana.preinstalledPlugins[4].id | string | `"grafana-advisor-app"` |  |
-| grafana.preinstalledPlugins[4].version | string | `"1.1.1"` |  |
+| grafana.preinstalledPlugins[4].version | string | `"1.1.2"` |  |
 | grafana.replicas | int | `2` |  |
 | grafana.resources.limits.memory | string | `"1Gi"` |  |
 | grafana.resources.requests.cpu | string | `"200m"` |  |
@@ -188,7 +204,7 @@ Users not in any of these groups will have the 'None' role and no access.
 | grafana.ssoRoleAttributePath | string | `""` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
-| grafanaChart.version | string | `"14.2.0"` |  |
+| grafanaChart.version | string | `"14.4.0"` |  |
 | namePrefix | string | `""` |  |
 | useCustomFqdn | bool | `true` |  |
 

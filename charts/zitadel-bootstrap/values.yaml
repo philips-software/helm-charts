@@ -68,6 +68,36 @@ database:
   podDisruptionBudget:
     enabled: false
     minAvailable: 1
+  # Barman (object storage) backups: continuous WAL archiving plus scheduled
+  # base backups through the CNPG barman-cloud plugin. Works on any
+  # StorageClass, including node-local ones that cannot do volume snapshots,
+  # and adds point-in-time recovery.
+  barmanBackup:
+    enabled: false
+    # S3 bucket holding the archive.
+    bucketName: ""
+    # Full destination path. Empty = s3://<bucketName>/<namespace>/<cluster>.
+    destinationPath: ""
+    # S3-compatible endpoint (RustFS, MinIO, Garage). Empty = AWS S3.
+    endpointURL: ""
+    # Static credentials, by reference to a Secret created OUT OF BAND. There
+    # is no IRSA path here: this chart renders plain CNPG resources, so the
+    # Secret must exist in the release namespace.
+    credentialsSecretRef:
+      name: ""
+      accessKeyIdKey: "ACCESS_KEY_ID"
+      secretAccessKeyKey: "ACCESS_SECRET_KEY"
+    # Retention for base backups and WAL.
+    retentionDays: 7
+    # gzip | bzip2 | snappy | none
+    compression: "gzip"
+    # Cron for the base backup (6 fields, leading seconds).
+    schedule: "0 0 0 * * *"
+    # WAL prefix under the destination. Empty = "<cluster>-wal". MUST differ
+    # from the archive the data came from when PGDATA was re-initialised by a
+    # logical restore, otherwise WAL object names collide and archiving fails
+    # permanently (ContinuousArchiving=False, pg_wal grows unbounded).
+    serverName: ""
 
 # Static credentials referenced directly in the upstream chart's valuesObject.
 # MUST stay static (no runtime generation) — ArgoCD renders this chart via

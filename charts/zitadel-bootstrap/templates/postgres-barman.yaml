@@ -1,0 +1,64 @@
+{{- /*
+Barman object-storage backup resources for the Zitadel CNPG Cluster.
+
+Why these live here and not in a Crossplane claim: this chart creates the CNPG
+Cluster directly (templates/postgres-cluster.yaml), unlike charts that go
+through the postgres-cnpg composition, so nothing else renders the ObjectStore
+or its ScheduledBackup.
+
+ObjectStore holds the destination + credentials; ScheduledBackup runs the base
+backups (WAL is archived continuously by the plugin wired into the Cluster).
+*/}}
+{{- if .Values.database.barmanBackup.enabled }}
+{{- $cluster := include "zitadel-bootstrap.postgresClusterName" . }}
+{{- $b := .Values.database.barmanBackup }}
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: {{ $cluster }}-backup
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "zitadel-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  configuration:
+    # <namespace>/<cluster> keeps every database's archive separate even when
+    # they share one bucket.
+    destinationPath: {{ $b.destinationPath | default (printf "s3://%s/%s/%s" $b.bucketName .Values.namespace $cluster) | quote }}
+    {{- with $b.endpointURL }}
+    endpointURL: {{ . | quote }}
+    {{- end }}
+    s3Credentials:
+      accessKeyId:
+        name: {{ $b.credentialsSecretRef.name }}
+        key: {{ $b.credentialsSecretRef.accessKeyIdKey | default "ACCESS_KEY_ID" }}
+      secretAccessKey:
+        name: {{ $b.credentialsSecretRef.name }}
+        key: {{ $b.credentialsSecretRef.secretAccessKeyKey | default "ACCESS_SECRET_KEY" }}
+    wal:
+      compression: {{ $b.compression | default "gzip" }}
+    data:
+      compression: {{ $b.compression | default "gzip" }}
+  retentionPolicy: {{ printf "%dd" (int ($b.retentionDays | default 7)) | quote }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ $cluster }}-barman-backup
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "zitadel-bootstrap.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  schedule: {{ $b.schedule | default "0 0 0 * * *" | quote }}
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: {{ $cluster }}-backup
+  backupOwnerReference: self
+  cluster:
+    name: {{ $cluster }}
+{{- end }}

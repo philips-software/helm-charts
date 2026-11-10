@@ -23,6 +23,20 @@ spec:
   affinity:
     podAntiAffinityType: preferred
   {{- end }}
+  {{- if .Values.database.barmanBackup.enabled }}
+  # Barman (object storage) backups: continuous WAL archiving + scheduled base
+  # backups via the CNPG barman-cloud plugin. Unlike backup.volumeSnapshot this
+  # works on any StorageClass (a node-local class has no CSI driver, hence no
+  # VolumeSnapshotClass). isWALArchiver is required here: without it archive_mode
+  # is on but nothing ships the WAL, so every archive attempt fails and WAL is
+  # never recycled - silently filling the PVC.
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: {{ include "zitadel-bootstrap.postgresClusterName" . }}-backup
+        serverName: {{ .Values.database.barmanBackup.serverName | default (printf "%s-wal" (include "zitadel-bootstrap.postgresClusterName" .)) }}
+  {{- end }}
   bootstrap:
     initdb:
       database: {{ .Values.database.databaseName | quote }}
