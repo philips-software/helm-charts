@@ -157,10 +157,11 @@ dex:
   image:
     repository: ghcr.io/philips-forks/dex
     # renovate: datasource=docker depName=ghcr.io/philips-forks/dex
-    # v2.46.1-dip.1 (content-identical to v2.46.0-dip.4): per-client AllowedGroups
-    # glob patterns, hsdp connector addGroups/idpHint, and a fix populating
-    # identity.Groups from IAM roles before group-based auth decisions.
-    tag: "v2.46.1-dip.1"
+    # v2.46.1-dip.2: fixes UpdateClient so a client's allowedGroups can
+    # actually be cleared via an update (previously an explicitly empty list
+    # and an absent field were indistinguishable on the wire, so Dex silently
+    # kept the old groups). Needed for provider-dex v1.16.2+.
+    tag: "v2.46.1-dip.2"
 
 # Upstream Dex Helm chart configuration
 dexChart:
@@ -271,7 +272,9 @@ provider:
   debug: true
   # Provider package version
   # renovate: datasource=docker depName=xpkg.upbound.io/loafoe/provider-dex
-  tag: "v1.16.1"
+  # v1.16.2: Client.allowedGroups can now actually be cleared via a CR
+  # update (needs Dex v2.46.1-dip.2+, see image.tag above).
+  tag: "v1.16.2"
   # Container registry hosting the provider-dex package
   registry: "xpkg.upbound.io/loafoe"
   # crossplane-providers wrapper chart version
