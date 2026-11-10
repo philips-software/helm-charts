@@ -271,7 +271,7 @@ provider:
   debug: true
   # Provider package version
   # renovate: datasource=docker depName=xpkg.upbound.io/loafoe/provider-dex
-  tag: "v1.15.0"
+  tag: "v1.16.1"
   # Container registry hosting the provider-dex package
   registry: "xpkg.upbound.io/loafoe"
   # crossplane-providers wrapper chart version
