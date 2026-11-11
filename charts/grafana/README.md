@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.81.19](https://img.shields.io/badge/Version-0.81.19-informational?style=flat-square)
+![Version: 0.81.22](https://img.shields.io/badge/Version-0.81.22-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -192,7 +192,7 @@ Users not in any of these groups will have the 'None' role and no access.
 | grafana.preinstalledPlugins[3].id | string | `"grafana-pyroscope-app"` |  |
 | grafana.preinstalledPlugins[3].version | string | `"3.1.0"` |  |
 | grafana.preinstalledPlugins[4].id | string | `"grafana-advisor-app"` |  |
-| grafana.preinstalledPlugins[4].version | string | `"1.1.2"` |  |
+| grafana.preinstalledPlugins[4].version | string | `"1.1.3"` |  |
 | grafana.replicas | int | `2` |  |
 | grafana.resources.limits.memory | string | `"1Gi"` |  |
 | grafana.resources.requests.cpu | string | `"200m"` |  |
@@ -204,7 +204,7 @@ Users not in any of these groups will have the 'None' role and no access.
 | grafana.ssoRoleAttributePath | string | `""` |  |
 | grafana.tenants | list | `[]` |  |
 | grafanaChart.releaseName | string | `"gf"` |  |
-| grafanaChart.version | string | `"14.4.0"` |  |
+| grafanaChart.version | string | `"14.4.1"` |  |
 | namePrefix | string | `""` |  |
 | useCustomFqdn | bool | `true` |  |
 
