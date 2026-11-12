@@ -107,6 +107,19 @@ bedrock:
   # becomes the entire rendered config.yaml verbatim, so anything not
   # expressed in values is lost the next time anything triggers a real sync.
   extraModels: []
+  # Request fields set per model when the request doesn't carry them
+  # (agentgateway's llm.models[].defaults; standalone mode only). Keyed by
+  # model ID (`model` or an `extraModels` entry). The main use is
+  # max_tokens: agentgateway's OpenAI-to-Bedrock conversion falls back to
+  # 4096 output tokens when a chat request has neither max_tokens nor
+  # max_completion_tokens, which truncates reasoning models and long
+  # answers. Bedrock deducts input + max_tokens from the tokens-per-minute
+  # quota at request start (refunding the rest at the end), so a large
+  # default lowers how many requests can start per minute. Example:
+  #   modelDefaults:
+  #     us.zai.glm-5.3:
+  #       max_tokens: 128000
+  modelDefaults: {}
   # Pricing overrides merged into agentgateway's built-in model-cost catalog
   # (config.modelCatalog, dynamically reloaded - no restart required by
   # agentgateway itself, though ArgoCD-managed deployments still need a

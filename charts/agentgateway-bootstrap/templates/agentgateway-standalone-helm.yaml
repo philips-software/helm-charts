@@ -127,13 +127,15 @@ spec:
               {{- end }}
             models:
               {{- if .Values.bedrock.enabled }}
-              - name: {{ .Values.bedrock.model | quote }}
-                provider:
-                  reference: bedrock
-              {{- range .Values.bedrock.extraModels }}
+              {{- $modelDefaults := .Values.bedrock.modelDefaults | default dict }}
+              {{- range prepend (.Values.bedrock.extraModels | default list) .Values.bedrock.model }}
               - name: {{ . | quote }}
                 provider:
                   reference: bedrock
+                {{- with index $modelDefaults . }}
+                defaults:
+                  {{- toYaml . | nindent 18 }}
+                {{- end }}
               {{- end }}
               {{- end }}
               {{- if .Values.openrouter.enabled }}
