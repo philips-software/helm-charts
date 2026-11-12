@@ -456,6 +456,13 @@ vpa:
   inPlaceResize: false
   # -- Minimum replicas the VPA will allow while resizing
   minReplicas: 1
+  # -- What the VPA rewrites: RequestsAndLimits (default) or RequestsOnly.
+  # With RequestsAndLimits the memory limit is scaled to keep the pod spec's
+  # limit:request ratio around the VPA's (typical-usage) target, so the
+  # effective limit can be far below resources.limits.memory: src-co-sb's
+  # 1536Mi limit ran at ~800Mi and OOMed on scan spikes (2026-11-12).
+  # RequestsOnly lets the VPA tune requests and keeps resources.limits as set.
+  controlledValues: RequestsAndLimits
   # -- Lower bound on resources the VPA will recommend. install.sh's
   # discover_memory tiers maxAllowed (and the static limit) from cluster pod
   # count but never touches this floor, so it stays fixed across every tier

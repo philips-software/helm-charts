@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.68.0](https://img.shields.io/badge/Version-0.68.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.117.1](https://img.shields.io/badge/AppVersion-v0.117.1-informational?style=flat-square)
+![Version: 0.68.1](https://img.shields.io/badge/Version-0.68.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.117.1](https://img.shields.io/badge/AppVersion-v0.117.1-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -323,6 +323,7 @@ See `CROSS-ACCOUNT-ASSUMEROLE.md` in the innovation-day repo for the full onboar
 | spire.trustDomain | string | `""` | Legacy single trust domain (use trustDomains for new deployments). Kept for backward compatibility |
 | spire.trustDomains | list | `[]` | Trust domains to accept (supports federation with multiple domains). Example: ["example.org", "partner.com"] |
 | tolerations | list | `[]` | Tolerations for pod scheduling |
+| vpa.controlledValues | string | `"RequestsAndLimits"` | What the VPA rewrites: RequestsAndLimits (default) or RequestsOnly. With RequestsAndLimits the memory limit is scaled to keep the pod spec's limit:request ratio around the VPA's (typical-usage) target, so the effective limit can be far below resources.limits.memory: src-co-sb's 1536Mi limit ran at ~800Mi and OOMed on scan spikes (2026-11-12). RequestsOnly lets the VPA tune requests and keeps resources.limits as set. |
 | vpa.enabled | bool | `true` | Enable creation of a VerticalPodAutoscaler resource (requires the VPA CRDs) |
 | vpa.inPlaceResize | bool | `false` | Enable in-place resize (requires K8s 1.27+ with InPlacePodVerticalScaling feature gate) |
 | vpa.maxAllowed | object | `{"cpu":"500m","memory":"1Gi"}` | Upper bound on resources the VPA will recommend |
