@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.12.0](https://img.shields.io/badge/Version-0.12.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.12.1](https://img.shields.io/badge/Version-0.12.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -184,6 +184,7 @@ To actually recover production data with this, either point `database.clusterNam
 | monitoring.serviceMonitor.interval | string | `"15s"` |  |
 | openrouter.enabled | bool | `true` |  |
 | openrouter.extraModels | list | `[]` |  |
+| openrouter.modelDefaults | object | `{}` |  |
 | promptLogging.enabled | bool | `false` |  |
 | proxy.logLevel | string | `"info"` |  |
 | standalone.gatewayPort | int | `4000` |  |

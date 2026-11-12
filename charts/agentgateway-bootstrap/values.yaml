@@ -156,6 +156,16 @@ openrouter:
   # referencing the same `openrouter` provider. See bedrock.extraModels above
   # for why this belongs in values rather than the live ConfigMap.
   extraModels: []
+  # Request fields set per model when the request doesn't carry them, keyed
+  # by model name (deepseek/deepseek-v4-flash or an extraModels entry); see
+  # bedrock.modelDefaults. For OpenRouter use the smallest
+  # max_completion_tokens across the model's providers
+  # (GET https://openrouter.ai/api/v1/models/<model>/endpoints): a larger
+  # max_tokens takes providers that can't serve it out of routing. Example:
+  #   modelDefaults:
+  #     deepseek/deepseek-v4-flash:
+  #       max_tokens: 131072
+  modelDefaults: {}
 
 # Postgres database for LLM cost tracking (agentgateway's request-logging DB, which
 # powers its cost dashboard and Analytics UI). Provisions a plain CNPG Cluster

@@ -139,13 +139,15 @@ spec:
               {{- end }}
               {{- end }}
               {{- if .Values.openrouter.enabled }}
-              - name: deepseek/deepseek-v4-flash
-                provider:
-                  reference: openrouter
-              {{- range .Values.openrouter.extraModels }}
+              {{- $openrouterDefaults := .Values.openrouter.modelDefaults | default dict }}
+              {{- range prepend (.Values.openrouter.extraModels | default list) "deepseek/deepseek-v4-flash" }}
               - name: {{ . | quote }}
                 provider:
                   reference: openrouter
+                {{- with index $openrouterDefaults . }}
+                defaults:
+                  {{- toYaml . | nindent 18 }}
+                {{- end }}
               {{- end }}
               {{- end }}
         replicaCount: {{ .Values.standalone.replicaCount | default 1 }}
