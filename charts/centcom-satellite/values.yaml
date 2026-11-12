@@ -10,6 +10,15 @@ environmentConfig:
 # -- Number of pod replicas
 replicaCount: 2
 
+# Seconds the satellite keeps serving after SIGTERM (with /readyz failing)
+# before it closes its listeners, so gateways and load balancers stop
+# routing to a terminating pod first. Without it, every eviction (Karpenter,
+# descheduler, rollouts) made a Cilium Gateway answer 503 "upstream connect
+# error ... connection timeout" for tens of seconds. Requires satellite
+# >= v0.117.1 (older images ignore it). terminationGracePeriodSeconds is
+# set to this + 60.
+shutdownDelaySeconds: 15
+
 image:
   # -- Container image repository
   repository: ghcr.io/loafoe/centcom-satellite

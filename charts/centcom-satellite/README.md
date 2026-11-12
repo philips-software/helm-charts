@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.59.0](https://img.shields.io/badge/Version-0.59.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.107.0](https://img.shields.io/badge/AppVersion-v0.107.0-informational?style=flat-square)
+![Version: 0.68.0](https://img.shields.io/badge/Version-0.68.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.117.1](https://img.shields.io/badge/AppVersion-v0.117.1-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -304,6 +304,7 @@ See `CROSS-ACCOUNT-ASSUMEROLE.md` in the innovation-day repo for the full onboar
 | serviceMonitor.relabelings | list | `[]` | Prometheus relabeling applied before scraping (relabel_configs) |
 | serviceMonitor.scrapeTimeout | string | `"10s"` | Per-scrape timeout |
 | serviceMonitor.targetLabels | list | `[]` | Service labels to copy onto scraped metrics as target labels |
+| shutdownDelaySeconds | int | `15` |  |
 | spire.agentSocket | string | `"unix:///spiffe-workload-api/spire-agent.sock"` | SPIRE agent socket path (env var passed to the application) |
 | spire.allowedSPIFFEIDs | list | `[]` | List of allowed SPIFFE IDs (empty = allow all from configured trust domains). Example: ["spiffe://example.org/ai-agent", "spiffe://partner.com/service"] |
 | spire.className | string | `"spire-release-spire"` | SPIRE controller manager className (must match your SPIRE installation). Common values: "spire-release-spire", "spire-system-spire" |

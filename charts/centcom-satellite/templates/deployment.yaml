@@ -25,6 +25,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "centcom-satellite.serviceAccountName" . }}
+      {{- /* hasKey, not default: 0 is a valid delay, and --reuse-values
+             upgrades don't carry new chart defaults. */}}
+      {{- $shutdownDelay := 15 }}
+      {{- if hasKey .Values "shutdownDelaySeconds" }}{{ $shutdownDelay = int .Values.shutdownDelaySeconds }}{{ end }}
+      # Drain delay + in-flight requests (task budgets <=45s, 55s shutdown
+      # timeout) + margin.
+      terminationGracePeriodSeconds: {{ add $shutdownDelay 60 }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -45,6 +52,8 @@ spec:
               value: "8080"
             - name: METRICS_PORT
               value: "9090"
+            - name: SHUTDOWN_DELAY_SECONDS
+              value: {{ $shutdownDelay | quote }}
             - name: LOG_LEVEL
               value: {{ .Values.observability.logLevel | quote }}
             - name: LOG_FORMAT
