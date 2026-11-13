@@ -203,6 +203,11 @@ features:
   # Useful for admin endpoints, ring management, config reloads, debugging.
   # Only allows requests to cluster-internal addresses (pods, services)
   httpRequest: false
+  # -- Response body cap for http_request, in KB (satellite >= v0.119.0;
+  # older images use a fixed cap). Larger bodies are truncated with
+  # body_truncated set. Clamped to 1..16384; the body is held in memory, so
+  # keep it well under resources.limits.memory.
+  httpRequestMaxBodyKB: 512
   # -- Enable pv_resize task for resizing persistent volumes.
   # When enabled, grants patch permission on PVCs
   pvResize: false

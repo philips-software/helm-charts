@@ -161,6 +161,9 @@ spec:
             {{- if .Values.features.httpRequest }}
             - name: HTTP_REQUEST_ENABLED
               value: "true"
+            {{- /* hasKey: --reuse-values upgrades don't carry new defaults */}}
+            - name: HTTP_REQUEST_MAX_BODY_KB
+              value: {{ (hasKey .Values.features "httpRequestMaxBodyKB" | ternary .Values.features.httpRequestMaxBodyKB 512) | int | quote }}
             {{- end }}
             {{- if .Values.features.pvResize }}
             - name: PV_RESIZE_ENABLED

@@ -1,6 +1,6 @@
 # centcom-satellite
 
-![Version: 0.70.0](https://img.shields.io/badge/Version-0.70.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.118.0](https://img.shields.io/badge/AppVersion-v0.118.0-informational?style=flat-square)
+![Version: 0.71.0](https://img.shields.io/badge/Version-0.71.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.119.0](https://img.shields.io/badge/AppVersion-v0.119.0-informational?style=flat-square)
 
 A lightweight Kubernetes helper service for webhook-triggered cluster operations
 
@@ -250,6 +250,7 @@ See `CROSS-ACCOUNT-ASSUMEROLE.md` in the innovation-day repo for the full onboar
 | features.helmApplication | bool | `true` | Enable HelmApplication (dip.io Crossplane composite) read access for get_resource/list_resources — Applications view read path. Requires features.getResource to also be true (get_resource/list_resources are the tasks that actually serve reads; this flag only grants RBAC) — enabling this alone with getResource:false leaves RBAC present but no task registered to use it. |
 | features.helmApplicationWrite | bool | `false` | Enable HelmApplication create/update/patch/delete (write path for helm_application_apply/_delete/_sync — Applications view deploy/sync/ delete). Independently toggleable from features.helmApplication (which only grants read); opt-in per cluster, off by default like other write-capable features (pvResize, podEvict, etc). |
 | features.httpRequest | bool | `false` | Enable http_request task for making HTTP requests to cluster-internal services. Useful for admin endpoints, ring management, config reloads, debugging. Only allows requests to cluster-internal addresses (pods, services) |
+| features.httpRequestMaxBodyKB | int | `512` | Response body cap for http_request, in KB (satellite >= v0.119.0; older images use a fixed cap). Larger bodies are truncated with body_truncated set. Clamped to 1..16384; the body is held in memory, so keep it well under resources.limits.memory. |
 | features.nodeclaimDelete | bool | `false` | Enable nodeclaim_delete task for Karpenter node management. When enabled, grants get/delete on karpenter.sh nodeclaims |
 | features.podEvict | bool | `false` | Enable pod_evict task for evicting/deleting pods. When enabled, grants eviction create, pod delete, and read on PDBs |
 | features.podResize | bool | `false` | Enable pod_resize task for in-place pod memory/CPU resize (KEP-1287). Requires Kubernetes 1.27+ with InPlacePodVerticalScaling feature gate |
