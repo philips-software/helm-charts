@@ -237,8 +237,19 @@ spec:
             - resourceName: memory
               restartPolicy: NotRequired
           {{- end }}
+          {{- /* With the VPA controlling requests only it caps its CPU
+                 recommendation at the CPU limit, so a CPU limit here would
+                 pin the pod at it (the chart's old 100m default throttled
+                 src-co-sb's scans). Drop it in that mode, including the one
+                 a --reuse-values release recorded at install time. */}}
+          {{- $vpa := .Values.vpa | default dict }}
+          {{- $vpaRequestsOnly := and $vpa.enabled (eq ($vpa.controlledValues | default "RequestsOnly") "RequestsOnly") }}
+          {{- $resources := deepCopy (.Values.resources | default dict) }}
+          {{- if and $vpaRequestsOnly (hasKey $resources "limits") }}
+          {{- $_ := unset $resources.limits "cpu" }}
+          {{- end }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml $resources | nindent 12 }}
           {{- if $needsAgentSocket }}
           volumeMounts:
             - name: spire-agent-socket

@@ -23,5 +23,5 @@ spec:
           cpu: {{ .Values.vpa.maxAllowed.cpu }}
           memory: {{ .Values.vpa.maxAllowed.memory }}
         controlledResources: ["cpu","memory"]
-        controlledValues: {{ .Values.vpa.controlledValues | default "RequestsAndLimits" }}
+        controlledValues: {{ .Values.vpa.controlledValues | default "RequestsOnly" }}
 {{- end }}
