@@ -203,6 +203,11 @@ features:
   # Useful for admin endpoints, ring management, config reloads, debugging.
   # Only allows requests to cluster-internal addresses (pods, services)
   httpRequest: false
+  # -- Response body cap for http_request, in KB (satellite >= v0.119.0;
+  # older images use a fixed cap). Larger bodies are truncated with
+  # body_truncated set. Clamped to 1..16384; the body is held in memory, so
+  # keep it well under resources.limits.memory.
+  httpRequestMaxBodyKB: 512
   # -- Enable pv_resize task for resizing persistent volumes.
   # When enabled, grants patch permission on PVCs
   pvResize: false
@@ -366,8 +371,10 @@ service:
 # the incident that prompted this), so install.sh's own (much larger) tiers
 # are not a safety net for that path at all.
 resources:
+  # No CPU limit by default: with vpa.controlledValues RequestsOnly the VPA
+  # tunes the CPU request and would cap it at a limit (dropped in that mode
+  # anyway). The memory limit is the real ceiling for request spikes.
   limits:
-    cpu: 100m
     memory: 256Mi
   requests:
     cpu: 10m
@@ -456,13 +463,16 @@ vpa:
   inPlaceResize: false
   # -- Minimum replicas the VPA will allow while resizing
   minReplicas: 1
-  # -- What the VPA rewrites: RequestsAndLimits (default) or RequestsOnly.
-  # With RequestsAndLimits the memory limit is scaled to keep the pod spec's
-  # limit:request ratio around the VPA's (typical-usage) target, so the
-  # effective limit can be far below resources.limits.memory: src-co-sb's
-  # 1536Mi limit ran at ~800Mi and OOMed on scan spikes (2026-11-12).
-  # RequestsOnly lets the VPA tune requests and keeps resources.limits as set.
-  controlledValues: RequestsAndLimits
+  # -- What the VPA rewrites: RequestsOnly (default since 0.69.0) or
+  # RequestsAndLimits. RequestsOnly tunes requests to real usage and keeps
+  # resources.limits.memory as the actual limit. RequestsAndLimits scales the
+  # limit to keep the limit:request ratio around the VPA's typical-usage
+  # target, which shrank every satellite's memory limit to 2x its idle use
+  # (122-312Mi against 384-768Mi configured, 2026-11-13) and OOMed
+  # src-co-sb on scan spikes, which percentiles never see. In RequestsOnly
+  # mode the Deployment drops resources.limits.cpu: the VPA caps its CPU
+  # recommendation at that limit.
+  controlledValues: RequestsOnly
   # -- Lower bound on resources the VPA will recommend. install.sh's
   # discover_memory tiers maxAllowed (and the static limit) from cluster pod
   # count but never touches this floor, so it stays fixed across every tier
