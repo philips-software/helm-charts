@@ -1,6 +1,14 @@
 {{- if .Values.kyvernoPolicy.enabled }}
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+# Migrated from a legacy kyverno.io/v1 ClusterPolicy to CEL
+# (policies.kyverno.io) -- see
+# https://kyverno.io/docs/guides/migration-to-cel/. Neither rule needs
+# regex or a runtime context lookup (unlike e.g. an ECR pull-through
+# rewrite policy): both referenced values were already resolved to plain
+# strings/ints by Helm at render time (imageCatalog.name/major,
+# kyvernoPolicy.operatorImage via substituteVars), so this is a
+# straight structural translation, not a behavior change.
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
 metadata:
   name: cnpg-force-imagecatalog
   labels:
@@ -9,48 +17,111 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
     policies.kyverno.io/title: Force ClusterImageCatalog for PostgreSQL Clusters
     policies.kyverno.io/category: CloudNativePG
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Cluster (postgresql.cnpg.io)
+    policies.kyverno.io/minversion: 1.19.0
     policies.kyverno.io/description: >-
       Mutates all CloudNativePG Cluster resources to use the default
-      ClusterImageCatalog and sets the operator image for bootstrap containers.
+      ClusterImageCatalog instead of a pinned imageName.
 spec:
-  rules:
-    - name: set-imagecatalogref
-      skipBackgroundRequests: true
-      match:
-        any:
-          - resources:
-              kinds:
-                - postgresql.cnpg.io/v1/Cluster
-      mutate:
-        patchesJson6902: |-
-          - op: remove
-            path: /spec/imageName
-          - op: add
-            path: /spec/imageCatalogRef
-            value:
-              apiGroup: postgresql.cnpg.io
-              kind: ClusterImageCatalog
-              name: {{ .Values.imageCatalog.name }}
-              major: {{ (index .Values.imageCatalog.images 0).major }}
-    - name: set-operator-image
-      skipBackgroundRequests: true
-      match:
-        any:
-          - resources:
-              kinds:
-                - Deployment
-              names:
-                - cloudnative-pg
-              namespaces:
-                - {{ .Values.operator.namespace }}
-      mutate:
-        patchStrategicMerge:
-          spec:
-            template:
-              spec:
-                containers:
-                  - name: manager
-                    env:
-                      - name: OPERATOR_IMAGE_NAME
-                        value: {{ include "cloudnative-pg-operator.substituteVars" (dict "str" .Values.kyvernoPolicy.operatorImage "ctx" .) | quote }}
+  failurePolicy: Ignore
+  autogen:
+    podControllers:
+      controllers: []
+  # Legacy rule had `skipBackgroundRequests: true` -- admission-time only,
+  # matched here.
+  evaluation:
+    background:
+      enabled: false
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["postgresql.cnpg.io"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["clusters"]
+  matchConditions:
+  - name: has-imagename
+    # Guards the JSONPatch "remove" below: it errors on a path that doesn't
+    # exist, which would otherwise fire on every UPDATE of a Cluster this
+    # policy already migrated to imageCatalogRef (imageName no longer
+    # present). The legacy ClusterPolicy had no equivalent guard; this is
+    # the one deliberate behavior addition in this migration, needed only
+    # because JSONPatch remove is strict where patchesJson6902 historically
+    # was not observed to be.
+    expression: "has(object.spec.imageName)"
+  mutations:
+  - patchType: JSONPatch
+    jsonPatch:
+      expression: >-
+        [
+          JSONPatch{op: "remove", path: "/spec/imageName"},
+          JSONPatch{op: "add", path: "/spec/imageCatalogRef", value: {
+            "apiGroup": dyn("postgresql.cnpg.io"),
+            "kind": dyn("ClusterImageCatalog"),
+            "name": dyn({{ .Values.imageCatalog.name | quote }}),
+            "major": dyn({{ (index .Values.imageCatalog.images 0).major }})
+          }}
+        ]
+---
+apiVersion: policies.kyverno.io/v1
+kind: MutatingPolicy
+metadata:
+  name: cnpg-operator-image
+  labels:
+    {{- include "cloudnative-pg-operator.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    policies.kyverno.io/title: Pin CloudNativePG Operator Image
+    policies.kyverno.io/category: CloudNativePG
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Deployment
+    policies.kyverno.io/minversion: 1.19.0
+    policies.kyverno.io/description: >-
+      Sets the cloudnative-pg operator Deployment's OPERATOR_IMAGE_NAME env
+      var on the manager container to this account's ECR pull-through copy
+      of the operator image.
+spec:
+  failurePolicy: Ignore
+  autogen:
+    podControllers:
+      controllers: []
+  # Legacy rule had `skipBackgroundRequests: true` -- admission-time only,
+  # matched here.
+  evaluation:
+    background:
+      enabled: false
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["apps"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["deployments"]
+  matchConditions:
+  - name: is-cloudnative-pg-deployment
+    expression: >-
+      object.metadata.name == "cloudnative-pg" && object.metadata.namespace == {{ .Values.operator.namespace | quote }}
+  mutations:
+  - patchType: ApplyConfiguration
+    applyConfiguration:
+      expression: >-
+        Object{
+          spec: Object.spec{
+            template: Object.spec.template{
+              spec: Object.spec.template.spec{
+                containers: object.spec.template.spec.containers.map(c, Object.spec.template.spec.containers{
+                  name: c.name,
+                  ?env: c.name == "manager"
+                    ? optional.of(
+                        c.?env.orValue([]).filter(e, e.name != "OPERATOR_IMAGE_NAME") +
+                        [Object.spec.template.spec.containers.env{
+                          name: "OPERATOR_IMAGE_NAME",
+                          value: {{ include "cloudnative-pg-operator.substituteVars" (dict "str" .Values.kyvernoPolicy.operatorImage "ctx" .) | quote }}
+                        }]
+                      )
+                    : optional.none()
+                })
+              }
+            }
+          }
+        }
 {{- end }}
