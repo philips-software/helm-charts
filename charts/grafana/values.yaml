@@ -140,7 +140,7 @@ grafana:
   preinstalledPlugins:
     # renovate: datasource=custom.grafanaPlugin depName=grafana-lokiexplore-app
     - id: grafana-lokiexplore-app
-      version: 3.1.0
+      version: 3.2.0
     # grafana-metricsdrilldown-app 3.1.0 requires Grafana core >=13.3.0-0
     # (grafanaDependency on the catalog) -- satisfied by grafanaChart.version
     # 14.2.0 above (appVersion 13.3.0). If grafanaChart.version is ever
