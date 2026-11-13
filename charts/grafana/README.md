@@ -1,6 +1,6 @@
 # grafana
 
-![Version: 0.81.22](https://img.shields.io/badge/Version-0.81.22-informational?style=flat-square)
+![Version: 0.81.24](https://img.shields.io/badge/Version-0.81.24-informational?style=flat-square)
 
 Deploys Grafana to a cluster
 
@@ -184,9 +184,9 @@ Users not in any of these groups will have the 'None' role and no access.
 | grafana.logLevel | string | `"info"` |  |
 | grafana.plugins | list | `[]` |  |
 | grafana.preinstalledPlugins[0].id | string | `"grafana-lokiexplore-app"` |  |
-| grafana.preinstalledPlugins[0].version | string | `"3.1.0"` |  |
+| grafana.preinstalledPlugins[0].version | string | `"3.2.0"` |  |
 | grafana.preinstalledPlugins[1].id | string | `"grafana-metricsdrilldown-app"` |  |
-| grafana.preinstalledPlugins[1].version | string | `"3.1.0"` |  |
+| grafana.preinstalledPlugins[1].version | string | `"3.2.0"` |  |
 | grafana.preinstalledPlugins[2].id | string | `"grafana-exploretraces-app"` |  |
 | grafana.preinstalledPlugins[2].version | string | `"3.2.0"` |  |
 | grafana.preinstalledPlugins[3].id | string | `"grafana-pyroscope-app"` |  |
