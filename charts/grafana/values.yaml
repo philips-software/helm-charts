@@ -154,7 +154,7 @@ grafana:
       version: 3.2.0
     # renovate: datasource=custom.grafanaPlugin depName=grafana-pyroscope-app
     - id: grafana-pyroscope-app
-      version: 3.1.0
+      version: 3.2.0
     # renovate: datasource=custom.grafanaPlugin depName=grafana-advisor-app
     - id: grafana-advisor-app
       version: 1.1.3
