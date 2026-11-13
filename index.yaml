@@ -1074,6 +1074,16 @@ entries:
     version: 0.1.0
   alloy-otlp-relay:
   - apiVersion: v2
+    created: "2026-11-13T14:05:03.401775314Z"
+    description: Minimal Alloy instance that receives OTLP metrics, filters by an
+      exact-name allow-list, and forwards to a Mimir gateway with a tenant header
+    digest: 3dbd92b5bce9e3a43544a825a05ff9926df152d7d9d29fb750b59e4194ceb24b
+    name: alloy-otlp-relay
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/alloy-otlp-relay-0.3.3/alloy-otlp-relay-0.3.3.tgz
+    version: 0.3.3
+  - apiVersion: v2
     created: "2026-10-20T07:28:14.174282863Z"
     description: Minimal Alloy instance that receives OTLP metrics, filters by an
       exact-name allow-list, and forwards to a Mimir gateway with a tenant header
@@ -7251,6 +7261,15 @@ entries:
   k8s-observability-monitoring:
   - apiVersion: v2
     appVersion: 4.6.0
+    created: "2026-11-13T14:05:03.718611594Z"
+    description: Helm chart for k8s-observability-monitoring
+    digest: 8682f6a215640ec325dd6bfab54e2f606ce2b08ecde345b68d63a75a7ee8919d
+    name: k8s-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-1.10.15/k8s-observability-monitoring-1.10.15.tgz
+    version: 1.10.15
+  - apiVersion: v2
+    appVersion: 4.6.0
     created: "2026-10-31T14:05:37.562697485Z"
     description: Helm chart for k8s-observability-monitoring
     digest: c18c96ed1dcebbb06c6fca3fe15cfc9b666fa85482e82bfcfe462eaef20ff459
@@ -8915,6 +8934,14 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.1.0/langfuse-bootstrap-0.1.0.tgz
     version: 0.1.0
   loki-bootstrap:
+  - apiVersion: v2
+    created: "2026-11-13T14:05:03.883767244Z"
+    description: A Helm chart for bootstrapping Loki
+    digest: d741bd67cffc11a04c6153a81ee6b3d705361ab706265e5c96ea6a42e7745dcc
+    name: loki-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.46.19/loki-bootstrap-0.46.19.tgz
+    version: 0.46.19
   - apiVersion: v2
     created: "2026-11-11T16:41:03.793539609Z"
     description: A Helm chart for bootstrapping Loki
@@ -11072,4 +11099,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-13T11:08:28.746728892Z"
+generated: "2026-11-13T14:05:03.885721282Z"
