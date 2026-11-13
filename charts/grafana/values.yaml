@@ -148,7 +148,7 @@ grafana:
     # instead of letting the preinstall fail silently at container start.
     # renovate: datasource=custom.grafanaPlugin depName=grafana-metricsdrilldown-app
     - id: grafana-metricsdrilldown-app
-      version: 3.1.0
+      version: 3.2.0
     # renovate: datasource=custom.grafanaPlugin depName=grafana-exploretraces-app
     - id: grafana-exploretraces-app
       version: 3.2.0
