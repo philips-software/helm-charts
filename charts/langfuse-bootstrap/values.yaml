@@ -158,6 +158,15 @@ database:
   # another instance), "preferred" (soft), or "" (CNPG default: preferred).
   # No effect at instances: 1.
   podAntiAffinityType: ""
+  # How CNPG updates the primary at the end of a rolling update (e.g. a
+  # ClusterImageCatalog minor bump). "switchover" promotes the most aligned
+  # replica after a CHECKPOINT + fast shutdown of the old primary: seconds.
+  # "restart" (the CNPG default) restarts the primary in place, with no
+  # writable primary for the whole shutdown + startup (~2m45s observed
+  # 2026-11-14). At instances: 1 both behave the same (nothing to promote).
+  # With "switchover", CNPG rejects one update that changes both the image
+  # and postgresql.parameters: change them in separate steps.
+  primaryUpdateMethod: switchover
   databaseName: langfuse
   storage:
     size: 5Gi

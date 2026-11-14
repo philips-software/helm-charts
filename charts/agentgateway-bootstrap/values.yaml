@@ -183,6 +183,15 @@ database:
   # Number of CNPG instances (1 = no HA, single replica; 2+ = HA with automatic
   # failover). Matches the DIP Postgres composition's default of 2.
   instances: 2
+  # How CNPG updates the primary at the end of a rolling update (e.g. a
+  # ClusterImageCatalog minor bump). "switchover" promotes the most aligned
+  # replica after a CHECKPOINT + fast shutdown of the old primary: seconds.
+  # "restart" (the CNPG default) restarts the primary in place, with no
+  # writable primary for the whole shutdown + startup (~2m45s observed
+  # 2026-11-14). At instances: 1 both behave the same (nothing to promote).
+  # With "switchover", CNPG rejects one update that changes both the image
+  # and postgresql.parameters: change them in separate steps.
+  primaryUpdateMethod: switchover
   # Database (and owner role) name.
   databaseName: agentgateway
   # NOTE: the owner password is NOT configured here. CNPG generates and owns it

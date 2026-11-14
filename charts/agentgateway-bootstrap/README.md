@@ -1,6 +1,6 @@
 # agentgateway-bootstrap
 
-![Version: 0.12.1](https://img.shields.io/badge/Version-0.12.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.12.2](https://img.shields.io/badge/Version-0.12.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 A Helm chart for bootstrapping agentgateway with Amazon Bedrock support on Kubernetes via ArgoCD Applications.
 
@@ -154,6 +154,7 @@ To actually recover production data with this, either point `database.clusterNam
 | database.databaseName | string | `"agentgateway"` |  |
 | database.enabled | bool | `true` |  |
 | database.instances | int | `2` |  |
+| database.primaryUpdateMethod | string | `"switchover"` |  |
 | database.resources.limits.memory | string | `"512Mi"` |  |
 | database.resources.requests.cpu | string | `"50m"` |  |
 | database.resources.requests.memory | string | `"128Mi"` |  |

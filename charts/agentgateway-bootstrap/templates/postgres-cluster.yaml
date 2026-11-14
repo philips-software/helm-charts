@@ -14,6 +14,9 @@ spec:
       {{- include "agentgateway-bootstrap.ownerLabels" . | nindent 6 }}
       app.kubernetes.io/managed-by: {{ include "agentgateway-bootstrap.managedBy" . }}
   instances: {{ .Values.database.instances }}
+  # Template default too: a `helm upgrade --reuse-values` from a release that
+  # predates this value has no database.primaryUpdateMethod at all.
+  primaryUpdateMethod: {{ .Values.database.primaryUpdateMethod | default "switchover" | quote }}
   {{- if .Values.database.backup.volumeSnapshot.enabled }}
   backup:
     volumeSnapshot:
