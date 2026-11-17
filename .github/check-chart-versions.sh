@@ -26,13 +26,18 @@ for name in $(changed_charts "$BASE"); do
   if [[ -z "$base_version" ]]; then
     # New chart (no Chart.yaml at base) — nothing to bump against.
     echo "ok: $name is new" >&2
-    continue
-  fi
-
-  if [[ "$current" == "$base_version" ]]; then
+  elif [[ "$current" == "$base_version" ]]; then
     violations+=("$name (still $current)")
   else
     echo "ok: $name $base_version -> $current" >&2
+  fi
+
+  # A chart shipping an install.sh self-verify marker must keep it equal to
+  # Chart.yaml's version, or action-helm-chart-repo silently skips publishing
+  # it (caught here, at PR time, instead of as a skipped-chart annotation).
+  marker="$(install_sh_marker "$name")"
+  if [[ -n "$marker" && "$marker" != "$current" ]]; then
+    violations+=("$name (install.sh INSTALL_SH_CHART_VERSION=$marker does not match Chart.yaml version: $current)")
   fi
 done
 

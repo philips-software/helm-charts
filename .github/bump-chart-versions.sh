@@ -46,6 +46,15 @@ for name in $(changed_charts "$BASE"); do
   new="$(bump_patch "$current")"
   yq -i ".version = \"$new\"" "$file"
   echo "bump: $name $current -> $new" >&2
+
+  # Charts that ship an install.sh self-verify marker must move it in lockstep
+  # with version:, or action-helm-chart-repo skips packaging/publishing the
+  # chart (marker/Chart.yaml mismatch guard).
+  if [[ -n "$(install_sh_marker "$name")" ]]; then
+    sed -i -E "s/^INSTALL_SH_CHART_VERSION=\"[^\"]*\"/INSTALL_SH_CHART_VERSION=\"$new\"/" "$(chart_install_sh "$name")"
+    echo "bump: $name install.sh marker -> $new" >&2
+  fi
+
   bumped+=("$name")
 done
 

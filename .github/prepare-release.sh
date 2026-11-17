@@ -58,7 +58,7 @@ fi
 # docs regeneration atomic.
 git config user.name "github-actions[bot]"
 git config user.email "github-actions[bot]@users.noreply.github.com"
-git add 'charts/**/Chart.yaml' 'charts/**/README.md'
+git add 'charts/**/Chart.yaml' 'charts/**/README.md' 'charts/**/install.sh'
 git commit -m "chore: bump chart version(s) and regenerate docs for dependency update" >&2
 
 printf '%s\n' "$bumped"
