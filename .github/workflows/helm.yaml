@@ -6,6 +6,14 @@ on:
       - main
   workflow_dispatch:
 
+# Not strictly required (push_with_retry absorbs ghcr replication lag, and
+# re-pushing an existing tag just overwrites it), but serializing is cheap and
+# avoids two runs racing to login/push/sign at once. cancel-in-progress is
+# left off so a queued run never interrupts another run's cosign step.
+concurrency:
+  group: helm-publish-ghcr
+  cancel-in-progress: false
+
 jobs:
   helm:
     runs-on: ubuntu-22.04
