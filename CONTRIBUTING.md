@@ -41,4 +41,22 @@ Any changes to Chart.yaml or values.yaml require an update of the README.md. Thi
 helm-docs -g charts/«chart-name»
 ```
 
+## Chart version contract
+
+`chart-releaser` runs with `skip_existing: true`: a chart whose contents changed but whose `version:` didn't move is silently **not** released, with nothing on the PR to show for it. So any PR that changes a chart's contents must also bump that chart's own `version:` (patch), and, for a chart that ships an `install.sh` self-verify marker (`INSTALL_SH_CHART_VERSION`), keep the marker equal to `version:` — a mismatch makes `action-helm-chart-repo` skip packaging the chart.
+
+This is enforced in two places:
+
+- `version-guard` in `Lint and Test Charts` fails the PR if a changed chart's `version:` wasn't bumped, or if its `install.sh` marker doesn't match. Renovate PRs satisfy this automatically: the `bumpVersions` rule in `.github/renovate.json5` bumps `version:` and the `install.sh` marker together whenever it bumps a tracked dependency.
+- `prepare-release.sh`, run from `release.yml` on the push to `main`, is the safety net: for every chart changed in the push it bumps any still-unmoved `version:`, reconciles any still-mismatched `install.sh` marker, and regenerates the helm-docs README for every changed chart — independent of who (if anyone) already bumped the version. It's idempotent, so a repeated push is a no-op.
+
+If `version-guard` fails on your PR, fix it locally against `origin/main` and commit:
+
+```shell
+.github/bump-chart-versions.sh origin/main
+.github/regen-chart-docs.sh origin/main
+```
+
+A bump missed before merge is still picked up on the push to `main` by `prepare-release.sh`.
+
 [helm-docs]: https://github.com/norwoodj/helm-docs "The helm-docs tool auto-generates documentation from helm charts into markdown files."

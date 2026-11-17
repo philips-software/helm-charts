@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # CI guard: fail if a chart's contents changed relative to a base ref but its
-# version: was NOT bumped. Complements bump-chart-versions.sh — the bumper runs
-# on Renovate PRs, this guard catches human PRs (and any case the bumper missed)
-# before they merge and silently no-op the release.
+# version: was NOT bumped. Complements the push-time net in prepare-release.sh:
+# Renovate bumps version: (and the install.sh marker, where one exists) itself
+# via the renovate.json5 bumpVersions rule, so this guard is what makes a
+# missed bump on a human PR visible before merge and silently no-op the
+# release.
 #
 # Usage:
 #   .github/check-chart-versions.sh [base-ref]    # default base: origin/main

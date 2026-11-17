@@ -58,12 +58,12 @@ jobs:
             | sudo tar -xz -C /usr/local/bin helm-docs
           helm-docs --version
 
-      # The PR-time bumper (chart-version-bump.yml) and the PR-time guard
-      # (lint-test.yml) are both unreliable here: their runs get created but sit
-      # unassigned for hours and are auto-cancelled on merge, so bumps reached
-      # main with version: untouched and chart-releaser skipped the release.
-      # Re-check on the push, where this workflow is known to run.
-      - name: Bump chart versions missed at PR time
+      # version-guard (lint-test.yml) blocks a PR whose changed chart didn't
+      # move version:, but Renovate (and humans) can still merge with a stale
+      # install.sh marker or stale docs if the bump landed through some other
+      # path. Re-check on the push, where this workflow is known to run, so a
+      # missed bump/marker/docs update is caught before chart-releaser runs.
+      - name: Bump chart versions missed before merge
         id: bump
         run: |
           bumped="$(.github/prepare-release.sh "${{ github.event.before }}")"
@@ -81,19 +81,21 @@ jobs:
             git push origin "HEAD:main"
           }
 
-      - name: Report chart versions left unreleased
+      - name: Report chart changes left unpushed
         if: steps.push.outcome == 'failure'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHARTS: ${{ steps.bump.outputs.charts }}
         run: |
-          # The bump is committed locally but main is protected against CI
-          # pushes, so nothing shipped. File it loudly instead of letting it rot
-          # the way the PR-time failures did.
-          echo "::error::Could not push the chart version bump to main. These charts changed but keep an already-released version:, so chart-releaser will skip them: ${CHARTS}"
+          # The commit (version bump, install.sh marker reconcile, and/or
+          # regenerated docs) is local but main is protected against CI
+          # pushes, so nothing shipped. File it loudly instead of letting it
+          # rot the way the PR-time failures did: a version or marker
+          # mismatch left in place makes chart-releaser skip the chart.
+          echo "::error::Could not push release-pipeline changes to main. These charts changed but the commit was not pushed, so chart-releaser may skip or publish stale docs for them: ${CHARTS}"
           gh issue create --repo "$GITHUB_REPOSITORY" \
-            --title "chart version bump blocked on main (${GITHUB_SHA:0:8})" \
-            --body "$(printf 'The release run for `%s` bumped:\n\n%s\n\nbut could not push to main, so chart-releaser (skip_existing) skipped them.\n\nBump the version: in each chart and re-run, or allow the Actions app to push to main.' "$GITHUB_SHA" "${CHARTS}")" || true
+            --title "chart release-pipeline commit blocked on main (${GITHUB_SHA:0:8})" \
+            --body "$(printf 'The release run for `%s` committed version/marker/docs updates for:\n\n%s\n\nbut could not push to main, so chart-releaser (skip_existing) may skip them or publish with stale docs.\n\nRun `.github/prepare-release.sh` against `origin/main` locally and push the commit, or allow the Actions app to push to main.' "$GITHUB_SHA" "${CHARTS}")" || true
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.9.0
