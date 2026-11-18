@@ -128,7 +128,9 @@ spec:
             "Action": [
               "ecr:BatchGetImage",
               "inspector2:ListFindings",
-              "inspector2:ListCoverage"
+              "inspector2:ListCoverage",
+              "inspector2:ListFindingAggregations",
+              "inspector2:SearchVulnerabilities"
             ],
             "Resource": "*"
           }
