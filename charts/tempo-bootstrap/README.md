@@ -1,13 +1,13 @@
 # tempo
 
-![Version: 0.45.11](https://img.shields.io/badge/Version-0.45.11-informational?style=flat-square)
+![Version: 0.45.18](https://img.shields.io/badge/Version-0.45.18-informational?style=flat-square)
 
 # Deployment
 
 ## Using helm
 
 ```shell
-helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.45.11 -n monitoring
+helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstrap:0.45.18 -n monitoring
 ```
 
 ## Prerequisites
@@ -32,6 +32,7 @@ helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstra
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | existingBucketName | string | `""` |  |
+| features.statefulSetDriftHealer | bool | `true` |  |
 | gateway.replicas | int | `2` | Number of gateway replicas |
 | initOverrides.package | string | `"busybox"` |  |
 | initOverrides.tag | string | `"1.38.0"` |  |
@@ -52,7 +53,7 @@ helm upgrade --install oci://ghcr.io/philips-software/helm-charts/tempo-bootstra
 | querier.replicas | int | `2` | Number of querier replicas |
 | queryFrontend.replicas | int | `2` | Number of query-frontend replicas |
 | streamOverHTTPEnabled | bool | `true` |  |
-| tempoChart.version | string | `"3.17.1"` |  |
+| tempoChart.version | string | `"3.29.0"` |  |
 | vpa.components.backendScheduler.enabled | bool | `true` |  |
 | vpa.components.backendScheduler.maxAllowed.cpu | int | `1` |  |
 | vpa.components.backendScheduler.maxAllowed.memory | string | `"4Gi"` |  |

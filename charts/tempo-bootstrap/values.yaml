@@ -31,6 +31,20 @@ existingBucketName: ""
 
 argoProject: default
 
+features:
+  # Enable the StatefulSet drift healer. The upstream tempo-distributed
+  # chart ships a pre-upgrade hook (statefulSetRecreateJob /
+  # recreateOnSizeChangeHook) that recreates StatefulSets whose
+  # volumeClaimTemplates changed between chart versions. That hook relies
+  # on Helm's `lookup` function and `.Release.IsUpgrade`, neither of which
+  # fire when ArgoCD renders the chart via `helm template`, so it never
+  # runs under GitOps and the tempo-helm Application can get stuck
+  # permanently OutOfSync, the same failure mode hit on loki-bootstrap's
+  # pattern-ingester/ruler StatefulSets. This CronJob reimplements the
+  # upstream check directly against the live cluster and recreates the
+  # affected StatefulSet so the next sync can apply cleanly.
+  statefulSetDriftHealer: true
+
 streamOverHTTPEnabled: true
 
 multitenancyEnabled: true

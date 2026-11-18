@@ -1,0 +1,280 @@
+{{- if .Values.features.statefulSetDriftHealer }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: loki-sts-drift-healer
+  namespace: loki-system
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: loki-sts-drift-healer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["argoproj.io"]
+    resources: ["applications"]
+    resourceNames: ["loki-helm"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: loki-sts-drift-healer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: loki-sts-drift-healer
+subjects:
+  - kind: ServiceAccount
+    name: loki-sts-drift-healer
+    namespace: loki-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: loki-sts-drift-healer
+  namespace: loki-system
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["apps"]
+    resources: ["statefulsets"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: loki-sts-drift-healer
+  namespace: loki-system
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: loki-sts-drift-healer
+subjects:
+  - kind: ServiceAccount
+    name: loki-sts-drift-healer
+    namespace: loki-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-sts-drift-healer-script
+  namespace: loki-system
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+data:
+  run.sh: |
+    #!/bin/sh
+    set -eu
+
+    APP_NAME="loki-helm"
+    APP_NS="{{ .Release.Namespace }}"
+
+    kubectl get application "$APP_NAME" -n "$APP_NS" -o json > /tmp/app.json
+
+    REPO_URL=$(jq -r '.spec.source.repoURL' /tmp/app.json)
+    CHART=$(jq -r '.spec.source.chart' /tmp/app.json)
+    REVISION=$(jq -r '.spec.source.targetRevision' /tmp/app.json)
+    RELEASE_NAME=$(jq -r '.spec.source.helm.releaseName // "release"' /tmp/app.json)
+    TARGET_NS=$(jq -r '.spec.destination.namespace' /tmp/app.json)
+    jq -c '.spec.source.helm.valuesObject // {}' /tmp/app.json > /tmp/values.json
+
+    echo "Checking $APP_NS/$APP_NAME (chart=$CHART repo=$REPO_URL rev=$REVISION targetNs=$TARGET_NS) for StatefulSet drift..."
+
+    case "$REPO_URL" in
+      http://*|https://*)
+        helm template "$RELEASE_NAME" "$CHART" --repo "$REPO_URL" --version "$REVISION" -f /tmp/values.json > /tmp/rendered.yaml
+        ;;
+      *)
+        helm template "$RELEASE_NAME" "oci://${REPO_URL%/}/${CHART}" --version "$REVISION" -f /tmp/values.json > /tmp/rendered.yaml
+        ;;
+    esac
+
+    yq eval-all 'select(.kind=="StatefulSet")' /tmp/rendered.yaml -o=json | jq -s '.' > /tmp/desired.json
+
+    python3 /scripts/heal.py "$TARGET_NS" "$APP_NAME" "$APP_NS"
+
+  heal.py: |
+    # Compares the StatefulSets the current loki-helm Application wants to render
+    # (/tmp/desired.json, produced by run.sh via `helm template`) against what is
+    # live in the cluster, for exactly the fields the upstream loki chart's own
+    # statefulSetRecreateJob hook would check (podManagementPolicy, serviceName,
+    # volumeClaimTemplates count/name/size) -- that hook needs Helm's `lookup`
+    # and `.Release.IsUpgrade`, neither of which fire when ArgoCD renders via
+    # `helm template`, so it never runs under GitOps. This reimplements it: on a
+    # mismatch it patches existing PVCs to the new requested size (mirroring the
+    # upstream patchPVC behavior) and recreates the StatefulSet with
+    # --cascade=orphan, which drops only the StatefulSet object -- pods and PVCs
+    # are untouched -- so the next sync can create it fresh with the new fields.
+    import json
+    import subprocess
+    import sys
+
+    TARGET_NS = sys.argv[1]
+    APP_NAME = sys.argv[2]
+    APP_NS = sys.argv[3]
+
+
+    def run(args):
+        return subprocess.run(args, capture_output=True, text=True)
+
+
+    def main():
+        with open("/tmp/desired.json") as f:
+            desired_list = json.load(f)
+
+        any_action = False
+
+        for desired in desired_list:
+            name = desired["metadata"]["name"]
+            r = run(["kubectl", "get", "statefulset", name, "-n", TARGET_NS, "-o", "json"])
+            if r.returncode != 0:
+                continue
+            live = json.loads(r.stdout)
+
+            needs_recreate = False
+            reasons = []
+
+            d_pmp = desired["spec"].get("podManagementPolicy", "OrderedReady")
+            l_pmp = live["spec"].get("podManagementPolicy", "OrderedReady")
+            if d_pmp != l_pmp:
+                needs_recreate = True
+                reasons.append(f"podManagementPolicy {l_pmp} -> {d_pmp}")
+
+            d_svc = desired["spec"].get("serviceName", "")
+            l_svc = live["spec"].get("serviceName", "")
+            if d_svc != l_svc:
+                needs_recreate = True
+                reasons.append(f"serviceName {l_svc} -> {d_svc}")
+
+            d_vcts = desired["spec"].get("volumeClaimTemplates", [])
+            l_vcts = live["spec"].get("volumeClaimTemplates", [])
+            resize = {}
+            if len(d_vcts) != len(l_vcts):
+                needs_recreate = True
+                reasons.append(f"volumeClaimTemplates count {len(l_vcts)} -> {len(d_vcts)}")
+            else:
+                l_by_name = {v["metadata"]["name"]: v for v in l_vcts}
+                for dv in d_vcts:
+                    vname = dv["metadata"]["name"]
+                    lv = l_by_name.get(vname)
+                    if lv is None:
+                        needs_recreate = True
+                        reasons.append(f"volumeClaimTemplate {vname} added")
+                        continue
+                    d_size = dv["spec"]["resources"]["requests"]["storage"]
+                    l_size = lv["spec"]["resources"]["requests"]["storage"]
+                    if d_size != l_size:
+                        needs_recreate = True
+                        resize[vname] = d_size
+                        reasons.append(f"volumeClaimTemplate {vname} size {l_size} -> {d_size}")
+
+            if not needs_recreate:
+                print(f"[drift-healer] StatefulSet/{name}: no drift")
+                continue
+
+            any_action = True
+            print(f"[drift-healer] StatefulSet/{name} needs recreation: {'; '.join(reasons)}")
+
+            if resize:
+                replicas = int(live["spec"].get("replicas", 0))
+                for idx in range(replicas):
+                    for claim_name, size in resize.items():
+                        pvc_name = f"{claim_name}-{name}-{idx}"
+                        patch = json.dumps([{"op": "replace", "path": "/spec/resources/requests/storage", "value": size}])
+                        pr = run(["kubectl", "patch", "pvc", pvc_name, "-n", TARGET_NS, "--type=json", "-p", patch])
+                        if pr.returncode == 0:
+                            print(f"  patched PVC {pvc_name} -> {size}")
+                        else:
+                            print(f"  WARNING: failed to patch PVC {pvc_name}: {pr.stderr.strip()}")
+
+            dr = run(["kubectl", "delete", "statefulset", name, "-n", TARGET_NS, "--cascade=orphan", "--wait=true", "--ignore-not-found=true"])
+            if dr.returncode == 0:
+                print(f"  recreated StatefulSet/{name} (orphan-deleted, pods untouched)")
+            else:
+                print(f"  ERROR deleting StatefulSet/{name}: {dr.stderr.strip()}")
+
+        if any_action:
+            run(["kubectl", "annotate", "application", APP_NAME, "-n", APP_NS, "argocd.argoproj.io/refresh=hard", "--overwrite"])
+            print(f"[drift-healer] requested hard refresh of Application {APP_NS}/{APP_NAME}")
+        else:
+            print("[drift-healer] no drift detected across any StatefulSet")
+
+
+    if __name__ == "__main__":
+        main()
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: loki-sts-drift-healer
+  namespace: loki-system
+  labels:
+    {{- include "loki-bootstrap.labels" . | nindent 4 }}
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "loki-bootstrap.labels" . | nindent 8 }}
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "loki-bootstrap.labels" . | nindent 12 }}
+        spec:
+          serviceAccountName: loki-sts-drift-healer
+          restartPolicy: OnFailure
+          containers:
+            - name: loki-sts-drift-healer
+              # renovate: datasource=docker depName=alpine/k8s
+              image: alpine/k8s:1.37.2
+              command: ["/bin/sh", "/scripts/run.sh"]
+              env:
+                - name: HOME
+                  value: /tmp
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                readOnlyRootFilesystem: true
+                seccompProfile:
+                  type: RuntimeDefault
+          volumes:
+            - name: script
+              configMap:
+                name: loki-sts-drift-healer-script
+                defaultMode: 0755
+            - name: tmp
+              emptyDir: {}
+{{- end }}
