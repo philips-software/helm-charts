@@ -8,6 +8,19 @@ on:
       - 'charts/**'
       - '.github/workflows/release.yml'
 
+# chart-releaser mutates two repo-wide singletons: the GitHub Releases/tags
+# namespace and the gh-pages branch/index.yaml. The group is a fixed string,
+# not keyed on github.ref, because it guards those shared resources rather
+# than anything specific to the ref that triggered the run. Cancelling a
+# queued run is disabled: a run killed between creating the release and
+# pushing the index would leave that same partial state behind. A replaced
+# *pending* run loses nothing, because chart-releaser discovers its charts
+# from "changed since the latest tag" at the time it runs, so anything the
+# cancelled run would have released is picked up by the run that replaces it.
+concurrency:
+  group: release-charts-gh-pages
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-22.04

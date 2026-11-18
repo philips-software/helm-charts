@@ -1,6 +1,6 @@
 cnpgChart:
   # renovate: datasource=helm depName=cloudnative-pg registryUrl=https://cloudnative-pg.io/charts
-  version: 0.29.1
+  version: 0.29.2
 
 # These values are injected by the HelmApplication
 environmentConfig:
@@ -73,7 +73,7 @@ imageCatalog:
 kyvernoPolicy:
   enabled: true
   # renovate: datasource=docker depName=ghcr.io/cloudnative-pg/cloudnative-pg
-  operatorImage: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.30.1"
+  operatorImage: "${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.30.2"
 
 barmanCloudPlugin:
   enabled: true

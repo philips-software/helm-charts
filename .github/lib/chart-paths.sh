@@ -38,6 +38,22 @@ chart_version() {
   yq -r '.version' "$(chart_file "$1")"
 }
 
+# chart_install_sh <name>
+#   Echo the absolute path to a chart's install.sh (may not exist).
+chart_install_sh() {
+  echo "$CHARTS_DIR/$1/install.sh"
+}
+
+# install_sh_marker <name>
+#   Echo a chart's INSTALL_SH_CHART_VERSION self-verify marker, or nothing if
+#   the chart ships no install.sh, or install.sh has no marker.
+install_sh_marker() {
+  local script
+  script="$(chart_install_sh "$1")"
+  [[ -f "$script" ]] || return 0
+  grep -o '^INSTALL_SH_CHART_VERSION="[^"]*"' "$script" 2>/dev/null | sed -E 's/.*="(.*)"/\1/' || true
+}
+
 # base_chart_version <name> <base-ref>
 #   Echo a chart's version: as it was at the point this branch diverged from
 #   <base-ref> (the merge-base), or empty if the chart did not exist there.
