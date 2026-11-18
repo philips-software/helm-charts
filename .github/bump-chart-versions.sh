@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Auto-bump the version: of any chart whose contents changed relative to a base
-# ref, UNLESS the version was already bumped in this branch. Intended to run on
-# Renovate (and other) PRs: Renovate updates an appVersion / image tag / values
-# file but never touches the wrapper chart's own version:, so chart-releaser
-# silently skips the release (skip_existing: true). This closes that gap.
+# ref, UNLESS the version was already bumped in this branch. Renovate bumps
+# version: itself in-PR via the renovate.json5 bumpVersions rule, so this is
+# the manual/agent recovery path for a PR that missed it, and the engine
+# behind the push-time net in prepare-release.sh, which re-checks on the push
+# to main in case a human PR merged without bumping (chart-releaser silently
+# skips the release when version: is unbumped: skip_existing: true).
 #
 # Usage:
 #   .github/bump-chart-versions.sh [base-ref]     # default base: origin/main

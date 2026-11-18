@@ -57,9 +57,10 @@
       // filePatterns resolve relative to the directory of the file holding the
       // dependency, and both forms below normalise (minimatch resolves "..")
       // to the one owning Chart.yaml -- deps in templates/ and config/ need the
-      // "../" form. Keep both patterns in a SINGLE rule on purpose: two rules
-      // matching the same chart in one branch would each bump it, stepping the
-      // version twice.
+      // "../" form. Keep both bumpVersions entries in a SINGLE rule on
+      // purpose: two rules matching the same chart in one branch would each
+      // run their own bumpVersions array, stepping version: (and the marker)
+      // twice.
       matchFileNames: [
         'charts/*/Chart.yaml',
         'charts/*/values.yaml',
@@ -72,6 +73,22 @@
           name: 'Bump chart version alongside dependency update',
           filePatterns: ['{{packageFileDir}}/Chart.yaml', '{{packageFileDir}}/../Chart.yaml'],
           matchStrings: ['version:\\s*"?(?<version>[^"\\s]+)"?'],
+          bumpType: 'patch',
+        },
+        {
+          // A chart that ships an install.sh self-verify marker
+          // (INSTALL_SH_CHART_VERSION) must keep it equal to Chart.yaml's
+          // version:, or action-helm-chart-repo skips packaging/publishing it
+          // (see check-chart-versions.sh). Moving it here means version-guard
+          // in lint-test.yml stays green on a Renovate PR with no separate
+          // push-back step. install.sh lives alongside Chart.yaml, so it
+          // takes the same two filePatterns forms. No-ops for charts that
+          // don't ship install.sh: the matchStrings pattern simply finds
+          // nothing to bump in a file that has no such marker (or doesn't
+          // exist).
+          name: 'Bump install.sh chart-version marker alongside dependency update',
+          filePatterns: ['{{packageFileDir}}/install.sh', '{{packageFileDir}}/../install.sh'],
+          matchStrings: ['INSTALL_SH_CHART_VERSION="(?<version>[^"]+)"'],
           bumpType: 'patch',
         },
       ],

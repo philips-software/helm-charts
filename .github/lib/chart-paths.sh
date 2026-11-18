@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Shared helpers for mapping changed files to their owning chart and reading
-# chart versions. Sourced by bump-chart-versions.sh (auto-bump on PR) and
-# check-chart-versions.sh (CI guard). Keeping the logic here means the bumper
-# and the guard can never disagree about what "the owning chart" is.
+# chart versions. Sourced by bump-chart-versions.sh (manual/agent recovery and
+# the push-time net's bump step), check-chart-versions.sh (CI guard), and
+# prepare-release.sh (push-time net). Keeping the logic here means none of
+# them can disagree about what "the owning chart" is.
 set -euo pipefail
 
 # Absolute path to the charts/ directory in this repo.
