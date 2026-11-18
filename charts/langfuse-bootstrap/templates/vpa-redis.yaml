@@ -22,4 +22,16 @@ spec:
         maxAllowed:
           {{- toYaml .Values.vpa.components.redis.maxAllowed | nindent 10 }}
         controlledResources: ["memory", "cpu"]
+        # RequestsOnly (not the API default RequestsAndLimits): VPA only
+        # ever adjusts the scheduling-relevant request. The declared limit
+        # in values.yaml stays a fixed ceiling VPA never shrinks, so a
+        # cold-start recommendation (new pod, little usage history) can't
+        # leave zero headroom between typical usage and OOM - see the
+        # 2026-11-18 langfuse-worker OOM crashloop this chart hit on
+        # ops-tools-euw1 right after a traffic repoint, root-caused to
+        # this gap (worker/clickhouse/keeper all declared a 1:1
+        # request:limit ratio, which RequestsAndLimits preserved exactly -
+        # web/redis never hit this because their defaults already used a
+        # 2:1 ratio).
+        controlledValues: RequestsOnly
 {{- end }}
