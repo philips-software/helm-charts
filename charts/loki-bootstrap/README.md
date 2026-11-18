@@ -1,6 +1,6 @@
 # loki-bootstrap
 
-![Version: 0.46.9](https://img.shields.io/badge/Version-0.46.9-informational?style=flat-square)
+![Version: 0.47.0](https://img.shields.io/badge/Version-0.47.0-informational?style=flat-square)
 
 ## Prerequisites
 
@@ -27,6 +27,7 @@
 | existingBucketName | string | `""` |  |
 | extraResourceAttributesAsIndexLabels | list | `[]` |  |
 | features.cloudwatchKillJob | bool | `false` |  |
+| features.statefulSetDriftHealer | bool | `true` |  |
 | gateway.replicas | int | `3` |  |
 | gateway.resources.limits.memory | string | `"128Mi"` |  |
 | gateway.resources.requests.cpu | string | `"50m"` |  |
@@ -49,7 +50,7 @@
 | loki.server.grpc_server_max_concurrent_streams | int | `1000` |  |
 | loki.server.grpc_server_max_recv_msg_size | int | `83886080` |  |
 | loki.server.grpc_server_max_send_msg_size | int | `83886080` |  |
-| lokiChart.version | string | `"20.0.3"` |  |
+| lokiChart.version | string | `"21.3.1"` |  |
 | multitenancyEnabled | bool | `true` |  |
 | patternIngester.extraArgs.grpc_max_recv_msg_size | int | `83886080` |  |
 | patternIngester.extraArgs.grpc_max_send_msg_size | int | `83886080` |  |

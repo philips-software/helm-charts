@@ -163,6 +163,18 @@ features:
   # Enable the CloudWatch kill job that removes CloudWatch ClusterOutputs
   # and ensures a null-output ClusterOutput exists
   cloudwatchKillJob: false
+  # Enable the StatefulSet drift healer. The upstream loki chart ships a
+  # pre-upgrade hook (statefulSetRecreateJob) that recreates StatefulSets
+  # whose immutable fields (podManagementPolicy, serviceName,
+  # volumeClaimTemplates) changed between chart versions. That hook relies
+  # on Helm's `lookup` function and `.Release.IsUpgrade`, neither of which
+  # fire when ArgoCD renders the chart via `helm template`, so it never runs
+  # under GitOps and the loki-helm Application gets stuck permanently
+  # OutOfSync. This CronJob watches the loki-helm Application's sync error
+  # for the resulting "Forbidden: updates to statefulset spec" message and
+  # recreates (cascade=orphan, pods keep running) the named StatefulSet so
+  # the next sync can apply cleanly.
+  statefulSetDriftHealer: true
 
 # Vertical Pod Autoscaler configuration
 # Requires VPA to be installed in the cluster
