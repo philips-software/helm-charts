@@ -3793,6 +3793,23 @@ entries:
     version: 0.1.0
   common-bootstrap:
   - apiVersion: v2
+    appVersion: 0.0.58
+    created: "2026-11-19T12:06:53.444691545Z"
+    description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
+      deploys crossplane-compositions, and uses HelmApplication CRs to bootstrap platform
+      components. '
+    digest: 9cb45981e3f84349fb427ebfba10525440cc3345b0826affb6aa37df204fda70
+    keywords:
+    - crossplane
+    - common
+    - bootstrap
+    - argocd
+    name: common-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/common-bootstrap-2.2.6/common-bootstrap-2.2.6.tgz
+    version: 2.2.6
+  - apiVersion: v2
     appVersion: 0.0.56
     created: "2026-11-14T19:22:00.832526432Z"
     description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
@@ -10824,6 +10841,14 @@ entries:
     version: 0.43.0
   tempo-bootstrap:
   - apiVersion: v2
+    created: "2026-11-19T12:06:53.791667041Z"
+    description: A Helm chart for bootstrapping Tempo
+    digest: fac653db008b86ce3ad0cb59ffb1ff581e0a6a8c2f087103e4395d6678b72f66
+    name: tempo-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.46.1/tempo-bootstrap-0.46.1.tgz
+    version: 0.46.1
+  - apiVersion: v2
     created: "2026-11-18T07:43:54.127105258Z"
     description: A Helm chart for bootstrapping Tempo
     digest: 5ee055dbdb2104c3318e2a4e0e60457f4c3e293947011f04b40601d4001d1bd1
@@ -11444,4 +11469,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-18T20:23:26.310089152Z"
+generated: "2026-11-19T12:06:53.793046451Z"
