@@ -211,6 +211,19 @@ rules:
   - apiGroups: ["apiextensions.crossplane.io"]
     resources: ["environmentconfigs"]
     verbs: ["get"]
+  # Crossplane Provider/ProviderRevision read access for RCA on provider
+  # health/install issues (crash loops, failed package installs, image
+  # pull/cert failures) in crossplane-system. Both are cluster-scoped
+  # (not namespaced to crossplane-system) and carry Crossplane's own
+  # aggregate-to-view label, not the k8s-native one `view` selects on —
+  # same gap as every other Crossplane CRD (see the comment above) — so
+  # get_resource/list_resources can't read them without this. Status-only
+  # diagnostic data (install/health conditions, package image ref), no
+  # sensitive fields, so granted unconditionally like the EnvironmentConfig
+  # rule above.
+  - apiGroups: ["pkg.crossplane.io"]
+    resources: ["providers", "providerrevisions"]
+    verbs: ["get", "list", "watch"]
 {{- with .Values.rbac.additionalRules }}
 {{ toYaml . | indent 2 }}
 {{- end }}
