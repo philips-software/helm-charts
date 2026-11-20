@@ -145,6 +145,8 @@
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*version:\\s*"?(?<currentValue>[^"\\s]+)"?',
         // version: field without registryUrl
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*version:\\s*"?(?<currentValue>[^"\\s]+)"?',
+        // <name>Version: field (e.g. crossplaneProvidersVersion), without registryUrl
+        '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s*\\n\\s*\\w+Version:\\s*"?(?<currentValue>[^"\\s]+)"?',
         // chart_version: field
         '#\\s*renovate:\\s*datasource=(?<datasource>\\S+?)\\s+depName=(?<depName>\\S+?)\\s+registryUrl=(?<registryUrl>\\S+?)\\s*\\n\\s*chart_version:\\s*"?(?<currentValue>[^"\\s]+)"?',
         // GitHub workflow env vars (UPPER_CASE: value)
