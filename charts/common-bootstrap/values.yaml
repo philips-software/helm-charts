@@ -33,8 +33,8 @@ crossplaneCompositions:
 #     crossplane-compositions). Needs clusterResourceWhitelist for CRDs,
 #     ClusterRoles, etc.
 #   - projects.apps: namespaced workloads bootstrapped alongside infra
-#     (k8s-monitoring today, future helmApplications entries). Deliberately
-#     has no cluster-scoped access.
+#     (k8s-monitoring today, future helmApplications entries). Cluster-scoped
+#     access is limited to RBAC and the one CRD k8s-monitoring ships.
 # Neither project targets the argocd namespace as a destination -- only this
 # chart's own Application-of-Applications bootstrapping lives there, and that
 # isn't managed through either project.
@@ -101,11 +101,19 @@ argocd:
       # Grafana's k8s-monitoring chart (Alloy collectors) needs its own
       # ClusterRole/ClusterRoleBinding to scrape cluster-wide resources, so
       # this can't be empty -- but it's scoped to RBAC only, not '*'/'*'.
+      # It also manages the Alloy Operator's CRD (alloy-operator subchart),
+      # whose Alloy resources drive the collectors. Allowed by name only so no
+      # other CRD can be created, changed or pruned from this project: every
+      # CR of a CRD goes with it. Needs Argo CD >= 3.3; older AppProject CRDs
+      # drop the unknown name field and the entry then allows every CRD.
       clusterResourceWhitelist:
         - group: rbac.authorization.k8s.io
           kind: ClusterRole
         - group: rbac.authorization.k8s.io
           kind: ClusterRoleBinding
+        - group: apiextensions.k8s.io
+          kind: CustomResourceDefinition
+          name: alloys.collectors.grafana.com
 
 # HelmApplications to deploy via Crossplane composition
 # These will be created after the EnvironmentConfig is ready
