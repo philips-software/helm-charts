@@ -1,6 +1,6 @@
 # common-bootstrap
 
-![Version: 2.2.2](https://img.shields.io/badge/Version-2.2.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.52](https://img.shields.io/badge/AppVersion-0.0.52-informational?style=flat-square)
+![Version: 2.3.0](https://img.shields.io/badge/Version-2.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.0.58](https://img.shields.io/badge/AppVersion-0.0.58-informational?style=flat-square)
 
 Common Bootstrap Helm chart.
 Creates EnvironmentConfig from a ConfigMap, deploys crossplane-compositions,
@@ -22,6 +22,9 @@ and uses HelmApplication CRs to bootstrap platform components.
 | argocd.projects.apps.clusterResourceWhitelist[0].kind | string | `"ClusterRole"` |  |
 | argocd.projects.apps.clusterResourceWhitelist[1].group | string | `"rbac.authorization.k8s.io"` |  |
 | argocd.projects.apps.clusterResourceWhitelist[1].kind | string | `"ClusterRoleBinding"` |  |
+| argocd.projects.apps.clusterResourceWhitelist[2].group | string | `"apiextensions.k8s.io"` |  |
+| argocd.projects.apps.clusterResourceWhitelist[2].kind | string | `"CustomResourceDefinition"` |  |
+| argocd.projects.apps.clusterResourceWhitelist[2].name | string | `"alloys.collectors.grafana.com"` |  |
 | argocd.projects.apps.create | bool | `true` |  |
 | argocd.projects.apps.description | string | `"Namespaced workloads bootstrapped alongside common-infra"` |  |
 | argocd.projects.apps.destinationNamespaces[0] | string | `"k8s-observability-monitoring"` |  |
@@ -73,7 +76,7 @@ and uses HelmApplication CRs to bootstrap platform components.
 | harvester.enabled | bool | `true` |  |
 | harvester.image.pullPolicy | string | `"IfNotPresent"` |  |
 | harvester.image.repository | string | `"docker.io/alpine/k8s"` |  |
-| harvester.image.tag | string | `"1.37.1"` |  |
+| harvester.image.tag | string | `"1.37.2"` |  |
 | harvester.nodeSelector | object | `{}` |  |
 | harvester.serviceAccount.name | string | `"hsp-addons-harvester"` |  |
 | harvester.tolerations[0].key | string | `"CriticalAddonsOnly"` |  |
@@ -87,7 +90,7 @@ and uses HelmApplication CRs to bootstrap platform components.
 | statefulSetImmutableReconciler.appFilter | list | `[]` |  |
 | statefulSetImmutableReconciler.dryRun | bool | `false` |  |
 | statefulSetImmutableReconciler.enabled | bool | `false` |  |
-| statefulSetImmutableReconciler.image.tag | string | `"1.37.1"` |  |
+| statefulSetImmutableReconciler.image.tag | string | `"1.37.2"` |  |
 | statefulSetImmutableReconciler.schedule | string | `"*/10 * * * *"` |  |
 
 ----------------------------------------------
