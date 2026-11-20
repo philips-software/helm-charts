@@ -1,6 +1,6 @@
 # langfuse-bootstrap
 
-![Version: 0.9.18](https://img.shields.io/badge/Version-0.9.18-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.10.1](https://img.shields.io/badge/Version-0.10.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Deploys [Langfuse](https://langfuse.com/) via ArgoCD: CNPG Postgres, ClickHouse (rendered by the upstream chart against a pre-installed [ClickHouse Operator](../clickhouse-operator-bootstrap)), a self-managed single-instance Valkey, and S3 access (IRSA or static credentials) against an existing bucket.
 
@@ -147,7 +147,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | ingress.httpRoute.sectionName | string | `""` |  |
 | ingress.httpRoute.sharedGatewayName | string | `"platform"` |  |
 | ingress.httpRoute.sharedGatewayNamespace | string | `"kube-system"` |  |
-| langfuse.image.tag | string | `"4.74.0"` |  |
+| langfuse.image.tag | string | `"4.83.0"` |  |
 | langfuse.nextauthUrl | string | `"http://localhost:3000"` |  |
 | langfuse.revisionHistoryLimit | int | `3` |  |
 | langfuse.web.affinity | object | `{}` |  |
@@ -170,7 +170,7 @@ Langfuse OSS has no native groups-claim-to-role mapping, so new SSO users land w
 | langfuse.worker.resources.requests.cpu | string | `"100m"` |  |
 | langfuse.worker.resources.requests.memory | string | `"1Gi"` |  |
 | langfuseChart.repoURL | string | `"oci://ghcr.io/langfuse/langfuse-k8s/charts"` |  |
-| langfuseChart.version | string | `"2.2.4"` |  |
+| langfuseChart.version | string | `"2.2.5"` |  |
 | namespace | string | `"langfuse-system"` |  |
 | redis.image.repository | string | `"valkey/valkey"` |  |
 | redis.image.tag | string | `"9.2"` |  |
