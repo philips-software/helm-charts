@@ -45,6 +45,44 @@ environmentConfig:
   managedBy: ""
 
 # =============================================================================
+# SCHEDULING / AVAILABILITY
+# =============================================================================
+# Spreads every provider's single-replica pod across distinct nodes so a
+# sync that recreates all provider Deployments at once (e.g. a provider
+# version bump) can't let the scheduler pack all of them onto one small
+# node -- which starves each provider's startup CPU usage and has caused
+# real OOM kills (Go's GC falling behind allocation under CPU contention,
+# ballooning RSS past the configured memory limit before it can catch up).
+topologySpreadConstraints:
+  enabled: true
+  maxSkew: 1
+  # ScheduleAnyway (soft) rather than DoNotSchedule (hard): a small cluster
+  # that can't fully satisfy the spread should still schedule the pod
+  # somewhere rather than leave it Pending.
+  whenUnsatisfiable: ScheduleAnyway
+
+# One PodDisruptionBudget per provider (minAvailable: 1 on a single-replica
+# Deployment blocks ALL voluntary eviction of it -- Karpenter consolidation,
+# node drain, descheduler -- since there's no second replica to take over).
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# One VerticalPodAutoscaler per provider. See templates/vpa.yaml for why
+# controlledValues defaults to RequestsOnly rather than RequestsAndLimits.
+vpa:
+  enabled: true
+  updateMode: InPlaceOrRecreate
+  minReplicas: 1
+  controlledValues: RequestsOnly
+  minAllowed:
+    cpu: 20m
+    memory: 256Mi
+  maxAllowed:
+    cpu: 500m
+    memory: 1Gi
+
+# =============================================================================
 # CROSSPLANE PROVIDERS CONFIGURATION
 # =============================================================================
 # Package configuration for all AWS providers

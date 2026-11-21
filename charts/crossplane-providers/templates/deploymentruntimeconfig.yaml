@@ -23,6 +23,21 @@ spec:
           labels:
             {{- include "crossplane-providers.labels" $ | nindent 12 }}
         spec:
+          {{- if $.Values.topologySpreadConstraints.enabled }}
+          # Spreads every provider pod of this release across distinct nodes (the
+          # labelSelector matches the common chart-wide labels every provider's
+          # pod carries, not just this one), so a Helm/ArgoCD sync that recreates
+          # all provider Deployments at once can't pile all of them onto a single
+          # node. ScheduleAnyway (not DoNotSchedule) so a small/short-on-capacity
+          # cluster never leaves a pod Pending over this.
+          topologySpreadConstraints:
+            - maxSkew: {{ $.Values.topologySpreadConstraints.maxSkew | default 1 }}
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: {{ $.Values.topologySpreadConstraints.whenUnsatisfiable | default "ScheduleAnyway" }}
+              labelSelector:
+                matchLabels:
+                  {{- include "crossplane-providers.selectorLabels" $ | nindent 18 }}
+          {{- end }}
           securityContext:
             seccompProfile:
               type: RuntimeDefault
@@ -43,7 +58,7 @@ spec:
                 {{- toYaml .resources | nindent 16 }}
                 {{- else }}
                 limits:
-                  memory: 560Mi
+                  memory: 768Mi
                 requests:
                   cpu: 40m
                   memory: 320Mi

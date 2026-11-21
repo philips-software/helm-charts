@@ -1,0 +1,23 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+{{- range concat .Values.providers .Values.extraProviders }}
+{{- if not (eq (.enabled | toString) "false") }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Values.package.namespace }}
+  labels:
+    {{- include "crossplane-providers.labels" $ | nindent 4 }}
+spec:
+  # Each provider runs a single replica, so this blocks voluntary eviction
+  # (Karpenter consolidation, node drain, descheduler) of its only pod
+  # entirely -- intentional: there's no second replica to take over, so any
+  # voluntary disruption here is full downtime for that provider.
+  minAvailable: {{ $.Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      pkg.crossplane.io/provider: {{ .name }}
+{{- end }}
+{{- end }}
+{{- end }}
