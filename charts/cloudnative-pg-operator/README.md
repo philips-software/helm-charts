@@ -1,6 +1,6 @@
 # cloudnative-pg-operator
 
-![Version: 0.13.2](https://img.shields.io/badge/Version-0.13.2-informational?style=flat-square)
+![Version: 0.14.4](https://img.shields.io/badge/Version-0.14.4-informational?style=flat-square)
 
 A Helm chart for bootstrapping CloudNativePG operator with Kyverno policies
 
@@ -40,19 +40,19 @@ first in the list — the Kyverno policy always reads `imageCatalog.images[0].ma
 |-----|------|---------|-------------|
 | argoProject | string | `"common-infra"` |  |
 | barmanCloudPlugin.enabled | bool | `true` |  |
-| barmanCloudPlugin.version | string | `"0.8.1"` |  |
-| cnpgChart.version | string | `"0.29.1"` |  |
+| barmanCloudPlugin.version | string | `"0.9.0"` |  |
+| cnpgChart.version | string | `"0.29.2"` |  |
 | environmentConfig.managedBy | string | `""` |  |
 | environmentConfig.owner | string | `""` |  |
 | environmentConfig.region | string | `""` |  |
 | environmentConfig.resourcePrefix | string | `""` |  |
 | environmentConfig.sharedServicesAccountId | string | `""` |  |
 | imageCatalog.enabled | bool | `true` |  |
-| imageCatalog.images[0].image | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:18.6-standard-trixie"` |  |
+| imageCatalog.images[0].image | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/postgresql:19.0-standard-trixie"` |  |
 | imageCatalog.images[0].major | int | `18` |  |
 | imageCatalog.name | string | `"default"` |  |
 | kyvernoPolicy.enabled | bool | `true` |  |
-| kyvernoPolicy.operatorImage | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.30.1"` |  |
+| kyvernoPolicy.operatorImage | string | `"${sharedServicesAccountId}.dkr.ecr.${region}.amazonaws.com/github/cloudnative-pg/cloudnative-pg:1.30.2"` |  |
 | operator.dnsPolicy | string | `""` |  |
 | operator.fullnameOverride | string | `"cloudnative-pg"` |  |
 | operator.hostNetwork | bool | `false` |  |
@@ -63,7 +63,7 @@ first in the list — the Kyverno policy always reads `imageCatalog.images[0].ma
 | operator.tolerations | list | `[]` |  |
 | operator.updateStrategy | object | `{}` |  |
 | volumeSnapshotPruner.enabled | bool | `true` |  |
-| volumeSnapshotPruner.image | string | `"alpine/k8s:1.37.1"` |  |
+| volumeSnapshotPruner.image | string | `"alpine/k8s:1.37.2"` |  |
 | volumeSnapshotPruner.retentionDays | int | `14` |  |
 | volumeSnapshotPruner.schedule | string | `"45 3 * * *"` |  |
 
