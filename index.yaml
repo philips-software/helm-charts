@@ -5024,6 +5024,24 @@ entries:
     version: 0.0.2
   crossplane-providers:
   - apiVersion: v2
+    created: "2026-11-21T17:44:17.36856753Z"
+    description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or
+      EKS Pod Identity configuration
+    digest: 9ee291ccc6837cbcd405e18782950cfb95ea8dc6f305eb9e16d7cb4484668f9d
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    - pod-identity
+    maintainers:
+    - name: Philips Software
+    name: crossplane-providers
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-providers-0.0.47/crossplane-providers-0.0.47.tgz
+    version: 0.0.47
+  - apiVersion: v2
     created: "2026-11-21T17:25:57.07301691Z"
     description: A Helm chart for deploying Crossplane (AWS) providers with IRSA or
       EKS Pod Identity configuration
@@ -11600,4 +11618,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-21T17:25:57.393945209Z"
+generated: "2026-11-21T17:44:17.369304634Z"
