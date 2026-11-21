@@ -61,12 +61,14 @@ topologySpreadConstraints:
   # somewhere rather than leave it Pending.
   whenUnsatisfiable: ScheduleAnyway
 
-# One PodDisruptionBudget per provider (minAvailable: 1 on a single-replica
-# Deployment blocks ALL voluntary eviction of it -- Karpenter consolidation,
-# node drain, descheduler -- since there's no second replica to take over).
-podDisruptionBudget:
-  enabled: true
-  minAvailable: 1
+# Deliberately no PodDisruptionBudget here: every provider runs a single
+# replica (replicas: 1 is hardcoded in deploymentruntimeconfig.yaml), and a
+# PDB only gates the Eviction API (Karpenter consolidation/drain,
+# descheduler) -- it does nothing for a resync recreating the Deployment,
+# which is what actually causes a provider outage. With replicas: 1,
+# minAvailable: 1 means zero allowed disruptions: there's no second replica
+# to take over, so it buys no availability, it only blocks/delays
+# legitimate node consolidation and drains for every provider forever.
 
 # One VerticalPodAutoscaler per provider. See templates/vpa.yaml for why
 # controlledValues defaults to RequestsOnly rather than RequestsAndLimits.

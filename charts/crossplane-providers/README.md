@@ -1,6 +1,6 @@
 # crossplane-providers
 
-![Version: 0.0.46](https://img.shields.io/badge/Version-0.0.46-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.0.47](https://img.shields.io/badge/Version-0.0.47-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 ## Overview
 
@@ -27,7 +27,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-providers
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.46"
+    version: "0.0.47"
     releaseName: crossplane-providers
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -53,7 +53,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-providers
-    targetRevision: "0.0.46"
+    targetRevision: "0.0.47"
     helm:
       valueFiles:
         - values.yaml
@@ -98,8 +98,6 @@ spec:
 | package.registry | string | `"xpkg.crossplane.io/crossplane-contrib"` |  |
 | package.revisionHistoryLimit | int | `1` |  |
 | package.version | string | `"v2.10.0"` |  |
-| podDisruptionBudget.enabled | bool | `true` |  |
-| podDisruptionBudget.minAvailable | int | `1` |  |
 | providers[0].enabled | bool | `true` |  |
 | providers[0].name | string | `"provider-family-aws"` |  |
 | providers[1].enabled | bool | `true` |  |
