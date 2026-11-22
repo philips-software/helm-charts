@@ -3848,6 +3848,23 @@ entries:
     version: 0.1.0
   common-bootstrap:
   - apiVersion: v2
+    appVersion: 0.0.59
+    created: "2026-11-22T12:17:20.311291611Z"
+    description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
+      deploys crossplane-compositions, and uses HelmApplication CRs to bootstrap platform
+      components. '
+    digest: 5a453050dda2740721fbe7501a0afceb510b818d6017dcf0afc1b3165d583892
+    keywords:
+    - crossplane
+    - common
+    - bootstrap
+    - argocd
+    name: common-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/common-bootstrap-2.3.1/common-bootstrap-2.3.1.tgz
+    version: 2.3.1
+  - apiVersion: v2
     appVersion: 0.0.58
     created: "2026-11-20T20:21:20.88727459Z"
     description: 'Common Bootstrap Helm chart. Creates EnvironmentConfig from a ConfigMap,
@@ -6640,6 +6657,13 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.0.14/fluent-bit-out-hsdp-0.0.14.tgz
     version: 0.0.14
   grafana:
+  - apiVersion: v2
+    created: "2026-11-22T12:17:20.816196882Z"
+    digest: 4faa00d6c016776634799add2f7bbcb8f6e65bca45c6aabee2d7e4fef81b9323
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.81.27/grafana-0.81.27.tgz
+    version: 0.81.27
   - apiVersion: v2
     created: "2026-11-17T13:21:52.75856938Z"
     digest: 948c46fdc55a2fc3b51f588fab8883e9720d31896ee711c2bf40db2942692b5e
@@ -11384,6 +11408,24 @@ entries:
     version: 0.34.0
   zitadel-bootstrap:
   - apiVersion: v2
+    created: "2026-11-22T12:17:21.294601867Z"
+    description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with
+      CNPG Postgres and Gateway API ingress
+    digest: 6cd702cb651f18329b389d951406ff9b848c7bf4781474ee66e37842432e50d1
+    keywords:
+    - zitadel
+    - identity
+    - oidc
+    - iam
+    - sso
+    - argocd
+    - bootstrap
+    name: zitadel-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.4.6/zitadel-bootstrap-0.4.6.tgz
+    version: 0.4.6
+  - apiVersion: v2
     created: "2026-11-10T10:02:50.926607755Z"
     description: A Helm chart for bootstrapping Zitadel (identity/OIDC provider) with
       CNPG Postgres and Gateway API ingress
@@ -11635,4 +11677,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-21T18:53:10.64811051Z"
+generated: "2026-11-22T12:17:21.296182098Z"
