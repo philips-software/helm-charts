@@ -7,6 +7,11 @@ kind: VerticalPodAutoscaler
 metadata:
   name: {{ .name }}-vpa
   namespace: {{ $.Values.package.namespace }}
+  annotations:
+    # VPA CRDs come from the vertical-pod-autoscaler app (sync wave 21); without this a
+    # fresh cluster fails validation of this whole app until then, which also blocks the
+    # ProviderConfig/ClusterProviderConfig this provider installs and everything after them.
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
   labels:
     {{- include "crossplane-providers.labels" $ | nindent 4 }}
 spec:
