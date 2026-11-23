@@ -1,6 +1,6 @@
 # k8s-observability-monitoring
 
-![Version: 1.10.14](https://img.shields.io/badge/Version-1.10.14-informational?style=flat-square) ![AppVersion: 4.6.0](https://img.shields.io/badge/AppVersion-4.6.0-informational?style=flat-square)
+![Version: 1.10.17](https://img.shields.io/badge/Version-1.10.17-informational?style=flat-square) ![AppVersion: 4.6.1](https://img.shields.io/badge/AppVersion-4.6.1-informational?style=flat-square)
 
 Helm chart for k8s-observability-monitoring
 
@@ -403,7 +403,7 @@ node memory.
 | prometheusOperatorObjects.serviceMonitors.labelExpressions | list | `[]` | Label expressions to filter which ServiceMonitors to scrape. |
 | prometheusOperatorObjects.serviceMonitors.metricsTuning | object | `{"excludeMetrics":[]}` | Metrics tuning to filter metrics. |
 | prometheusOperatorObjects.serviceMonitors.metricsTuning.excludeMetrics | list | `[]` | Metrics to exclude. Can use regular expressions. Example: ["apiserver_request_duration_seconds_bucket"] |
-| spiffe | object | `{"audience":"","collectors":[],"enabled":false,"helper":{"image":"ghcr.io/spiffe/spiffe-helper:0.12.3","resources":{"limits":{"memory":"32Mi"},"requests":{"cpu":"1m","memory":"16Mi"}}},"jwtPath":"/var/run/secrets/spiffe/jwt/token","trustDomain":""}` | SPIFFE authentication configuration When enabled, adds spiffe-helper sidecar to customAlloy for JWT token refresh. For destinations using SPIFFE, set auth.type: bearerToken with bearerTokenFile. |
+| spiffe | object | `{"audience":"","collectors":[],"enabled":false,"helper":{"image":"ghcr.io/spiffe/spiffe-helper:0.12.4","resources":{"limits":{"memory":"32Mi"},"requests":{"cpu":"1m","memory":"16Mi"}}},"jwtPath":"/var/run/secrets/spiffe/jwt/token","trustDomain":""}` | SPIFFE authentication configuration When enabled, adds spiffe-helper sidecar to customAlloy for JWT token refresh. For destinations using SPIFFE, set auth.type: bearerToken with bearerTokenFile. |
 | spiffe.collectors | list | `[]` | Upstream collectors that should receive the spiffe-helper sidecar so they can authenticate to SPIFFE (bearerToken) destinations. Valid values: alloy-logs, alloy-receiver, alloy-metrics. Replaces the manual collectorCommon sidecar injection. |
 | telemetryServices | object | `{"kube-state-metrics":{"deploy":false},"node-exporter":{"deploy":false}}` | Telemetry services deployment flags |
 
