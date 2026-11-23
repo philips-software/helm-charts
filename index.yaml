@@ -8646,6 +8646,23 @@ entries:
     version: 0.1.0
   langfuse-bootstrap:
   - apiVersion: v2
+    created: "2026-11-23T14:38:37.668925163Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: 3dd652b5af7e306b4fb6c0a1f374ae21b04e7dc4ece276ad456f6ce5b79ba86e
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.10.2/langfuse-bootstrap-0.10.2.tgz
+    version: 0.10.2
+  - apiVersion: v2
     created: "2026-11-20T23:42:09.068174403Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
       with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
@@ -9489,6 +9506,14 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.1.0/langfuse-bootstrap-0.1.0.tgz
     version: 0.1.0
   loki-bootstrap:
+  - apiVersion: v2
+    created: "2026-11-23T14:38:37.86377251Z"
+    description: A Helm chart for bootstrapping Loki
+    digest: 0b04544412062cb96ce5f43116d3da93720742d1b546e58efdb08f2e81d2b2c3
+    name: loki-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/loki-bootstrap-0.47.4/loki-bootstrap-0.47.4.tgz
+    version: 0.47.4
   - apiVersion: v2
     created: "2026-11-21T18:52:41.435389037Z"
     description: A Helm chart for bootstrapping Loki
@@ -11082,6 +11107,14 @@ entries:
     version: 0.43.0
   tempo-bootstrap:
   - apiVersion: v2
+    created: "2026-11-23T14:38:38.056741305Z"
+    description: A Helm chart for bootstrapping Tempo
+    digest: 78edc7538935d9c280768b1f4d5271c07716cea313847b5f3a0913fec11d64b4
+    name: tempo-bootstrap
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/tempo-bootstrap-0.46.2/tempo-bootstrap-0.46.2.tgz
+    version: 0.46.2
+  - apiVersion: v2
     created: "2026-11-19T12:06:53.791667041Z"
     description: A Helm chart for bootstrapping Tempo
     digest: fac653db008b86ce3ad0cb59ffb1ff581e0a6a8c2f087103e4395d6678b72f66
@@ -11728,4 +11761,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-23T07:49:27.641515191Z"
+generated: "2026-11-23T14:38:38.058974586Z"
