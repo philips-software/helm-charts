@@ -5848,6 +5848,23 @@ entries:
     version: 0.0.3
   dex-issuer:
   - apiVersion: v2
+    created: "2026-11-23T07:47:11.548721445Z"
+    description: Deploys Dex (OpenID Connect issuer) with its Postgres storage, gRPC
+      mTLS PKI, and Crossplane connector-management plane
+    digest: 170a8b5890d03566e739cdba74f089f63205d737f79716e77ad7d68512036199
+    keywords:
+    - dex
+    - oidc
+    - issuer
+    - crossplane
+    maintainers:
+    - name: Philips Software
+    name: dex-issuer
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/dex-issuer-0.15.6/dex-issuer-0.15.6.tgz
+    version: 0.15.6
+  - apiVersion: v2
     created: "2026-11-20T14:21:04.752778287Z"
     description: Deploys Dex (OpenID Connect issuer) with its Postgres storage, gRPC
       mTLS PKI, and Crossplane connector-management plane
@@ -6675,6 +6692,13 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/fluent-bit-out-hsdp-0.0.14/fluent-bit-out-hsdp-0.0.14.tgz
     version: 0.0.14
   grafana:
+  - apiVersion: v2
+    created: "2026-11-23T07:47:11.710036429Z"
+    digest: cd589d64ea466991f05c55a2c79e592ff08139a8f7bbd5e4f93cf85e787a69cb
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.81.28/grafana-0.81.28.tgz
+    version: 0.81.28
   - apiVersion: v2
     created: "2026-11-22T12:17:20.816196882Z"
     digest: 4faa00d6c016776634799add2f7bbcb8f6e65bca45c6aabee2d7e4fef81b9323
@@ -11695,4 +11719,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-22T17:53:02.430491104Z"
+generated: "2026-11-23T07:47:11.711292994Z"
