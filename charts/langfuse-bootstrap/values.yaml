@@ -194,7 +194,7 @@ clickhouse:
     image:
       repository: clickhouse/clickhouse-server
       # renovate: datasource=docker depName=clickhouse/clickhouse-server
-      tag: "26.10"
+      tag: "26.11"
     storage:
       size: 20Gi
       # Leave empty to use the cluster's default StorageClass.
