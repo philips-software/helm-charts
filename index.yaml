@@ -4785,6 +4785,22 @@ entries:
     version: 0.0.2
   crossplane-functions:
   - apiVersion: v2
+    created: "2026-11-25T11:02:36.65894139Z"
+    description: A Helm chart for deploying Crossplane functions
+    digest: 3c34845b2e726dafb9daebc9e5714bacb08f44a3f4ec013ad22e580e929f38f8
+    keywords:
+    - crossplane
+    - aws
+    - providers
+    - irsa
+    maintainers:
+    - name: Philips Software
+    name: crossplane-functions
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/crossplane-functions-0.0.20/crossplane-functions-0.0.20.tgz
+    version: 0.0.20
+  - apiVersion: v2
     created: "2026-10-26T22:42:20.105605736Z"
     description: A Helm chart for deploying Crossplane functions
     digest: 3fc53b1fd42bc13b07fc4cd622813cedeb7c775b432d22358d11934cba195997
@@ -6693,6 +6709,13 @@ entries:
     version: 0.0.14
   grafana:
   - apiVersion: v2
+    created: "2026-11-25T11:02:36.951327015Z"
+    digest: ec3f5f2a43a86a3c44027c5c7eeea27cf4edc3307d410ff586698b7b72d50659
+    name: grafana
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/grafana-0.81.29/grafana-0.81.29.tgz
+    version: 0.81.29
+  - apiVersion: v2
     created: "2026-11-23T07:47:11.710036429Z"
     digest: cd589d64ea466991f05c55a2c79e592ff08139a8f7bbd5e4f93cf85e787a69cb
     name: grafana
@@ -7729,6 +7752,15 @@ entries:
     version: 0.0.1
   k8s-observability-monitoring:
   - apiVersion: v2
+    appVersion: 4.6.2
+    created: "2026-11-25T11:02:37.156216061Z"
+    description: Helm chart for k8s-observability-monitoring
+    digest: c8c54dd6edcd44f62d081f8aff5bf8af3751d649e47329c889612a765c1ecccf
+    name: k8s-observability-monitoring
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/k8s-observability-monitoring-1.10.18/k8s-observability-monitoring-1.10.18.tgz
+    version: 1.10.18
+  - apiVersion: v2
     appVersion: 4.6.1
     created: "2026-11-23T07:49:27.640550105Z"
     description: Helm chart for k8s-observability-monitoring
@@ -8645,6 +8677,23 @@ entries:
     - https://github.com/philips-software/helm-charts/releases/download/k8sgpt-bootstrap-0.1.0/k8sgpt-bootstrap-0.1.0.tgz
     version: 0.1.0
   langfuse-bootstrap:
+  - apiVersion: v2
+    created: "2026-11-25T11:02:37.447317509Z"
+    description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
+      with CNPG Postgres, self-managed Redis, and S3 (IRSA or static credentials)
+    digest: 4174f15b0ff9e51bd36fe1041509e51daa54c26716c17451b3f8ea76ec117a5b
+    keywords:
+    - langfuse
+    - llm
+    - observability
+    - clickhouse
+    - argocd
+    - bootstrap
+    name: langfuse-bootstrap
+    type: application
+    urls:
+    - https://github.com/philips-software/helm-charts/releases/download/langfuse-bootstrap-0.10.3/langfuse-bootstrap-0.10.3.tgz
+    version: 0.10.3
   - apiVersion: v2
     created: "2026-11-23T14:38:37.668925163Z"
     description: A Helm chart for bootstrapping Langfuse (LLM engineering platform)
@@ -11785,4 +11834,4 @@ entries:
     urls:
     - https://github.com/philips-software/helm-charts/releases/download/zitadel-bootstrap-0.1.0/zitadel-bootstrap-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-24T21:43:57.844691075Z"
+generated: "2026-11-25T11:02:37.906274748Z"
