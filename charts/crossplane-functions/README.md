@@ -1,6 +1,6 @@
 # crossplane-functions
 
-![Version: 0.0.19](https://img.shields.io/badge/Version-0.0.19-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.0.20](https://img.shields.io/badge/Version-0.0.20-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 ## Overview
 
@@ -33,7 +33,7 @@ kind: Kustomization
 helmCharts:
   - name: crossplane-functions
     repo: https://philips-software.github.io/helm-charts
-    version: "0.0.19"
+    version: "0.0.20"
     releaseName: crossplane-functions
     namespace: crossplane-system
     valuesFile: values.yaml
@@ -59,7 +59,7 @@ spec:
   source:
     repoURL: https://philips-software.github.io/helm-charts
     chart: crossplane-functions
-    targetRevision: "0.0.19"
+    targetRevision: "0.0.20"
     helm:
       valueFiles:
         - values.yaml
@@ -94,7 +94,7 @@ spec:
 | functions[0].critical | bool | `true` |  |
 | functions[0].name | string | `"function-auto-ready"` |  |
 | functions[0].registry | string | `"ghcr.io/crossplane-contrib"` |  |
-| functions[0].version | string | `"v0.7.3"` |  |
+| functions[0].version | string | `"v0.7.4"` |  |
 | functions[1].critical | bool | `true` |  |
 | functions[1].name | string | `"function-go-templating"` |  |
 | functions[1].registry | string | `"ghcr.io/crossplane-contrib"` |  |
