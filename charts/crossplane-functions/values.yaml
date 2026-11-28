@@ -28,7 +28,7 @@ functions:
   - name: function-auto-ready
     registry: ghcr.io/crossplane-contrib
     # renovate: datasource=docker depName=ghcr.io/crossplane-contrib/function-auto-ready
-    version: v0.7.4
+    version: v0.7.5
     critical: true
 
   # Enables Go templating in Crossplane compositions
@@ -44,14 +44,14 @@ functions:
     # renovate: datasource=docker depName=ghcr.io/crossplane-contrib/function-patch-and-transform
     version: v0.11.3
     critical: true
-    
+
   # Manages environment-specific configurations in compositions
   - name: function-environment-configs
     registry: ghcr.io/crossplane-contrib
     # renovate: datasource=docker depName=ghcr.io/crossplane-contrib/function-environment-configs
     version: v0.9.3
     critical: true
-    
+
 # extraFunctions: Additional functions to install beyond the default set
 # Use this array to add custom or experimental functions without modifying
 # the main functions list. Follows the same structure as functions above.
